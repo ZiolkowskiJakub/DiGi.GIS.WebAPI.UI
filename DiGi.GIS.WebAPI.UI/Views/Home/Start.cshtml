@@ -1,0 +1,34 @@
+﻿@{
+    // Usunięcie Layoutu, aby wyświetlić TYLKO czysty tekst/HTML bez żadnych ramek systemowych
+    Layout = null; 
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GIS Project</title>
+    <style>
+        .button-container { margin: 20px 0; }
+        button { 
+            padding: 10px 20px; 
+            cursor: pointer; 
+            margin-right: 10px; 
+            font-family: sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hello World!</h1>
+
+    <div class="button-container">
+        <button onclick="window.location.href='/administrativeareal2D'">
+            Administrative Areas
+        </button>
+        <button onclick="window.location.href='/building2D'">
+            Buildings
+        </button>
+        <button onclick="window.location.href='/about'">
+            About
+        </button>
+    </div>
+</body>
+</html>

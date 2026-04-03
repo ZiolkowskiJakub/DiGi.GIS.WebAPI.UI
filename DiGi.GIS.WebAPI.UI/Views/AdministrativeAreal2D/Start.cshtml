@@ -1,0 +1,56 @@
+﻿@{
+    ViewData["Title"] = "Administrative Areas";
+}
+
+<div class="container mt-5">
+    <h2>Administrative Areals 2D</h2>
+    
+    <div class="mb-3">
+        <select id="typeSelect" class="form-select">
+            <option value="Voivodeship">Voivodeship</option>
+            <option value="County">County</option>
+            <option value="Municipality">Municipality</option>
+        </select>
+        <button id="loadItemsBtn" class="btn btn-primary mt-2">Load Items</button>
+    </div>
+
+    <div id="loading" style="display:none;" class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+
+    <div id="tableContainer">
+    </div>
+</div>
+
+<script>
+    // Wrapping in a function to avoid global scope pollution
+    document.addEventListener('DOMContentLoaded', function() {
+        const btn = document.getElementById('loadItemsBtn');
+        
+        if(btn) {
+            btn.addEventListener('click', async function() {
+                const type = document.getElementById('typeSelect').value;
+                const container = document.getElementById('tableContainer');
+                const loader = document.getElementById('loading');
+
+                loader.style.display = 'block';
+                container.innerHTML = '';
+
+                try {
+                    // Using template literals safely
+                    const response = await fetch('/administrativeareal2D/itemsbyadministrativearealtype?administrativearealtype=' + type);
+                    
+                    if (!response.ok) throw new Error('Failed to render partial view');
+
+                    const htmlResult = await response.text();
+                    container.innerHTML = htmlResult;
+
+                } catch (error) {
+                    alert(error.message);
+                } finally {
+                    loader.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>

@@ -1,0 +1,27 @@
+﻿@using DiGi.GIS.Classes
+@model List<AdministrativeAreal2D>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Code</th>
+            <th>Custom Logic Result</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (AdministrativeAreal2D item in Model)
+        {
+            <tr>
+                @* Using public properties that are ignored in JSON *@
+                <td>@item.Name</td>
+                <td>@item.Code</td>
+                <td>
+                    @* Here you can call ANY method from your DLL objects *@
+                    @* Example: @item.CalculateArea() or @item.GetFullMetadata() *@
+                    <span class="text-muted">Processed via C# DLL</span>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
