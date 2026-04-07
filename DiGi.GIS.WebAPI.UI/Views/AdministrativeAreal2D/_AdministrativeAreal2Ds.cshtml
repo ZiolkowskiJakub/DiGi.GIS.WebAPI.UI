@@ -1,27 +1,101 @@
 ﻿@using DiGi.GIS.Classes
-@model List<AdministrativeAreal2D>
+@using System.Linq
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Code</th>
-            <th>Custom Logic Result</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (AdministrativeAreal2D item in Model)
-        {
-            <tr>
-                @* Using public properties that are ignored in JSON *@
-                <td>@item.Name</td>
-                <td>@item.Code</td>
-                <td>
-                    @* Here you can call ANY method from your DLL objects *@
-                    @* Example: @item.CalculateArea() or @item.GetFullMetadata() *@
-                    <span class="text-muted">Processed via C# DLL</span>
-                </td>
-            </tr>
+@{
+    // Logic for data preparation
+    List<AdministrativeAreal2D>? administrativeAreal2Ds = (Model as IEnumerable<AdministrativeAreal2D>)?.ToList();
+    
+    if (administrativeAreal2Ds is null)
+    {
+        administrativeAreal2Ds = new List<AdministrativeAreal2D>();
+    }
+
+    administrativeAreal2Ds = administrativeAreal2Ds
+        .GroupBy(area => area.Code)
+        .Select(group => group.First())
+        .OrderBy(area => area.Name)
+        .ToList();
+}
+
+<style>
+    .gis-table-container {
+        margin: 40px auto;
+        max-width: 90%;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .gis-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+        .gis-table thead tr {
+            background-color: #0078d4;
+            color: white;
+            text-align: left;
         }
-    </tbody>
-</table>
+
+        .gis-table th, .gis-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        /* Zebra stripes - alternating row colors */
+        .gis-table tbody tr:nth-of-type(even) {
+            background-color: #f8f9fa;
+        }
+
+        .gis-table tbody tr:hover {
+            background-color: #f1f7fd;
+            transition: background-color 0.2s;
+        }
+
+    .index-column {
+        font-weight: bold;
+        color: #666;
+        width: 50px;
+    }
+
+    .code-badge {
+        background: #e1f0fe;
+        color: #005a9e;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 0.9em;
+    }
+</style>
+
+<div class="gis-table-container">
+    
+    <table class="gis-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Code</th>
+                <th>Reference</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < administrativeAreal2Ds.Count; i++)
+            {
+                AdministrativeAreal2D item = administrativeAreal2Ds[i];
+
+                <tr>
+                    <td class="index-column">@(i + 1)</td>
+                    <td style="font-weight: 500;">@item.Name</td>
+                    <td>
+                        <span class="code-badge">@item.Code</span>
+                    </td>
+                    <td style="color: #666;">@item.Reference</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

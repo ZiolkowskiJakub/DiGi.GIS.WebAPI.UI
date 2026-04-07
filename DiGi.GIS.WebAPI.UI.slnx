@@ -1,4 +1,7 @@
 <Solution>
-  <Folder Name="/Solution Items/" />
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+  </Folder>
   <Project Path="DiGi.GIS.WebAPI.UI/DiGi.GIS.WebAPI.UI.csproj" />
 </Solution>

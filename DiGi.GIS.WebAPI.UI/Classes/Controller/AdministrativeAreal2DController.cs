@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Classes
@@ -18,11 +17,10 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             this.httpClientFactory = httpClientFactory;
         }
 
-        // This action will trigger for: gis.digiproject.uk/
+        // This action will trigger for: gis.digiproject.uk/administrativeareal2D
         [HttpGet("")]
         public IActionResult Start()
         {
-            // This will look for Views/Home/Start.cshtml
             return View();
         }
 
