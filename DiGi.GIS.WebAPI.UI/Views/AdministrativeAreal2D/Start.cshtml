@@ -105,11 +105,10 @@
 
         <div id="loading" style="display:none;">
             <div class="gis-loader"></div>
-            <p style="text-align: center; color: #0078d4; font-size: 0.9em;">Fetching data from PostgreSQL...</p>
+            <p style="text-align: center; color: #0078d4; font-size: 0.9em;">Fetching data from database...</p>
         </div>
     </div>
 
-    @* Tutaj zostanie wstrzyknięta tabela, która już ma swoje style .gis-table *@
     <div id="tableContainer">
     </div>
 </div>
@@ -130,7 +129,8 @@
                 container.innerHTML = '';
 
                 try {
-                    const response = await fetch(`/administrativeareal2D/itemsbyadministrativearealtype?administrativearealtype=${type}`);
+                    // Dodano parametr &uniquecode=true
+                    const response = await fetch(`/administrativeareal2D/administrativeareal2Dreferencesbyadministrativearealtype?administrativearealtype=${type}&uniquecode=true`);
                     
                     if (!response.ok) throw new Error('Communication error with Web API');
 
@@ -138,7 +138,6 @@
                     container.innerHTML = htmlResult;
 
                 } catch (error) {
-                    // Log error to console for the C# developer's eyes
                     console.error('API Error:', error);
                     alert("Error: " + error.message);
                 } finally {

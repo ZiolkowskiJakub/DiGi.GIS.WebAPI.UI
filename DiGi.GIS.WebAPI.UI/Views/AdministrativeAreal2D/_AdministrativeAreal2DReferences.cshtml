@@ -1,0 +1,145 @@
+﻿@using DiGi.GIS.Classes
+@using System.Linq
+@using DiGi.GIS.PostgreSQL.Classes
+@using DiGi.GIS.PostgreSQL.Enums
+
+@{
+    // Logic for data preparation
+    List<AdministrativeAreal2DReference>? administrativeAreal2DReferences = (Model as IEnumerable<AdministrativeAreal2DReference>)?.ToList();
+    
+    if (administrativeAreal2DReferences is null)
+    {
+        administrativeAreal2DReferences = [];
+    }
+
+    administrativeAreal2DReferences = administrativeAreal2DReferences
+        .GroupBy(area => area.Code)
+        .Select(group => group.First())
+        .OrderBy(area => area.Name)
+        .ToList();
+}
+
+<style>
+    .gis-table-container {
+        margin: 40px auto;
+        max-width: 90%;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .gis-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+        .gis-table thead tr {
+            background-color: #0078d4;
+            color: white;
+            text-align: left;
+        }
+
+        .gis-table th, .gis-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        /* Zebra stripes - alternating row colors */
+        .gis-table tbody tr:nth-of-type(even) {
+            background-color: #f8f9fa;
+        }
+
+        .gis-table tbody tr:hover {
+            background-color: #f1f7fd;
+            transition: background-color 0.2s;
+        }
+
+    .index-column {
+        font-weight: bold;
+        color: #666;
+        width: 50px;
+    }
+
+    .code-badge {
+        background: #e1f0fe;
+        color: #005a9e;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 0.9em;
+    }
+    .btn-buildings {
+        padding: 6px 12px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.85em;
+        font-weight: 600;
+        display: inline-block;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-active {
+        background-color: #0078d4;
+        color: white;
+    }
+
+    .btn-active:hover {
+        background-color: #005a9e;
+    }
+
+    .btn-disabled {
+        background-color: #e0e0e0;
+        color: #a1a1a1;
+        cursor: not-allowed;
+    }
+</style>
+
+<div class="gis-table-container">
+    <table class="gis-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Code</th>
+                <th>Buildings</th> @* New column header *@
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < administrativeAreal2DReferences.Count; i++)
+            {
+                AdministrativeAreal2DReference administrativeAreal2DReference = administrativeAreal2DReferences[i];
+
+                <tr>
+                    <td class="index-column">@(i + 1)</td>
+                    <td style="font-weight: 500;">@administrativeAreal2DReference.Name</td>
+                    <td>
+                        <a href="/administrativeareal2D/administrativeareal2Dreferencesbycode?code=@administrativeAreal2DReference.Code" 
+                               class="btn-buildings btn-active">
+                                @administrativeAreal2DReference.Code
+                        </a>
+                    </td>
+                    <td>
+                        @* Check if the type is Subdivision (using the spelling from your Enum: Subdivison) *@
+                        @if ((int)administrativeAreal2DReference.AdministrativeArealType >= (int)AdministrativeArealType.County)
+                        {
+                            <a href="/building2D/building2Dreferencesbyadministrativeareal2Did?administrativeareal2Did=@administrativeAreal2DReference.Id" 
+                               class="btn-buildings btn-active">
+                                Buildings
+                            </a>
+                        }
+                        else
+                        {
+                            <button class="btn-buildings btn-disabled" disabled>
+                                Buildings
+                            </button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

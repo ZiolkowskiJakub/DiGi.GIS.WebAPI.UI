@@ -29,6 +29,9 @@
 		<Reference Include="DiGi.GIS">
 			<HintPath>..\..\DiGi.GIS\bin\DiGi.GIS.dll</HintPath>
 		</Reference>
+		<Reference Include="DiGi.GIS.PostgreSQL">
+		  <HintPath>..\..\DiGi.GIS.PostgreSQL\bin\DiGi.GIS.PostgreSQL.dll</HintPath>
+		</Reference>
 		<Reference Include="DiGi.WebAPI">
 			<HintPath>..\..\DiGi.WebAPI\bin\DiGi.WebAPI.dll</HintPath>
 		</Reference>

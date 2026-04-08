@@ -1,0 +1,227 @@
+﻿@using DiGi.GIS.Classes
+@using System.Linq
+@using DiGi.GIS.WebAPI.UI.Classes
+@using DiGi.GIS.PostgreSQL.Classes
+@using DiGi.GIS.PostgreSQL.Enums
+
+@model AdministrativeAreal2DView
+
+@{
+    // Logic for data preparation for the third section
+    List<AdministrativeAreal2DReference> administrativeAreal2DReferences_All = Model.AdministrativeAreal2DReferences ?? [];
+
+    DiGi.Core.Query.Filter(administrativeAreal2DReferences_All, x => x?.AdministrativeArealType == AdministrativeArealType.Subdivison, out List<AdministrativeAreal2DReference>? administrativeAreal2DReferences_Subdivision, out List<AdministrativeAreal2DReference>? administrativeAreal2DReferences);
+    if(administrativeAreal2DReferences is not null)
+    {
+        administrativeAreal2DReferences = administrativeAreal2DReferences.GroupBy(area => area.Code).Select(group => group.First()).ToList();
+    }
+    else
+    {
+        administrativeAreal2DReferences = [];
+    }
+
+    if(administrativeAreal2DReferences_Subdivision is not null && administrativeAreal2DReferences_Subdivision.Count != 0)
+    {
+        administrativeAreal2DReferences.AddRange(administrativeAreal2DReferences_Subdivision);
+    }
+
+    administrativeAreal2DReferences.Sort((x, y) => (x?.Name ?? string.Empty).CompareTo((y?.Name ?? string.Empty)));
+}
+
+<style>
+    /* Styles shared with _AdministrativeAreal2DReferences.cshtml */
+    .gis-table-container {
+        margin: 20px auto;
+        max-width: 90%;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .gis-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    } 
+
+    .gis-table thead tr {
+        background-color: #0078d4;
+        color: white;
+        text-align: left;
+    } 
+
+    .gis-table th, .gis-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #e0e0e0;
+    } 
+
+    .gis-title {
+        color: #333;
+        margin-top: 0;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #0078d4;
+        padding-bottom: 10px;
+        display: inline-block;
+    }
+
+    .gis-info-row {
+        display: flex;
+        margin-bottom: 12px;
+        align-items: baseline;
+    }
+
+    .gis-info-label {
+        font-weight: bold;
+        min-width: 100px;
+        color: #444;
+    }
+
+    .gis-info-value {
+        color: #222;
+        flex: 1;
+    }
+
+    .code-badge {
+        background: #e1f0fe;
+        color: #005a9e;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 0.9em;
+    } 
+
+    .btn-buildings {
+        padding: 6px 12px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.85em;
+        font-weight: 600;
+        display: inline-block;
+        border: none;
+        cursor: pointer;
+    } 
+
+    .btn-active { background-color: #0078d4; color: white; }
+    .btn-disabled { background-color: #e0e0e0; color: #a1a1a1; cursor: not-allowed; }
+
+    /* Additional styles for path/info sections */
+    .gis-path-breadcrumb { margin-bottom: 20px; font-size: 1.1em; color: #0078d4; }
+    .gis-info-section { margin-bottom: 30px; border-left: 4px solid #0078d4; padding-left: 15px; }
+</style>
+
+<div class="gis-table-container">
+
+    @* --- SECTION 1: AdministrativeAreal2D (Details) --- *@
+    <div class="gis-info-section">
+        <h2 class="gis-title">Administrative Area</h2>
+    
+        @if (Model.AdministrativeAreal2D != null)
+        {
+            <div class="gis-info-row">
+                <span class="gis-info-label">Name:</span>
+                <span class="gis-info-value">@Model.AdministrativeAreal2D.Name</span>
+            </div>
+
+            <div class="gis-info-row">
+                <span class="gis-info-label">Code:</span>
+                <span>
+                    <a href="/administrativeareal2D/administrativeareal2Dreferencesbycode?code=@Model.AdministrativeAreal2DReference!.Code" 
+                       class="btn-buildings btn-active" 
+                       style="padding: 2px 8px; font-size: 0.8em; line-height: 1.5;">
+                       @Model.AdministrativeAreal2DReference.Code
+                    </a>
+                </span>
+            </div>
+
+            string typeName = string.Empty;
+
+            if (Model.AdministrativeAreal2D is AdministrativeDivision administrativeDivision)
+            {
+                typeName = DiGi.Core.Query.Description(administrativeDivision.AdministrativeDivisionType) ?? string.Empty;
+            }
+            else if (Model.AdministrativeAreal2D is AdministrativeSubdivision administrativeSubdivision)
+            {
+                typeName = DiGi.Core.Query.Description(administrativeSubdivision.AdministrativeSubdivisionType) ?? string.Empty;
+            }
+
+            <div class="gis-info-row">
+                <span class="gis-info-label">Type:</span>
+                <span class="gis-info-value">@typeName</span>
+            </div>
+        }
+    </div>
+
+    @* --- SECTION 2: AdministrativeAreal2DReferencePath (Interactive Breadcrumbs) --- *@
+    <div class="gis-path-breadcrumb" style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+        @if (Model.AdministrativeAreal2DReferencePath?.AdministrativeAreal2DReferences != null)
+        {
+            var pathItems = Model.AdministrativeAreal2DReferencePath.AdministrativeAreal2DReferences;
+        
+            for (int i = 0; i < pathItems.Count; i++)
+            {
+                var r = pathItems[i];
+
+                <div style="display: inline-flex; align-items: center; gap: 5px;">
+                    @* Display Name *@
+                    <span>@r.Name</span>
+
+                    @* Interactive Code Button *@
+                    <a href="/administrativeareal2D/administrativeareal2Dreferencesbycode?code=@r.Code" 
+                       class="btn-buildings btn-active" 
+                       style="padding: 2px 8px; font-size: 0.8em; line-height: 1.5;">
+                       @r.Code
+                    </a>
+                </div>
+
+                @* Separator - displayed only between items *@
+                if (i < pathItems.Count - 1)
+                {
+                    <span style="color: #ccc; margin: 0 5px; font-weight: bold;">&gt;</span>
+                }
+            }
+        }
+    </div>
+
+    @* --- SECTION 3: AdministrativeAreal2DReferences (Table) --- *@
+    <table class="gis-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Code</th>
+                <th>Buildings</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < administrativeAreal2DReferences.Count; i++)
+            {
+                AdministrativeAreal2DReference item = administrativeAreal2DReferences[i];
+                <tr>
+                    <td class="index-column">@(i + 1)</td>
+                    <td style="font-weight: 500;">@item.Name</td>
+                    <td>
+                        <a href="/administrativeareal2D/administrativeareal2Dreferencesbycode?code=@item.Code" 
+                           class="btn-buildings btn-active" style="padding: 4px 8px;">
+                           @item.Code
+                        </a>
+                    </td>
+                    <td>
+                        @if ((int)item.AdministrativeArealType >= (int)AdministrativeArealType.County)
+                        {
+                            <a href="/building2D/building2Dreferencesbyadministrativeareal2Did?administrativeareal2Did=@item.Id" 
+                               class="btn-buildings btn-active">
+                               Buildings
+                            </a>
+                        } 
+                        else
+                        {
+                            <button class="btn-buildings btn-disabled" disabled>Buildings</button>
+                        } 
+                        </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

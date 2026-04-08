@@ -1,0 +1,194 @@
+﻿@using DiGi.GIS.Classes
+@using System.Linq
+@using DiGi.GIS.PostgreSQL.Classes
+@using DiGi.GIS.PostgreSQL.Enums
+
+@{
+    // Logic for data preparation
+    List<Building2DReference>? building2DReferences = (Model as IEnumerable<Building2DReference>)?.ToList();
+    
+    if (building2DReferences is null)
+    {
+        building2DReferences = [];
+    }
+
+    int initialLimit = 100;
+}
+
+<style>
+    .gis-table-container {
+        margin: 40px auto;
+        max-width: 90%;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .gis-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px; 
+    }
+
+    .gis-table thead tr {
+        background-color: #0078d4; 
+        color: white;
+        text-align: left;
+    }
+
+    .gis-table th, .gis-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .gis-table tbody tr:nth-of-type(even) {
+        background-color: #f8f9fa;
+    }
+
+    .gis-table tbody tr:hover {
+        background-color: #f1f7fd;
+        transition: background-color 0.2s;
+    }
+
+    /* CSS for hiding rows */
+    .row-hidden {
+        display: none;
+    }
+
+    .index-column {
+        font-weight: bold;
+        color: #666;
+        width: 50px;
+    }
+
+    .pagination-controls {
+        margin-top: 20px;
+        text-align: center;
+        padding: 15px;
+        border-top: 1px solid #eee;
+    }
+
+    .btn-buildings {
+        padding: 8px 18px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.9em;
+        font-weight: 600;
+        display: inline-block;
+        border: none;
+        cursor: pointer;
+        margin: 0 5px;
+    }
+
+    .btn-active {
+        background-color: #0078d4;
+        color: white;
+    }
+
+    .btn-active:hover {
+        background-color: #005a9e;
+    }
+
+    .status-text {
+        font-size: 0.85em;
+        color: #666;
+        margin-bottom: 10px;
+        display: block;
+    }
+</style>
+
+<div class="gis-table-container">
+    <table class="gis-table" id="mainBuildingsTable">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Reference</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < building2DReferences.Count; i++)
+            {
+                Building2DReference building2DReference = building2DReferences[i];
+                // Add hidden class for items beyond the first 100
+                string cssClass = i >= initialLimit ? "row-hidden" : "";
+
+                <tr class="@cssClass">
+                    <td class="index-column">@(i + 1)</td>
+                    <td>
+                        <a href="/building2D/itembyid?id=@building2DReference.Id?countyid=@building2DReference.CountyId"
+                               class="btn-buildings btn-active">
+                            @building2DReference.Reference
+                        </a>
+                    </td>
+
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (building2DReferences.Count > initialLimit)
+    {
+        <div class="pagination-controls">
+            <span class="status-text" id="pagingStatus">
+                Showing @initialLimit of @building2DReferences.Count records
+            </span>
+            
+            <button type="button" id="btnLoadMore" class="btn-buildings btn-active" onclick="revealNext(100)">
+                Load Next 100
+            </button>
+            
+            <button type="button" id="btnShowAll" class="btn-buildings btn-active" style="background-color: #28a745;" onclick="revealAll()">
+                Show All
+            </button>
+        </div>
+    }
+</div>
+
+<script>
+    // Internal state tracking
+    let displayedCount = @initialLimit;
+    const totalRecords = @building2DReferences.Count;
+
+    function revealNext(batchSize) {
+        // Select only hidden rows
+        const hiddenRows = document.querySelectorAll('#mainBuildingsTable tbody tr.row-hidden');
+        let count = 0;
+
+        for (let i = 0; i < hiddenRows.length; i++) {
+            if (count < batchSize) {
+                hiddenRows[i].classList.remove('row-hidden');
+                count++;
+                displayedCount++;
+            } else {
+                break;
+            }
+        }
+
+        updatePaginationUI();
+    }
+
+    function revealAll() {
+        const hiddenRows = document.querySelectorAll('#mainBuildingsTable tbody tr.row-hidden');
+        hiddenRows.forEach(row => {
+            row.classList.remove('row-hidden');
+        });
+        
+        displayedCount = totalRecords;
+        updatePaginationUI();
+    }
+
+    function updatePaginationUI() {
+        const statusSpan = document.getElementById('pagingStatus');
+        if (statusSpan) {
+            statusSpan.innerText = `Showing ${displayedCount} of ${totalRecords} records`;
+        }
+
+        if (displayedCount >= totalRecords) {
+            // Hide buttons if no more records to show
+            document.getElementById('btnLoadMore').style.display = 'none';
+            document.getElementById('btnShowAll').style.display = 'none';
+        }
+    }
+</script>

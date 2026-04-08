@@ -8,7 +8,6 @@ namespace DiGi.GIS.WebAPI.UI.Classes
         // Constructor injection for the PostgreSQL data source
         public HomeController()
         {
-
         }
 
         // This action will trigger for: gis.digiproject.uk/
