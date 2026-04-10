@@ -1,7 +1,10 @@
-﻿using DiGi.GIS.Classes;
+﻿using DiGi.Core.Classes;
+using DiGi.Geometry.Planar.Classes;
+using DiGi.GIS.Classes;
 using DiGi.GIS.PostgreSQL;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -60,6 +63,107 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 
             // We pass the objects to a Partial View
             return PartialView("_AdministrativeAreal2DReferences", administrativeAreal2DReferences ?? []);
+        }
+
+        [HttpGet("administrativeareal2Dreferencesbyid")]
+        public async Task<IActionResult> GetAdministrativeAreal2DReferencesByIdAsync([FromQuery(Name = "id")] int id)
+        {
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            UrlBuilder urlBuilder;
+            HttpResponseMessage httpResponseMessage;
+            string json;
+
+            #region AdministrativeAreal2DReferencePath
+
+            urlBuilder = new("https://api.digiproject.uk/gis/administrativeareal2D/administrativeareal2Dreferencepathbyid");
+            urlBuilder = urlBuilder.AddParameter("id", id);
+
+            httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
+            if (!httpResponseMessage.IsSuccessStatusCode)
+            {
+                return BadRequest();
+            }
+
+            json = await httpResponseMessage.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return NoContent();
+            }
+
+            PostgreSQL.Classes.AdministrativeAreal2DReferencePath? administrativeAreal2DReferencePath = Core.Convert.ToDiGi<PostgreSQL.Classes.AdministrativeAreal2DReferencePath>(json)?.FirstOrDefault();
+            if (administrativeAreal2DReferencePath is null)
+            {
+                return NotFound();
+            }
+
+            #endregion AdministrativeAreal2DReferencePath
+
+            #region AdministrativeAreal2DReference
+
+            PostgreSQL.Classes.AdministrativeAreal2DReference? administrativeAreal2DReference = administrativeAreal2DReferencePath.AdministrativeAreal2DReferences?.Last();
+            if (administrativeAreal2DReference is null)
+            {
+                return NotFound();
+            }
+
+            #endregion AdministrativeAreal2DReference
+
+            #region AdministrativeAreal2D
+
+            urlBuilder = new("https://api.digiproject.uk/gis/administrativeareal2D/itembyid");
+            urlBuilder = urlBuilder.AddParameter("id", id);
+
+            httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
+            if (!httpResponseMessage.IsSuccessStatusCode)
+            {
+                return BadRequest();
+            }
+
+            json = await httpResponseMessage.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return NoContent();
+            }
+
+            AdministrativeAreal2D? administrativeAreal2D = Core.Convert.ToDiGi<AdministrativeAreal2D>(json)?.FirstOrDefault();
+            if (administrativeAreal2D is null)
+            {
+                return NotFound();
+            }
+
+            #endregion AdministrativeAreal2D
+
+            #region AdministrativeAreal2DReferences
+
+            List<PostgreSQL.Classes.AdministrativeAreal2DReference>? administrativeAreal2DReferences = null;
+
+            if(administrativeAreal2DReference.Code is string code && !string.IsNullOrWhiteSpace(code) && administrativeAreal2DReference?.AdministrativeArealType is PostgreSQL.Enums.AdministrativeArealType administrativeArealType && administrativeArealType.ChildAdministrativeArealType() is  PostgreSQL.Enums.AdministrativeArealType administrativeArealType_Child)
+            {
+                urlBuilder = new("https://api.digiproject.uk/gis/administrativeareal2D/administrativeareal2Dreferencesbycode");
+                urlBuilder = urlBuilder.AddParameter("code", code);
+                urlBuilder = urlBuilder.AddParameter("administrativearealtype", administrativeArealType_Child.ToString());
+
+                httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
+                if (!httpResponseMessage.IsSuccessStatusCode)
+                {
+                    return BadRequest();
+                }
+
+                json = await httpResponseMessage.Content.ReadAsStringAsync();
+                if (string.IsNullOrWhiteSpace(json))
+                {
+                    return NoContent();
+                }
+
+                administrativeAreal2DReferences = Core.Convert.ToDiGi<PostgreSQL.Classes.AdministrativeAreal2DReference>(json);
+            }
+
+            #endregion AdministrativeAreal2DReferences
+
+            AdministrativeAreal2DView administrativeAreal2DView = new(administrativeAreal2DReference, administrativeAreal2D, administrativeAreal2DReferencePath, administrativeAreal2DReferences);
+
+            return PartialView("_AdministrativeAreal2DView", administrativeAreal2DView);
         }
 
         [HttpGet("administrativeareal2Dreferencesbycode")]
@@ -270,6 +374,53 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             // We pass the objects to a Partial View
             return PartialView("_AdministrativeAreal2Ds", administrativeAreal2Ds ?? []);
         }
+
+        [HttpGet("pointsbyid")]
+        public async Task<IActionResult> GetPointsByIdAsync([FromQuery(Name = "id")] int id, [FromQuery(Name = "reductionfactor")] double? reductionFactor = null, [FromQuery(Name = "mincount")] int? minCount = null)
+        {
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            UrlBuilder urlBuilder;
+            HttpResponseMessage httpResponseMessage;
+            string json;
+
+            #region AdministrativeAreal2D
+
+            urlBuilder = new("https://api.digiproject.uk/gis/administrativeareal2D/itembyid");
+            urlBuilder = urlBuilder.AddParameter("id", id);
+
+            httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
+            if (!httpResponseMessage.IsSuccessStatusCode)
+            {
+                return BadRequest();
+            }
+
+            json = await httpResponseMessage.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return NoContent();
+            }
+
+            AdministrativeAreal2D? administrativeAreal2D = Core.Convert.ToDiGi<AdministrativeAreal2D>(json)?.FirstOrDefault();
+            if (administrativeAreal2D is null)
+            {
+                return NotFound();
+            }
+
+            #endregion AdministrativeAreal2D
+
+            #region Point2Ds
+
+            List<Point2D>? point2Ds = administrativeAreal2D.PolygonalFace2D?.ExternalEdge?.GetPoints();
+            Modify.Reduce(point2Ds, reductionFactor, minCount ?? 100);
+
+            #endregion Point2Ds
+
+            string result = point2Ds is null ? string.Empty : string.Join(" ", point2Ds.ConvertAll(p => $"{p.X} {p.Y}"));
+
+            return Content(result, "text/plain");
+        }
+
 
         // This action will trigger for: gis.digiproject.uk/administrativeareal2D
         [HttpGet("")]

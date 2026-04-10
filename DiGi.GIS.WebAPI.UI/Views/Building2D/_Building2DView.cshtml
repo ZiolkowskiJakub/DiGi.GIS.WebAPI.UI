@@ -1,0 +1,301 @@
+﻿@using DiGi.GIS.Classes
+@using System.Linq
+@using DiGi.GIS.WebAPI.UI.Classes
+@using DiGi.GIS.PostgreSQL.Classes
+@using DiGi.GIS.PostgreSQL.Enums
+
+@model Building2DView
+
+@{
+    Building2DView building2DView = Model ?? new Building2DView();
+    // Pobieramy referencje administracyjne dla nagłówka
+    var pathItems = building2DView.AdministrativeAreal2DReferencePath?.AdministrativeAreal2DReferences;
+}
+
+<style>
+    /* Styles shared with _AdministrativeAreal2DView.cshtml */
+    .gis-table-container {
+        margin: 20px auto;
+        max-width: 90%;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .gis-title {
+        color: #333;
+        margin-top: 0;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #0078d4;
+        padding-bottom: 10px;
+        display: inline-block;
+    }
+
+    .btn-buildings {
+        text-decoration: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-weight: 500;
+        font-size: 0.9em;
+        transition: all 0.2s;
+        display: inline-block;
+    }
+
+    .btn-active {
+        background-color: #e1f0fe;
+        color: #0078d4;
+        border: 1px solid #0078d4;
+    }
+
+    .btn-active:hover {
+        background-color: #0078d4;
+        color: white;
+    }
+
+    .gis-visual-side {
+        display: flex;
+        justify-content: center; /* Centers the canvas horizontally */
+        margin-bottom: 20px;
+    }
+
+    #svg-wrapper {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 10px;
+        /* Force constant dimensions */
+        width: 320px; /* 300px for SVG + 20px for padding */
+        height: 320px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden; /* Prevents leaking if geometry exceeds bounds */
+    }
+
+    #mainCanvas {
+        /* Defining fixed size via CSS to override fluid behaviors */
+        width: 300px !important;
+        height: 300px !important;
+        display: block;
+    }
+</style>
+
+<div class="gis-table-container">
+    
+    @* --- SECTION 1: Building2D (Geometry) --- *@
+    <div class="gis-visual-side">
+        </><div id="svg-wrapper">
+            @* Fixed size SVG Canvas for building geometry visualization *@
+            <svg id="mainCanvas"
+                 width="300"
+                 height="300"
+                 viewBox="0 0 500 500"
+                 preserveAspectRatio="xMidYMid meet">
+            </svg>
+        </div>
+    </div>
+
+    @* --- SECTION 2: Building2D (Interactive Breadcrumbs) --- *@
+    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
+        @if (pathItems != null)
+        {
+            for (int i = 0; i < pathItems.Count; i++)
+            {
+                var r = pathItems[i];
+
+                <div style="display: inline-flex; align-items: center; gap: 5px;">
+                    <span style="font-weight: 500;">@r.Name</span>
+                    <a href="/administrativeareal2D/administrativeareal2Dreferencesbycode?code=@r.Code"
+                           class="btn-buildings btn-active"
+                           style="padding: 2px 8px; font-size: 0.8em;">
+                        @r.Code
+                    </a>
+                </div>
+
+                if (i < pathItems.Count - 1)
+                {
+                    <span style="color: #ccc; margin: 0 5px; font-weight: bold;">&gt;</span>
+                }
+            }
+        }
+    </div>
+
+    @* --- SECTION 3: Building2D properties (Divided into logical blocks) --- *@
+    <div style="border-top: 1px solid #eee; padding-top: 20px;">
+        @if (building2DView.Building2D != null)
+        {
+            @* --- BLOCK 1: Input Values --- *@
+            <div class="property-group" style="margin-bottom: 25px;">
+                <h4 style="color: #0078d4; margin-bottom: 12px; font-size: 1.1em; border-left: 4px solid #0078d4; padding-left: 10px;">
+                    Input Values
+                </h4>
+                <table style="width: 100%; border-collapse: collapse; background-color: #fafafa; border-radius: 4px;">
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 12px; color: #666; width: 45%; font-weight: 500;">Building Reference:</td>
+                        <td style="padding: 12px; color: #333;">@(building2DView.Building2D.Reference ?? string.Empty)</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 12px; color: #666; font-weight: 500;">Guid:</td>
+                    <td style="padding: 12px; color: #333;">@building2DView.Building2D.Guid</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 12px; color: #666; font-weight: 500;">General Function:</td>
+                        <td style="padding: 12px; color: #333;">@(DiGi.Core.Query.Description(building2DView.Building2D.BuildingGeneralFunction) ?? string.Empty)</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 12px; color: #666; font-weight: 500;">Specific Functions:</td>
+                        <td style="padding: 12px; color: #333;">@(string.Join(", ", building2DView.Building2D.BuildingSpecificFunctions?.Select(f => DiGi.Core.Query.Description(f)) ?? []))</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 12px; color: #666; font-weight: 500;">Phase:</td>
+                        <td style="padding: 12px; color: #333;">@(DiGi.Core.Query.Description(building2DView.Building2D.BuildingPhase) ?? string.Empty)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; color: #666; font-weight: 500;">Storeys:</td>
+                        <td style="padding: 12px; color: #333;">@building2DView.Building2D.Storeys</td>
+                    </tr>
+                </table>
+            </div>
+
+            @* --- BLOCK 2: Calculated Values --- *@
+            <div class="property-group">
+                <h4 style="color: #28a745; margin-bottom: 12px; font-size: 1.1em; border-left: 4px solid #28a745; padding-left: 10px;">
+                    Calculated Values
+                </h4>
+                <table style="width: 100%; border-collapse: collapse; background-color: #f8fff9; border-radius: 4px;">
+                    <tr style="border-bottom: 1px solid #eef5ee;">
+                        <td style="padding: 12px; color: #666; width: 45%; font-weight: 500;">Single Floor Area:</td>
+                        <td style="padding: 12px; color: #333;">@DiGi.Core.Query.Round(building2DView.Building2D?.PolygonalFace2D?.GetArea() ?? 0.0, 0.01) m²</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eef5ee;">
+                        <td style="padding: 12px; color: #666; font-weight: 500;">Building Total Area:</td>
+                        <td style="padding: 12px; color: #333;">@(DiGi.Core.Query.Round(building2DView.Building2D?.PolygonalFace2D?.GetArea() ?? 0.0, 0.01) * building2DView.Building2D?.Storeys ?? 0) m²</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #eef5ee;">
+                        <td style="padding: 12px; color: #666; font-weight: 500;">Azimuth:</td>
+                        <td style="padding: 12px; color: #333; font-weight: bold;">@DiGi.Core.Query.Round(DiGi.GIS.Query.Azimuth(building2DView.Building2D), 1)°</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; color: #666; font-weight: 500;">Is Occupied:</td>
+                        <td style="padding: 12px; color: #333;">
+                            @if (building2DView.Building2D is null ? false : DiGi.GIS.Query.IsOccupied(building2DView.Building2D))
+                            {
+                                <span style="color: #5cb85c; font-weight: bold;">Yes</span>
+                                
+                            }
+                            else
+                            {
+                                <span style="color: #d9534f; font-weight: bold;">No</span>
+                            }
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding: 12px; color: #666; font-weight: 500;">Default Shape:</td>
+                        @{
+                            string defaultShape = string.Empty;
+                            DiGi.GIS.Classes.BuildingShapeSolver buildingShapeSolver = new BuildingShapeSolver();
+                            buildingShapeSolver.Input = building2DView.Building2D;
+                            if(buildingShapeSolver.Solve())
+                            {
+                                defaultShape = DiGi.Core.Query.Description(buildingShapeSolver.Output) ?? string.Empty;
+                            }
+                        }
+                        <td style="padding: 12px; color: #333; font-weight: bold;">@defaultShape</td>
+                    </tr>
+                </table>
+            </div>
+        }
+</div>
+
+<script>
+    // Definiujemy funkcję w zasięgu globalnym (window),
+    // aby widok nadrzędny mógł ją wywołać po wstrzyknięciu HTML
+    window.initializeBuildingGeometry = async function() {
+        @if (building2DView.Building2DReference != null)
+        {
+            string? countyId = building2DView.Building2DReference.CountyId?.ToString();
+            string? buildingId = building2DView.Building2DReference.Id.ToString();
+            
+            <text>
+                // Wywołujemy rysowanie bezpośrednio
+                await drawPolygon('@countyId', '@buildingId');
+            </text>
+        }
+    };
+
+    // Przenosimy drawPolygon tutaj, jeśli nie jest zdefiniowany w widoku głównym
+    async function drawPolygon(countyId, id) {
+        if (!id || !countyId) return;
+
+        try {
+            const response = await fetch(`/building2D/pointsbyid?id=${id}&countyid=${countyId}`);
+            if (!response.ok) return;
+
+            const rawData = await response.text();
+            const coords = rawData.trim().split(/\s+/).map(Number);
+            if (coords.length < 4) return;
+
+            // 1. Obliczanie granic (Bounding Box)
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            for (let i = 0; i < coords.length; i += 2) {
+                let x = coords[i];
+                let y = coords[i+1];
+                if (x < minX) minX = x; if (x > maxX) maxX = x;
+                if (y < minY) minY = y; if (y > maxY) maxY = y;
+            }
+
+            const width = maxX - minX;
+            const height = maxY - minY;
+            const canvasSize = 500;
+            const margin = 40; // Bezpieczny odstęp od krawędzi
+            const drawingArea = canvasSize - (2 * margin);
+
+            // 2. Obliczanie skali z zachowaniem proporcji (Aspect Ratio)
+            const scale = Math.min(drawingArea / width, drawingArea / height);
+
+            // 3. Obliczanie przesunięcia centrującego (Offset)
+            // Sprawdzamy, ile miejsca zajmie przeskalowany budynek
+            const scaledWidth = width * scale;
+            const scaledHeight = height * scale;
+
+            // Offset to połowa różnicy między rozmiarem płótna a rozmiarem narysowanego obiektu
+            const offsetX = (canvasSize - scaledWidth) / 2;
+            const offsetY = (canvasSize - scaledHeight) / 2;
+
+            let pointsArray = [];
+            for (let i = 0; i < coords.length; i += 2) {
+                // Normalizacja do (0,0), skalowanie i dodanie offsetu centrującego
+                let screenX = (coords[i] - minX) * scale + offsetX;
+            
+                // W SVG oś Y rośnie w dół, więc odwracamy orientację współrzędnych GISowych
+                // (canvasSize - ...) odwraca oś, a offsetY centruje wynik
+                let screenY = canvasSize - ((coords[i+1] - minY) * scale + offsetY);
+            
+                pointsArray.push(`${screenX.toFixed(2)},${screenY.toFixed(2)}`);
+            }
+
+            const pointsAttr = pointsArray.join(" ");
+            const svg = document.getElementById("mainCanvas");
+        
+            if (svg) {
+                // WAŻNE: Czyszczenie SVG przed nowym rysunkiem
+                // Zapobiega to nakładaniu się wielu poligonów podczas przełączania rekordów
+                while (svg.firstChild) {
+                    svg.removeChild(svg.firstChild);
+                }
+
+                const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+                polygon.setAttribute("points", pointsAttr);
+                polygon.style.fill = "rgba(0, 120, 212, 0.2)";
+                polygon.style.stroke = "#0078d4";
+                polygon.style.strokeWidth = "2";
+                svg.appendChild(polygon);
+            }
+        } catch (error) {
+            console.error("Normalization error:", error);
+        }
+    }
+</script>

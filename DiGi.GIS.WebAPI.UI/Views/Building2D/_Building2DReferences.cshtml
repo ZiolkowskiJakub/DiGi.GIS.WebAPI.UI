@@ -1,194 +1,222 @@
 ﻿@using DiGi.GIS.Classes
 @using System.Linq
 @using DiGi.GIS.PostgreSQL.Classes
-@using DiGi.GIS.PostgreSQL.Enums
 
 @{
-    // Logic for data preparation
-    List<Building2DReference>? building2DReferences = (Model as IEnumerable<Building2DReference>)?.ToList();
-    
-    if (building2DReferences is null)
-    {
-        building2DReferences = [];
-    }
-
+    List<Building2DReference>? building2DReferences = (Model as IEnumerable<Building2DReference>)?.ToList() ?? [];
     int initialLimit = 100;
 }
 
 <style>
-    .gis-table-container {
-        margin: 40px auto;
-        max-width: 90%;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    /* GŁÓWNY KONTENER PARTIALA */
+    .gis-master-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100%; 
+        width: 100%;
+        background-color: white;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
+    /* NIERUCHOMA GÓRA (Tytuł i przyciski sterujące) */
+    .master-header {
+        flex: 0 0 auto;
+        padding: 15px 20px;
+        background: #ffffff;
+        border-bottom: 1px solid #eaeaea;
+        z-index: 10;
+    }
+
+    .gis-title {
+        color: #333;
+        margin: 0 0 12px 0;
+        font-size: 1.2rem;
+        font-weight: 700;
+        display: block;
+        border-left: 4px solid #0078d4;
+        padding-left: 10px;
+    }
+
+    /* WIERSZ Z KONTROLKAMI (+100, ALL, TOTAL) */
+    .controls-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+    }
+
+    #paginationButtons {
+        display: flex;
+        gap: 6px;
+    }
+
+    /* KONTENER PRZEWIJANIA SAMEJ LISTY */
+    .table-scroll-container {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        overflow-x: hidden;
+        position: relative;
+    }
+
+    /* STYLIZACJA TABELI */
     .gis-table {
         width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px; 
+        border-collapse: separate;
+        border-spacing: 0;
+        table-layout: fixed; /* Blokuje "skakanie" szerokości kolumn */
     }
 
-    .gis-table thead tr {
-        background-color: #0078d4; 
+    /* PRZYKLEJONY NIEBIESKI NAGŁÓWEK TABELI */
+    .gis-table thead th {
+        position: sticky;
+        top: 0;
+        background-color: #0078d4;
         color: white;
+        z-index: 5;
+        padding: 12px 10px;
         text-align: left;
-    }
-
-    .gis-table th, .gis-table td {
-        padding: 12px 15px;
-        border-bottom: 1px solid #e0e0e0;
-    }
-
-    .gis-table tbody tr:nth-of-type(even) {
-        background-color: #f8f9fa;
-    }
-
-    .gis-table tbody tr:hover {
-        background-color: #f1f7fd;
-        transition: background-color 0.2s;
-    }
-
-    /* CSS for hiding rows */
-    .row-hidden {
-        display: none;
-    }
-
-    .index-column {
-        font-weight: bold;
-        color: #666;
-        width: 50px;
-    }
-
-    .pagination-controls {
-        margin-top: 20px;
-        text-align: center;
-        padding: 15px;
-        border-top: 1px solid #eee;
-    }
-
-    .btn-buildings {
-        padding: 8px 18px;
-        border-radius: 4px;
-        text-decoration: none;
         font-size: 0.9em;
         font-weight: 600;
-        display: inline-block;
-        border: none;
-        cursor: pointer;
-        margin: 0 5px;
     }
 
-    .btn-active {
+    /* KONFIGURACJA SZEROKOŚCI KOLUMN */
+    .col-idx { width: 45px; text-align: center; }
+    .col-ref { width: auto; }
+
+    .gis-table td {
+        padding: 8px 10px;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: middle;
+    }
+
+    .gis-table tr:hover {
+        background-color: #f8fbfe;
+    }
+
+    /* STYL PRZYCISKU / LINKU */
+    .btn-buildings {
+        display: block;          /* Wypełnia całą komórkę */
+        width: 100%;             /* Stała szerokość w ramach kolumny */
+        box-sizing: border-box;
+        padding: 6px 12px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.85em;
+        font-weight: 600;
+        border: 1px solid #0078d4;
+        background-color: #e1f0fe;
+        color: #0078d4;
+        text-align: center;
+        cursor: pointer;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis; /* Kropki jeśli tekst jest za długi */
+        transition: all 0.2s;
+    }
+
+    .btn-buildings:hover {
         background-color: #0078d4;
         color: white;
     }
 
-    .btn-active:hover {
-        background-color: #005a9e;
+    /* Akcent dla wybranego budynku */
+    .active-selection {
+        background-color: #0078d4 !important;
+        color: white !important;
     }
 
-    .status-text {
-        font-size: 0.85em;
-        color: #666;
-        margin-bottom: 10px;
-        display: block;
+    .row-hidden {
+        display: none;
     }
 </style>
 
-<div class="gis-table-container">
-    <table class="gis-table" id="mainBuildingsTable">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Reference</th>
-            </tr>
-        </thead>
-        <tbody>
-            @for (int i = 0; i < building2DReferences.Count; i++)
-            {
-                Building2DReference building2DReference = building2DReferences[i];
-                // Add hidden class for items beyond the first 100
-                string cssClass = i >= initialLimit ? "row-hidden" : "";
-
-                <tr class="@cssClass">
-                    <td class="index-column">@(i + 1)</td>
-                    <td>
-                        <a href="/building2D/itembyid?id=@building2DReference.Id?countyid=@building2DReference.CountyId"
-                               class="btn-buildings btn-active">
-                            @building2DReference.Reference
-                        </a>
-                    </td>
-
-                </tr>
-            }
-        </tbody>
-    </table>
-
-    @if (building2DReferences.Count > initialLimit)
-    {
-        <div class="pagination-controls">
-            <span class="status-text" id="pagingStatus">
-                Showing @initialLimit of @building2DReferences.Count records
+<div class="gis-master-wrapper">
+    <div class="master-header">
+        <span class="gis-title">Building References</span>
+        <div class="controls-row">
+            <span id="pagingStatus" style="font-size: 0.8em; color: #666; white-space: nowrap;">
+                Total: <b>@building2DReferences.Count</b> (<span id="shownVal">@Math.Min(building2DReferences.Count, initialLimit)</span>)
             </span>
-            
-            <button type="button" id="btnLoadMore" class="btn-buildings btn-active" onclick="revealNext(100)">
-                Load Next 100
-            </button>
-            
-            <button type="button" id="btnShowAll" class="btn-buildings btn-active" style="background-color: #28a745;" onclick="revealAll()">
-                Show All
-            </button>
+            <div id="paginationButtons">
+                @if (building2DReferences.Count > initialLimit)
+                {
+                    <button type="button" class="btn-buildings" style="min-width: 60px;" onclick="revealNext(100)">+100</button>
+                    <button type="button" class="btn-buildings" style="min-width: 60px; background-color: #28a745; color: white; border-color: #28a745;" onclick="revealAll()">All</button>
+                }
+            </div>
         </div>
-    }
+    </div>
+
+    <div class="table-scroll-container">
+        <table class="gis-table" id="mainBuildingsTable">
+            <thead>
+                <tr>
+                    <th class="col-idx">#</th>
+                    <th class="col-ref">Reference Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < building2DReferences.Count; i++)
+                {
+                    var item = building2DReferences[i];
+                    <tr class="@(i >= initialLimit ? "row-hidden" : "")">
+                        <td class="col-idx" style="color: #999; font-size: 0.8em;">@(i + 1)</td>
+                        <td class="col-ref">
+                            <a href="/building2D/itembyid?id=@item.Id&countyid=@item.CountyId"
+                               class="btn-buildings building-link"
+                               title="@item.Reference">
+                                @item.Reference
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-    // Internal state tracking
-    let displayedCount = @initialLimit;
+    let displayedCount = @Math.Min(building2DReferences.Count, initialLimit);
     const totalRecords = @building2DReferences.Count;
 
     function revealNext(batchSize) {
-        // Select only hidden rows
         const hiddenRows = document.querySelectorAll('#mainBuildingsTable tbody tr.row-hidden');
-        let count = 0;
-
-        for (let i = 0; i < hiddenRows.length; i++) {
-            if (count < batchSize) {
-                hiddenRows[i].classList.remove('row-hidden');
-                count++;
-                displayedCount++;
-            } else {
-                break;
-            }
+        const toShow = Math.min(batchSize, hiddenRows.length);
+        
+        for (let i = 0; i < toShow; i++) {
+            hiddenRows[i].classList.remove('row-hidden');
+            displayedCount++;
         }
-
-        updatePaginationUI();
+        updateUI();
     }
 
     function revealAll() {
-        const hiddenRows = document.querySelectorAll('#mainBuildingsTable tbody tr.row-hidden');
-        hiddenRows.forEach(row => {
-            row.classList.remove('row-hidden');
+        document.querySelectorAll('#mainBuildingsTable tbody tr.row-hidden').forEach(r => {
+            r.classList.remove('row-hidden');
         });
-        
         displayedCount = totalRecords;
-        updatePaginationUI();
+        updateUI();
     }
 
-    function updatePaginationUI() {
-        const statusSpan = document.getElementById('pagingStatus');
-        if (statusSpan) {
-            statusSpan.innerText = `Showing ${displayedCount} of ${totalRecords} records`;
-        }
-
+    function updateUI() {
+        document.getElementById('shownVal').innerText = displayedCount;
         if (displayedCount >= totalRecords) {
-            // Hide buttons if no more records to show
-            document.getElementById('btnLoadMore').style.display = 'none';
-            document.getElementById('btnShowAll').style.display = 'none';
+            const btns = document.getElementById('paginationButtons');
+            if(btns) btns.style.display = 'none';
         }
     }
 </script>
+
+@* WAŻNA UWAGA:
+   Aby lewa kolumna była całkowicie zablokowana w szerokości, 
+   w pliku _Building2DReferencesView.cshtml ustaw:
+   
+   #listSide {
+       flex: 0 0 350px; /* Zamiast 35% */
+       width: 350px;
+       max-width: 350px;
+       overflow: hidden;
+       display: flex;
+       flex-direction: column;
+   }
+*@

@@ -3,15 +3,16 @@
 @using DiGi.GIS.WebAPI.UI.Classes
 @using DiGi.GIS.PostgreSQL.Classes
 @using DiGi.GIS.PostgreSQL.Enums
+@using System.Globalization
 
 @model AdministrativeAreal2DView
 
 @{
-    // Logic for data preparation for the third section
     List<AdministrativeAreal2DReference> administrativeAreal2DReferences_All = Model.AdministrativeAreal2DReferences ?? [];
 
     DiGi.Core.Query.Filter(administrativeAreal2DReferences_All, x => x?.AdministrativeArealType == AdministrativeArealType.Subdivison, out List<AdministrativeAreal2DReference>? administrativeAreal2DReferences_Subdivision, out List<AdministrativeAreal2DReference>? administrativeAreal2DReferences);
-    if(administrativeAreal2DReferences is not null)
+    
+    if (administrativeAreal2DReferences is not null)
     {
         administrativeAreal2DReferences = administrativeAreal2DReferences.GroupBy(area => area.Code).Select(group => group.First()).ToList();
     }
@@ -20,7 +21,7 @@
         administrativeAreal2DReferences = [];
     }
 
-    if(administrativeAreal2DReferences_Subdivision is not null && administrativeAreal2DReferences_Subdivision.Count != 0)
+    if (administrativeAreal2DReferences_Subdivision is not null && administrativeAreal2DReferences_Subdivision.Count != 0)
     {
         administrativeAreal2DReferences.AddRange(administrativeAreal2DReferences_Subdivision);
     }
@@ -29,34 +30,44 @@
 }
 
 <style>
-    /* Styles shared with _AdministrativeAreal2DReferences.cshtml */
     .gis-table-container {
         margin: 20px auto;
-        max-width: 90%;
+        max-width: 95%;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         background: white;
         padding: 20px;
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-
+    .gis-main-content {
+        display: flex;
+        gap: 30px;
+        align-items: flex-start;
+        margin-bottom: 30px;
+    }
+    .gis-info-section {
+        flex: 1;
+        border-left: 4px solid #0078d4;
+        padding-left: 15px;
+    }
+    .gis-visual-side {
+        flex: 0 0 320px;
+        text-align: center;
+    }
     .gis-table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 10px;
-    } 
-
+    }
     .gis-table thead tr {
         background-color: #0078d4;
         color: white;
         text-align: left;
-    } 
-
+    }
     .gis-table th, .gis-table td {
         padding: 12px 15px;
         border-bottom: 1px solid #e0e0e0;
-    } 
-
+    }
     .gis-title {
         color: #333;
         margin-top: 0;
@@ -65,33 +76,20 @@
         padding-bottom: 10px;
         display: inline-block;
     }
-
     .gis-info-row {
         display: flex;
         margin-bottom: 12px;
         align-items: baseline;
     }
-
     .gis-info-label {
         font-weight: bold;
         min-width: 100px;
         color: #444;
     }
-
     .gis-info-value {
         color: #222;
         flex: 1;
     }
-
-    .code-badge {
-        background: #e1f0fe;
-        color: #005a9e;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-family: monospace;
-        font-size: 0.9em;
-    } 
-
     .btn-buildings {
         padding: 6px 12px;
         border-radius: 4px;
@@ -101,56 +99,74 @@
         display: inline-block;
         border: none;
         cursor: pointer;
-    } 
-
-    .btn-active { background-color: #0078d4; color: white; }
-    .btn-disabled { background-color: #e0e0e0; color: #a1a1a1; cursor: not-allowed; }
-
-    /* Additional styles for path/info sections */
-    .gis-path-breadcrumb { margin-bottom: 20px; font-size: 1.1em; color: #0078d4; }
-    .gis-info-section { margin-bottom: 30px; border-left: 4px solid #0078d4; padding-left: 15px; }
+    }
+    .btn-active {
+        background-color: #e1f0fe;
+        color: #0078d4;
+        border: 1px solid #0078d4;
+    }
+    .btn-active:hover {
+        background-color: #0078d4;
+        color: white;
+    }
+    .btn-disabled {
+        background-color: #e0e0e0;
+        color: #a1a1a1;
+        cursor: not-allowed;
+    }
 </style>
 
 <div class="gis-table-container">
 
     @* --- SECTION 1: AdministrativeAreal2D (Details) --- *@
-    <div class="gis-info-section">
-        <h2 class="gis-title">Administrative Area</h2>
-    
-        @if (Model.AdministrativeAreal2D != null)
-        {
-            <div class="gis-info-row">
-                <span class="gis-info-label">Name:</span>
-                <span class="gis-info-value">@Model.AdministrativeAreal2D.Name</span>
-            </div>
-
-            <div class="gis-info-row">
-                <span class="gis-info-label">Code:</span>
-                <span>
-                    <a href="/administrativeareal2D/administrativeareal2Dreferencesbycode?code=@Model.AdministrativeAreal2DReference!.Code" 
-                       class="btn-buildings btn-active" 
-                       style="padding: 2px 8px; font-size: 0.8em; line-height: 1.5;">
-                       @Model.AdministrativeAreal2DReference.Code
-                    </a>
-                </span>
-            </div>
-
-            string typeName = string.Empty;
-
-            if (Model.AdministrativeAreal2D is AdministrativeDivision administrativeDivision)
+    <div class="gis-main-content">
+        <div class="gis-info-section">
+            <h2 class="gis-title">Administrative Area</h2>
+            @if (Model.AdministrativeAreal2D != null)
             {
-                typeName = DiGi.Core.Query.Description(administrativeDivision.AdministrativeDivisionType) ?? string.Empty;
-            }
-            else if (Model.AdministrativeAreal2D is AdministrativeSubdivision administrativeSubdivision)
-            {
-                typeName = DiGi.Core.Query.Description(administrativeSubdivision.AdministrativeSubdivisionType) ?? string.Empty;
-            }
+                <div class="gis-info-row">
+                    <span class="gis-info-label">Name:</span>
+                    <span class="gis-info-value">@Model.AdministrativeAreal2D.Name</span>
+                </div>
+                <div class="gis-info-row">
+                    <span class="gis-info-label">Code:</span>
+                    <span>
+                        <a href="/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@Model.AdministrativeAreal2DReference!.Id"
+                           class="btn-buildings btn-active"
+                           style="padding: 2px 8px; font-size: 0.8em; line-height: 1.5;">
+                            @Model.AdministrativeAreal2DReference.Code
+                        </a>
+                    </span>
+                </div>
 
-            <div class="gis-info-row">
-                <span class="gis-info-label">Type:</span>
-                <span class="gis-info-value">@typeName</span>
+                string typeName = string.Empty;
+                uint? occupancy = null;
+                if (Model.AdministrativeAreal2D is AdministrativeDivision ad) {
+                    typeName = DiGi.Core.Query.Description(ad.AdministrativeDivisionType) ?? string.Empty;
+                } else if (Model.AdministrativeAreal2D is AdministrativeSubdivision asub) {
+                    typeName = DiGi.Core.Query.Description(asub.AdministrativeSubdivisionType) ?? string.Empty;
+                    occupancy = asub.Occupancy;
+                }
+
+                <div class="gis-info-row">
+                    <span class="gis-info-label">Type:</span>
+                    <span class="gis-info-value">@typeName</span>
+                </div>
+                @if (occupancy is not null)
+                {
+                    <div class="gis-info-row">
+                        <span class="gis-info-label">Occupancy:</span>
+                        <span class="gis-info-value">@occupancy.Value.ToString("N0")</span>
+                    </div>
+                }
+            }
+        </div>
+
+        <div class="gis-visual-side">
+            <div id="svg-wrapper" style="background: white; border: 1px solid #ddd; border-radius: 8px; padding: 10px;">
+                <svg id="mainCanvas" width="300" height="300" viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet"></svg>
             </div>
-        }
+        </div>
     </div>
 
     @* --- SECTION 2: AdministrativeAreal2DReferencePath (Interactive Breadcrumbs) --- *@
@@ -168,7 +184,7 @@
                     <span>@r.Name</span>
 
                     @* Interactive Code Button *@
-                    <a href="/administrativeareal2D/administrativeareal2Dreferencesbycode?code=@r.Code" 
+                    <a href="/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@r.Id" 
                        class="btn-buildings btn-active" 
                        style="padding: 2px 8px; font-size: 0.8em; line-height: 1.5;">
                        @r.Code
@@ -185,43 +201,124 @@
     </div>
 
     @* --- SECTION 3: AdministrativeAreal2DReferences (Table) --- *@
-    <table class="gis-table">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Name</th>
-                <th>Code</th>
-                <th>Buildings</th>
-            </tr>
-        </thead>
-        <tbody>
-            @for (int i = 0; i < administrativeAreal2DReferences.Count; i++)
-            {
-                AdministrativeAreal2DReference item = administrativeAreal2DReferences[i];
+    @if (administrativeAreal2DReferences is not null && administrativeAreal2DReferences.Count != 0)
+    {
+        <table class="gis-table">
+            <thead>
                 <tr>
-                    <td class="index-column">@(i + 1)</td>
-                    <td style="font-weight: 500;">@item.Name</td>
-                    <td>
-                        <a href="/administrativeareal2D/administrativeareal2Dreferencesbycode?code=@item.Code" 
-                           class="btn-buildings btn-active" style="padding: 4px 8px;">
-                           @item.Code
-                        </a>
-                    </td>
-                    <td>
-                        @if ((int)item.AdministrativeArealType >= (int)AdministrativeArealType.County)
-                        {
-                            <a href="/building2D/building2Dreferencesbyadministrativeareal2Did?administrativeareal2Did=@item.Id" 
-                               class="btn-buildings btn-active">
-                               Buildings
-                            </a>
-                        } 
-                        else
-                        {
-                            <button class="btn-buildings btn-disabled" disabled>Buildings</button>
-                        } 
-                        </td>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>Buildings</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < administrativeAreal2DReferences.Count; i++)
+                {
+                    var item = administrativeAreal2DReferences[i];
+                    <tr>
+                        <td>@(i + 1)</td>
+                        <td>@item.Name</td>
+                        <td>
+                            <a href="/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@item.Id"
+                               onmouseenter="handleMouseEnter('@item.Id')"
+                               onmouseleave="handleMouseLeave('@item.Id')"
+                               class="btn-buildings btn-active" style="padding: 4px 8px;">
+                                @item.Code
+                            </a>
+                        </td>
+                        <td>
+                             @if ((int)item.AdministrativeArealType >= (int)AdministrativeArealType.County) {
+                                <a href="/building2D/building2Dreferencesbyadministrativeareal2Did?administrativeareal2Did=@item.Id" class="btn-buildings btn-active">Buildings</a>
+                             } else {
+                                <button class="btn-buildings btn-disabled" disabled>Buildings</button>
+                             }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
 </div>
+
+<script>
+    let globalScaleParams = null;
+    const activeHovers = new Set();
+    const controllers = new Map(); 
+
+    async function handleMouseEnter(id) {
+        activeHovers.add(id);
+        const controller = new AbortController();
+        controllers.set(id, controller);
+        
+        await drawPolygon(id, false, controller.signal);
+    }
+
+    function handleMouseLeave(id) {
+        activeHovers.delete(id);
+        if (controllers.has(id)) {
+            controllers.get(id).abort();
+            controllers.delete(id);
+        }
+        removePolygon(id);
+    }
+
+    async function drawPolygon(id, isBase = false, signal = null) {
+        if (!id) return;
+        if (document.getElementById(`poly-${id}`)) return;
+
+        try {
+            const response = await fetch(`/administrativeareal2D/pointsbyid?id=${id}&reductionfactor=0.05`, { signal });
+            if (!response.ok) return;
+
+            const rawData = await response.text();
+            
+            // Krytyczne sprawdzenie: czy myszka nadal jest nad przyciskiem (dla elementów nie-bazowych)
+            if (!isBase && !activeHovers.has(id)) return;
+
+            const coords = rawData.trim().split(/\s+/).map(Number);
+            if (coords.length < 4) return;
+
+            if (isBase || !globalScaleParams) {
+                let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+                for (let i = 0; i < coords.length; i += 2) {
+                    let x = coords[i]; let y = coords[i+1];
+                    if (x < minX) minX = x; if (x > maxX) maxX = x;
+                    if (y < minY) minY = y; if (y > maxY) maxY = y;
+                }
+                const scale = Math.min((450) / (maxX - minX), (450) / (maxY - minY));
+                globalScaleParams = { minX, minY, scale, padding: 25, canvasSize: 500 };
+            }
+
+            const { minX, minY, scale, padding, canvasSize } = globalScaleParams;
+            const points = [];
+            for (let i = 0; i < coords.length; i += 2) {
+                points.push(`${((coords[i] - minX) * scale + padding).toFixed(2)},${(canvasSize - ((coords[i+1] - minY) * scale + padding)).toFixed(2)}`);
+            }
+
+            const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+            polygon.setAttribute("id", `poly-${id}`);
+            polygon.setAttribute("points", points.join(" "));
+            polygon.style.fill = isBase ? "rgba(0, 120, 212, 0.1)" : "rgba(0, 120, 212, 0.4)";
+            polygon.style.stroke = "#0078d4";
+            polygon.style.strokeWidth = isBase ? "1" : "2";
+            polygon.style.pointerEvents = "none";
+            
+            document.getElementById("mainCanvas").appendChild(polygon);
+        } catch (e) {
+            if (e.name !== 'AbortError') console.error(e);
+        }
+    }
+
+    function removePolygon(id) {
+        if (id === '@(Model.AdministrativeAreal2DReference?.Id)') return;
+        const poly = document.getElementById(`poly-${id}`);
+        if (poly) poly.remove();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        @if (Model.AdministrativeAreal2DReference != null) {
+            <text>drawPolygon('@Model.AdministrativeAreal2DReference.Id', true);</text>
+        }
+    });
+</script>

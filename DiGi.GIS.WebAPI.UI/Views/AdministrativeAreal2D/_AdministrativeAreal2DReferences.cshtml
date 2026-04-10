@@ -83,12 +83,14 @@
     }
 
     .btn-active {
-        background-color: #0078d4;
-        color: white;
+        background-color: #e1f0fe;
+        color: #0078d4;
+        border: 1px solid #0078d4;
     }
 
     .btn-active:hover {
-        background-color: #005a9e;
+        background-color: #0078d4;
+        color: white;
     }
 
     .btn-disabled {
@@ -117,7 +119,7 @@
                     <td class="index-column">@(i + 1)</td>
                     <td style="font-weight: 500;">@administrativeAreal2DReference.Name</td>
                     <td>
-                        <a href="/administrativeareal2D/administrativeareal2Dreferencesbycode?code=@administrativeAreal2DReference.Code" 
+                        <a href="/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@administrativeAreal2DReference.Id" 
                                class="btn-buildings btn-active">
                                 @administrativeAreal2DReference.Code
                         </a>
