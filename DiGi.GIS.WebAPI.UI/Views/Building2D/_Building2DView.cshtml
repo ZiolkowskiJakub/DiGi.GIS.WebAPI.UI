@@ -107,7 +107,7 @@
 
                 <div style="display: inline-flex; align-items: center; gap: 5px;">
                     <span style="font-weight: 500;">@r.Name</span>
-                    <a href="/administrativeareal2D/administrativeareal2Dreferencesbycode?code=@r.Code"
+                    <a href="/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@r.Id"
                            class="btn-buildings btn-active"
                            style="padding: 2px 8px; font-size: 0.8em;">
                         @r.Code
@@ -129,7 +129,7 @@
             @* --- BLOCK 1: Input Values --- *@
             <div class="property-group" style="margin-bottom: 25px;">
                 <h4 style="color: #0078d4; margin-bottom: 12px; font-size: 1.1em; border-left: 4px solid #0078d4; padding-left: 10px;">
-                    Input Values
+				Input General Properties
                 </h4>
                 <table style="width: 100%; border-collapse: collapse; background-color: #fafafa; border-radius: 4px;">
                     <tr style="border-bottom: 1px solid #eee;">
@@ -162,28 +162,27 @@
             @* --- BLOCK 2: Calculated Values --- *@
             <div class="property-group">
                 <h4 style="color: #28a745; margin-bottom: 12px; font-size: 1.1em; border-left: 4px solid #28a745; padding-left: 10px;">
-                    Calculated Values
+                    Calculated General Properties
                 </h4>
-                <table style="width: 100%; border-collapse: collapse; background-color: #f8fff9; border-radius: 4px;">
-                    <tr style="border-bottom: 1px solid #eef5ee;">
+                <table style="width: 100%; border-collapse: collapse; background-color: #fafafa; border-radius: 4px;">
+                    <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 12px; color: #666; width: 45%; font-weight: 500;">Single Floor Area:</td>
                         <td style="padding: 12px; color: #333;">@DiGi.Core.Query.Round(building2DView.Building2D?.PolygonalFace2D?.GetArea() ?? 0.0, 0.01) m²</td>
                     </tr>
-                    <tr style="border-bottom: 1px solid #eef5ee;">
+                    <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 12px; color: #666; font-weight: 500;">Building Total Area:</td>
                         <td style="padding: 12px; color: #333;">@(DiGi.Core.Query.Round(building2DView.Building2D?.PolygonalFace2D?.GetArea() ?? 0.0, 0.01) * building2DView.Building2D?.Storeys ?? 0) m²</td>
                     </tr>
-                    <tr style="border-bottom: 1px solid #eef5ee;">
+                    <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 12px; color: #666; font-weight: 500;">Azimuth:</td>
                         <td style="padding: 12px; color: #333; font-weight: bold;">@DiGi.Core.Query.Round(DiGi.GIS.Query.Azimuth(building2DView.Building2D), 1)°</td>
                     </tr>
                     <tr>
                         <td style="padding: 12px; color: #666; font-weight: 500;">Is Occupied:</td>
                         <td style="padding: 12px; color: #333;">
-                            @if (building2DView.Building2D is null ? false : DiGi.GIS.Query.IsOccupied(building2DView.Building2D))
+                            @if (DiGi.GIS.Query.IsOccupied(building2DView.Building2D))
                             {
                                 <span style="color: #5cb85c; font-weight: bold;">Yes</span>
-                                
                             }
                             else
                             {
@@ -207,12 +206,30 @@
                     </tr>
                 </table>
             </div>
+
+        @* --- BLOCK 3: Year Built --- *@
+        <div class="property-group">
+            <h4 style="color: #28a745; margin-bottom: 12px; font-size: 1.1em; border-left: 4px solid #28a745; padding-left: 10px;">
+                Year Builts
+            </h4>
+
+            @* --- Add _YearBuiltsView --- *@
+
+        </div>
+
+        @* --- BLOCK 4: Orto Datas --- *@
+        <div class="property-group">
+            <h4 style="color: #28a745; margin-bottom: 12px; font-size: 1.1em; border-left: 4px solid #28a745; padding-left: 10px;">
+                Orto Data
+            </h4>
+
+            @* --- Add _OrtoDatasView --- *@
+
+        </div>
         }
 </div>
 
 <script>
-    // Definiujemy funkcję w zasięgu globalnym (window),
-    // aby widok nadrzędny mógł ją wywołać po wstrzyknięciu HTML
     window.initializeBuildingGeometry = async function() {
         @if (building2DView.Building2DReference != null)
         {
@@ -226,7 +243,6 @@
         }
     };
 
-    // Przenosimy drawPolygon tutaj, jeśli nie jest zdefiniowany w widoku głównym
     async function drawPolygon(countyId, id) {
         if (!id || !countyId) return;
 

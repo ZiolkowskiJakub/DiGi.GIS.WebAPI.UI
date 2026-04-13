@@ -7,5 +7,28 @@
 @model OrtoDatasView
 
 @{
-    OrtoDatasView ortoDatasView = Model ?? new OrtoDatasView();
+	OrtoDatasView ortoDatasView = Model ?? new OrtoDatasView();
+
+	SortedDictionary<int, byte[]> dictionary = new SortedDictionary<int, byte[]>();
+	if (ortoDatasView.OrtoDatas is DiGi.GIS.Classes.OrtoDatas ortoDatas)
+	{
+		if(ortoDatas.TryGetYears(out HashSet<int>? years) && years is not null && years.Count > 0)
+		{
+			foreach(int year in years)
+			{
+				if(ortoDatas.GetBytes(new DateTime(year, 1, 1)) is byte[] bytes)
+				{
+					dictionary[year] = bytes;
+				}
+			}
+		}
+	}
+
+	foreach(KeyValuePair<int, byte[]> keyValuePair in dictionary)
+	{
+		string base64 = Convert.ToBase64String(keyValuePair.Value);
+		string src = $"data:image/png;base64,{base64}";
+    
+		<img src="@src" alt="@keyValuePair.Key" />
+	}
 }

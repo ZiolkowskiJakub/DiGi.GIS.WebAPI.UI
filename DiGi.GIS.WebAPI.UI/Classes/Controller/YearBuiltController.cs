@@ -1,6 +1,7 @@
 ﻿using DiGi.GIS.PostgreSQL.Classes;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -8,17 +9,17 @@ using System.Threading.Tasks;
 namespace DiGi.GIS.WebAPI.UI.Classes
 {
     [Route("[controller]")]
-    public class OrtoDatasController : Controller
+    public class YearBuiltController : Controller
     {
         private readonly IHttpClientFactory httpClientFactory;
 
         // Constructor injection for the PostgreSQL data source
-        public OrtoDatasController(IHttpClientFactory httpClientFactory)
+        public YearBuiltController(IHttpClientFactory httpClientFactory)
         {
             this.httpClientFactory = httpClientFactory;
         }
 
-        [HttpGet("itembyreference")]
+        [HttpGet("itemsbyreference")]
         public async Task<IActionResult> GetItemByIdAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId)
         {
             if(string.IsNullOrWhiteSpace(reference))
@@ -32,9 +33,9 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             HttpResponseMessage httpResponseMessage;
             string json;
 
-            #region OrtoDatas
+            #region YearBuilts
 
-            urlBuilder = new("https://api.digiproject.uk/gis/ortodatas/itembyreference");
+            urlBuilder = new("https://api.digiproject.uk/gis/yearbuilt/itemsbyreference");
             urlBuilder = urlBuilder.AddParameter("reference", reference);
             if (countyId is not null && countyId.HasValue)
             {
@@ -53,13 +54,13 @@ namespace DiGi.GIS.WebAPI.UI.Classes
                 return NoContent();
             }
 
-            GIS.Classes.OrtoDatas? ortoDatas = Core.Convert.ToDiGi<GIS.Classes.OrtoDatas>(json)?.FirstOrDefault();
-            if (ortoDatas is null)
+            List<Interfaces.IYearBuilt>? yearBuilts = Core.Convert.ToDiGi<Interfaces.IYearBuilt>(json);
+            if (yearBuilts is null)
             {
                 return NoContent();
             }
 
-            #endregion OrtoDatas
+            #endregion YearBuilts
 
             #region Building2DReference
 
@@ -84,10 +85,10 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 
             #endregion Building2DReference
 
-            OrtoDatasView ortoDatasView = new (building2DReference, ortoDatas);
+            YearBuiltsView yearBuiltsView = new (building2DReference, yearBuilts);
 
             // We pass the objects to a Partial View
-            return PartialView("_OrtoDatasView", ortoDatasView);
+            return PartialView("_YearBuiltsView", yearBuiltsView);
         }
     }
 }
