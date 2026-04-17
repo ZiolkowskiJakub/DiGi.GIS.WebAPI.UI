@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 namespace DiGi.GIS.WebAPI.UI.Classes
 {
     [Route("[controller]")]
-    public class YearBuiltController : Controller
+    public class YearBuiltDataController : Controller
     {
         private readonly IHttpClientFactory httpClientFactory;
 
         // Constructor injection for the PostgreSQL data source
-        public YearBuiltController(IHttpClientFactory httpClientFactory)
+        public YearBuiltDataController(IHttpClientFactory httpClientFactory)
         {
             this.httpClientFactory = httpClientFactory;
         }
@@ -33,9 +33,9 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             HttpResponseMessage httpResponseMessage;
             string json;
 
-            #region YearBuilts
+            #region YearBuiltDatas
 
-            urlBuilder = new("https://api.digiproject.uk/gis/yearbuilt/itemsbyreference");
+            urlBuilder = new("https://api.digiproject.uk/gis/yearbuiltdata/itemsbyreference");
             urlBuilder = urlBuilder.AddParameter("reference", reference);
             if (countyId is not null && countyId.HasValue)
             {
@@ -54,13 +54,13 @@ namespace DiGi.GIS.WebAPI.UI.Classes
                 return NoContent();
             }
 
-            List<Interfaces.IYearBuilt>? yearBuilts = Core.Convert.ToDiGi<Interfaces.IYearBuilt>(json);
-            if (yearBuilts is null)
+            List<Interfaces.IYearBuiltData>? yearBuiltDatas = Core.Convert.ToDiGi<Interfaces.IYearBuiltData>(json);
+            if (yearBuiltDatas is null)
             {
                 return NoContent();
             }
 
-            #endregion YearBuilts
+            #endregion YearBuiltDatas
 
             #region Building2DReference
 
@@ -85,10 +85,10 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 
             #endregion Building2DReference
 
-            YearBuiltsView yearBuiltsView = new (building2DReference, yearBuilts);
+            YearBuiltDataView yearBuiltDataView = new (building2DReference, yearBuiltDatas?.FirstOrDefault());
 
             // We pass the objects to a Partial View
-            return PartialView("_YearBuiltsView", yearBuiltsView);
+            return PartialView("_YearBuiltDataView", yearBuiltDataView);
         }
     }
 }

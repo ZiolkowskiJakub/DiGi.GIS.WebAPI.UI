@@ -7,28 +7,77 @@
 @model OrtoDatasView
 
 @{
-	OrtoDatasView ortoDatasView = Model ?? new OrtoDatasView();
+    @* Initializing the view object and dictionary with explicit typing *@
+    OrtoDatasView ortoDatasView = Model ?? new OrtoDatasView();
+    SortedDictionary<int, byte[]> dictionary = new SortedDictionary<int, byte[]>();
 
-	SortedDictionary<int, byte[]> dictionary = new SortedDictionary<int, byte[]>();
-	if (ortoDatasView.OrtoDatas is DiGi.GIS.Classes.OrtoDatas ortoDatas)
-	{
-		if(ortoDatas.TryGetYears(out HashSet<int>? years) && years is not null && years.Count > 0)
-		{
-			foreach(int year in years)
-			{
-				if(ortoDatas.GetBytes(new DateTime(year, 1, 1)) is byte[] bytes)
-				{
-					dictionary[year] = bytes;
-				}
-			}
-		}
-	}
-
-	foreach(KeyValuePair<int, byte[]> keyValuePair in dictionary)
-	{
-		string base64 = Convert.ToBase64String(keyValuePair.Value);
-		string src = $"data:image/png;base64,{base64}";
-    
-		<img src="@src" alt="@keyValuePair.Key" />
-	}
+    if (ortoDatasView.OrtoDatas is DiGi.GIS.Classes.OrtoDatas ortoDatas)
+    {
+        if (ortoDatas.TryGetYears(out HashSet<int>? years) && years is not null && years.Count > 0)
+        {
+            foreach (int year in years)
+            {
+                if (ortoDatas.GetBytes(new DateTime(year, 1, 1)) is byte[] bytes)
+                {
+                    dictionary[year] = bytes;
+                }
+            }
+        }
+    }
 }
+
+<style>
+    .orto-grid {
+        display: grid;
+        /* Forced 3 columns as requested */
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .orto-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .orto-image {
+        width: 100%;
+        height: 300px; /* Fixed height for visual consistency */
+        object-fit: cover;
+        display: block;
+    }
+
+    .orto-footer {
+        padding: 8px;
+        background: #f8f9fa;
+        width: 100%;
+        text-align: center;
+        border-top: 1px solid #eee;
+        font-size: 0.9em;
+        font-weight: bold;
+        color: #333;
+    }
+</style>
+
+<div class="orto-grid">
+    @foreach (KeyValuePair<int, byte[]> item in dictionary)
+    {
+        string base64String = System.Convert.ToBase64String(item.Value);
+        string imageSource = $"data:image/png;base64,{base64String}";
+        int yearValue = item.Key;
+
+        <div class="orto-card">
+            <img src="@imageSource" alt="Year @yearValue" class="orto-image" />
+            <div class="orto-footer">
+                Year: @yearValue
+            </div>
+        </div>
+    }
+</div>

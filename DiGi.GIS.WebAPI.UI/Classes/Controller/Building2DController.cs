@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Classes
@@ -151,8 +152,8 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             return PartialView("_Building2DView", building2DView);
         }
 
-        [HttpGet("pointsbyid")]
-        public async Task<IActionResult> GetPointsByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "reductionfactor")] double? reductionFactor = null, [FromQuery(Name = "mincount")] int? minCount = null)
+        [HttpGet("svg/polygonbyid")]
+        public async Task<IActionResult> GetPolygonByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "reductionfactor")] double? reductionFactor = null, [FromQuery(Name = "mincount")] int? minCount = null)
         {
             HttpClient httpClient = httpClientFactory.CreateClient();
 
@@ -193,6 +194,53 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 
             List<Point2D>? point2Ds = building2D.PolygonalFace2D?.ExternalEdge?.GetPoints();
             Modify.Reduce(point2Ds, reductionFactor, minCount ?? 100);
+
+            #endregion Point2Ds
+
+            string result = point2Ds is null ? string.Empty : string.Join(" ", point2Ds.ConvertAll(p => $"{p.X} {p.Y}"));
+
+            return Content(result, "text/plain");
+        }
+
+        [HttpGet("svg/pointsbyreferences")]
+        public async Task<IActionResult> GetPointsByReferencesAsync([FromBody] IEnumerable<string> references, [FromQuery(Name = "countyid")] int? countyId)
+        {
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            UrlBuilder urlBuilder;
+            HttpResponseMessage httpResponseMessage;
+            string json;
+
+            #region Point2Ds
+
+            urlBuilder = new("https://api.digiproject.uk/gis/building2D/point2dsbyreferences");
+            if (countyId is not null && countyId.HasValue)
+            {
+                urlBuilder = urlBuilder.AddParameter("countyId", countyId.Value);
+            }
+
+            HttpRequestMessage httpRequestMessage = new (HttpMethod.Get, urlBuilder.ToString())
+            {
+                Content = JsonContent.Create(references)
+            };
+
+            httpResponseMessage = await httpClient.SendAsync(httpRequestMessage);
+            if (!httpResponseMessage.IsSuccessStatusCode)
+            {
+                return BadRequest();
+            }
+
+            json = await httpResponseMessage.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return NoContent();
+            }
+
+            List<Point2D>? point2Ds = Core.Convert.ToDiGi<Point2D>(json);
+            if (point2Ds is null)
+            {
+                return NotFound();
+            }
 
             #endregion Point2Ds
 

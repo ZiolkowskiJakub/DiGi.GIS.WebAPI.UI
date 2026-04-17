@@ -8,8 +8,7 @@
 
 @{
     Building2DView building2DView = Model ?? new Building2DView();
-    // Pobieramy referencje administracyjne dla nagłówka
-    var pathItems = building2DView.AdministrativeAreal2DReferencePath?.AdministrativeAreal2DReferences;
+    System.Collections.Generic.List<AdministrativeAreal2DReference>? pathItems = building2DView.AdministrativeAreal2DReferencePath?.AdministrativeAreal2DReferences;
 }
 
 <style>
@@ -208,25 +207,26 @@
             </div>
 
         @* --- BLOCK 3: Year Built --- *@
-        <div class="property-group">
+        <div id="year-built-section" class="property-group" style="display: none; margin-bottom: 25px;">
             <h4 style="color: #28a745; margin-bottom: 12px; font-size: 1.1em; border-left: 4px solid #28a745; padding-left: 10px;">
                 Year Builts
             </h4>
-
-            @* --- Add _YearBuiltsView --- *@
-
+            <div id="year-builts-container">
+                @* Content injected via AJAX *@
+            </div>
         </div>
 
         @* --- BLOCK 4: Orto Datas --- *@
-        <div class="property-group">
+        <div id="orto-data-section" class="property-group" style="display: none;">
             <h4 style="color: #28a745; margin-bottom: 12px; font-size: 1.1em; border-left: 4px solid #28a745; padding-left: 10px;">
                 Orto Data
             </h4>
-
-            @* --- Add _OrtoDatasView --- *@
-
+            <div id="orto-datas-container">
+                @* Content injected via AJAX *@
+            </div>
         </div>
-        }
+    }
+    </div>
 </div>
 
 <script>
@@ -235,10 +235,16 @@
         {
             string? countyId = building2DView.Building2DReference.CountyId?.ToString();
             string? buildingId = building2DView.Building2DReference.Id.ToString();
+            string reference = building2DView.Building2DReference?.Reference ?? string.Empty;
             
             <text>
                 // Wywołujemy rysowanie bezpośrednio
                 await drawPolygon('@countyId', '@buildingId');
+
+                // Load the Partial View for Year Builts
+                await loadYearBuiltData('@reference', '@countyId');
+
+                await loadOrtoDatas('@reference', '@countyId');
             </text>
         }
     };
@@ -247,7 +253,7 @@
         if (!id || !countyId) return;
 
         try {
-            const response = await fetch(`/building2D/pointsbyid?id=${id}&countyid=${countyId}`);
+            const response = await fetch(`/building2D/svg/polygonbyid?id=${id}&countyid=${countyId}`);
             if (!response.ok) return;
 
             const rawData = await response.text();
@@ -312,6 +318,84 @@
             }
         } catch (error) {
             console.error("Normalization error:", error);
+        }
+    }
+
+    // Function to fetch Partial View HTML and inject it into the DOM
+    async function loadYearBuiltData(reference, countyId) {
+        if (!reference) return;
+
+        const section = document.getElementById("year-built-section");
+        const container = document.getElementById("year-builts-container");
+    
+        // Constructing URL for YearBuiltDataController
+        const url = `/yearbuiltdata/itemsbyreference?reference=${encodeURIComponent(reference)}&countyid=${countyId}`;
+
+        try {
+            const response = await fetch(url);
+
+            // Check if the response is 204 NoContent or 404
+            if (response.status === 204 || response.status === 404) {
+                console.log("No year built data found. Section will remain hidden.");
+                section.style.display = "none";
+                return;
+            }
+
+            if (response.ok) {
+                const htmlContent = await response.text();
+            
+                // If the content is empty string, hide section
+                if (!htmlContent.trim()) {
+                    section.style.display = "none";
+                    return;
+                }
+
+                // Inject HTML and show the section
+                container.innerHTML = htmlContent;
+                section.style.display = "block";
+            } else {
+                console.error("Server returned an error status:", response.status);
+                section.style.display = "none";
+            }
+        } catch (error) {
+            console.error("AJAX Error during fetching Year Builts:", error);
+            section.style.display = "none";
+        }
+    }
+
+    
+    //Fetches Orto Data Partial View and manages section visibility
+    async function loadOrtoDatas(reference, countyId) {
+        if (!reference) return;
+
+        const section = document.getElementById("orto-data-section");
+        const container = document.getElementById("orto-datas-container");
+        
+        // URL targeting OrtoDatasController.GetItemByIdAsync
+        const url = `/ortodatas/itembyreference?reference=${encodeURIComponent(reference)}&countyid=${countyId}`;
+
+        try {
+            const response = await fetch(url);
+
+            // If the controller returns NoContent()
+            if (response.status === 204) {
+                section.style.display = "none";
+                return;
+            }
+
+            if (response.ok) {
+                const htmlContent = await response.text();
+                
+                if (htmlContent.trim().length > 0) {
+                    container.innerHTML = htmlContent;
+                    section.style.display = "block";
+                } else {
+                    section.style.display = "none";
+                }
+            }
+        } catch (error) {
+            console.error("Error loading Orto Data:", error);
+            section.style.display = "none";
         }
     }
 </script>

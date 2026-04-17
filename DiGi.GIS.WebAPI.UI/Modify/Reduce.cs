@@ -18,9 +18,15 @@ namespace DiGi.GIS.WebAPI.UI
                 return;
             }
 
-            double factor_Clamp = Math.Clamp(factor_Temp, 0.01, 1.0);
+            double factor_Clamp = Math.Clamp(factor_Temp, 0, 1.0);
             if (factor_Clamp >= 1.0)
             {
+                return;
+            }
+
+            if(factor_Temp == 0)
+            {
+                point2Ds.Clear();
                 return;
             }
 

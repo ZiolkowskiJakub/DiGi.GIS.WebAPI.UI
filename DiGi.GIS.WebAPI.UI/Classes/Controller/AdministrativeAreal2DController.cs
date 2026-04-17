@@ -2,6 +2,7 @@
 using DiGi.Geometry.Planar.Classes;
 using DiGi.GIS.Classes;
 using DiGi.GIS.PostgreSQL;
+using DiGi.GIS.PostgreSQL.Enums;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -375,8 +376,8 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             return PartialView("_AdministrativeAreal2Ds", administrativeAreal2Ds ?? []);
         }
 
-        [HttpGet("pointsbyid")]
-        public async Task<IActionResult> GetPointsByIdAsync([FromQuery(Name = "id")] int id, [FromQuery(Name = "reductionfactor")] double? reductionFactor = null, [FromQuery(Name = "mincount")] int? minCount = null)
+        [HttpGet("svg/polygonsbyid")]
+        public async Task<IActionResult> GetPolygonsByIdAsync([FromQuery(Name = "id")] int id, [FromQuery(Name = "reductionfactor")] double? reductionFactor = null, [FromQuery(Name = "mincount")] int? minCount = null)
         {
             HttpClient httpClient = httpClientFactory.CreateClient();
 
@@ -409,9 +410,12 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 
             #endregion AdministrativeAreal2DReference
 
+
+            AdministrativeArealType administrativeArealType = administrativeAreal2DReference.AdministrativeArealType;
+
             List<AdministrativeAreal2D> administrativeAreal2Ds = [];
 
-            if(administrativeAreal2DReference.AdministrativeArealType == PostgreSQL.Enums.AdministrativeArealType.Subdivison || administrativeAreal2DReference.AdministrativeArealType == PostgreSQL.Enums.AdministrativeArealType.Municipality)
+            if(administrativeArealType == AdministrativeArealType.Subdivison || administrativeArealType == AdministrativeArealType.Municipality)
             {
                 #region AdministrativeAreal2D
 
@@ -446,7 +450,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 
                 urlBuilder = new("https://api.digiproject.uk/gis/administrativeareal2D/itemsbycode");
                 urlBuilder = urlBuilder.AddParameter("code", administrativeAreal2DReference.Code);
-                urlBuilder = urlBuilder.AddParameter("administrativearealtype", administrativeAreal2DReference.AdministrativeArealType.ToString());
+                urlBuilder = urlBuilder.AddParameter("administrativearealtype", administrativeArealType.ToString());
 
                 httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
                 if (!httpResponseMessage.IsSuccessStatusCode)
@@ -472,27 +476,70 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 
             #region Point2Ds
 
-            List<Point2D>? point2Ds = [];
-            foreach (AdministrativeAreal2D? administrativeAreal2D in administrativeAreal2Ds)
+            // Prepare a list of polygons. Each polygon is a list of coordinates [x, y, x, y...]
+            List<List<double>> result = [];
+
+            if(reductionFactor is null)
             {
-                List<Point2D>? point2Ds_Temp = administrativeAreal2D.PolygonalFace2D?.ExternalEdge?.GetPoints();
-                Modify.Reduce(point2Ds_Temp, reductionFactor, minCount ?? 100);
-                if (point2Ds_Temp is not null)
+                switch(administrativeArealType)
                 {
-                    point2Ds.AddRange(point2Ds_Temp);
+                    case AdministrativeArealType.Country:
+                        reductionFactor = 0.00001;
+                        break;
+
+                    case AdministrativeArealType.Voivodeship:
+                        reductionFactor = 0.0001;
+                        break;
+
+                    case AdministrativeArealType.County:
+                        reductionFactor = 0.001;
+                        break;
+
+                    default:
+                        reductionFactor = 0.01;
+                        break;
                 }
             }
 
-            if(administrativeAreal2Ds.Count > 1)
+            if (minCount is null)
             {
-                point2Ds =  Geometry.Planar.Query.ConvexHull(point2Ds, false);
+                switch (administrativeArealType)
+                {
+                    case AdministrativeArealType.Country:
+                        minCount = 30;
+                        break;
+
+                    case AdministrativeArealType.Voivodeship:
+                        minCount = 40;
+                        break;
+
+                    default:
+                        minCount = 100;
+                        break;
+                }
+            }
+
+            foreach (AdministrativeAreal2D? area in administrativeAreal2Ds)
+            {
+                List<Point2D>? point2Ds = area.PolygonalFace2D?.ExternalEdge?.GetPoints();
+                if (point2Ds != null)
+                {
+                    Modify.Reduce(point2Ds, reductionFactor, minCount ?? 100);
+
+                    List<double> coordinates = [];
+                    foreach (Point2D? point2D in point2Ds)
+                    {
+                        coordinates.Add(point2D.X);
+                        coordinates.Add(point2D.Y);
+                    }
+                    result.Add(coordinates);
+                }
             }
 
             #endregion Point2Ds
 
-            string result = point2Ds is null ? string.Empty : string.Join(" ", point2Ds.ConvertAll(p => $"{p.X} {p.Y}"));
-
-            return Content(result, "text/plain");
+            // Return as JSON: [[x,y,x,y], [x,y,x,y]]
+            return Ok(result);
         }
 
         // This action will trigger for: gis.digiproject.uk/administrativeareal2D
