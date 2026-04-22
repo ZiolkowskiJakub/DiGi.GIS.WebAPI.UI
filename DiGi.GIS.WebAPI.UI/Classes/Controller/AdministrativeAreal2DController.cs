@@ -1,11 +1,9 @@
-﻿using DiGi.Core.Classes;
-using DiGi.Geometry.Planar.Classes;
+﻿using DiGi.Geometry.Planar.Classes;
 using DiGi.GIS.Classes;
 using DiGi.GIS.PostgreSQL;
 using DiGi.GIS.PostgreSQL.Enums;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -488,7 +486,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
                         break;
 
                     case AdministrativeArealType.Voivodeship:
-                        reductionFactor = 0.0001;
+                        reductionFactor = 0.001;
                         break;
 
                     case AdministrativeArealType.County:
@@ -510,7 +508,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
                         break;
 
                     case AdministrativeArealType.Voivodeship:
-                        minCount = 40;
+                        minCount = 50;
                         break;
 
                     default:

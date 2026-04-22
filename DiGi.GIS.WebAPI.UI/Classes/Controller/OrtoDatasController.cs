@@ -1,8 +1,11 @@
 ﻿using DiGi.GIS.PostgreSQL.Classes;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Classes
@@ -88,6 +91,71 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 
             // We pass the objects to a Partial View
             return PartialView("_OrtoDatasView", ortoDatasView);
+        }
+
+        [HttpGet("estimatedcoveragefactor")]
+        public async Task<IActionResult> GetEstimatedCoverageFactorAsync([FromQuery(Name = "administrativeareal2Did")] int administrativeAreal2DId)
+        {
+            // Using HttpClient to call the external API from the server side
+            HttpClient httpClient = httpClientFactory.CreateClient();
+            try
+            {
+                string url = $"https://api.digiproject.uk/gis/ortodatas/estimatedcoveragefactor?administrativeareal2Did={administrativeAreal2DId}";
+                HttpResponseMessage response = await httpClient.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string content = await response.Content.ReadAsStringAsync();
+                    return Ok(content);
+                }
+                return BadRequest();
+            }
+            catch
+            {
+                // Log error and return N/A equivalent
+                return StatusCode(500, "Error");
+            }
+        }
+
+        [HttpPost("estimatedcoveragefactors")]
+        public async Task<IActionResult> GetEstimatedCoverageFactorsAsync([FromBody] IEnumerable<int> administrativeAreal2DIds)
+        {
+            if (administrativeAreal2DIds == null || !administrativeAreal2DIds.Any())
+            {
+                return BadRequest("The list of IDs cannot be empty.");
+            }
+
+            // Use IHttpClientFactory to prevent socket exhaustion
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            try
+            {
+                // Note: If calling the method you provided, it expects a Body. 
+                // We change this to Post or send the list as a query string.
+                string url = "https://api.digiproject.uk/gis/ortodatas/estimatedcoveragefactors";
+
+                // Sending the collection in the body via POST (more reliable than GET with body)
+                HttpResponseMessage httpResponseMessage = await httpClient.PostAsJsonAsync(url, administrativeAreal2DIds);
+
+                if (httpResponseMessage.IsSuccessStatusCode)
+                {
+                    // Directly deserialize the response from the DLL-based logic
+                    List<double>? values = await httpResponseMessage.Content.ReadFromJsonAsync<List<double>>();
+                    if (values == null)
+                    {
+                        return NoContent();
+                    }
+
+                    return Ok(values);
+                }
+
+                return StatusCode((int)httpResponseMessage.StatusCode, "External API returned an error.");
+            }
+            catch (Exception exception)
+            {
+                // In a real scenario, log 'ex' using Serilog
+                return StatusCode(500, $"Internal server error: {exception.Message}");
+            }
         }
     }
 }

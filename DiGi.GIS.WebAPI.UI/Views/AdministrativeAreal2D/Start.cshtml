@@ -129,22 +129,80 @@
                 container.innerHTML = '';
 
                 try {
-                    // Dodano parametr &uniquecode=true
                     const response = await fetch(`/administrativeareal2D/administrativeareal2Dreferencesbyadministrativearealtype?administrativearealtype=${type}&uniquecode=true`);
-                    
+    
                     if (!response.ok) throw new Error('Communication error with Web API');
 
                     const htmlResult = await response.text();
                     container.innerHTML = htmlResult;
 
+                    // 1. Collect all IDs from the rendered spans
+                    const spans = container.querySelectorAll('span[id^="text-coverage-"]');
+                    const ids = Array.from(spans).map(span => parseInt(span.id.replace('text-coverage-', '')));
+
+                    // 2. Perform the Bulk Update
+                    if (ids.length > 0) {
+                        await loadAllOrtoCoverages(ids);
+                    }
+
                 } catch (error) {
                     console.error('API Error:', error);
                     alert("Error: " + error.message);
-                } finally {
-                    loader.style.display = 'none';
+                }
+                finally {
+                    // UI State - End loading (ALWAYS executes)
                     btn.disabled = false;
+                    loader.style.display = 'none';
                 }
             });
         }
     });
+
+    async function loadAllOrtoCoverages(ids) {
+        // Relative URL to your new Controller endpoint
+        const apiUrl = '/ortodatas/estimatedcoveragefactors';
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(ids) // Sending IEnumerable<int> 
+            });
+
+            if (!response.ok) throw new Error('Bulk API Error');
+
+            // The API returns List<double> (values correspond to the order of IDs) 
+            const values = await response.json();
+
+            // 3. Update the UI for each element
+            ids.forEach((id, index) => {
+                const textElement = document.getElementById(`text-coverage-${id}`);
+                const barElement = document.getElementById(`bar-coverage-${id}`);
+            
+                if (textElement && barElement && values[index] !== undefined) {
+                    const percentage = (parseFloat(values[index]) * 100).toFixed(1);
+                
+                    textElement.innerText = `${percentage}%`;
+                    barElement.style.width = `${Math.min(percentage, 100)}%`;
+
+                    // Logic-based coloring
+                    if (percentage > 80) {
+                        barElement.style.backgroundColor = "#28a745";
+                    } else if (percentage < 30) {
+                        barElement.style.backgroundColor = "#dc3545";
+                    }
+                }
+            });
+
+        } catch (error) {
+            console.error(`Error loading bulk coverage:`, error);
+            // Optionally set all to N/A on failure
+            ids.forEach(id => {
+                const el = document.getElementById(`text-coverage-${id}`);
+                if (el) el.innerText = "N/A";
+            });
+        }
+    }
 </script>

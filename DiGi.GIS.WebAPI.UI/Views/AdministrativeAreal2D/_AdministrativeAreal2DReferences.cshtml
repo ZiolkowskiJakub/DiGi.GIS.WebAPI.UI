@@ -98,6 +98,39 @@
         color: #a1a1a1;
         cursor: not-allowed;
     }
+
+    /* Progress Bar Styles */
+    /* Container for the text and bar */
+    .coverage-wrapper {
+        display: flex;
+        flex-direction: column;
+        width: 170px; /* STAŁA SZEROKOŚĆ CAŁEGO ELEMENTU */
+    }
+
+    /* The background of the bar */
+    .coverage-container {
+        width: 100%; /* Wypełnia 100% z 100px zdefiniowanych powyżej */
+        background-color: #eee;
+        border-radius: 4px;
+        height: 8px;
+        overflow: hidden;
+        border: 1px solid #ddd;
+    }
+
+    /* The actual progress filler */
+    .coverage-bar {
+        height: 100%;
+        width: 0%; /* Startuje od zera */
+        background-color: #0078d4;
+        transition: width 0.6s ease-out;
+    }
+
+    .coverage-text {
+        font-size: 11px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 2px;
+    }
 </style>
 
 <div class="gis-table-container">
@@ -107,38 +140,43 @@
                 <th>#</th>
                 <th>Name</th>
                 <th>Code</th>
-                <th>Buildings</th> @* New column header *@
+                <th>Buildings</th>
+                <th>Orto Datas Coverage</th>
             </tr>
         </thead>
         <tbody>
             @for (int i = 0; i < administrativeAreal2DReferences.Count; i++)
             {
                 AdministrativeAreal2DReference administrativeAreal2DReference = administrativeAreal2DReferences[i];
-
                 <tr>
                     <td class="index-column">@(i + 1)</td>
                     <td style="font-weight: 500;">@administrativeAreal2DReference.Name</td>
                     <td>
-                        <a href="/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@administrativeAreal2DReference.Id" 
+                        <a href="/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@administrativeAreal2DReference.Id"
                                class="btn-buildings btn-active">
-                                @administrativeAreal2DReference.Code
+                            @administrativeAreal2DReference.Code
                         </a>
                     </td>
                     <td>
-                        @* Check if the type is Subdivision (using the spelling from your Enum: Subdivison) *@
                         @if ((int)administrativeAreal2DReference.AdministrativeArealType >= (int)AdministrativeArealType.County)
                         {
-                            <a href="/building2D/building2Dreferencesbyadministrativeareal2Did?administrativeareal2Did=@administrativeAreal2DReference.Id" 
-                               class="btn-buildings btn-active">
-                                Buildings
-                            </a>
+                            <a href="/building2D/building2Dreferencesbyadministrativeareal2Did?administrativeareal2Did=@administrativeAreal2DReference.Id"
+                               class="btn-buildings btn-active">Buildings</a>
                         }
                         else
                         {
-                            <button class="btn-buildings btn-disabled" disabled>
-                                Buildings
-                            </button>
+                            <button class="btn-buildings btn-disabled" disabled>Buildings</button>
                         }
+                    </td>
+                    <td>
+                        <div class="coverage-wrapper">
+                            <span id="text-coverage-@administrativeAreal2DReference.Id" class="coverage-text">
+                                Loading...
+                            </span>
+                            <div class="coverage-container">
+                                <div id="bar-coverage-@administrativeAreal2DReference.Id" class="coverage-bar"></div>
+                            </div>
+                        </div>
                     </td>
                 </tr>
             }

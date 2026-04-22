@@ -1,5 +1,4 @@
-﻿using DiGi.GIS.Classes;
-using DiGi.GIS.PostgreSQL.Classes;
+﻿using DiGi.GIS.PostgreSQL.Classes;
 
 namespace DiGi.GIS.WebAPI.UI.Classes
 {

@@ -114,6 +114,33 @@
         color: #a1a1a1;
         cursor: not-allowed;
     }
+
+    /* Progress Bar Container */
+    /* Wrapper to enforce fixed width */
+    .coverage-wrapper {
+        width: 170px; /* Stała szerokość paska */
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Progress Bar Container */
+    .coverage-container {
+        width: 100%;
+        background-color: #e0e0e0;
+        border-radius: 4px;
+        height: 10px; /* Nieco smuklejszy */
+        overflow: hidden;
+        position: relative;
+        border: 1px solid #ccc;
+    }
+
+    /* Dynamic Progress Filler */
+    .coverage-bar {
+        height: 100%;
+        width: 0%;
+        background-color: #0078d4;
+        transition: width 0.6s ease-in-out;
+    }
 </style>
 
 <div class="gis-table-container">
@@ -141,17 +168,22 @@
 
                 string typeName = string.Empty;
                 uint? occupancy = null;
-                if (Model.AdministrativeAreal2D is AdministrativeDivision ad) {
-                    typeName = DiGi.Core.Query.Description(ad.AdministrativeDivisionType) ?? string.Empty;
-                } else if (Model.AdministrativeAreal2D is AdministrativeSubdivision asub) {
-                    typeName = DiGi.Core.Query.Description(asub.AdministrativeSubdivisionType) ?? string.Empty;
-                    occupancy = asub.Occupancy;
+
+                if (Model.AdministrativeAreal2D is AdministrativeDivision administrativeDivision)
+                {
+                    typeName = DiGi.Core.Query.Description(administrativeDivision.AdministrativeDivisionType) ?? string.Empty;
+                }
+                else if (Model.AdministrativeAreal2D is AdministrativeSubdivision administrativeSubdivision)
+                {
+                    typeName = DiGi.Core.Query.Description(administrativeSubdivision.AdministrativeSubdivisionType) ?? string.Empty;
+                    occupancy = administrativeSubdivision.Occupancy;
                 }
 
                 <div class="gis-info-row">
                     <span class="gis-info-label">Type:</span>
                     <span class="gis-info-value">@typeName</span>
                 </div>
+
                 @if (occupancy is not null)
                 {
                     <div class="gis-info-row">
@@ -159,6 +191,20 @@
                         <span class="gis-info-value">@occupancy.Value.ToString("N0")</span>
                     </div>
                 }
+
+                <div class="gis-info-row">
+                    <span class="gis-info-label">Buildings:</span>
+                    <span>
+                    @if ((int)Model.AdministrativeAreal2DReference.AdministrativeArealType >= (int)AdministrativeArealType.County)
+                    {
+                            <a href="/building2D/building2Dreferencesbyadministrativeareal2Did?administrativeareal2Did=@Model.AdministrativeAreal2DReference.Id" class="btn-buildings btn-active">Buildings</a>
+                    }
+                    else
+                    {
+                            <button class="btn-buildings btn-disabled" disabled>Buildings</button>
+                    }
+                    </span>
+                </div>
             }
         </div>
 
@@ -210,6 +256,7 @@
                     <th>Name</th>
                     <th>Code</th>
                     <th>Buildings</th>
+                    <th>Orto Datas Coverage</th>
                 </tr>
             </thead>
             <tbody>
@@ -228,11 +275,22 @@
                             </a>
                         </td>
                         <td>
-                             @if ((int)item.AdministrativeArealType >= (int)AdministrativeArealType.County) {
-                                <a href="/building2D/building2Dreferencesbyadministrativeareal2Did?administrativeareal2Did=@item.Id" class="btn-buildings btn-active">Buildings</a>
-                             } else {
+                             @if ((int)item.AdministrativeArealType >= (int)AdministrativeArealType.County) 
+                             {
+                                 <a href="/building2D/building2Dreferencesbyadministrativeareal2Did?administrativeareal2Did=@item.Id" class="btn-buildings btn-active">Buildings</a>
+                             } 
+                             else 
+                             {
                                 <button class="btn-buildings btn-disabled" disabled>Buildings</button>
                              }
+                        </td>
+                        <td>
+                            <div class="coverage-wrapper">
+                                <span id="text-coverage-@item.Id" class="coverage-text">Loading...</span>
+                                <div class="coverage-container">
+                                    <div id="bar-coverage-@item.Id" class="coverage-bar"></div>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                 }
@@ -345,6 +403,80 @@
     document.addEventListener("DOMContentLoaded", () => {
         @if (Model.AdministrativeAreal2DReference != null) {
             <text>drawPolygons('@Model.AdministrativeAreal2DReference.Id', true);</text>
+        }
+    });
+
+    async function loadAllOrtoCoverages(ids) {
+        // Relative URL to your new bulk endpoint
+        const apiUrl = '/ortodatas/estimatedcoveragefactors';
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(ids)
+            });
+
+            if (!response.ok) throw new Error('Bulk API Error');
+
+            // The API returns List<double> values
+            const values = await response.json();
+
+            // Map values back to UI elements based on index
+            ids.forEach(function(id, index) {
+                const textElement = document.getElementById(`text-coverage-${id}`);
+                const barElement = document.getElementById(`bar-coverage-${id}`);
+            
+                if (textElement && barElement && values[index] !== undefined) {
+                    const rawValue = parseFloat(values[index]);
+                    const percentage = (rawValue * 100).toFixed(1);
+                
+                    textElement.innerText = `${percentage}%`;
+                    const safeWidth = Math.min(Math.max(percentage, 0), 100);
+                    barElement.style.width = `${safeWidth}%`;
+
+                    // Dynamic color feedback
+                    if (safeWidth > 80) {
+                        barElement.style.backgroundColor = "#28a745";
+                    } else if (safeWidth < 30) {
+                        barElement.style.backgroundColor = "#dc3545";
+                    }
+                }
+            });
+
+        } catch (error) {
+            console.error('Error loading bulk coverage:', error);
+            ids.forEach(function(id) {
+                const el = document.getElementById(`text-coverage-${id}`);
+                if (el) {
+                    el.innerText = "N/A";
+                    el.style.color = "red";
+                }
+            });
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // 1. Existing polygon logic
+        @if (Model.AdministrativeAreal2DReference != null)
+        {
+                <text>drawPolygons('@Model.AdministrativeAreal2DReference.Id', true);</text>
+        }
+
+        // 2. New Bulk Coverage Logic
+        @{
+                // Prepare list of IDs in C# first
+                List<int> idList = administrativeAreal2DReferences?
+                        .Select(x => x.Id)
+                        .ToList() ?? new List<int>();
+                string idsJson = System.Text.Json.JsonSerializer.Serialize(idList);
+        }
+
+        const ids = @Html.Raw(idsJson);
+        if (ids.length > 0) {
+            loadAllOrtoCoverages(ids);
         }
     });
 </script>
