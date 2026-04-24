@@ -1,11 +1,59 @@
 ﻿@using DiGi.GIS.Classes
 @using System.Linq
+@using System.Collections.Generic
 @using DiGi.GIS.WebAPI.UI.Classes
 @using DiGi.GIS.PostgreSQL.Classes
 @using DiGi.GIS.PostgreSQL.Enums
+@using DiGi.GIS.Interfaces
 
 @model YearBuiltDataView
 
 @{
-	YearBuiltDataView yearBuiltDataView = Model ?? new YearBuiltDataView();
+    @* Ensure we have a valid model instance *@
+    YearBuiltDataView yearBuiltDataView = Model ?? new YearBuiltDataView();
+}
+
+@if (yearBuiltDataView.YearBuiltData is DiGi.GIS.Classes.YearBuiltData yearBuiltData &&
+     yearBuiltData.YearBuilts is IEnumerable<IYearBuilt> yearBuilts &&
+     yearBuilts.Any())
+{
+    @* Main container matching the 'Calculated General Properties' layout *@
+    <div class="property-group" style="margin-bottom: 25px;">
+        @* Header with green accent color *@
+        <h4 style="color: #28a745; margin-bottom: 12px; font-size: 1.1em; border-left: 4px solid #28a745; padding-left: 10px;">
+            Year Builts
+        </h4>
+
+        <table style="width: 100%; border-collapse: collapse; background-color: #fafafa; border-radius: 4px;">
+            @{
+                @* Logic to handle border-bottom visibility for the last row *@
+                List<IYearBuilt> itemsList = yearBuilts.Where(x => x != null).ToList();
+                int totalItems = itemsList.Count;
+            }
+
+            @for (int i = 0; i < totalItems; i++)
+            {
+                IYearBuilt yearBuilt = itemsList[i];
+                string source = yearBuilt.Source ?? "???";
+                string yearText = yearBuilt.Year.ToString();
+                bool isLast = (i == totalItems - 1);
+
+                if(yearBuilt is DiGi.GIS.Classes.PredictedYearBuilt predictedYearBuilt)
+                {
+                    source = string.Format("{0} ({1})", predictedYearBuilt.YearBuiltSource.ToString(), predictedYearBuilt.DateTime.ToString());
+                }
+
+                <tr style="@(isLast ? "" : "border-bottom: 1px solid #eee;")">
+                    @* First column: Source *@
+                    <td style="padding: 12px; color: #666; width: 45%; font-weight: 500;">
+                        @source:
+                    </td>
+                    @* Second column: Year *@
+                    <td style="padding: 12px; color: #333;">
+                        @yearText
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
 }

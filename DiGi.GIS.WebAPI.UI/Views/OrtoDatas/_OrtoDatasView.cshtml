@@ -49,9 +49,15 @@
 
     .orto-image {
         width: 100%;
-        height: 300px; /* Fixed height for visual consistency */
-        object-fit: cover;
+        /* Remove fixed height to allow the image to scale naturally */
+        height: auto;
+        /* Aspect-ratio ensures a consistent box if images vary slightly,
+               but 'auto' is safer for true proportions */
+        aspect-ratio: attr(width) / attr(height);
+        /* 'contain' ensures the whole image is visible without cropping */
+        object-fit: contain;
         display: block;
+        background-color: #f0f0f0; /* Optional: light gray background for empty spaces */
     }
 
     .orto-footer {
