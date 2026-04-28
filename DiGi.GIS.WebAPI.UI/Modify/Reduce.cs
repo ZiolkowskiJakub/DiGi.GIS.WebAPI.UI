@@ -8,12 +8,12 @@ namespace DiGi.GIS.WebAPI.UI
     {
         public static void Reduce(this List<Point2D>? point2Ds, double? factor, int minCount = 100)
         {
-            if(point2Ds is null || point2Ds.Count <= minCount)
+            if (point2Ds is null || point2Ds.Count <= minCount)
             {
                 return;
             }
 
-            if(factor is null || factor is not double factor_Temp || double.IsNaN(factor_Temp))
+            if (factor is null || factor is not double factor_Temp || double.IsNaN(factor_Temp))
             {
                 return;
             }
@@ -24,7 +24,7 @@ namespace DiGi.GIS.WebAPI.UI
                 return;
             }
 
-            if(factor_Temp == 0)
+            if (factor_Temp == 0)
             {
                 point2Ds.Clear();
                 return;

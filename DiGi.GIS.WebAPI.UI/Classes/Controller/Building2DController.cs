@@ -86,7 +86,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
                 return NoContent();
             }
 
-            #endregion
+            #endregion Building2DReference
 
             #region Building2D
 
@@ -110,25 +110,25 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             }
 
             GIS.Classes.Building2D? building2D = Core.Convert.ToDiGi<GIS.Classes.Building2D>(json)?.FirstOrDefault();
-            if(building2D is null)
+            if (building2D is null)
             {
                 return NoContent();
             }
 
-            #endregion
+            #endregion Building2D
 
             #region AdministrativeAreal2DReferencePath
 
             int? administrativeAreal2DId = building2DReference?.SubdivisionId;
 
-            if(administrativeAreal2DId is null || !administrativeAreal2DId.HasValue)
+            if (administrativeAreal2DId is null || !administrativeAreal2DId.HasValue)
             {
                 administrativeAreal2DId = building2DReference?.CountyId;
             }
 
             AdministrativeAreal2DReferencePath? administrativeAreal2DReferencePath = null;
 
-            if(administrativeAreal2DId is not null && administrativeAreal2DId.HasValue)
+            if (administrativeAreal2DId is not null && administrativeAreal2DId.HasValue)
             {
                 urlBuilder = new("https://api.digiproject.uk/gis/administrativeareal2D/administrativeareal2Dreferencepathbyid");
                 urlBuilder = urlBuilder.AddParameter("id", administrativeAreal2DId.Value);
@@ -144,9 +144,9 @@ namespace DiGi.GIS.WebAPI.UI.Classes
                 }
             }
 
-            #endregion
+            #endregion AdministrativeAreal2DReferencePath
 
-            Building2DView building2DView = new (building2DReference, building2D, administrativeAreal2DReferencePath);
+            Building2DView building2DView = new(building2DReference, building2D, administrativeAreal2DReferencePath);
 
             // We pass the objects to a Partial View
             return PartialView("_Building2DView", building2DView);
@@ -219,7 +219,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
                 urlBuilder = urlBuilder.AddParameter("countyId", countyId.Value);
             }
 
-            HttpRequestMessage httpRequestMessage = new (HttpMethod.Get, urlBuilder.ToString())
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, urlBuilder.ToString())
             {
                 Content = JsonContent.Create(references)
             };

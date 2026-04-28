@@ -4,9 +4,12 @@ using DiGi.GIS.PostgreSQL;
 using DiGi.GIS.PostgreSQL.Enums;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Classes
@@ -20,6 +23,43 @@ namespace DiGi.GIS.WebAPI.UI.Classes
         public AdministrativeAreal2DController(IHttpClientFactory httpClientFactory)
         {
             this.httpClientFactory = httpClientFactory;
+        }
+
+        [HttpPost("administrativeareal2Dreferencepathsbyname")]
+        public async Task<IActionResult> GetAdministrativeAreal2DReferencePathsByNameAsync([FromBody] string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return Ok();
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            try
+            {
+                string url = "https://api.digiproject.uk/gis/administrativeareal2d/administrativeareal2Dreferencepathsbyname";
+
+                HttpResponseMessage httpResponseMessage = await httpClient.PostAsJsonAsync(url, text);
+
+                if (httpResponseMessage.IsSuccessStatusCode)
+                {
+                    string json = await httpResponseMessage.Content.ReadAsStringAsync();
+
+                    if (string.IsNullOrEmpty(json))
+                    {
+                        return NoContent();
+                    }
+
+                    return Content(json, "application/json");
+                }
+
+                return StatusCode((int)httpResponseMessage.StatusCode, "External API returned an error.");
+            }
+            catch (Exception exception)
+            {
+                // Log details using your logging framework
+                return StatusCode(500, $"Internal server error: {exception.Message}");
+            }
         }
 
         [HttpGet("administrativeareal2Dreferencesbyadministrativearealtype")]
@@ -294,7 +334,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 
             List<PostgreSQL.Classes.AdministrativeAreal2DReference>? administrativeAreal2DReferences = null;
 
-            if(administrativeAreal2DReference.Code is string code && !string.IsNullOrWhiteSpace(code) && administrativeAreal2DReference?.AdministrativeArealType is PostgreSQL.Enums.AdministrativeArealType administrativeArealType && administrativeArealType.ChildAdministrativeArealType() is  PostgreSQL.Enums.AdministrativeArealType administrativeArealType_Child)
+            if (administrativeAreal2DReference.Code is string code && !string.IsNullOrWhiteSpace(code) && administrativeAreal2DReference?.AdministrativeArealType is PostgreSQL.Enums.AdministrativeArealType administrativeArealType && administrativeArealType.ChildAdministrativeArealType() is PostgreSQL.Enums.AdministrativeArealType administrativeArealType_Child)
             {
                 urlBuilder = new("https://api.digiproject.uk/gis/administrativeareal2D/administrativeareal2Dreferencesbycode");
                 urlBuilder = urlBuilder.AddParameter("code", code);
@@ -321,7 +361,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 
             return PartialView("_AdministrativeAreal2DView", administrativeAreal2DView);
         }
-        
+
         [HttpGet("itembycode")]
         public async Task<IActionResult> GetItemByCodeAsync([FromQuery(Name = "code")] string code)
         {
@@ -408,12 +448,11 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 
             #endregion AdministrativeAreal2DReference
 
-
             AdministrativeArealType administrativeArealType = administrativeAreal2DReference.AdministrativeArealType;
 
             List<AdministrativeAreal2D> administrativeAreal2Ds = [];
 
-            if(administrativeArealType == AdministrativeArealType.Subdivison || administrativeArealType == AdministrativeArealType.Municipality)
+            if (administrativeArealType == AdministrativeArealType.Subdivison || administrativeArealType == AdministrativeArealType.Municipality)
             {
                 #region AdministrativeAreal2D
 
@@ -462,7 +501,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
                     return NoContent();
                 }
 
-                if(Core.Convert.ToDiGi<AdministrativeAreal2D>(json) is not List<AdministrativeAreal2D> administrativeAreal2Ds_Temp || administrativeAreal2Ds_Temp.Count == 0)
+                if (Core.Convert.ToDiGi<AdministrativeAreal2D>(json) is not List<AdministrativeAreal2D> administrativeAreal2Ds_Temp || administrativeAreal2Ds_Temp.Count == 0)
                 {
                     return NotFound();
                 }
@@ -477,9 +516,9 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             // Prepare a list of polygons. Each polygon is a list of coordinates [x, y, x, y...]
             List<List<double>> result = [];
 
-            if(reductionFactor is null)
+            if (reductionFactor is null)
             {
-                switch(administrativeArealType)
+                switch (administrativeArealType)
                 {
                     case AdministrativeArealType.Country:
                         reductionFactor = 0.00001;

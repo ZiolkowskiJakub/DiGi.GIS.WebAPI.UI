@@ -24,7 +24,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
         [HttpGet("itembyreference")]
         public async Task<IActionResult> GetItemByIdAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId)
         {
-            if(string.IsNullOrWhiteSpace(reference))
+            if (string.IsNullOrWhiteSpace(reference))
             {
                 return BadRequest();
             }
@@ -87,7 +87,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 
             #endregion Building2DReference
 
-            OrtoDatasView ortoDatasView = new (building2DReference, ortoDatas);
+            OrtoDatasView ortoDatasView = new(building2DReference, ortoDatas);
 
             // We pass the objects to a Partial View
             return PartialView("_OrtoDatasView", ortoDatasView);
@@ -130,7 +130,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 
             try
             {
-                // Note: If calling the method you provided, it expects a Body. 
+                // Note: If calling the method you provided, it expects a Body.
                 // We change this to Post or send the list as a query string.
                 string url = "https://api.digiproject.uk/gis/ortodatas/estimatedcoveragefactors";
 

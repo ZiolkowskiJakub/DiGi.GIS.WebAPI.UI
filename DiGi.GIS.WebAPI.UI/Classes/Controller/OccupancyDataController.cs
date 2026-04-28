@@ -9,17 +9,17 @@ using System.Threading.Tasks;
 namespace DiGi.GIS.WebAPI.UI.Classes
 {
     [Route("[controller]")]
-    public class YearBuiltDataController : Controller
+    public class OccupancyDataController : Controller
     {
         private readonly IHttpClientFactory httpClientFactory;
 
         // Constructor injection for the PostgreSQL data source
-        public YearBuiltDataController(IHttpClientFactory httpClientFactory)
+        public OccupancyDataController(IHttpClientFactory httpClientFactory)
         {
             this.httpClientFactory = httpClientFactory;
         }
 
-        [HttpGet("itembyreference")]
+        [HttpGet("building2d/itembyreference")]
         public async Task<IActionResult> GetItemByIdAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId)
         {
             if (string.IsNullOrWhiteSpace(reference))
@@ -33,9 +33,9 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             HttpResponseMessage httpResponseMessage;
             string json;
 
-            #region YearBuiltDatas
+            #region OccupancyDatas
 
-            urlBuilder = new("https://api.digiproject.uk/gis/yearbuiltdata/itemsbyreference");
+            urlBuilder = new("https://api.digiproject.uk/gis/occupancydata/building2d/itemsbyreference");
             urlBuilder = urlBuilder.AddParameter("reference", reference);
             if (countyId is not null && countyId.HasValue)
             {
@@ -54,13 +54,13 @@ namespace DiGi.GIS.WebAPI.UI.Classes
                 return NoContent();
             }
 
-            List<Interfaces.IYearBuiltData>? yearBuiltDatas = Core.Convert.ToDiGi<Interfaces.IYearBuiltData>(json);
-            if (yearBuiltDatas is null)
+            List<Interfaces.IOccupancyData>? occupancyDatas = Core.Convert.ToDiGi<Interfaces.IOccupancyData>(json);
+            if (occupancyDatas is null)
             {
                 return NoContent();
             }
 
-            #endregion YearBuiltDatas
+            #endregion OccupancyDatas
 
             #region Building2DReference
 
@@ -85,10 +85,10 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 
             #endregion Building2DReference
 
-            YearBuiltDataView yearBuiltDataView = new(building2DReference, yearBuiltDatas?.FirstOrDefault());
+            Building2DOccupancyDataView building2DOccupancyDataView = new(building2DReference, occupancyDatas?.FirstOrDefault());
 
             // We pass the objects to a Partial View
-            return PartialView("_YearBuiltDataView", yearBuiltDataView);
+            return PartialView("_Building2DOccupancyDataView", building2DOccupancyDataView);
         }
     }
 }

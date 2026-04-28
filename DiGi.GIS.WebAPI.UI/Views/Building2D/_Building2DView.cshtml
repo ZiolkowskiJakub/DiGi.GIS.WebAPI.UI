@@ -206,22 +206,29 @@
                 </table>
             </div>
 
-        @* --- BLOCK 3: Year Built --- *@
-        <div id="year-built-section" class="property-group" style="display: none; margin-bottom: 25px;">
-            <div id="year-builts-container">
-                @* Content injected via AJAX *@
+            @* --- BLOCK 3: Occupancy Data --- *@
+            <div id="occupancy-data-section" class="property-group" style="display: none; margin-bottom: 25px;">
+                <div id="occupancy-data-container">
+                    @* Content injected via AJAX *@
+                </div>
             </div>
-        </div>
 
-        @* --- BLOCK 4: Orto Datas --- *@
-        <div id="orto-data-section" class="property-group" style="display: none;">
-            <h4 style="color: #28a745; margin-bottom: 12px; font-size: 1.1em; border-left: 4px solid #28a745; padding-left: 10px;">
-                Orto Data
-            </h4>
-            <div id="orto-datas-container">
-                @* Content injected via AJAX *@
+            @* --- BLOCK 4: Year Built --- *@
+            <div id="year-built-section" class="property-group" style="display: none; margin-bottom: 25px;">
+                <div id="year-builts-container">
+                    @* Content injected via AJAX *@
+                </div>
             </div>
-        </div>
+
+            @* --- BLOCK 5: Orto Datas --- *@
+            <div id="orto-data-section" class="property-group" style="display: none;">
+                <h4 style="color: #28a745; margin-bottom: 12px; font-size: 1.1em; border-left: 4px solid #28a745; padding-left: 10px;">
+                    Orto Data
+                </h4>
+                <div id="orto-datas-container">
+                    @* Content injected via AJAX *@
+                </div>
+            </div>
     }
     </div>
 </div>
@@ -326,7 +333,7 @@
         const container = document.getElementById("year-builts-container");
     
         // Constructing URL for YearBuiltDataController
-        const url = `/yearbuiltdata/itemsbyreference?reference=${encodeURIComponent(reference)}&countyid=${countyId}`;
+        const url = `/yearbuiltdata/itembyreference?reference=${encodeURIComponent(reference)}&countyid=${countyId}`;
 
         try {
             const response = await fetch(url);
@@ -392,6 +399,40 @@
             }
         } catch (error) {
             console.error("Error loading Orto Data:", error);
+            section.style.display = "none";
+        }
+    }
+
+    async function loadOccupancyData(reference, countyId) {
+        if (!reference) return;
+
+        const section = document.getElementById("occupancy-data-section");
+        const container = document.getElementById("occupancy-data-container");
+        
+        // URL targeting OrtoDatasController.GetItemByIdAsync
+        const url = `/occupancydata/building2d/itembyreference?reference=${encodeURIComponent(reference)}&countyid=${countyId}`;
+
+        try {
+            const response = await fetch(url);
+
+            // If the controller returns NoContent()
+            if (response.status === 204) {
+                section.style.display = "none";
+                return;
+            }
+
+            if (response.ok) {
+                const htmlContent = await response.text();
+                
+                if (htmlContent.trim().length > 0) {
+                    container.innerHTML = htmlContent;
+                    section.style.display = "block";
+                } else {
+                    section.style.display = "none";
+                }
+            }
+        } catch (error) {
+            console.error("Error loading Occupancy Data:", error);
             section.style.display = "none";
         }
     }
