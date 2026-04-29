@@ -20,7 +20,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
         }
 
         [HttpGet("itembyreference")]
-        public async Task<IActionResult> GetItemByIdAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId)
+        public async Task<IActionResult> GetItemByReferenceAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId)
         {
             if (string.IsNullOrWhiteSpace(reference))
             {

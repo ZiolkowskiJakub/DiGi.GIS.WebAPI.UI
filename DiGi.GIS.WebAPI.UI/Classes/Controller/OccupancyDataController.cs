@@ -20,7 +20,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
         }
 
         [HttpGet("building2d/itembyreference")]
-        public async Task<IActionResult> GetItemByIdAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId)
+        public async Task<IActionResult> GetBuilding2DItemByIdAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "isresidential")] bool? isResidential)
         {
             if (string.IsNullOrWhiteSpace(reference))
             {

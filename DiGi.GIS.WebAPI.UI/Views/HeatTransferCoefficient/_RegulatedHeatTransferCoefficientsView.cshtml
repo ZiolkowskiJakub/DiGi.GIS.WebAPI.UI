@@ -1,4 +1,6 @@
-﻿@using DiGi.GIS.Classes
+﻿@using DiGi.Analytical.Building.HVAC.Classes
+@using DiGi.Analytical.Building.HVAC.Interfaces
+@using DiGi.GIS.Classes
 @using System.Linq
 @using System.Collections.Generic
 @using DiGi.GIS.WebAPI.UI.Classes
@@ -9,6 +11,59 @@
 @model RegulatedHeatTransferCoefficientsView
 
 @{
-    @* Ensure we have a valid model instance *@
-    RegulatedHeatTransferCoefficientsView regulatedHeatTransferCoefficientsView = Model ?? new RegulatedHeatTransferCoefficientsView();
+    // Ensure we have a valid model instance using explicit typing
+    RegulatedHeatTransferCoefficientsView viewData = Model ?? new RegulatedHeatTransferCoefficientsView();
+}
+
+@if (viewData.RegulatedHeatTransferCoefficients is IRegulatedHeatTransferCoefficients regulatedHeatTransferCoefficients)
+{
+    <div class="property-group" style="margin-bottom: 25px;">
+        <table style="width: 100%; border-collapse: collapse; background-color: #fafafa; border-radius: 4px;">
+            @if (regulatedHeatTransferCoefficients.RegulationAct is RegulationAct regulationAct)
+            {
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px; color: #666; width: 45%; font-weight: 500;">Reference</td>
+                    <td style="padding: 12px; color: #333;">@regulationAct.Reference</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px; color: #666; width: 45%; font-weight: 500;">Publication Date</td>
+                    <td style="padding: 12px; color: #333;">@regulationAct.PublicationDate.ToShortDateString()</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px; color: #666; width: 45%; font-weight: 500;">Effective Date</td>
+                    <td style="padding: 12px; color: #333;">@regulationAct.EffectiveDate.ToShortDateString()</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px; color: #666; width: 45%; font-weight: 500;">Name</td>
+                    <td style="padding: 12px; color: #333;">@regulationAct.Name</td>
+                </tr>
+            }
+
+            @{
+                // Extracting logic to explicit types
+                List<string>? names = regulatedHeatTransferCoefficients.GetNames();
+                if (viewData.IsResidential is bool isResidential)
+                {
+                    names?.RemoveAll(x => x.ToLower().StartsWith(isResidential ? "public" : "residential"));
+                }
+
+                int totalItems = names?.Count ?? 0;
+            }
+
+            @for (int i = 0; i < totalItems; i++)
+            {
+                string? name = names![i];
+                double coefficientValue = 0;
+                regulatedHeatTransferCoefficients.TryGetValue(name, out coefficientValue);
+
+                bool isLast = (i == totalItems - 1);
+                string rowStyle = isLast ? "" : "border-bottom: 1px solid #eee;";
+
+                <tr style="@rowStyle">
+                    <td style="padding: 12px; color: #666; width: 45%; font-weight: 500;">@name:</td>
+                    <td style="padding: 12px; color: #333;">@coefficientValue [W/(m²·K)]</td>
+                </tr>
+            }
+        </table>
+    </div>
 }

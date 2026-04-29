@@ -50,4 +50,8 @@
 		</Reference>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Views\OccupancyData\Building2D\" />
+	</ItemGroup>
+
 </Project>
