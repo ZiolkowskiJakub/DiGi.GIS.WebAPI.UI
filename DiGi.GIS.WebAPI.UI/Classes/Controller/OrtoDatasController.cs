@@ -10,17 +10,29 @@ using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Classes
 {
+    /// <summary>
+    /// Controller providing endpoints for managing and retrieving orthodata and coverage factor information.
+    /// </summary>
     [Route("[controller]")]
     public class OrtoDatasController : Controller
     {
         private readonly IHttpClientFactory httpClientFactory;
 
-        // Constructor injection for the PostgreSQL data source
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OrtoDatasController"/> class.
+        /// </summary>
+        /// <param name="httpClientFactory">The HTTP client factory used to create <see cref="HttpClient"/> instances.</param>
         public OrtoDatasController(IHttpClientFactory httpClientFactory)
         {
             this.httpClientFactory = httpClientFactory;
         }
 
+        /// <summary>
+        /// Retrieves orthodata and building 2D reference information based on a provided reference and optional county ID.
+        /// </summary>
+        /// <param name="reference">The unique reference string for the item.</param>
+        /// <param name="countyId">The optional identifier for the county.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IActionResult"/> representing the partial view or error response.</returns>
         [HttpGet("itembyreference")]
         public async Task<IActionResult> GetItemByIdAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId)
         {
@@ -93,6 +105,11 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             return PartialView("_OrtoDatasView", ortoDatasView);
         }
 
+        /// <summary>
+        /// Retrieves the estimated coverage factor for a specific administrative area L2D identifier.
+        /// </summary>
+        /// <param name="administrativeAreal2DId">The unique identifier of the administrative area L2D.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IActionResult"/> with the coverage factor or error status.</returns>
         [HttpGet("estimatedcoveragefactor")]
         public async Task<IActionResult> GetEstimatedCoverageFactorAsync([FromQuery(Name = "administrativeareal2Did")] int administrativeAreal2DId)
         {
@@ -117,6 +134,11 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             }
         }
 
+        /// <summary>
+        /// Retrieves estimated coverage factors for a collection of administrative area L2D identifiers.
+        /// </summary>
+        /// <param name="administrativeAreal2DIds">An enumerable collection of administrative area L2D identifiers.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IActionResult"/> with the list of coverage factor values or error status.</returns>
         [HttpPost("estimatedcoveragefactors")]
         public async Task<IActionResult> GetEstimatedCoverageFactorsAsync([FromBody] IEnumerable<int> administrativeAreal2DIds)
         {

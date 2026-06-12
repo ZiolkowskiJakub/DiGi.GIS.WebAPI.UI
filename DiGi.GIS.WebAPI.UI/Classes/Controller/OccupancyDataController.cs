@@ -8,17 +8,30 @@ using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Classes
 {
+    /// <summary>
+    /// Controller responsible for handling requests related to occupancy data for 2D buildings.
+    /// </summary>
     [Route("[controller]")]
     public class OccupancyDataController : Controller
     {
         private readonly IHttpClientFactory httpClientFactory;
 
-        // Constructor injection for the PostgreSQL data source
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OccupancyDataController"/> class.
+        /// </summary>
+        /// <param name="httpClientFactory">The HTTP client factory used to create clients for external API communication.</param>
         public OccupancyDataController(IHttpClientFactory httpClientFactory)
         {
             this.httpClientFactory = httpClientFactory;
         }
 
+        /// <summary>
+        /// Retrieves the occupancy data and building reference for a specific 2D building item by its reference identifier.
+        /// </summary>
+        /// <param name="reference">The unique reference string of the building.</param>
+        /// <param name="countyId">The optional ID of the county associated with the building.</param>
+        /// <param name="isResidential">An optional flag indicating whether the building is residential.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IActionResult"/>, which returns a partial view containing the occupancy data if successful; otherwise, a bad request or no content response.</returns>
         [HttpGet("building2d/itembyreference")]
         public async Task<IActionResult> GetBuilding2DItemByIdAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "isresidential")] bool? isResidential)
         {

@@ -12,17 +12,30 @@ using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Classes
 {
+    /// <summary>
+    /// Controller responsible for handling requests related to heat transfer coefficients, 
+    /// providing data based on year or building reference.
+    /// </summary>
     [Route("[controller]")]
     public class HeatTransferCoefficientController : Controller
     {
         private readonly IHttpClientFactory httpClientFactory;
 
-        // Constructor injection for the PostgreSQL data source
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HeatTransferCoefficientController"/> class.
+        /// </summary>
+        /// <param name="httpClientFactory">The HTTP client factory used to create clients for external API communication.</param>
         public HeatTransferCoefficientController(IHttpClientFactory httpClientFactory)
         {
             this.httpClientFactory = httpClientFactory;
         }
 
+        /// <summary>
+        /// Retrieves regulated heat transfer coefficients for a specific year and returns them via a partial view.
+        /// </summary>
+        /// <param name="year">The calendar year used to filter the regulated heat transfer coefficients.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <returns>An <see cref="IActionResult"/> containing a partial view with the coefficient data, or an error result if the request fails.</returns>
         [HttpGet("regulatedheattransfercoefficientsbyyear")]
         public async Task<IActionResult> GetRegulatedHeatTransferCoefficientsByYearAsync([FromQuery(Name = "year")] short year, CancellationToken cancellationToken = default)
         {
@@ -63,6 +76,13 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             return PartialView("_RegulatedHeatTransferCoefficientsView", regulatedHeatTransferCoefficientsView);
         }
 
+        /// <summary>
+        /// Retrieves regulated heat transfer coefficients for a building identified by its reference, 
+        /// determining the applicable year based on the building's construction data.
+        /// </summary>
+        /// <param name="reference">The unique reference string of the building.</param>
+        /// <param name="countyId">The optional identifier for the county associated with the building.</param>
+        /// <returns>An <see cref="IActionResult"/> containing a partial view with the coefficient data, or an error result if the request fails.</returns>
         [HttpGet("regulatedheattransfercoefficientsbyreference")]
         public async Task<IActionResult> GetRegulatedHeatTransferCoefficientsByReferenceAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId)
         {

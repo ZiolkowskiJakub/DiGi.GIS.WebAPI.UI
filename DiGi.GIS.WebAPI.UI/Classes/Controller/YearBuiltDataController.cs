@@ -8,17 +8,30 @@ using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Classes
 {
+    /// <summary>
+    /// Provides API endpoints for retrieving and managing year built data.
+    /// </summary>
     [Route("[controller]")]
     public class YearBuiltDataController : Controller
     {
         private readonly IHttpClientFactory httpClientFactory;
 
         // Constructor injection for the PostgreSQL data source
+        /// <summary>
+        /// Initializes a new instance of the <see cref="YearBuiltDataController"/> class.
+        /// </summary>
+        /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> used to create HTTP clients.</param>
         public YearBuiltDataController(IHttpClientFactory httpClientFactory)
         {
             this.httpClientFactory = httpClientFactory;
         }
 
+        /// <summary>
+        /// Retrieves a year built data item based on the specified reference and optional county identifier.
+        /// </summary>
+        /// <param name="reference">The unique reference of the item to retrieve.</param>
+        /// <param name="countyId">The optional identifier of the county associated with the item.</param>
+        /// <returns>A task that represents the asynchronous operation, containing an <see cref="Microsoft.AspNetCore.Mvc.IActionResult"/> result.</returns>
         [HttpGet("itembyreference")]
         public async Task<IActionResult> GetItemByReferenceAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId)
         {

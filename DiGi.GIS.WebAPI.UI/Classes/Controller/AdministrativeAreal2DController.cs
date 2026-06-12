@@ -14,17 +14,29 @@ using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Classes
 {
+    /// <summary>
+    /// Provides API endpoints for managing and retrieving 2D administrative areal data.
+    /// </summary>
     [Route("[controller]")]
     public class AdministrativeAreal2DController : Controller
     {
         private readonly IHttpClientFactory httpClientFactory;
 
         // Constructor injection for the PostgreSQL data source
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AdministrativeAreal2DController"/> class.
+        /// </summary>
+        /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> used to create HTTP clients.</param>
         public AdministrativeAreal2DController(IHttpClientFactory httpClientFactory)
         {
             this.httpClientFactory = httpClientFactory;
         }
 
+        /// <summary>
+        /// Searches for administrative area reference paths by name.
+        /// </summary>
+        /// <param name="text">The text to search for within the name column.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> representing the asynchronous operation, containing the result of the search.</returns>
         [HttpPost("administrativeareal2Dreferencepathsbyname")]
         public async Task<IActionResult> GetAdministrativeAreal2DReferencePathsByNameAsync([FromBody] string text)
         {
@@ -62,6 +74,13 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             }
         }
 
+        /// <summary>
+        /// Retrieves administrative 2D area references based on the specified administrative areal type, parent identifier, and unique code filter.
+        /// </summary>
+        /// <param name="administrativeArealType">The type of the administrative area.</param>
+        /// <param name="parentId">The optional identifier of the parent administrative area.</param>
+        /// <param name="uniqueCode">An optional flag indicating whether to filter by unique code.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> representing the asynchronous operation result.</returns>
         [HttpGet("administrativeareal2Dreferencesbyadministrativearealtype")]
         public async Task<IActionResult> GetAdministrativeAreal2DReferencesByAdministrativeArealTypeAsync([FromQuery(Name = "administrativearealtype")] string administrativeArealType, [FromQuery(Name = "parentid")] int? parentId, [FromQuery(Name = "uniquecode")] bool? uniqueCode)
         {
@@ -104,6 +123,11 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             return PartialView("_AdministrativeAreal2DReferences", administrativeAreal2DReferences ?? []);
         }
 
+        /// <summary>
+        /// Retrieves administrative areal 2D references by the specified code asynchronously.
+        /// </summary>
+        /// <param name="code">The code used to retrieve the administrative areal 2D references.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> representing the asynchronous operation result.</returns>
         [HttpGet("administrativeareal2Dreferencesbycode")]
         public async Task<IActionResult> GetAdministrativeAreal2DReferencesByCodeAsync([FromQuery(Name = "code")] string code)
         {
@@ -261,6 +285,11 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             return PartialView("_AdministrativeAreal2DView", administrativeAreal2DView);
         }
 
+        /// <summary>
+        /// Retrieves the administrative areal 2D references by their identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the administrative areal 2D reference.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="Microsoft.AspNetCore.Mvc.IActionResult"/>.</returns>
         [HttpGet("administrativeareal2Dreferencesbyid")]
         public async Task<IActionResult> GetAdministrativeAreal2DReferencesByIdAsync([FromQuery(Name = "id")] int id)
         {
@@ -362,6 +391,11 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             return PartialView("_AdministrativeAreal2DView", administrativeAreal2DView);
         }
 
+        /// <summary>
+        /// Retrieves an administrative areal 2D item by its specified code.
+        /// </summary>
+        /// <param name="code">The code of the item to retrieve.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="Microsoft.AspNetCore.Mvc.IActionResult"/>.</returns>
         [HttpGet("itembycode")]
         public async Task<IActionResult> GetItemByCodeAsync([FromQuery(Name = "code")] string code)
         {
@@ -387,6 +421,11 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             return PartialView("_AdministrativeAreal2DView", administrativeAreal2D);
         }
 
+        /// <summary>
+        /// Retrieves items filtered by the specified administrative area type.
+        /// </summary>
+        /// <param name="administrativeArealType">The administrative area type (e.g., country, voivodeship, county, municipality) to filter by.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> representing the asynchronous operation result containing the items or an error response.</returns>
         [HttpGet("itemsbyadministrativearealtype")]
         public async Task<IActionResult> GetItemsByAdministrativeArealTypeAsync([FromQuery(Name = "administrativearealtype")] string administrativeArealType)
         {
@@ -414,6 +453,13 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             return PartialView("_AdministrativeAreal2Ds", administrativeAreal2Ds ?? []);
         }
 
+        /// <summary>
+        /// Retrieves polygons associated with a specific administrative areal identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the administrative areal.</param>
+        /// <param name="reductionFactor">The optional reduction factor used to simplify the geometry of the retrieved polygons.</param>
+        /// <param name="minCount">The optional minimum count for filtering the results.</param>
+        /// <returns>A <see cref="Microsoft.AspNetCore.Mvc.IActionResult"/> representing the result of the request.</returns>
         [HttpGet("svg/polygonsbyid")]
         public async Task<IActionResult> GetPolygonsByIdAsync([FromQuery(Name = "id")] int id, [FromQuery(Name = "reductionfactor")] double? reductionFactor = null, [FromQuery(Name = "mincount")] int? minCount = null)
         {
@@ -580,6 +626,10 @@ namespace DiGi.GIS.WebAPI.UI.Classes
         }
 
         // This action will trigger for: gis.digiproject.uk/administrativeareal2D
+        /// <summary>
+        /// Starts the Administrative Areal 2D view.
+        /// </summary>
+        /// <returns>An <see cref="Microsoft.AspNetCore.Mvc.IActionResult"/> result that renders the start view.</returns>
         [HttpGet("")]
         public IActionResult Start()
         {

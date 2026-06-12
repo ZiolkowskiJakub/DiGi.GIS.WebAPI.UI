@@ -6,6 +6,12 @@ namespace DiGi.GIS.WebAPI.UI
 {
     public static partial class Modify
     {
+        /// <summary>
+        /// Reduces the number of points in a list using a sampling factor, ensuring a minimum count is maintained.
+        /// </summary>
+        /// <param name="point2Ds">The list of <see cref="Point2D"/> objects to be reduced.</param>
+        /// <param name="factor">The reduction factor used to determine the target number of points. A value between 0 and 1. If null or NaN, no reduction is performed.</param>
+        /// <param name="minCount">The minimum number of points that should remain in the list after reduction. Defaults to 100.</param>
         public static void Reduce(this List<Point2D>? point2Ds, double? factor, int minCount = 100)
         {
             if (point2Ds is null || point2Ds.Count <= minCount)

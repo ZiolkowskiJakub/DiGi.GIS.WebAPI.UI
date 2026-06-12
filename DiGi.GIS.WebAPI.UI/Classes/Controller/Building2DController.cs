@@ -10,17 +10,29 @@ using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Classes
 {
+    /// <summary>
+    /// Provides API endpoints for managing and retrieving building 2D information.
+    /// </summary>
     [Route("[controller]")]
     public class Building2DController : Controller
     {
         private readonly IHttpClientFactory httpClientFactory;
 
         // Constructor injection for the PostgreSQL data source
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Building2DController"/> class.
+        /// </summary>
+        /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> used to create <see cref="HttpClient"/> instances.</param>
         public Building2DController(IHttpClientFactory httpClientFactory)
         {
             this.httpClientFactory = httpClientFactory;
         }
 
+        /// <summary>
+        /// Asynchronously retrieves building 2D references associated with the specified administrative areal 2D identifier.
+        /// </summary>
+        /// <param name="administrativeAreal2DId">The administrative areal 2D identifier to filter by.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> representing the asynchronous operation.</returns>
         [HttpGet("building2Dreferencesbyadministrativeareal2Did")]
         public async Task<IActionResult> GetBuilding2DReferencesByAdministrativeAreal2DIdAsync([FromQuery(Name = "administrativeareal2Did")] int administrativeAreal2DId)
         {
@@ -50,6 +62,12 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             return PartialView("_Building2DReferencesView", new Building2DReferencesView(building2DReferences));
         }
 
+        /// <summary>
+        /// Asynchronously retrieves a building 2D item by its unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the item to retrieve.</param>
+        /// <param name="countyId">The optional unique identifier of the county associated with the item.</param>
+        /// <returns>A task that represents the asynchronous operation, containing the <see cref="Microsoft.AspNetCore.Mvc.IActionResult"/> result.</returns>
         [HttpGet("itembyid")]
         public async Task<IActionResult> GetItemByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId)
         {
@@ -152,6 +170,14 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             return PartialView("_Building2DView", building2DView);
         }
 
+        /// <summary>
+        /// Retrieves a polygon by its unique identifier asynchronously.
+        /// </summary>
+        /// <param name="id">The unique identifier of the polygon.</param>
+        /// <param name="countyId">The optional county identifier used to filter the request.</param>
+        /// <param name="reductionFactor">The optional reduction factor for simplifying the polygon geometry.</param>
+        /// <param name="minCount">The optional minimum count threshold for the data retrieval.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> representing the asynchronous operation result containing the requested polygon data.</returns>
         [HttpGet("svg/polygonbyid")]
         public async Task<IActionResult> GetPolygonByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "reductionfactor")] double? reductionFactor = null, [FromQuery(Name = "mincount")] int? minCount = null)
         {
@@ -202,6 +228,12 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             return Content(result, "text/plain");
         }
 
+        /// <summary>
+        /// Asynchronously retrieves 2D points based on a collection of references and an optional county identifier.
+        /// </summary>
+        /// <param name="references">The collection of string references used to identify the building points.</param>
+        /// <param name="countyId">The optional integer identifier of the county associated with the buildings.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IActionResult"/>.</returns>
         [HttpGet("svg/pointsbyreferences")]
         public async Task<IActionResult> GetPointsByReferencesAsync([FromBody] IEnumerable<string> references, [FromQuery(Name = "countyid")] int? countyId)
         {
@@ -250,6 +282,10 @@ namespace DiGi.GIS.WebAPI.UI.Classes
         }
 
         // This action will trigger for: gis.digiproject.uk/administrativeareal2D
+        /// <summary>
+        /// Initializes and returns the start view for the 2D building interface.
+        /// </summary>
+        /// <returns>An <see cref="Microsoft.AspNetCore.Mvc.IActionResult"/> result that renders the starting view.</returns>
         [HttpGet("")]
         public IActionResult Start()
         {
