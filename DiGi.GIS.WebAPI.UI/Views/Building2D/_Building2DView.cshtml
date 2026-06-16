@@ -209,7 +209,7 @@
             const coords = rawData.trim().split(/\s+/).map(Number);
             if (coords.length < 4) return;
 
-            // 1. Obliczanie granic (Bounding Box)
+            // 1. Calculating bounds (Bounding Box)
             let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
             for (let i = 0; i < coords.length; i += 2) {
                 let x = coords[i];
@@ -221,28 +221,28 @@
             const width = maxX - minX;
             const height = maxY - minY;
             const canvasSize = 500;
-            const margin = 40; // Bezpieczny odstęp od krawędzi
+            const margin = 40; // Safe margin from the edge
             const drawingArea = canvasSize - (2 * margin);
 
-            // 2. Obliczanie skali z zachowaniem proporcji (Aspect Ratio)
+            // 2. Calculating scale preserving aspect ratio (Aspect Ratio)
             const scale = Math.min(drawingArea / width, drawingArea / height);
 
-            // 3. Obliczanie przesunięcia centrującego (Offset)
-            // Sprawdzamy, ile miejsca zajmie przeskalowany budynek
+            // 3. Calculating centering offset
+            // Verify how much space the scaled building will occupy
             const scaledWidth = width * scale;
             const scaledHeight = height * scale;
 
-            // Offset to połowa różnicy między rozmiarem płótna a rozmiarem narysowanego obiektu
+            // Offset is half the difference between canvas size and drawn object size
             const offsetX = (canvasSize - scaledWidth) / 2;
             const offsetY = (canvasSize - scaledHeight) / 2;
 
             let pointsArray = [];
             for (let i = 0; i < coords.length; i += 2) {
-                // Normalizacja do (0,0), skalowanie i dodanie offsetu centrującego
+                // Normalize to (0,0), scale, and add centering offset
                 let screenX = (coords[i] - minX) * scale + offsetX;
             
-                // W SVG oś Y rośnie w dół, więc odwracamy orientację współrzędnych GISowych
-                // (canvasSize - ...) odwraca oś, a offsetY centruje wynik
+                // In SVG the Y axis increases downwards, so we invert the orientation of GIS coordinates
+                // (canvasSize - ...) inverts the axis, and offsetY centers the result
                 let screenY = canvasSize - ((coords[i+1] - minY) * scale + offsetY);
             
                 pointsArray.push(`${screenX.toFixed(2)},${screenY.toFixed(2)}`);
@@ -252,8 +252,8 @@
             const svg = document.getElementById("mainCanvas");
         
             if (svg) {
-                // WAŻNE: Czyszczenie SVG przed nowym rysunkiem
-                // Zapobiega to nakładaniu się wielu poligonów podczas przełączania rekordów
+                // IMPORTANT: Clear SVG before drawing a new shape
+                // Prevents multiple polygons from overlapping when switching records
                 while (svg.firstChild) {
                     svg.removeChild(svg.firstChild);
                 }

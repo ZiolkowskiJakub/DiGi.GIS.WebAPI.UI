@@ -47,11 +47,11 @@
         
             const html = await response.text();
         
-            // 1. Wstrzykiwanie HTML
+            // 1. Injecting HTML
             contentContainer.innerHTML = html;
 
-            // 2. Ręczne wykonanie skryptów wstrzykniętego widoku
-            // Przeszukujemy wstrzyknięty kontener w poszukiwaniu tagów <script>
+            // 2. Manually executing scripts in the injected view
+            // Search the injected container for <script> tags
             const scripts = contentContainer.querySelectorAll("script");
             scripts.forEach((oldScript) => {
                 const newScript = document.createElement("script");
@@ -60,12 +60,12 @@
                 oldScript.parentNode.replaceChild(newScript, oldScript);
             });
 
-            // 3. Wywołanie funkcji inicjującej rysowanie, która została właśnie zdefiniowana
+            // 3. Executing the drawing initialization function that was just defined
             if (typeof window.initializeBuildingGeometry === "function") {
                 await window.initializeBuildingGeometry();
             }
 
-            // Zaznaczanie aktywnego wiersza (Twoja istniejąca logika)
+            // Highlight the active row (existing logic)
             if(clickedElement) {
                 document.querySelectorAll('.building-link').forEach(link => {
                     const row = link.closest('tr');
@@ -84,7 +84,7 @@
         }
     }
 
-        // Obsługa kliknięć w listę (Delegacja zdarzeń)
+        // Handle clicks on the list (Event delegation)
         document.getElementById('listSide').addEventListener('click', function(e) {
             const link = e.target.closest('.building-link');
             if (link) {
@@ -94,10 +94,10 @@
             }
         });
 
-        // AUTO-START: Załaduj detale pierwszego budynku po wejściu na stronę
+        // AUTO-START: Load the details of the first building upon page entry
         const firstLink = document.querySelector('.building-link');
         if (firstLink) {
-            // Małe opóźnienie, aby upewnić się, że wszystko jest wyrenderowane
+            // Small delay to ensure everything is rendered
             setTimeout(() => firstLink.click(), 100);
         }
     });
