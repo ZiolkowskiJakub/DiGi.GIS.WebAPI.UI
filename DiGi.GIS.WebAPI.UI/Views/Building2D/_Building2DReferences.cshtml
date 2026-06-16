@@ -1,4 +1,3 @@
-@using DiGi.GIS.Classes
 @using System.Linq
 @using DiGi.GIS.PostgreSQL.Classes
 
@@ -6,8 +5,6 @@
     List<Building2DReference>? building2DReferences = (Model as IEnumerable<Building2DReference>)?.ToList() ?? [];
     int initialLimit = 100;
 }
-
-
 
 <div class="gis-master-wrapper">
     <div class="master-header">
@@ -85,17 +82,3 @@
         }
     }
 </script>
-
-@* WAŻNA UWAGA:
-   Aby lewa kolumna była całkowicie zablokowana w szerokości, 
-   w pliku _Building2DReferencesView.cshtml ustaw:
-   
-   #listSide {
-       flex: 0 0 350px; /* Zamiast 35% */
-       width: 350px;
-       max-width: 350px;
-       overflow: hidden;
-       display: flex;
-       flex-direction: column;
-   }
-*@
