@@ -4,6 +4,23 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - GIS System</title>
+    <meta name="description" content="@(ViewData["Description"] ?? "High-performance GIS data exchange platform by DigiProject.")" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="@(ViewData["CanonicalUrl"] ?? Context.Request.Scheme + "://" + Context.Request.Host + Context.Request.Path)" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="@ViewData["Title"] - GIS System" />
+    <meta property="og:description" content="@(ViewData["Description"] ?? "High-performance GIS data exchange platform by DigiProject.")" />
+    <meta property="og:url" content="@(Context.Request.Scheme + "://" + Context.Request.Host + Context.Request.Path)" />
+    <meta property="og:image" content="https://digiproject.uk/images/og-share-image.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content="@ViewData["Title"] - GIS System" />
+    <meta property="twitter:description" content="@(ViewData["Description"] ?? "High-performance GIS data exchange platform by DigiProject.")" />
+    <meta property="twitter:image" content="https://digiproject.uk/images/og-share-image.png" />
+
     <link rel="stylesheet" href="/css/gis-theme.css" />
 </head>
 <body class="gis-app-body">
@@ -25,5 +42,22 @@
     <main class="gis-content-wrapper">
         @RenderBody()
     </main>
+    <footer class="gis-footer">
+        <div class="gis-footer-container">
+            <div class="gis-footer-left">
+                <a href="https://digiproject.uk" class="gis-footer-logo-link">
+                    <img src="/images/digiproject-logo.png" alt="DigiProject Logo" class="gis-footer-logo" />
+                </a>
+            </div>
+            <div class="gis-footer-center">
+                <span class="gis-footer-copyright">
+                    Copyright @@ 2026 - DigiProject. Designed by <a href="mailto:digiproject@digiproject.uk" class="gis-footer-link">DigiProject team</a>
+                </span>
+            </div>
+            <div class="gis-footer-right">
+                <!-- Spacer for perfect centering -->
+            </div>
+        </div>
+    </footer>
 </body>
 </html>

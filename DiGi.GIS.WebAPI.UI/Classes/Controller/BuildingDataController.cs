@@ -1,11 +1,7 @@
-﻿using DiGi.Geometry.Planar.Classes;
-using DiGi.GIS.PostgreSQL.Classes;
-using DiGi.WebAPI.Classes;
+﻿using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Json;
 using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Classes
@@ -20,13 +16,19 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             this.httpClientFactory = httpClientFactory;
         }
 
-        [HttpGet("tablebyid")]
-        public async Task<IActionResult> GetTableByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId)
+        [HttpGet("tablebyreference")]
+        public async Task<IActionResult> GetTableByReferenceAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId = null)
         {
             HttpClient httpClient = httpClientFactory.CreateClient();
 
-            UrlBuilder urlBuilder = new("https://api.digiproject.uk/gis/building2D/building2Dreferencesbyadministrativeareal2Did");
-            //urlBuilder = urlBuilder.AddParameter("administrativeareal2Did", administrativeAreal2DId);
+            UrlBuilder urlBuilder = new("https://api.digiproject.uk/gis/buildingdata/tablebyreference");
+            urlBuilder = urlBuilder.AddParameter("reference", reference);
+
+            if(countyId is not null)
+            {
+                urlBuilder = urlBuilder.AddParameter("countyid", countyId.Value);
+            }
+
 
             HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
             if (!httpResponseMessage.IsSuccessStatusCode)
@@ -43,10 +45,14 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             // Here we use your DLL to turn JSON back into real C# objects.
             // Note: Since AdministrativeAreal2D is abstract,
             // you might need a specific converter or a concrete type.
-            List<Building2DReference>? building2DReferences = Core.Convert.ToDiGi<Building2DReference>(json);
+            DiGi.PostgreSQL.Table.Classes.Table? table = Core.Convert.ToDiGi<DiGi.PostgreSQL.Table.Classes.Table>(json)?.FirstOrDefault();
+            if(table is null)
+            {
+                return BadRequest();
+            }
 
             // We pass the objects to a Partial View
-            return PartialView("_BuildingDataView", new Building2DReferencesView(building2DReferences));
+            return PartialView("_TableView", new TableView(table));
         }
 
         [HttpGet("")]
