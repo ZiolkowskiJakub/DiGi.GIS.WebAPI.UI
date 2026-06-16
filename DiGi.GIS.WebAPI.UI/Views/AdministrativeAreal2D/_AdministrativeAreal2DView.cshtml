@@ -157,7 +157,7 @@
                         <td>
                             <a href="/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@item.Id"
                                onmouseenter="handleMouseEnter('@item.Id')"
-                               onmouseleave="handleMouseLeave('@item.Id')"
+                               onmouseleave="handleMouseLeave('@item.Id', '@(Model.AdministrativeAreal2DReference?.Id)')"
                                class="btn-buildings btn-active" style="padding: 4px 8px;">
                                 @item.Code
                             </a>
@@ -187,184 +187,30 @@
     }
 </div>
 
-<script>
-    let globalScaleParams = null;
-    const activeHovers = new Set();
-    const controllers = new Map(); 
-
-    async function handleMouseEnter(id) {
-        activeHovers.add(id);
-        const controller = new AbortController();
-        controllers.set(id, controller);
-        
-        await drawPolygons(id, false, controller.signal);
-    }
-
-    function handleMouseLeave(id) {
-        activeHovers.delete(id);
-        if (controllers.has(id)) {
-            controllers.get(id).abort();
-            controllers.delete(id);
-        }
-        removePolygons(id);
-    }
-
-    async function drawPolygons(id, isBase = false, signal = null) {
-        if (!id) return;
-        // Check if group for this id already exists
-        if (document.getElementById(`group-${id}`)) return;
-
-        try {
-            const response = await fetch(`/administrativeareal2D/svg/polygonsbyid?id=${id}`, { signal });
-            if (!response.ok) return;
-
-            // Data is now a JSON array of arrays: [[x1, y1, x2, y2...], [...]]
-            const allPolygonsData = await response.json();
-        
-            if (!isBase && !activeHovers.has(id)) return;
-            if (!allPolygonsData || allPolygonsData.length === 0) return;
-
-            // 1. Calculate bounding box for ALL polygons to set scale
-            if (isBase || !globalScaleParams) {
-                let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-            
-                allPolygonsData.forEach(coords => {
-                    for (let i = 0; i < coords.length; i += 2) {
-                        let x = coords[i]; let y = coords[i+1];
-                        if (x < minX) minX = x; if (x > maxX) maxX = x;
-                        if (y < minY) minY = y; if (y > maxY) maxY = y;
-                    }
-                });
-
-                const scale = Math.min((450) / (maxX - minX), (450) / (maxY - minY));
-                globalScaleParams = { minX, minY, scale, padding: 25, canvasSize: 500 };
+@section Scripts {
+    <script src="/js/gis-common.js"></script>
+    <script src="/js/administrative.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // 1. Existing polygon logic
+            @if (Model.AdministrativeAreal2DReference != null)
+            {
+                <text>drawPolygons('@Model.AdministrativeAreal2DReference.Id', true);</text>
             }
 
-            const { minX, minY, scale, padding, canvasSize } = globalScaleParams;
-        
-            // Create a group to hold multiple polygons for this ID
-            const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-            group.setAttribute("id", `group-${id}`);
-
-            allPolygonsData.forEach((coords, index) => {
-                if (coords.length < 4) return;
-
-                const pointsString = [];
-                for (let i = 0; i < coords.length; i += 2) {
-                    const px = (coords[i] - minX) * scale + padding;
-                    const py = canvasSize - ((coords[i+1] - minY) * scale + padding);
-                    pointsString.push(`${px.toFixed(2)},${py.toFixed(2)}`);
-                }
-
-                const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-                polygon.setAttribute("id", `poly-${id}-${index}`);
-                polygon.setAttribute("points", pointsString.join(" "));
-            
-                // Styling
-                polygon.style.fill = isBase ? "rgba(0, 120, 212, 0.1)" : "rgba(0, 120, 212, 0.4)";
-                polygon.style.stroke = "#0078d4";
-                polygon.style.strokeWidth = isBase ? "1" : "2";
-                polygon.style.pointerEvents = "none";
-
-                group.appendChild(polygon);
-            });
-        
-            document.getElementById("mainCanvas").appendChild(group);
-        } catch (e) {
-            if (e.name !== 'AbortError') console.error(e);
-        }
-    }
-
-    function removePolygons(id) {
-        // Check if the ID is the base ID that should not be removed
-        if (id === '@(Model.AdministrativeAreal2DReference?.Id)') return;
-    
-        // In the new version, we look for the group container instead of a single polygon
-        const group = document.getElementById(`group-${id}`);
-    
-        if (group) {
-            // remove() deletes the group and all its children (polygons) from the DOM
-            group.remove();
-        }
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-        @if (Model.AdministrativeAreal2DReference != null) {
-            <text>drawPolygons('@Model.AdministrativeAreal2DReference.Id', true);</text>
-        }
-    });
-
-    async function loadAllOrtoCoverages(ids) {
-        // Relative URL to your new bulk endpoint
-        const apiUrl = '/ortodatas/estimatedcoveragefactors';
-
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(ids)
-            });
-
-            if (!response.ok) throw new Error('Bulk API Error');
-
-            // The API returns List<double> values
-            const values = await response.json();
-
-            // Map values back to UI elements based on index
-            ids.forEach(function(id, index) {
-                const textElement = document.getElementById(`text-coverage-${id}`);
-                const barElement = document.getElementById(`bar-coverage-${id}`);
-            
-                if (textElement && barElement && values[index] !== undefined) {
-                    const rawValue = parseFloat(values[index]);
-                    const percentage = (rawValue * 100).toFixed(1);
-                
-                    textElement.innerText = `${percentage}%`;
-                    const safeWidth = Math.min(Math.max(percentage, 0), 100);
-                    barElement.style.width = `${safeWidth}%`;
-
-                    // Dynamic color feedback
-                    if (safeWidth > 80) {
-                        barElement.style.backgroundColor = "#28a745";
-                    } else if (safeWidth < 30) {
-                        barElement.style.backgroundColor = "#dc3545";
-                    }
-                }
-            });
-
-        } catch (error) {
-            console.error('Error loading bulk coverage:', error);
-            ids.forEach(function(id) {
-                const el = document.getElementById(`text-coverage-${id}`);
-                if (el) {
-                    el.innerText = "N/A";
-                    el.style.color = "red";
-                }
-            });
-        }
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-        // 1. Existing polygon logic
-        @if (Model.AdministrativeAreal2DReference != null)
-        {
-                <text>drawPolygons('@Model.AdministrativeAreal2DReference.Id', true);</text>
-        }
-
-        // 2. New Bulk Coverage Logic
-        @{
+            // 2. New Bulk Coverage Logic
+            @{
                 // Prepare list of IDs in C# first
                 List<int> idList = administrativeAreal2DReferences?
                         .Select(x => x.Id)
                         .ToList() ?? new List<int>();
                 string idsJson = System.Text.Json.JsonSerializer.Serialize(idList);
-        }
+            }
 
-        const ids = @Html.Raw(idsJson);
-        if (ids.length > 0) {
-            loadAllOrtoCoverages(ids);
-        }
-    });
-</script>
+            const ids = @Html.Raw(idsJson);
+            if (ids.length > 0) {
+                loadAllOrtoCoverages(ids);
+            }
+        });
+    </script>
+}

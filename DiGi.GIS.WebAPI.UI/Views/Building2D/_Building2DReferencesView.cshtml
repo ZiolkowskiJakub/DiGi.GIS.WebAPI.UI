@@ -31,74 +31,11 @@
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        
-    async function loadBuildingDetails(url, clickedElement) {
-        const contentContainer = document.getElementById('detailsContent');
-        const loader = document.getElementById('detailsLoader');
-
-        contentContainer.style.opacity = '0.3';
-        loader.style.display = 'block';
-
-        try {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('API Error');
-        
-            const html = await response.text();
-        
-            // 1. Injecting HTML
-            contentContainer.innerHTML = html;
-
-            // 2. Manually executing scripts in the injected view
-            // Search the injected container for <script> tags
-            const scripts = contentContainer.querySelectorAll("script");
-            scripts.forEach((oldScript) => {
-                const newScript = document.createElement("script");
-                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-                oldScript.parentNode.replaceChild(newScript, oldScript);
-            });
-
-            // 3. Executing the drawing initialization function that was just defined
-            if (typeof window.initializeBuildingGeometry === "function") {
-                await window.initializeBuildingGeometry();
-            }
-
-            // Highlight the active row (existing logic)
-            if(clickedElement) {
-                document.querySelectorAll('.building-link').forEach(link => {
-                    const row = link.closest('tr');
-                    if(row) row.classList.remove('active-selection');
-                });
-                const currentRow = clickedElement.closest('tr');
-                if(currentRow) currentRow.classList.add('active-selection');
-            }
-
-        } catch (error) {
-            console.error('Error:', error);
-            contentContainer.innerHTML = `<div style="padding: 20px; color: #d9534f; text-align: center;"><strong>Error:</strong> Could not load building details.</div>`;
-        } finally {
-            contentContainer.style.opacity = '1';
-            loader.style.display = 'none';
-        }
-    }
-
-        // Handle clicks on the list (Event delegation)
-        document.getElementById('listSide').addEventListener('click', function(e) {
-            const link = e.target.closest('.building-link');
-            if (link) {
-                e.preventDefault();
-                const url = link.getAttribute('href');
-                loadBuildingDetails(url, link);
-            }
+@section Scripts {
+    <script src="/js/building.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initBuildingReferencesView();
         });
-
-        // AUTO-START: Load the details of the first building upon page entry
-        const firstLink = document.querySelector('.building-link');
-        if (firstLink) {
-            // Small delay to ensure everything is rendered
-            setTimeout(() => firstLink.click(), 100);
-        }
-    });
-</script>
+    </script>
+}
