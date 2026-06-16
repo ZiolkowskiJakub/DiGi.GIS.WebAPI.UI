@@ -209,10 +209,11 @@ button.gis-menu-btn:hover {
 /* Master Detail Split layout */
 .master-detail-wrapper {
     display: flex;
-    height: calc(100vh - 120px); 
+    height: calc(100vh - 70px); 
     gap: 12px;
     padding: 12px;
     background-color: #f0f2f5;
+    box-sizing: border-box;
 }
 
 #listSide {
@@ -636,4 +637,118 @@ h1.gis-title-large {
 .back-button:hover {
     color: var(--primary-hover);
     text-decoration: underline;
+}
+
+/* Header & Layout Additions */
+.gis-app-body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    background-color: var(--bg-light);
+}
+
+.gis-header {
+    height: 70px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.gis-header-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.gis-logo-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    transition: transform 0.2s ease;
+}
+
+.gis-logo-link:hover {
+    transform: scale(1.02);
+}
+
+.gis-header-logo {
+    height: 44px;
+    width: auto;
+    display: block;
+}
+
+.gis-nav {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+}
+
+.gis-nav-link {
+    color: var(--text-dark);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 8px 0;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.gis-nav-link:hover {
+    color: var(--primary-color);
+}
+
+.gis-nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--primary-color);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.25s ease-out;
+}
+
+.gis-nav-link:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+}
+
+.gis-nav-link.active {
+    color: var(--primary-color);
+}
+
+.gis-nav-link.active::after {
+    transform: scaleX(1);
+    background-color: var(--primary-color);
+}
+
+.gis-content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.gis-home-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 20px;
 }

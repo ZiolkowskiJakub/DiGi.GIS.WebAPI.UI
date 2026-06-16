@@ -1,4 +1,4 @@
-﻿using DiGi.Geometry.Planar.Classes;
+using DiGi.Geometry.Planar.Classes;
 using DiGi.GIS.Classes;
 using DiGi.GIS.PostgreSQL;
 using DiGi.GIS.PostgreSQL.Enums;
@@ -282,7 +282,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 
             AdministrativeAreal2DView administrativeAreal2DView = new(administrativeAreal2DReference, administrativeAreal2D, administrativeAreal2DReferencePath, administrativeAreal2DReferences);
 
-            return PartialView("_AdministrativeAreal2DView", administrativeAreal2DView);
+            return View("_AdministrativeAreal2DView", administrativeAreal2DView);
         }
 
         /// <summary>
@@ -388,7 +388,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 
             AdministrativeAreal2DView administrativeAreal2DView = new(administrativeAreal2DReference, administrativeAreal2D, administrativeAreal2DReferencePath, administrativeAreal2DReferences);
 
-            return PartialView("_AdministrativeAreal2DView", administrativeAreal2DView);
+            return View("_AdministrativeAreal2DView", administrativeAreal2DView);
         }
 
         /// <summary>
@@ -417,8 +417,8 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             // Note: Since AdministrativeAreal2D is abstract,
             // you might need a specific converter or a concrete type.
             AdministrativeAreal2D? administrativeAreal2D = Core.Convert.ToDiGi<AdministrativeAreal2D>(json)?.FirstOrDefault();
-            // We pass the object to a Partial View
-            return PartialView("_AdministrativeAreal2DView", administrativeAreal2D);
+            // We pass the object to a View
+            return View("_AdministrativeAreal2DView", administrativeAreal2D);
         }
 
         /// <summary>

@@ -1,4 +1,4 @@
-﻿using DiGi.Geometry.Planar.Classes;
+using DiGi.Geometry.Planar.Classes;
 using DiGi.GIS.Classes;
 using DiGi.GIS.PostgreSQL.Classes;
 using DiGi.WebAPI.Classes;
@@ -59,8 +59,8 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             // you might need a specific converter or a concrete type.
             List<Building2DReference>? building2DReferences = Core.Convert.ToDiGi<Building2DReference>(json);
 
-            // We pass the objects to a Partial View
-            return PartialView("_Building2DReferencesView", new Building2DReferencesView(building2DReferences));
+            // We pass the objects to a View
+            return View("_Building2DReferencesView", new Building2DReferencesView(building2DReferences));
         }
 
         /// <summary>

@@ -6,7 +6,24 @@
     <title>@ViewData["Title"] - GIS System</title>
     <link rel="stylesheet" href="/css/gis-theme.css" />
 </head>
-<body>
-    @RenderBody()
+<body class="gis-app-body">
+    @{
+        var currentPath = Context.Request.Path.Value ?? "";
+    }
+    <header class="gis-header">
+        <div class="gis-header-container">
+            <a href="/" class="gis-logo-link">
+                <img src="/images/logo.png" alt="GIS Logo" class="gis-header-logo" />
+            </a>
+            <nav class="gis-nav">
+                <a href="/administrativeareal2D" class="gis-nav-link @(currentPath.StartsWith("/administrativeareal2D", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Administrative Areas</a>
+                <a href="/building2D" class="gis-nav-link @(currentPath.StartsWith("/building2D", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Buildings</a>
+                <a href="/about" class="gis-nav-link @(currentPath.StartsWith("/about", StringComparison.OrdinalIgnoreCase) ? "active" : "")">About</a>
+            </nav>
+        </div>
+    </header>
+    <main class="gis-content-wrapper">
+        @RenderBody()
+    </main>
 </body>
 </html>
