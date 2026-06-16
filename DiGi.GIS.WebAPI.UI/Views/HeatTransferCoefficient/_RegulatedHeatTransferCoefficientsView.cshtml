@@ -1,4 +1,4 @@
-﻿@using DiGi.Analytical.Building.HVAC.Classes
+@using DiGi.Analytical.Building.HVAC.Classes
 @using DiGi.Analytical.Building.HVAC.Interfaces
 @using DiGi.GIS.Classes
 @using System.Linq
@@ -17,25 +17,25 @@
 
 @if (viewData.RegulatedHeatTransferCoefficients is IRegulatedHeatTransferCoefficients regulatedHeatTransferCoefficients)
 {
-    <div class="property-group" style="margin-bottom: 25px;">
-        <table style="width: 100%; border-collapse: collapse; background-color: #fafafa; border-radius: 4px;">
+    <div class="property-group">
+        <table class="gis-property-table">
             @if (regulatedHeatTransferCoefficients.RegulationAct is RegulationAct regulationAct)
             {
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 12px; color: #666; width: 45%; font-weight: 500;">Reference</td>
-                    <td style="padding: 12px; color: #333;">@regulationAct.Reference</td>
+                <tr>
+                    <td class="property-label">Reference</td>
+                    <td>@regulationAct.Reference</td>
                 </tr>
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 12px; color: #666; width: 45%; font-weight: 500;">Publication Date</td>
-                    <td style="padding: 12px; color: #333;">@regulationAct.PublicationDate.ToShortDateString()</td>
+                <tr>
+                    <td class="property-label">Publication Date</td>
+                    <td>@regulationAct.PublicationDate.ToShortDateString()</td>
                 </tr>
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 12px; color: #666; width: 45%; font-weight: 500;">Effective Date</td>
-                    <td style="padding: 12px; color: #333;">@regulationAct.EffectiveDate.ToShortDateString()</td>
+                <tr>
+                    <td class="property-label">Effective Date</td>
+                    <td>@regulationAct.EffectiveDate.ToShortDateString()</td>
                 </tr>
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 12px; color: #666; width: 45%; font-weight: 500;">Name</td>
-                    <td style="padding: 12px; color: #333;">@regulationAct.Name</td>
+                <tr>
+                    <td class="property-label">Name</td>
+                    <td>@regulationAct.Name</td>
                 </tr>
             }
 
@@ -56,12 +56,9 @@
                 double coefficientValue = 0;
                 regulatedHeatTransferCoefficients.TryGetValue(name, out coefficientValue);
 
-                bool isLast = (i == totalItems - 1);
-                string rowStyle = isLast ? "" : "border-bottom: 1px solid #eee;";
-
-                <tr style="@rowStyle">
-                    <td style="padding: 12px; color: #666; width: 45%; font-weight: 500;">@name:</td>
-                    <td style="padding: 12px; color: #333;">@coefficientValue [W/(m²·K)]</td>
+                <tr>
+                    <td class="property-label">@name:</td>
+                    <td>@coefficientValue [W/(m²·K)]</td>
                 </tr>
             }
         </table>

@@ -1,4 +1,4 @@
-﻿@using DiGi.GIS.Classes
+@using DiGi.GIS.Classes
 @using System.Linq
 
 @{
@@ -17,61 +17,7 @@
         .ToList();
 }
 
-<style>
-    .gis-table-container {
-        margin: 40px auto;
-        max-width: 90%;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    .gis-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-    }
-
-        .gis-table thead tr {
-            background-color: #0078d4;
-            color: white;
-            text-align: left;
-        }
-
-        .gis-table th, .gis-table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        /* Zebra stripes - alternating row colors */
-        .gis-table tbody tr:nth-of-type(even) {
-            background-color: #f8f9fa;
-        }
-
-        .gis-table tbody tr:hover {
-            background-color: #f1f7fd;
-            transition: background-color 0.2s;
-        }
-
-    .index-column {
-        font-weight: bold;
-        color: #666;
-        width: 50px;
-    }
-
-    .code-badge {
-        background: #e1f0fe;
-        color: #005a9e;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-family: monospace;
-        font-size: 0.9em;
-    }
-</style>
-
-<div class="gis-table-container">
+<div class="gis-table-container margin-large">
     
     <table class="gis-table">
         <thead>

@@ -1,58 +1,21 @@
-﻿@{
+@{
     Layout = null;
 }
 <!DOCTYPE html>
 <html>
 <head>
     <title>GIS Project</title>
-    <style>
-            /* Centrowanie kontenera w oknie przeglądarki */
-            body, html {
-                height: 100%;
-                margin: 0;
-                display: flex;
-                justify-content: center; /* Poziomo */
-                align-items: center; /* Pionowo */
-                font-family: sans-serif;
-                background-color: #f4f4f9;
-            }
-
-            .button-container {
-                display: flex;
-                flex-direction: column; /* Ustawia elementy jeden pod drugim */
-                gap: 10px; /* Odstęp między przyciskami */
-                width: 300px; /* Stała szerokość dla wszystkich przycisków */
-            }
-
-            button {
-                padding: 15px;
-                cursor: pointer;
-                font-weight: 600;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                background-color: white;
-                transition: all 0.2s;
-                /* To sprawi, że przycisk zawsze zajmie 100% szerokości .button-container */
-                width: 100%;
-                text-align: center;
-            }
-
-                button:hover {
-                    background-color: #0078d4; /* Klasyczny kolor "Windows Blue" */
-                    color: white;
-                    border-color: #005a9e;
-                }
-    </style>
+    <link rel="stylesheet" href="/css/gis-theme.css" />
 </head>
-<body>
+<body class="gis-body-centered">
     <div class="button-container">
-        <button onclick="window.location.href='/administrativeareal2D'">
+        <button class="gis-menu-btn" onclick="window.location.href='/administrativeareal2D'">
             Administrative Areas
         </button>
-        <button onclick="window.location.href='/building2D'">
+        <button class="gis-menu-btn" onclick="window.location.href='/building2D'">
             Buildings
         </button>
-        <button onclick="window.location.href='/about'">
+        <button class="gis-menu-btn" onclick="window.location.href='/about'">
             About
         </button>
     </div>

@@ -1,4 +1,4 @@
-﻿@using DiGi.GIS.Classes
+@using DiGi.GIS.Classes
 @using System.Linq
 @using DiGi.GIS.WebAPI.UI.Classes
 @using DiGi.GIS.PostgreSQL.Classes
@@ -29,119 +29,7 @@
     administrativeAreal2DReferences.Sort((x, y) => (x?.Name ?? string.Empty).CompareTo((y?.Name ?? string.Empty)));
 }
 
-<style>
-    .gis-table-container {
-        margin: 20px auto;
-        max-width: 95%;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .gis-main-content {
-        display: flex;
-        gap: 30px;
-        align-items: flex-start;
-        margin-bottom: 30px;
-    }
-    .gis-info-section {
-        flex: 1;
-        border-left: 4px solid #0078d4;
-        padding-left: 15px;
-    }
-    .gis-visual-side {
-        flex: 0 0 320px;
-        text-align: center;
-    }
-    .gis-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-    }
-    .gis-table thead tr {
-        background-color: #0078d4;
-        color: white;
-        text-align: left;
-    }
-    .gis-table th, .gis-table td {
-        padding: 12px 15px;
-        border-bottom: 1px solid #e0e0e0;
-    }
-    .gis-title {
-        color: #333;
-        margin-top: 0;
-        margin-bottom: 20px;
-        border-bottom: 2px solid #0078d4;
-        padding-bottom: 10px;
-        display: inline-block;
-    }
-    .gis-info-row {
-        display: flex;
-        margin-bottom: 12px;
-        align-items: baseline;
-    }
-    .gis-info-label {
-        font-weight: bold;
-        min-width: 100px;
-        color: #444;
-    }
-    .gis-info-value {
-        color: #222;
-        flex: 1;
-    }
-    .btn-buildings {
-        padding: 6px 12px;
-        border-radius: 4px;
-        text-decoration: none;
-        font-size: 0.85em;
-        font-weight: 600;
-        display: inline-block;
-        border: none;
-        cursor: pointer;
-    }
-    .btn-active {
-        background-color: #e1f0fe;
-        color: #0078d4;
-        border: 1px solid #0078d4;
-    }
-    .btn-active:hover {
-        background-color: #0078d4;
-        color: white;
-    }
-    .btn-disabled {
-        background-color: #e0e0e0;
-        color: #a1a1a1;
-        cursor: not-allowed;
-    }
-
-    /* Progress Bar Container */
-    /* Wrapper to enforce fixed width */
-    .coverage-wrapper {
-        width: 170px; /* Stała szerokość paska */
-        display: flex;
-        flex-direction: column;
-    }
-
-    /* Progress Bar Container */
-    .coverage-container {
-        width: 100%;
-        background-color: #e0e0e0;
-        border-radius: 4px;
-        height: 10px; /* Nieco smuklejszy */
-        overflow: hidden;
-        position: relative;
-        border: 1px solid #ccc;
-    }
-
-    /* Dynamic Progress Filler */
-    .coverage-bar {
-        height: 100%;
-        width: 0%;
-        background-color: #0078d4;
-        transition: width 0.6s ease-in-out;
-    }
-</style>
+<link rel="stylesheet" href="/css/gis-theme.css" />
 
 <div class="gis-table-container">
 
@@ -209,14 +97,14 @@
         </div>
 
         <div class="gis-visual-side">
-            <div id="svg-wrapper" style="background: white; border: 1px solid #ddd; border-radius: 8px; padding: 10px;">
+            <div id="svg-wrapper">
                 <svg id="mainCanvas" width="300" height="300" viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet"></svg>
             </div>
         </div>
     </div>
 
     @* --- SECTION 2: AdministrativeAreal2DReferencePath (Interactive Breadcrumbs) --- *@
-    <div class="gis-path-breadcrumb" style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+    <div class="gis-path-breadcrumb">
         @if (Model.AdministrativeAreal2DReferencePath?.AdministrativeAreal2DReferences != null)
         {
             var pathItems = Model.AdministrativeAreal2DReferencePath.AdministrativeAreal2DReferences;
@@ -225,7 +113,7 @@
             {
                 var r = pathItems[i];
 
-                <div style="display: inline-flex; align-items: center; gap: 5px;">
+                <div class="breadcrumb-item-wrapper">
                     @* Display Name *@
                     <span>@r.Name</span>
 
@@ -240,7 +128,7 @@
                 @* Separator - displayed only between items *@
                 if (i < pathItems.Count - 1)
                 {
-                    <span style="color: #ccc; margin: 0 5px; font-weight: bold;">&gt;</span>
+                    <span class="breadcrumb-separator">&gt;</span>
                 }
             }
         }

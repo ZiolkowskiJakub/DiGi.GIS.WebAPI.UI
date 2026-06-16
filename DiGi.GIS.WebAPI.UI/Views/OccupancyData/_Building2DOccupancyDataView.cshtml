@@ -1,4 +1,4 @@
-﻿@using DiGi.GIS.Classes
+@using DiGi.GIS.Classes
 @using System.Linq
 @using System.Collections.Generic
 @using DiGi.GIS.WebAPI.UI.Classes
@@ -17,18 +17,18 @@
      occupancyData is not null)
 {
     @* Main container matching the 'Calculated General Properties' layout *@
-    <div class="property-group" style="margin-bottom: 25px;">
+    <div class="property-group success">
         @* Header with green accent color *@
-        <h4 style="color: #28a745; margin-bottom: 12px; font-size: 1.1em; border-left: 4px solid #28a745; padding-left: 10px;">
+        <h4>
             Occupancy Data
         </h4>
 
-        <table style="width: 100%; border-collapse: collapse; background-color: #fafafa; border-radius: 4px;">
-            <tr style="@(true ? "" : "border-bottom: 1px solid #eee;")">
-                <td style="padding: 12px; color: #666; width: 45%; font-weight: 500;">
+        <table class="gis-property-table">
+            <tr>
+                <td class="property-label">
                     Predicted Occupancy:
                 </td>
-                <td style="padding: 12px; color: #333;">
+                <td>
                     @occupancyData.Occupancy
                 </td>
             </tr>

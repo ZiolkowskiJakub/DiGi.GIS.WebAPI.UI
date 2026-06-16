@@ -1,4 +1,4 @@
-﻿@using DiGi.GIS.WebAPI.UI.Classes
+@using DiGi.GIS.WebAPI.UI.Classes
 
 @model OrtoDatasView
 
@@ -22,51 +22,7 @@
     }
 }
 
-<style>
-    .orto-grid {
-        display: grid;
-        /* Forced 3 columns as requested */
-        grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
-        width: 100%;
-        margin-top: 10px;
-    }
 
-    .orto-card {
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        overflow: hidden;
-        background: #fff;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    .orto-image {
-        width: 100%;
-        /* Remove fixed height to allow the image to scale naturally */
-        height: auto;
-        /* Aspect-ratio ensures a consistent box if images vary slightly,
-               but 'auto' is safer for true proportions */
-        aspect-ratio: attr(width) / attr(height);
-        /* 'contain' ensures the whole image is visible without cropping */
-        object-fit: contain;
-        display: block;
-        background-color: #f0f0f0; /* Optional: light gray background for empty spaces */
-    }
-
-    .orto-footer {
-        padding: 8px;
-        background: #f8f9fa;
-        width: 100%;
-        text-align: center;
-        border-top: 1px solid #eee;
-        font-size: 0.9em;
-        font-weight: bold;
-        color: #333;
-    }
-</style>
 
 <div class="orto-grid">
     @foreach (KeyValuePair<int, byte[]> item in dictionary)

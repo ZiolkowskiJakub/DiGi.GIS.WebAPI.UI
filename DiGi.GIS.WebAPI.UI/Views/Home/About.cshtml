@@ -1,82 +1,16 @@
-﻿@{
+@{
     Layout = null;
 }
 <!DOCTYPE html>
 <html>
 <head>
     <title>GIS Project - About</title>
-    <style>
-            /* Spójne centrowanie i tło */
-            body, html {
-                height: 100%;
-                margin: 0;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                background-color: #f4f4f9;
-                color: #333;
-            }
-
-            .gis-about-card {
-                background: white;
-                padding: 40px;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                text-align: center;
-                max-width: 500px;
-                width: 90%;
-            }
-
-            .gis-logo-placeholder {
-                color: #0078d4;
-                font-size: 3rem;
-                margin-bottom: 10px;
-                font-weight: bold;
-            }
-
-            h1 {
-                color: #0078d4;
-                margin-top: 0;
-                border-bottom: 2px solid #eef2f5;
-                padding-bottom: 15px;
-            }
-
-            p {
-                line-height: 1.6;
-                color: #555;
-            }
-
-            .server-time {
-                margin-top: 25px;
-                padding: 10px;
-                background-color: #e1f0fe;
-                color: #005a9e;
-                border-radius: 4px;
-                display: inline-block;
-                font-family: monospace;
-                font-size: 0.9em;
-            }
-
-            .back-button {
-                margin-top: 30px;
-                display: block;
-                text-decoration: none;
-                color: #0078d4;
-                font-weight: 600;
-                transition: color 0.2s;
-            }
-
-                .back-button:hover {
-                    color: #005a9e;
-                    text-decoration: underline;
-                }
-    </style>
+    <link rel="stylesheet" href="/css/gis-theme.css" />
 </head>
-<body>
+<body class="gis-body-centered">
     <div class="gis-about-card">
         <div class="gis-logo-placeholder">GIS</div>
-        <h1>About System</h1>
+        <h1 class="gis-title-large">About System</h1>
         
         <p>
             Welcome to the <strong>gis.digiproject.uk</strong> platform.

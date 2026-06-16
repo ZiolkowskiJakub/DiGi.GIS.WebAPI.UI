@@ -1,4 +1,4 @@
-﻿@using DiGi.GIS.Classes
+@using DiGi.GIS.Classes
 @using System.Linq
 @using DiGi.GIS.WebAPI.UI.Classes
 @using DiGi.GIS.PostgreSQL.Classes
@@ -11,81 +11,13 @@
     System.Collections.Generic.List<AdministrativeAreal2DReference>? pathItems = building2DView.AdministrativeAreal2DReferencePath?.AdministrativeAreal2DReferences;
 }
 
-<style>
-    /* Styles shared with _AdministrativeAreal2DView.cshtml */
-    .gis-table-container {
-        margin: 20px auto;
-        max-width: 90%;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    .gis-title {
-        color: #333;
-        margin-top: 0;
-        margin-bottom: 20px;
-        border-bottom: 2px solid #0078d4;
-        padding-bottom: 10px;
-        display: inline-block;
-    }
-
-    .btn-buildings {
-        text-decoration: none;
-        padding: 6px 12px;
-        border-radius: 4px;
-        font-weight: 500;
-        font-size: 0.9em;
-        transition: all 0.2s;
-        display: inline-block;
-    }
-
-    .btn-active {
-        background-color: #e1f0fe;
-        color: #0078d4;
-        border: 1px solid #0078d4;
-    }
-
-    .btn-active:hover {
-        background-color: #0078d4;
-        color: white;
-    }
-
-    .gis-visual-side {
-        display: flex;
-        justify-content: center; /* Centers the canvas horizontally */
-        margin-bottom: 20px;
-    }
-
-    #svg-wrapper {
-        background: white;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 10px;
-        /* Force constant dimensions */
-        width: 320px; /* 300px for SVG + 20px for padding */
-        height: 320px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden; /* Prevents leaking if geometry exceeds bounds */
-    }
-
-    #mainCanvas {
-        /* Defining fixed size via CSS to override fluid behaviors */
-        width: 300px !important;
-        height: 300px !important;
-        display: block;
-    }
-</style>
+<link rel="stylesheet" href="/css/gis-theme.css" />
 
 <div class="gis-table-container">
     
     @* --- SECTION 1: Building2D (Geometry) --- *@
     <div class="gis-visual-side">
-        </><div id="svg-wrapper">
+        <div id="svg-wrapper">
             @* Fixed size SVG Canvas for building geometry visualization *@
             <svg id="mainCanvas"
                  width="300"
@@ -97,14 +29,14 @@
     </div>
 
     @* --- SECTION 2: Building2D (Interactive Breadcrumbs) --- *@
-    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
+    <div class="gis-path-breadcrumb">
         @if (pathItems != null)
         {
             for (int i = 0; i < pathItems.Count; i++)
             {
                 var r = pathItems[i];
 
-                <div style="display: inline-flex; align-items: center; gap: 5px;">
+                <div class="breadcrumb-item-wrapper">
                     <span style="font-weight: 500;">@r.Name</span>
                     <a href="/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@r.Id"
                            class="btn-buildings btn-active"
@@ -115,7 +47,7 @@
 
                 if (i < pathItems.Count - 1)
                 {
-                    <span style="color: #ccc; margin: 0 5px; font-weight: bold;">&gt;</span>
+                    <span class="breadcrumb-separator">&gt;</span>
                 }
             }
         }
@@ -127,59 +59,55 @@
         {
 
         @* --- BLOCK 1: Input Values --- *@
-        <div class="property-group" style="margin-bottom: 25px;">
-            <h4 style="color: #0078d4; margin-bottom: 12px; font-size: 1.1em; border-left: 4px solid #0078d4; padding-left: 10px;">
-			Input General Properties
-            </h4>
-            <table style="width: 100%; border-collapse: collapse; background-color: #fafafa; border-radius: 4px;">
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 12px; color: #666; width: 45%; font-weight: 500;">Building Reference:</td>
-                    <td style="padding: 12px; color: #333;">@(building2DView.Building2D.Reference ?? string.Empty)</td>
-                </tr>
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 12px; color: #666; font-weight: 500;">Guid:</td>
-                <td style="padding: 12px; color: #333;">@building2DView.Building2D.Guid</td>
-                </tr>
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 12px; color: #666; font-weight: 500;">General Function:</td>
-                    <td style="padding: 12px; color: #333;">@(DiGi.Core.Query.Description(building2DView.Building2D.BuildingGeneralFunction) ?? string.Empty)</td>
-                </tr>
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 12px; color: #666; font-weight: 500;">Specific Functions:</td>
-                    <td style="padding: 12px; color: #333;">@(string.Join(", ", building2DView.Building2D.BuildingSpecificFunctions?.Select(f => DiGi.Core.Query.Description(f)) ?? []))</td>
-                </tr>
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 12px; color: #666; font-weight: 500;">Phase:</td>
-                    <td style="padding: 12px; color: #333;">@(DiGi.Core.Query.Description(building2DView.Building2D.BuildingPhase) ?? string.Empty)</td>
+        <div class="property-group">
+            <h4>Input General Properties</h4>
+            <table class="gis-property-table">
+                <tr>
+                    <td class="property-label">Building Reference:</td>
+                    <td>@(building2DView.Building2D.Reference ?? string.Empty)</td>
                 </tr>
                 <tr>
-                    <td style="padding: 12px; color: #666; font-weight: 500;">Storeys:</td>
-                    <td style="padding: 12px; color: #333;">@building2DView.Building2D.Storeys</td>
+                    <td class="property-label">Guid:</td>
+                    <td>@building2DView.Building2D.Guid</td>
+                </tr>
+                <tr>
+                    <td class="property-label">General Function:</td>
+                    <td>@(DiGi.Core.Query.Description(building2DView.Building2D.BuildingGeneralFunction) ?? string.Empty)</td>
+                </tr>
+                <tr>
+                    <td class="property-label">Specific Functions:</td>
+                    <td>@(string.Join(", ", building2DView.Building2D.BuildingSpecificFunctions?.Select(f => DiGi.Core.Query.Description(f)) ?? []))</td>
+                </tr>
+                <tr>
+                    <td class="property-label">Phase:</td>
+                    <td>@(DiGi.Core.Query.Description(building2DView.Building2D.BuildingPhase) ?? string.Empty)</td>
+                </tr>
+                <tr>
+                    <td class="property-label">Storeys:</td>
+                    <td>@building2DView.Building2D.Storeys</td>
                 </tr>
             </table>
         </div>
 
         @* --- BLOCK 2: Calculated Values --- *@
-        <div class="property-group">
-            <h4 style="color: #28a745; margin-bottom: 12px; font-size: 1.1em; border-left: 4px solid #28a745; padding-left: 10px;">
-                Calculated General Properties
-            </h4>
-            <table style="width: 100%; border-collapse: collapse; background-color: #fafafa; border-radius: 4px;">
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 12px; color: #666; width: 45%; font-weight: 500;">Single Floor Area:</td>
-                    <td style="padding: 12px; color: #333;">@DiGi.Core.Query.Round(building2DView.Building2D?.PolygonalFace2D?.GetArea() ?? 0.0, 0.01) m²</td>
-                </tr>
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 12px; color: #666; font-weight: 500;">Building Total Area:</td>
-                    <td style="padding: 12px; color: #333;">@(DiGi.Core.Query.Round(building2DView.Building2D?.PolygonalFace2D?.GetArea() ?? 0.0, 0.01) * building2DView.Building2D?.Storeys ?? 0) m²</td>
-                </tr>
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 12px; color: #666; font-weight: 500;">Azimuth:</td>
-                    <td style="padding: 12px; color: #333; font-weight: bold;">@DiGi.Core.Query.Round(DiGi.GIS.Query.Azimuth(building2DView.Building2D), 1)°</td>
+        <div class="property-group success">
+            <h4>Calculated General Properties</h4>
+            <table class="gis-property-table">
+                <tr>
+                    <td class="property-label">Single Floor Area:</td>
+                    <td>@DiGi.Core.Query.Round(building2DView.Building2D?.PolygonalFace2D?.GetArea() ?? 0.0, 0.01) m²</td>
                 </tr>
                 <tr>
-                    <td style="padding: 12px; color: #666; font-weight: 500;">Is Occupied:</td>
-                    <td style="padding: 12px; color: #333;">
+                    <td class="property-label">Building Total Area:</td>
+                    <td>@(DiGi.Core.Query.Round(building2DView.Building2D?.PolygonalFace2D?.GetArea() ?? 0.0, 0.01) * building2DView.Building2D?.Storeys ?? 0) m²</td>
+                </tr>
+                <tr>
+                    <td class="property-label">Azimuth:</td>
+                    <td style="font-weight: bold;">@DiGi.Core.Query.Round(DiGi.GIS.Query.Azimuth(building2DView.Building2D), 1)°</td>
+                </tr>
+                <tr>
+                    <td class="property-label">Is Occupied:</td>
+                    <td>
                         @if (DiGi.GIS.Query.IsOccupied(building2DView.Building2D))
                         {
                             <span style="color: #5cb85c; font-weight: bold;">Yes</span>
@@ -192,7 +120,7 @@
                 </tr>
 
                 <tr>
-                    <td style="padding: 12px; color: #666; font-weight: 500;">Default Shape:</td>
+                    <td class="property-label">Default Shape:</td>
                     @{
                         string defaultShape = string.Empty;
                         DiGi.GIS.Classes.BuildingShapeSolver buildingShapeSolver = new BuildingShapeSolver();
@@ -202,20 +130,20 @@
                             defaultShape = DiGi.Core.Query.Description(buildingShapeSolver.Output) ?? string.Empty;
                         }
                     }
-                    <td style="padding: 12px; color: #333; font-weight: bold;">@defaultShape</td>
+                    <td style="font-weight: bold;">@defaultShape</td>
                 </tr>
             </table>
         </div>
 
         @* --- BLOCK 3: Occupancy Data --- *@
-        <div id="occupancy-data-section" class="property-group" style="display: none; margin-bottom: 25px;">
+        <div id="occupancy-data-section" class="property-group" style="display: none;">
             <div id="occupancy-data-container">
                 @* Content injected via AJAX *@
             </div>
         </div>
 
         @* --- BLOCK 4: Year Built --- *@
-        <div id="year-built-section" class="property-group" style="display: none; margin-bottom: 25px;">
+        <div id="year-built-section" class="property-group" style="display: none;">
             <div id="year-builts-container">
                 @* Content injected via AJAX *@
             </div>
