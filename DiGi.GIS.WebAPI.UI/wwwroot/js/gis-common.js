@@ -9,7 +9,9 @@
  * @param {Array<number>} ids - The list of administrative area reference IDs to load.
  */
 async function loadAllOrtoCoverages(ids) {
-    const apiUrl = '/ortodatas/estimatedcoveragefactors';
+    const baseUrl = window.AppBaseUrl || '/';
+    const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const apiUrl = `${cleanBase}/ortodatas/estimatedcoveragefactors`;
 
     try {
         const response = await fetch(apiUrl, {

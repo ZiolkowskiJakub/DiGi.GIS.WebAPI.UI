@@ -38,7 +38,7 @@
                     <td class="index-column">@(i + 1)</td>
                     <td style="font-weight: 500;">@administrativeAreal2DReference.Name</td>
                     <td>
-                        <a href="/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@administrativeAreal2DReference.Id"
+                        <a href="~/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@administrativeAreal2DReference.Id"
                                class="btn-buildings btn-active">
                             @administrativeAreal2DReference.Code
                         </a>
@@ -46,7 +46,7 @@
                     <td>
                         @if ((int)administrativeAreal2DReference.AdministrativeArealType >= (int)AdministrativeArealType.County)
                         {
-                            <a href="/building2D/building2Dreferencesbyadministrativeareal2Did?administrativeareal2Did=@administrativeAreal2DReference.Id"
+                            <a href="~/building2D/building2Dreferencesbyadministrativeareal2Did?administrativeareal2Did=@administrativeAreal2DReference.Id"
                                class="btn-buildings btn-active">Buildings</a>
                         }
                         else

@@ -1,5 +1,4 @@
 using DiGi.Geometry.Planar.Classes;
-using DiGi.GIS.Classes;
 using DiGi.GIS.PostgreSQL.Classes;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;

@@ -1,7 +1,7 @@
-﻿using DiGi.WebAPI.Classes;
+using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Classes
@@ -45,14 +45,14 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             // Here we use your DLL to turn JSON back into real C# objects.
             // Note: Since AdministrativeAreal2D is abstract,
             // you might need a specific converter or a concrete type.
-            DiGi.PostgreSQL.Table.Classes.Table? table = Core.Convert.ToDiGi<DiGi.PostgreSQL.Table.Classes.Table>(json)?.FirstOrDefault();
-            if(table is null)
+            DiGi.PostgreSQL.Table.Classes.Table? table = JsonSerializer.Deserialize<DiGi.PostgreSQL.Table.Classes.Table>(json);
+            if (table is null)
             {
                 return BadRequest();
             }
 
-            // We pass the objects to a Partial View
-            return PartialView("_TableView", new TableView(table));
+            // We pass the objects to a View
+            return View("_TableView", new TableView(table));
         }
 
         [HttpGet("")]

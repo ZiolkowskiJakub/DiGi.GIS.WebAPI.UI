@@ -4,9 +4,10 @@
 
 @{
     ViewData["Title"] = "Buildings";
+    ViewData["Description"] = "Browse and query building details from the GIS database.";
 }
 
-<link rel="stylesheet" href="/css/gis-theme.css" />
+<link rel="stylesheet" href="~/css/gis-theme.css" />
 
 <div class="master-detail-wrapper">
     @* LEWA STRONA: LISTA *@
@@ -32,7 +33,7 @@
 </div>
 
 @section Scripts {
-    <script src="/js/building.js"></script>
+    <script src="~/js/building.js" asp-append-version="true"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             initBuildingReferencesView();

@@ -49,7 +49,9 @@ async function drawPolygons(id, isBase = false, signal = null) {
     if (document.getElementById(`group-${id}`)) return;
 
     try {
-        const response = await fetch(`/administrativeareal2D/svg/polygonsbyid?id=${id}`, { signal });
+        const baseUrl = window.AppBaseUrl || '/';
+        const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+        const response = await fetch(`${cleanBase}/administrativeareal2D/svg/polygonsbyid?id=${id}`, { signal });
         if (!response.ok) return;
 
         // Data is now a JSON array of arrays: [[x1, y1, x2, y2...], [...]]

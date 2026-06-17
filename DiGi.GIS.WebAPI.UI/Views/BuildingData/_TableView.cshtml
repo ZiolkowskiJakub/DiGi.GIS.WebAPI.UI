@@ -4,6 +4,93 @@
 @model TableView
 
 @{
+    ViewData["Title"] = "Detailed Data";
+    ViewData["Description"] = "Detailed Data";
+}
+
+@{
     @* Ensure we have a valid model instance *@
     TableView tableView = Model ?? new TableView();
+
+    // Group columns by category, default to "Other" if null/whitespace
+    var groupedColumns = tableView.Table?.Columns?
+        .Where(c => c != null)
+        .GroupBy(c => string.IsNullOrWhiteSpace(c!.Category) ? "Other" : c.Category)
+        .OrderBy(g => g!.Key)
+        .ToList();
 }
+
+<div class="gis-table-container margin-large">
+    <h1 class="gis-title-large">Detailed Data</h1>
+
+    @if (groupedColumns != null && groupedColumns.Any())
+    {
+        foreach (var group in groupedColumns)
+        {
+            <div class="property-group">
+                <h4>@group.Key</h4>
+                <table class="gis-property-table">
+                    @foreach (var col in group.OrderBy(c => c?.Index))
+                    {
+                        if (col != null)
+                        {
+                            <tr>
+                                <td class="property-label">
+                                    @col.Name:
+                                    @if (!string.IsNullOrWhiteSpace(col.Description))
+                                    {
+                                        <span class="gis-tooltip" style="margin-left: 4px; color: var(--text-muted);">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-question-circle" viewBox="0 0 16 16">
+                                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                                <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.01.388-1.01.94z"/>
+                                            </svg>
+                                            <span class="gis-tooltiptext">@col.Description</span>
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @{
+                                        var valuesList = new List<string>();
+                                        if (tableView.Table?.Rows != null)
+                                        {
+                                            foreach (var row in tableView.Table.Rows)
+                                            {
+                                                if (col.Index >= 0 && col.Index < row.Length)
+                                                {
+                                                    var val = row[col.Index]?.ToString();
+                                                    if (!string.IsNullOrWhiteSpace(val))
+                                                    {
+                                                        valuesList.Add(val);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    @for (int idx = 0; idx < valuesList.Count; idx++)
+                                    {
+                                        var val = valuesList[idx];
+                                        if (Uri.TryCreate(val, UriKind.Absolute, out var uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
+                                        {
+                                            <a href="@val" target="_blank" rel="noopener noreferrer">@val</a>
+                                        }
+                                        else
+                                        {
+                                            @val
+                                        }
+                                        @(idx < valuesList.Count - 1 ? ", " : "")
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </table>
+            </div>
+        }
+    }
+    else
+    {
+        <div style="padding: 20px; text-align: center; color: var(--text-muted);">
+            No detailed data available.
+        </div>
+    }
+</div>

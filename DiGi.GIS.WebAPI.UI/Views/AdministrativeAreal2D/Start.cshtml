@@ -4,17 +4,17 @@
 }
 
 <div class="gis-panel">
-    <div class="gis-card">
+    <div class="gis-card" style="max-width: 520px; width: 100%; box-sizing: border-box; margin-left: auto; margin-right: auto;">
         <h2 class="gis-title">Administrative Areas</h2>
         
-        <div style="display: flex; gap: 15px; align-items: flex-start; flex-wrap: wrap;">
-            <select id="typeSelect" class="gis-select">
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <select id="typeSelect" class="gis-select" style="width: 300px; max-width: 100%;">
                 <option value="Voivodeship">Voivodeship</option>
                 <option value="County">County</option>
                 <option value="Municipality">Municipality</option>
             </select>
             
-            <button id="loadItemsBtn" class="gis-button">
+            <button id="loadItemsBtn" class="gis-button" style="flex-shrink: 0;">
                 <span>Load Items</span>
             </button>
         </div>
@@ -25,12 +25,12 @@
         </div>
     </div>
 
-    <div id="tableContainer">
+    <div id="tableContainer" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
     </div>
 </div>
 
 @section Scripts {
-    <script src="/js/gis-common.js"></script>
+    <script src="~/js/gis-common.js" asp-append-version="true"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const btn = document.getElementById('loadItemsBtn');
@@ -47,7 +47,9 @@
                     container.innerHTML = '';
 
                     try {
-                        const response = await fetch(`/administrativeareal2D/administrativeareal2Dreferencesbyadministrativearealtype?administrativearealtype=${type}&uniquecode=true`);
+                        const baseUrl = window.AppBaseUrl || '/';
+                        const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+                        const response = await fetch(`${cleanBase}/administrativeareal2D/administrativeareal2Dreferencesbyadministrativearealtype?administrativearealtype=${type}&uniquecode=true`);
         
                         if (!response.ok) throw new Error('Communication error with Web API');
 

@@ -3,6 +3,15 @@
  */
 
 /**
+ * Resolves a root-relative path relative to the application's base URL.
+ */
+function getResolvedUrl(path) {
+    const baseUrl = window.AppBaseUrl || '/';
+    const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    return `${cleanBase}${path.startsWith('/') ? path : '/' + path}`;
+}
+
+/**
  * Initializes table pagination for building references.
  * Exposes revealNext and revealAll functions globally.
  * 
@@ -132,7 +141,7 @@ async function drawPolygon(countyId, id) {
     if (!id || !countyId) return;
 
     try {
-        const response = await fetch(`/building2D/svg/polygonbyid?id=${id}&countyid=${countyId}`);
+        const response = await fetch(getResolvedUrl(`/building2D/svg/polygonbyid?id=${id}&countyid=${countyId}`));
         if (!response.ok) return;
 
         const rawData = await response.text();
@@ -202,7 +211,7 @@ async function loadYearBuiltData(reference, countyId) {
     const container = document.getElementById("year-builts-container");
     if (!section || !container) return;
 
-    const url = `/yearbuiltdata/itembyreference?reference=${encodeURIComponent(reference)}&countyid=${countyId}`;
+    const url = getResolvedUrl(`/yearbuiltdata/itembyreference?reference=${encodeURIComponent(reference)}&countyid=${countyId}`);
 
     try {
         const response = await fetch(url);
@@ -239,7 +248,7 @@ async function loadOrtoDatas(reference, countyId) {
     const container = document.getElementById("orto-datas-container");
     if (!section || !container) return;
     
-    const url = `/ortodatas/itembyreference?reference=${encodeURIComponent(reference)}&countyid=${countyId}`;
+    const url = getResolvedUrl(`/ortodatas/itembyreference?reference=${encodeURIComponent(reference)}&countyid=${countyId}`);
 
     try {
         const response = await fetch(url);
@@ -274,7 +283,7 @@ async function loadOccupancyData(reference, countyId) {
     const container = document.getElementById("occupancy-data-container");
     if (!section || !container) return;
     
-    const url = `/occupancydata/building2d/itembyreference?reference=${encodeURIComponent(reference)}&countyid=${countyId}`;
+    const url = getResolvedUrl(`/occupancydata/building2d/itembyreference?reference=${encodeURIComponent(reference)}&countyid=${countyId}`);
 
     try {
         const response = await fetch(url);
@@ -309,7 +318,7 @@ async function loadRegulatedHeatTransferCoefficients(reference, countyId) {
     const container = document.getElementById("regulated-heat-transfer-coefficients-container");
     if (!section || !container) return;
     
-    const url = `/heattransfercoefficient/regulatedheattransfercoefficientsbyreference?reference=${encodeURIComponent(reference)}&countyid=${countyId}`;
+    const url = getResolvedUrl(`/heattransfercoefficient/regulatedheattransfercoefficientsbyreference?reference=${encodeURIComponent(reference)}&countyid=${countyId}`);
 
     try {
         const response = await fetch(url);

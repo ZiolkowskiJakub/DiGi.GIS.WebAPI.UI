@@ -1,6 +1,4 @@
-﻿using DiGi.GIS.PostgreSQL.Classes;
-
-namespace DiGi.GIS.WebAPI.UI.Classes
+﻿namespace DiGi.GIS.WebAPI.UI.Classes
 {
     public class TableView
     {

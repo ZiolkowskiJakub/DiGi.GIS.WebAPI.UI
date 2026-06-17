@@ -8,6 +8,11 @@
 @model AdministrativeAreal2DView
 
 @{
+    ViewData["Title"] = Model.AdministrativeAreal2D?.Name ?? "Administrative Area";
+    ViewData["Description"] = $"View details, spatial boundaries, and nested items for administrative area {Model.AdministrativeAreal2D?.Name ?? ""}.";
+}
+
+@{
     List<AdministrativeAreal2DReference> administrativeAreal2DReferences_All = Model.AdministrativeAreal2DReferences ?? [];
 
     DiGi.Core.Query.Filter(administrativeAreal2DReferences_All, x => x?.AdministrativeArealType == AdministrativeArealType.Subdivison, out List<AdministrativeAreal2DReference>? administrativeAreal2DReferences_Subdivision, out List<AdministrativeAreal2DReference>? administrativeAreal2DReferences);
@@ -29,7 +34,7 @@
     administrativeAreal2DReferences.Sort((x, y) => (x?.Name ?? string.Empty).CompareTo((y?.Name ?? string.Empty)));
 }
 
-<link rel="stylesheet" href="/css/gis-theme.css" />
+<link rel="stylesheet" href="~/css/gis-theme.css" />
 
 <div class="gis-table-container">
 
@@ -46,10 +51,10 @@
                 <div class="gis-info-row">
                     <span class="gis-info-label">Code:</span>
                     <span>
-                        <a href="/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@Model.AdministrativeAreal2DReference!.Id"
+                        <a href="~/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@Model.AdministrativeAreal2DReference!.Id"
                            class="btn-buildings btn-active"
                            style="padding: 2px 8px; font-size: 0.8em; line-height: 1.5;">
-                            @Model.AdministrativeAreal2DReference.Code
+                            @Model.AdministrativeAreal2DReference!.Code
                         </a>
                     </span>
                 </div>
@@ -85,7 +90,7 @@
                     <span>
                     @if ((int)Model.AdministrativeAreal2DReference.AdministrativeArealType >= (int)AdministrativeArealType.County)
                     {
-                            <a href="/building2D/building2Dreferencesbyadministrativeareal2Did?administrativeareal2Did=@Model.AdministrativeAreal2DReference.Id" class="btn-buildings btn-active">Buildings</a>
+                            <a href="~/building2D/building2Dreferencesbyadministrativeareal2Did?administrativeareal2Did=@Model.AdministrativeAreal2DReference.Id" class="btn-buildings btn-active">Buildings</a>
                     }
                     else
                     {
@@ -118,7 +123,7 @@
                     <span>@r.Name</span>
 
                     @* Interactive Code Button *@
-                    <a href="/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@r.Id" 
+                    <a href="~/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@r.Id" 
                        class="btn-buildings btn-active" 
                        style="padding: 2px 8px; font-size: 0.8em; line-height: 1.5;">
                        @r.Code
@@ -155,7 +160,7 @@
                         <td>@(i + 1)</td>
                         <td>@item.Name</td>
                         <td>
-                            <a href="/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@item.Id"
+                            <a href="~/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@item.Id"
                                onmouseenter="handleMouseEnter('@item.Id')"
                                onmouseleave="handleMouseLeave('@item.Id', '@(Model.AdministrativeAreal2DReference?.Id)')"
                                class="btn-buildings btn-active" style="padding: 4px 8px;">
@@ -165,7 +170,7 @@
                         <td>
                              @if ((int)item.AdministrativeArealType >= (int)AdministrativeArealType.County) 
                              {
-                                 <a href="/building2D/building2Dreferencesbyadministrativeareal2Did?administrativeareal2Did=@item.Id" class="btn-buildings btn-active">Buildings</a>
+                                 <a href="~/building2D/building2Dreferencesbyadministrativeareal2Did?administrativeareal2Did=@item.Id" class="btn-buildings btn-active">Buildings</a>
                              } 
                              else 
                              {
@@ -188,8 +193,8 @@
 </div>
 
 @section Scripts {
-    <script src="/js/gis-common.js"></script>
-    <script src="/js/administrative.js"></script>
+    <script src="~/js/gis-common.js" asp-append-version="true"></script>
+    <script src="~/js/administrative.js" asp-append-version="true"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             // 1. Existing polygon logic

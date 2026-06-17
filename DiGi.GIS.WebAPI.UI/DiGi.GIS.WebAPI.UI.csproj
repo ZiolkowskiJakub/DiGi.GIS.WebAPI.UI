@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
@@ -20,9 +20,11 @@
 	<Target Name="CopyFiles" AfterTargets="Build">
 		<ItemGroup>
 			<_Files Include="$(ProjectDir)..\files\**\*.*" />
+			<_WwwrootFiles Include="$(ProjectDir)wwwroot\**\*.*" />
 		</ItemGroup>
 		<Message Text="Copying all files from directory..." Importance="high" />
 		<Copy SourceFiles="@(_Files)" DestinationFiles="@(_Files->'$(OutputPath)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+		<Copy SourceFiles="@(_WwwrootFiles)" DestinationFiles="@(_WwwrootFiles->'$(OutputPath)wwwroot\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
 	</Target>
 
 	<ItemGroup>

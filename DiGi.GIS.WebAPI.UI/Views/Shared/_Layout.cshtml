@@ -21,7 +21,10 @@
     <meta property="twitter:description" content="@(ViewData["Description"] ?? "High-performance GIS data exchange platform by DigiProject.")" />
     <meta property="twitter:image" content="https://digiproject.uk/images/og-share-image.png" />
 
-    <link rel="stylesheet" href="/css/gis-theme.css" />
+    <link rel="stylesheet" href="~/css/gis-theme.css" asp-append-version="true" />
+    <script>
+        window.AppBaseUrl = '@Url.Content("~/")';
+    </script>
 </head>
 <body class="gis-app-body">
     @{
@@ -29,13 +32,13 @@
     }
     <header class="gis-header">
         <div class="gis-header-container">
-            <a href="/" class="gis-logo-link">
-                <img src="/images/logo.png" alt="GIS Logo" class="gis-header-logo" />
+            <a href="~/" class="gis-logo-link">
+                <img src="~/images/logo.png" alt="GIS Logo" class="gis-header-logo" />
             </a>
             <nav class="gis-nav">
-                <a href="/administrativeareal2D" class="gis-nav-link @(currentPath.StartsWith("/administrativeareal2D", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Administrative Areas</a>
-                <a href="/building2D" class="gis-nav-link @(currentPath.StartsWith("/building2D", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Buildings</a>
-                <a href="/about" class="gis-nav-link @(currentPath.StartsWith("/about", StringComparison.OrdinalIgnoreCase) ? "active" : "")">About</a>
+                <a href="~/administrativeareal2D" class="gis-nav-link @(currentPath.StartsWith("/administrativeareal2D", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Administrative Areas</a>
+                <a href="~/building2D" class="gis-nav-link @(currentPath.StartsWith("/building2D", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Buildings</a>
+                <a href="~/about" class="gis-nav-link @(currentPath.StartsWith("/about", StringComparison.OrdinalIgnoreCase) ? "active" : "")">About</a>
             </nav>
         </div>
     </header>
@@ -46,7 +49,7 @@
         <div class="gis-footer-container">
             <div class="gis-footer-left">
                 <a href="https://digiproject.uk" class="gis-footer-logo-link">
-                    <img src="/images/digiproject-logo.png" alt="DigiProject Logo" class="gis-footer-logo" />
+                    <img src="~/images/digiproject-logo.png" alt="DigiProject Logo" class="gis-footer-logo" />
                 </a>
             </div>
             <div class="gis-footer-center">

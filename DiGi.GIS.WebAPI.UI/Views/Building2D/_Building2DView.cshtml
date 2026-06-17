@@ -10,7 +10,7 @@
     System.Collections.Generic.List<AdministrativeAreal2DReference>? pathItems = building2DView.AdministrativeAreal2DReferencePath?.AdministrativeAreal2DReferences;
 }
 
-<link rel="stylesheet" href="/css/gis-theme.css" />
+<link rel="stylesheet" href="~/css/gis-theme.css" />
 
 <div class="gis-table-container">
     
@@ -37,7 +37,7 @@
 
                 <div class="breadcrumb-item-wrapper">
                     <span style="font-weight: 500;">@r.Name</span>
-                    <a href="/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@r.Id"
+                    <a href="~/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@r.Id"
                            class="btn-buildings btn-active"
                            style="padding: 2px 8px; font-size: 0.8em;">
                         @r.Code
@@ -166,6 +166,25 @@
             <div id="regulated-heat-transfer-coefficients-container">
                     @* Content injected via AJAX *@
             </div>
+        </div>
+
+        @* --- BLOCK 7: Other --- *@
+        <div class="property-group">
+            <h4>Other</h4>
+            <table class="gis-property-table">
+                <tr>
+                    <td class="property-label">Detailed Data:</td>
+                    <td>
+                        <a href="/buildingdata/tablebyreference?reference=@(building2DView.Building2DReference?.Reference ?? string.Empty)&countyid=@(building2DView.Building2DReference?.CountyId?.ToString() ?? string.Empty)" target="_blank" class="btn-buildings btn-active" style="padding: 4px 12px;">Show</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="property-label">3D Model:</td>
+                    <td>
+                        <button type="button" class="btn-buildings btn-disabled" disabled style="padding: 4px 12px;">Show</button>
+                    </td>
+                </tr>
+            </table>
         </div>
     }
     </div>
