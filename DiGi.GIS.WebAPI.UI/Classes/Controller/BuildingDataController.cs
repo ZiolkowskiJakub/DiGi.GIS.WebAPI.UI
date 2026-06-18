@@ -6,16 +6,27 @@ using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Classes
 {
+    /// <summary> Provides controller endpoints for accessing and managing building data, acting as an interface between the client and the underlying GIS building data services. </summary>
     [Route("[controller]")]
     public class BuildingDataController : Controller
     {
         private readonly IHttpClientFactory httpClientFactory;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BuildingDataController"/> class.
+        /// </summary>
+        /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> used to create and manage <see cref="HttpClient"/> instances for making API requests.</param>
         public BuildingDataController(IHttpClientFactory httpClientFactory)
         {
             this.httpClientFactory = httpClientFactory;
         }
 
+        /// <summary>
+        /// Asynchronously retrieves a building data table based on the specified reference and an optional county identifier.
+        /// </summary>
+        /// <param name="reference">The unique reference string used to look up the table.</param>
+        /// <param name="countyId">The optional ID of the county associated with the request.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IActionResult"/> representing the HTTP response.</returns>
         [HttpGet("tablebyreference")]
         public async Task<IActionResult> GetTableByReferenceAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId = null)
         {
@@ -55,6 +66,10 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             return View("_TableView", new TableView(table));
         }
 
+        /// <summary>
+        /// Handles the HTTP GET request to the root endpoint and returns the starting view for building data operations.
+        /// </summary>
+        /// <returns>An <see cref="IActionResult"/> representing the start view.</returns>
         [HttpGet("")]
         public IActionResult Start()
         {
@@ -62,3 +77,4 @@ namespace DiGi.GIS.WebAPI.UI.Classes
         }
     }
 }
+

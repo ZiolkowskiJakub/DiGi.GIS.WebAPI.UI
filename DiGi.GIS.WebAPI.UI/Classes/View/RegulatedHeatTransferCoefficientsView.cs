@@ -1,4 +1,4 @@
-﻿using DiGi.Analytical.Building.HVAC.Interfaces;
+using DiGi.Analytical.Building.HVAC.Interfaces;
 
 namespace DiGi.GIS.WebAPI.UI.Classes
 {
@@ -27,22 +27,13 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             IsResidential = isResidential;
         }
 
-        /// <summary>
-        /// Gets the year associated with the regulated heat transfer coefficients.
-        /// </summary>
-        /// <returns>The year as a <see cref="short"/>.</returns>
+        /// <summary> Gets the year associated with the regulated heat transfer coefficients. </summary>
         public short Year { get; }
 
-        /// <summary>
-        /// Gets a value indicating whether the building is residential.
-        /// </summary>
-        /// <returns><c>true</c> if the building is residential; <c>false</c> otherwise; or <c>null</c> if the value is not specified.</returns>
+        /// <summary> Gets a value indicating whether the building is residential. </summary>
         public bool? IsResidential { get; }
 
-        /// <summary>
-        /// Gets the regulated heat transfer coefficients.
-        /// </summary>
-        /// <returns>The <see cref="IRegulatedHeatTransferCoefficients"/> instance, or <c>null</c> if not specified.</returns>
+        /// <summary> Gets the regulated heat transfer coefficients. </summary>
         public IRegulatedHeatTransferCoefficients? RegulatedHeatTransferCoefficients { get; }
     }
 }

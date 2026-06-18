@@ -1,4 +1,4 @@
-﻿using DiGi.GIS.PostgreSQL.Classes;
+using DiGi.GIS.PostgreSQL.Classes;
 
 namespace DiGi.GIS.WebAPI.UI.Classes
 {
@@ -25,16 +25,10 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             OccupancyData = occupancyData;
         }
 
-        /// <summary>
-        /// Gets the occupancy data associated with this building 2D occupancy data view.
-        /// </summary>
-        /// <returns>The <see cref="DiGi.GIS.Interfaces.IOccupancyData"/> for the occupancy, or <c>null</c> if not specified.</returns>
+        /// <summary> Gets the occupancy data associated with this building 2D occupancy data view. </summary>
         public Interfaces.IOccupancyData? OccupancyData { get; }
 
-        /// <summary>
-        /// Gets the reference to the 2D building associated with this occupancy data view.
-        /// </summary>
-        /// <returns>The <see cref="DiGi.GIS.PostgreSQL.Classes.Building2DReference"/> for the building, or <c>null</c> if not specified.</returns>
+        /// <summary> Gets the reference to the 2D building associated with this occupancy data view. </summary>
         public Building2DReference? Building2DReference { get; }
     }
 }

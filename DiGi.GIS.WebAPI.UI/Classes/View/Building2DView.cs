@@ -1,4 +1,4 @@
-﻿using DiGi.GIS.Classes;
+using DiGi.GIS.Classes;
 
 namespace DiGi.GIS.WebAPI.UI.Classes
 {
@@ -27,22 +27,13 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             AdministrativeAreal2DReferencePath = administrativeAreal2DReferencePath;
         }
 
-        /// <summary>
-        /// Gets the collection of administrative 2D area references for this building view.
-        /// </summary>
-        /// <returns>The <see cref="PostgreSQL.Classes.AdministrativeAreal2DReferencePath"/> instance, or <c>null</c> if not available.</returns>
+        /// <summary> Gets the collection of administrative 2D area references for this building view. </summary>
         public PostgreSQL.Classes.AdministrativeAreal2DReferencePath? AdministrativeAreal2DReferencePath { get; }
 
-        /// <summary>
-        /// Gets the 2D building associated with this view.
-        /// </summary>
-        /// <returns>The <see cref="DiGi.GIS.Classes.Building2D"/> instance, or <c>null</c> if not available.</returns>
+        /// <summary> Gets the 2D building associated with this view. </summary>
         public Building2D? Building2D { get; }
 
-        /// <summary>
-        /// Gets the reference to the 2D building associated with this view.
-        /// </summary>
-        /// <returns>The <see cref="PostgreSQL.Classes.Building2DReference"/> for the building, or <c>null</c> if not specified.</returns>
+        /// <summary> Gets the reference to the 2D building associated with this view. </summary>
         public PostgreSQL.Classes.Building2DReference? Building2DReference { get; }
     }
 }
