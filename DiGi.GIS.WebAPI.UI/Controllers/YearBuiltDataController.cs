@@ -99,10 +99,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             #endregion Building2DReference
 
-            YearBuiltDataView yearBuiltDataView = new(building2DReference, yearBuiltDatas?.FirstOrDefault());
+            YearBuiltDataViewModel yearBuiltDataViewModel = new(building2DReference, yearBuiltDatas?.FirstOrDefault());
 
             // We pass the objects to a Partial View
-            return PartialView("_YearBuiltDataView", yearBuiltDataView);
+            return PartialView("_YearBuiltDataView", yearBuiltDataViewModel);
         }
     }
 }

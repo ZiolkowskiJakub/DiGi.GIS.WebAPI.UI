@@ -2,7 +2,7 @@
 @using System.Collections.Generic
 @using DiGi.GIS.WebAPI.UI.ViewModels
 @using DiGi.PostgreSQL.Table.Classes
-@model TableView
+@model TableViewModel
 
 @{
     ViewData["Title"] = "Detailed Data";
@@ -11,7 +11,7 @@
 
 @{
     @* Ensure we have a valid model instance *@
-    TableView tableView = Model ?? new TableView();
+    TableViewModel tableView = Model ?? new TableViewModel();
 
     // Group columns by category, default to "Other" if null/whitespace
     List<IGrouping<string, Column?>>? groupedColumns = tableView.Table?.Columns?

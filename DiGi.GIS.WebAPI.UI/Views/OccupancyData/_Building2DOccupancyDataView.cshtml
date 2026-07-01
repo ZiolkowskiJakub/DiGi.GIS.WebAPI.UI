@@ -3,14 +3,14 @@
 @using System.Collections.Generic
 @using DiGi.GIS.WebAPI.UI.ViewModels
 
-@model Building2DOccupancyDataView
+@model Building2DOccupancyDataViewModel
 
 @{
     @* Ensure we have a valid model instance *@
-    Building2DOccupancyDataView building2DOccupancyDataView = Model ?? new Building2DOccupancyDataView();
+    Building2DOccupancyDataViewModel building2DOccupancyDataViewModel = Model ?? new Building2DOccupancyDataViewModel();
 }
 
-@if (building2DOccupancyDataView.OccupancyData is DiGi.GIS.Classes.OccupancyData occupancyData &&
+@if (building2DOccupancyDataViewModel.OccupancyData is DiGi.GIS.Classes.OccupancyData occupancyData &&
      occupancyData is not null)
 {
     @* Main container matching the 'Calculated General Properties' layout *@

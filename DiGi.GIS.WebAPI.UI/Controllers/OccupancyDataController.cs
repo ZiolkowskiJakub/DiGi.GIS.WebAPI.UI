@@ -99,10 +99,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             #endregion Building2DReference
 
-            Building2DOccupancyDataView building2DOccupancyDataView = new(building2DReference, occupancyDatas?.FirstOrDefault());
+            Building2DOccupancyDataViewModel building2DOccupancyDataViewModel = new(building2DReference, occupancyDatas?.FirstOrDefault());
 
             // We pass the objects to a Partial View
-            return PartialView("_Building2DOccupancyDataView", building2DOccupancyDataView);
+            return PartialView("_Building2DOccupancyDataView", building2DOccupancyDataViewModel);
         }
     }
 }

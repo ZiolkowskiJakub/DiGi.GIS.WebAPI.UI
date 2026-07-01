@@ -100,10 +100,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             #endregion Building2DReference
 
-            OrtoDatasView ortoDatasView = new(building2DReference, ortoDatas);
+            OrtoDatasViewModel ortoDatasViewModel = new(building2DReference, ortoDatas);
 
             // We pass the objects to a Partial View
-            return PartialView("_OrtoDatasView", ortoDatasView);
+            return PartialView("_OrtoDatasView", ortoDatasViewModel);
         }
 
         /// <summary>

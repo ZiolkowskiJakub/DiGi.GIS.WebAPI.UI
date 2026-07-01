@@ -3,24 +3,24 @@ using DiGi.GIS.Classes;
 namespace DiGi.GIS.WebAPI.UI.ViewModels
 {
     /// <summary>
-    /// Represents a 2D view of a building, providing access to its reference, spatial data, and administrative areal path.
+    /// Represents a 2D view model of a building, providing access to its reference, spatial data, and administrative areal path.
     /// </summary>
-    public class Building2DView
+    public class Building2DViewModel
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="Building2DView"/> class.
+        /// Initializes a new instance of the <see cref="Building2DViewModel"/> class.
         /// </summary>
-        public Building2DView()
+        public Building2DViewModel()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Building2DView"/> class.
+        /// Initializes a new instance of the <see cref="Building2DViewModel"/> class.
         /// </summary>
         /// <param name="building2DReference">The <see cref="PostgreSQL.Classes.Building2DReference"/> for the building.</param>
-        /// <param name="building2D">The <see cref="Building2D"/> associated with this view.</param>
+        /// <param name="building2D">The <see cref="Building2D"/> associated with this view model.</param>
         /// <param name="administrativeAreal2DReferencePath">The <see cref="PostgreSQL.Classes.AdministrativeAreal2DReferencePath"/> for the building.</param>
-        public Building2DView(PostgreSQL.Classes.Building2DReference? building2DReference, Building2D? building2D, PostgreSQL.Classes.AdministrativeAreal2DReferencePath? administrativeAreal2DReferencePath)
+        public Building2DViewModel(PostgreSQL.Classes.Building2DReference? building2DReference, Building2D? building2D, PostgreSQL.Classes.AdministrativeAreal2DReferencePath? administrativeAreal2DReferencePath)
         {
             Building2DReference = building2DReference;
             Building2D = building2D;

@@ -280,9 +280,9 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             #endregion AdministrativeAreal2DReferences
 
-            AdministrativeAreal2DView administrativeAreal2DView = new(administrativeAreal2DReference, administrativeAreal2D, administrativeAreal2DReferencePath, administrativeAreal2DReferences);
+            AdministrativeAreal2DViewModel administrativeAreal2DViewModel = new(administrativeAreal2DReference, administrativeAreal2D, administrativeAreal2DReferencePath, administrativeAreal2DReferences);
 
-            return View("AdministrativeAreal2DView", administrativeAreal2DView);
+            return View("AdministrativeAreal2DView", administrativeAreal2DViewModel);
         }
 
         /// <summary>
@@ -386,9 +386,9 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             #endregion AdministrativeAreal2DReferences
 
-            AdministrativeAreal2DView administrativeAreal2DView = new(administrativeAreal2DReference, administrativeAreal2D, administrativeAreal2DReferencePath, administrativeAreal2DReferences);
+            AdministrativeAreal2DViewModel administrativeAreal2DViewModel = new(administrativeAreal2DReference, administrativeAreal2D, administrativeAreal2DReferencePath, administrativeAreal2DReferences);
 
-            return View("AdministrativeAreal2DView", administrativeAreal2DView);
+            return View("AdministrativeAreal2DView", administrativeAreal2DViewModel);
         }
 
         /// <summary>

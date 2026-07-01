@@ -1,10 +1,10 @@
 @using DiGi.GIS.WebAPI.UI.ViewModels
 
-@model OrtoDatasView
+@model OrtoDatasViewModel
 
 @{
     @* Initializing the view object and dictionary with explicit typing *@
-    OrtoDatasView ortoDatasView = Model ?? new OrtoDatasView();
+    OrtoDatasViewModel ortoDatasView = Model ?? new OrtoDatasViewModel();
     SortedDictionary<int, byte[]> dictionary = new SortedDictionary<int, byte[]>();
 
     if (ortoDatasView.OrtoDatas is DiGi.GIS.Classes.OrtoDatas ortoDatas)

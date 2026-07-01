@@ -3,24 +3,24 @@ using DiGi.Analytical.Building.HVAC.Interfaces;
 namespace DiGi.GIS.WebAPI.UI.ViewModels
 {
     /// <summary>
-    /// Represents a view of the regulated heat transfer coefficients.
+    /// Represents a view model of the regulated heat transfer coefficients.
     /// </summary>
-    public class RegulatedHeatTransferCoefficientsView
+    public class RegulatedHeatTransferCoefficientsViewModel
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="RegulatedHeatTransferCoefficientsView"/> class.
+        /// Initializes a new instance of the <see cref="RegulatedHeatTransferCoefficientsViewModel"/> class.
         /// </summary>
-        public RegulatedHeatTransferCoefficientsView()
+        public RegulatedHeatTransferCoefficientsViewModel()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RegulatedHeatTransferCoefficientsView"/> class.
+        /// Initializes a new instance of the <see cref="RegulatedHeatTransferCoefficientsViewModel"/> class.
         /// </summary>
         /// <param name="year">The year associated with the regulated heat transfer coefficients.</param>
         /// <param name="regulatedHeatTransferCoefficients">The regulated heat transfer coefficients.</param>
         /// <param name="isResidential">A value indicating whether the building is residential.</param>
-        public RegulatedHeatTransferCoefficientsView(short year, IRegulatedHeatTransferCoefficients? regulatedHeatTransferCoefficients, bool? isResidential)
+        public RegulatedHeatTransferCoefficientsViewModel(short year, IRegulatedHeatTransferCoefficients? regulatedHeatTransferCoefficients, bool? isResidential)
         {
             Year = year;
             RegulatedHeatTransferCoefficients = regulatedHeatTransferCoefficients;

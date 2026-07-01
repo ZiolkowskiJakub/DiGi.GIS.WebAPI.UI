@@ -58,7 +58,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return BadRequest();
             }
 
-            return View("EPWFileView", new EPWFileView(epwFile));
+            return View("EPWFileView", new EPWFileViewModel(epwFile));
         }
 
         /// <summary>

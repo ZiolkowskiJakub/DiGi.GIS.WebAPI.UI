@@ -5,21 +5,21 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
     /// <summary>
     /// Represents a view model that combines orthographic data and a 2D building reference.
     /// </summary>
-    public class OrtoDatasView
+    public class OrtoDatasViewModel
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="OrtoDatasView"/> class.
+        /// Initializes a new instance of the <see cref="OrtoDatasViewModel"/> class.
         /// </summary>
-        public OrtoDatasView()
+        public OrtoDatasViewModel()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="OrtoDatasView"/> class with the specified building reference and orthographic data.
+        /// Initializes a new instance of the <see cref="OrtoDatasViewModel"/> class with the specified building reference and orthographic data.
         /// </summary>
         /// <param name="building2DReference">The reference to the 2D building.</param>
-        /// <param name="ortoDatas">The orthographic data associated with the view.</param>
-        public OrtoDatasView(Building2DReference? building2DReference, GIS.Classes.OrtoDatas? ortoDatas)
+        /// <param name="ortoDatas">The orthographic data associated with the view model.</param>
+        public OrtoDatasViewModel(Building2DReference? building2DReference, GIS.Classes.OrtoDatas? ortoDatas)
         {
             Building2DReference = building2DReference;
             OrtoDatas = ortoDatas;

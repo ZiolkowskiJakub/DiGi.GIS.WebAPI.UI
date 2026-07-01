@@ -60,7 +60,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             List<Building2DReference>? building2DReferences = Core.Convert.ToDiGi<Building2DReference>(json);
 
             // We pass the objects to a View
-            return View("Building2DReferencesView", new Building2DReferencesView(building2DReferences));
+            return View("Building2DReferencesView", new Building2DReferencesViewModel(building2DReferences));
         }
 
         /// <summary>
@@ -165,10 +165,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             #endregion AdministrativeAreal2DReferencePath
 
-            Building2DView building2DView = new(building2DReference, building2D, administrativeAreal2DReferencePath);
+            Building2DViewModel building2DViewModel = new(building2DReference, building2D, administrativeAreal2DReferencePath);
 
             // We pass the objects to a Partial View
-            return PartialView("_Building2DView", building2DView);
+            return PartialView("_Building2DView", building2DViewModel);
         }
 
         /// <summary>

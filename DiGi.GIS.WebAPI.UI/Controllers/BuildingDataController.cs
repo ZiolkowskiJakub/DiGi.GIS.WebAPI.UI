@@ -64,7 +64,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             }
 
             // We pass the objects to a View
-            return View("TableView", new TableView(table));
+            return View("TableView", new TableViewModel(table));
         }
 
         /// <summary>

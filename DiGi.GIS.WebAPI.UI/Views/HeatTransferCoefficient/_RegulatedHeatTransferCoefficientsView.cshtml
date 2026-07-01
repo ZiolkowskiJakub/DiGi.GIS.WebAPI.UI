@@ -8,11 +8,11 @@
 @using DiGi.GIS.PostgreSQL.Enums
 @using DiGi.GIS.Interfaces
 
-@model RegulatedHeatTransferCoefficientsView
+@model RegulatedHeatTransferCoefficientsViewModel
 
 @{
     // Ensure we have a valid model instance using explicit typing
-    RegulatedHeatTransferCoefficientsView viewData = Model ?? new RegulatedHeatTransferCoefficientsView();
+    RegulatedHeatTransferCoefficientsViewModel viewData = Model ?? new RegulatedHeatTransferCoefficientsViewModel();
 }
 
 @if (viewData.RegulatedHeatTransferCoefficients is IRegulatedHeatTransferCoefficients regulatedHeatTransferCoefficients)

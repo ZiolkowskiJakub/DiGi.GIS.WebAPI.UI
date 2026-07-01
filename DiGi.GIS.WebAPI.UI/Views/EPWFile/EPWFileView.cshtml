@@ -1,7 +1,7 @@
 @using System.Linq
 @using DiGi.GIS.WebAPI.UI.ViewModels
 @using DiGi.EPW.Classes
-@model EPWFileView
+@model EPWFileViewModel
 
 @{
     ViewData["Title"] = "EPW Weather Data";
@@ -9,7 +9,7 @@
 }
 
 @{
-    EPWFileView view = Model ?? new EPWFileView();
+    EPWFileViewModel view = Model ?? new EPWFileViewModel();
     EPWFile? epwFile = view.EPWFile;
 }
 

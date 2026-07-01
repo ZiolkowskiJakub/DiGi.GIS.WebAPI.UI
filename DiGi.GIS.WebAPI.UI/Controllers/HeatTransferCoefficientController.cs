@@ -71,10 +71,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             #endregion RegulatedHeatTransferCoefficients
 
-            RegulatedHeatTransferCoefficientsView regulatedHeatTransferCoefficientsView = new(year, regulatedHeatTransferCoefficients?.FirstOrDefault(), null);
+            RegulatedHeatTransferCoefficientsViewModel regulatedHeatTransferCoefficientsViewModel = new(year, regulatedHeatTransferCoefficients?.FirstOrDefault(), null);
 
             // We pass the objects to a Partial View
-            return PartialView("_RegulatedHeatTransferCoefficientsView", regulatedHeatTransferCoefficientsView);
+            return PartialView("_RegulatedHeatTransferCoefficientsView", regulatedHeatTransferCoefficientsViewModel);
         }
 
         /// <summary>
@@ -206,10 +206,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 #endregion Building2D
             }
 
-            RegulatedHeatTransferCoefficientsView regulatedHeatTransferCoefficientsView = new(year, regulatedHeatTransferCoefficients, isResidential);
+            RegulatedHeatTransferCoefficientsViewModel regulatedHeatTransferCoefficientsViewModel = new(year, regulatedHeatTransferCoefficients, isResidential);
 
             // We pass the objects to a Partial View
-            return PartialView("_RegulatedHeatTransferCoefficientsView", regulatedHeatTransferCoefficientsView);
+            return PartialView("_RegulatedHeatTransferCoefficientsView", regulatedHeatTransferCoefficientsViewModel);
         }
     }
 }

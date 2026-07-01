@@ -3,10 +3,10 @@
 @using DiGi.GIS.WebAPI.UI.ViewModels
 @using DiGi.GIS.PostgreSQL.Classes
 
-@model Building2DView
+@model Building2DViewModel
 
 @{
-    Building2DView building2DView = Model ?? new Building2DView();
+    Building2DViewModel building2DView = Model ?? new Building2DViewModel();
     System.Collections.Generic.List<AdministrativeAreal2DReference>? administrativeAreal2DReferences_Path = building2DView.AdministrativeAreal2DReferencePath?.AdministrativeAreal2DReferences;
 }
 

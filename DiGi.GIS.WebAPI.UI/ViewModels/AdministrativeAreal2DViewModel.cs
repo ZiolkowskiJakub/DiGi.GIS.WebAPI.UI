@@ -6,23 +6,23 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
     /// <summary>
     /// Represents a view model for an administrative areal in 2D, providing access to its references and associated data.
     /// </summary>
-    public class AdministrativeAreal2DView
+    public class AdministrativeAreal2DViewModel
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="AdministrativeAreal2DView"/> class.
+        /// Initializes a new instance of the <see cref="AdministrativeAreal2DViewModel"/> class.
         /// </summary>
-        public AdministrativeAreal2DView()
+        public AdministrativeAreal2DViewModel()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AdministrativeAreal2DView"/> class with specified administrative areal data and references.
+        /// Initializes a new instance of the <see cref="AdministrativeAreal2DViewModel"/> class with specified administrative areal data and references.
         /// </summary>
         /// <param name="administrativeAreal2DReference">The reference to the administrative areal 2D.</param>
         /// <param name="administrativeAreal2D">The administrative areal 2D object.</param>
         /// <param name="administrativeAreal2DReferencePath">The path reference for the administrative areal 2D.</param>
         /// <param name="administrativeAreal2DReferences">A collection of references to administrative areals 2D.</param>
-        public AdministrativeAreal2DView(PostgreSQL.Classes.AdministrativeAreal2DReference? administrativeAreal2DReference, AdministrativeAreal2D? administrativeAreal2D, PostgreSQL.Classes.AdministrativeAreal2DReferencePath? administrativeAreal2DReferencePath, IEnumerable<PostgreSQL.Classes.AdministrativeAreal2DReference>? administrativeAreal2DReferences)
+        public AdministrativeAreal2DViewModel(PostgreSQL.Classes.AdministrativeAreal2DReference? administrativeAreal2DReference, AdministrativeAreal2D? administrativeAreal2D, PostgreSQL.Classes.AdministrativeAreal2DReferencePath? administrativeAreal2DReferencePath, IEnumerable<PostgreSQL.Classes.AdministrativeAreal2DReference>? administrativeAreal2DReferences)
         {
             AdministrativeAreal2DReference = administrativeAreal2DReference;
             AdministrativeAreal2D = administrativeAreal2D;

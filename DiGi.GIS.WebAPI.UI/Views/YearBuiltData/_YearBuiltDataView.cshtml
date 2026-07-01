@@ -3,14 +3,14 @@
 @using DiGi.GIS.WebAPI.UI.ViewModels
 @using DiGi.GIS.Interfaces
 
-@model YearBuiltDataView
+@model YearBuiltDataViewModel
 
 @{
     @* Ensure we have a valid model instance *@
-    YearBuiltDataView yearBuiltDataView = Model ?? new YearBuiltDataView();
+    YearBuiltDataViewModel yearBuiltDataViewModel = Model ?? new YearBuiltDataViewModel();
 }
 
-@if (yearBuiltDataView.YearBuiltData is DiGi.GIS.Classes.YearBuiltData yearBuiltData &&
+@if (yearBuiltDataViewModel.YearBuiltData is DiGi.GIS.Classes.YearBuiltData yearBuiltData &&
      yearBuiltData.YearBuilts is IEnumerable<IYearBuilt> yearBuilts &&
      yearBuilts.Any())
 {

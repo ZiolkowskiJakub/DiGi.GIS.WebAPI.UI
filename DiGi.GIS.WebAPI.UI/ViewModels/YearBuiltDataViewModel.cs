@@ -5,21 +5,21 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
     /// <summary>
     /// Represents a view model that associates a 2D building reference with its corresponding year built data.
     /// </summary>
-    public class YearBuiltDataView
+    public class YearBuiltDataViewModel
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="YearBuiltDataView"/> class.
+        /// Initializes a new instance of the <see cref="YearBuiltDataViewModel"/> class.
         /// </summary>
-        public YearBuiltDataView()
+        public YearBuiltDataViewModel()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="YearBuiltDataView"/> class with specified building reference and year built data.
+        /// Initializes a new instance of the <see cref="YearBuiltDataViewModel"/> class with specified building reference and year built data.
         /// </summary>
         /// <param name="building2DReference">The reference to the 2D building.</param>
         /// <param name="yearBuiltData">The year built data associated with the building.</param>
-        public YearBuiltDataView(Building2DReference? building2DReference, Interfaces.IYearBuiltData? yearBuiltData)
+        public YearBuiltDataViewModel(Building2DReference? building2DReference, Interfaces.IYearBuiltData? yearBuiltData)
         {
             Building2DReference = building2DReference;
             YearBuiltData = yearBuiltData;
