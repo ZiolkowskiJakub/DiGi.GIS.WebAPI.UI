@@ -1,8 +1,8 @@
-﻿using DiGi.GIS.PostgreSQL.Classes;
+using DiGi.GIS.PostgreSQL.Classes;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DiGi.GIS.WebAPI.UI.Classes
+namespace DiGi.GIS.WebAPI.UI.ViewModels
 {
     /// <summary>
     /// Represents a view containing a collection of 2D building references.

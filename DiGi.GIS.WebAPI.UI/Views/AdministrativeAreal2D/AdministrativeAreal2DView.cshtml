@@ -1,6 +1,6 @@
 @using DiGi.GIS.Classes
 @using System.Linq
-@using DiGi.GIS.WebAPI.UI.Classes
+@using DiGi.GIS.WebAPI.UI.ViewModels
 @using DiGi.GIS.PostgreSQL.Classes
 @using DiGi.GIS.PostgreSQL.Enums
 @using System.Globalization
@@ -108,30 +108,29 @@
         </div>
     </div>
 
-    @* --- SECTION 2: AdministrativeAreal2DReferencePath (Interactive Breadcrumbs) --- *@
     <div class="gis-path-breadcrumb">
         @if (Model.AdministrativeAreal2DReferencePath?.AdministrativeAreal2DReferences != null)
         {
-            var pathItems = Model.AdministrativeAreal2DReferencePath.AdministrativeAreal2DReferences;
+            List<AdministrativeAreal2DReference> administrativeAreal2DReferences_Path = Model.AdministrativeAreal2DReferencePath.AdministrativeAreal2DReferences;
         
-            for (int i = 0; i < pathItems.Count; i++)
+            for (int i = 0; i < administrativeAreal2DReferences_Path.Count; i++)
             {
-                var r = pathItems[i];
+                AdministrativeAreal2DReference administrativeAreal2DReference_Path = administrativeAreal2DReferences_Path[i];
 
                 <div class="breadcrumb-item-wrapper">
                     @* Display Name *@
-                    <span>@r.Name</span>
+                    <span>@administrativeAreal2DReference_Path.Name</span>
 
                     @* Interactive Code Button *@
-                    <a href="~/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@r.Id" 
+                    <a href="~/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@administrativeAreal2DReference_Path.Id" 
                        class="btn-buildings btn-active" 
                        style="padding: 2px 8px; font-size: 0.8em; line-height: 1.5;">
-                       @r.Code
+                       @administrativeAreal2DReference_Path.Code
                     </a>
                 </div>
 
                 @* Separator - displayed only between items *@
-                if (i < pathItems.Count - 1)
+                if (i < administrativeAreal2DReferences_Path.Count - 1)
                 {
                     <span class="breadcrumb-separator">&gt;</span>
                 }
@@ -155,22 +154,22 @@
             <tbody>
                 @for (int i = 0; i < administrativeAreal2DReferences.Count; i++)
                 {
-                    var item = administrativeAreal2DReferences[i];
+                    AdministrativeAreal2DReference administrativeAreal2DReference = administrativeAreal2DReferences[i];
                     <tr>
                         <td>@(i + 1)</td>
-                        <td>@item.Name</td>
+                        <td>@administrativeAreal2DReference.Name</td>
                         <td>
-                            <a href="~/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@item.Id"
-                               onmouseenter="handleMouseEnter('@item.Id')"
-                               onmouseleave="handleMouseLeave('@item.Id', '@(Model.AdministrativeAreal2DReference?.Id)')"
+                            <a href="~/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@administrativeAreal2DReference.Id"
+                               onmouseenter="handleMouseEnter('@administrativeAreal2DReference.Id')"
+                               onmouseleave="handleMouseLeave('@administrativeAreal2DReference.Id', '@(Model.AdministrativeAreal2DReference?.Id)')"
                                class="btn-buildings btn-active" style="padding: 4px 8px;">
-                                @item.Code
+                                @administrativeAreal2DReference.Code
                             </a>
                         </td>
                         <td>
-                             @if ((int)item.AdministrativeArealType >= (int)AdministrativeArealType.County) 
+                             @if ((int)administrativeAreal2DReference.AdministrativeArealType >= (int)AdministrativeArealType.County) 
                              {
-                                 <a href="~/building2D/building2Dreferencesbyadministrativeareal2Did?administrativeareal2Did=@item.Id" class="btn-buildings btn-active">Buildings</a>
+                                 <a href="~/building2D/building2Dreferencesbyadministrativeareal2Did?administrativeareal2Did=@administrativeAreal2DReference.Id" class="btn-buildings btn-active">Buildings</a>
                              } 
                              else 
                              {
@@ -179,9 +178,9 @@
                         </td>
                         <td>
                             <div class="coverage-wrapper">
-                                <span id="text-coverage-@item.Id" class="coverage-text">Loading...</span>
+                                <span id="text-coverage-@administrativeAreal2DReference.Id" class="coverage-text">Loading...</span>
                                 <div class="coverage-container">
-                                    <div id="bar-coverage-@item.Id" class="coverage-bar"></div>
+                                    <div id="bar-coverage-@administrativeAreal2DReference.Id" class="coverage-bar"></div>
                                 </div>
                             </div>
                         </td>

@@ -1,12 +1,13 @@
-﻿using DiGi.GIS.PostgreSQL.Classes;
+using DiGi.GIS.PostgreSQL.Classes;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
+using DiGi.GIS.WebAPI.UI.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace DiGi.GIS.WebAPI.UI.Classes
+namespace DiGi.GIS.WebAPI.UI.Controllers
 {
     /// <summary>
     /// Provides API endpoints for retrieving and managing year built data.

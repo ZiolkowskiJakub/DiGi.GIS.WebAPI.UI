@@ -1,6 +1,6 @@
-﻿using DiGi.GIS.PostgreSQL.Classes;
+using DiGi.GIS.PostgreSQL.Classes;
 
-namespace DiGi.GIS.WebAPI.UI.Classes
+namespace DiGi.GIS.WebAPI.UI.ViewModels
 {
     /// <summary>
     /// Represents a view model that combines orthographic data and a 2D building reference.

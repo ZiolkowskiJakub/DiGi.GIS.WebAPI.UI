@@ -34,14 +34,14 @@
             <tbody>
                 @for (int i = 0; i < building2DReferences.Count; i++)
                 {
-                    var item = building2DReferences[i];
+                    Building2DReference building2DReference = building2DReferences[i];
                     <tr class="@(i >= initialLimit ? "row-hidden" : "")">
                         <td class="col-idx" style="color: #999; font-size: 0.8em;">@(i + 1)</td>
                         <td class="col-ref">
-                            <a href="~/building2D/itembyid?id=@item.Id&countyid=@item.CountyId"
+                            <a href="~/building2D/itembyid?id=@building2DReference.Id&countyid=@building2DReference.CountyId"
                                class="btn-buildings building-link"
-                               title="@item.Reference">
-                                @item.Reference
+                               title="@building2DReference.Reference">
+                                @building2DReference.Reference
                             </a>
                         </td>
                     </tr>

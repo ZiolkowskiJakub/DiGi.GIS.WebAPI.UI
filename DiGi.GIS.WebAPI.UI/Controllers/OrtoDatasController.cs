@@ -1,6 +1,7 @@
-﻿using DiGi.GIS.PostgreSQL.Classes;
+using DiGi.GIS.PostgreSQL.Classes;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
+using DiGi.GIS.WebAPI.UI.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 
-namespace DiGi.GIS.WebAPI.UI.Classes
+namespace DiGi.GIS.WebAPI.UI.Controllers
 {
     /// <summary>
     /// Controller providing endpoints for managing and retrieving orthodata and coverage factor information.

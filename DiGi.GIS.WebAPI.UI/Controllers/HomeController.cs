@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using DiGi.GIS.WebAPI.UI.ViewModels;
 
-namespace DiGi.GIS.WebAPI.UI.Classes
+namespace DiGi.GIS.WebAPI.UI.Controllers
 {
     /// <summary>
     /// Provides the controller logic for handling requests to the home page of the GIS WebAPI user interface.
@@ -38,3 +39,4 @@ namespace DiGi.GIS.WebAPI.UI.Classes
         }
     }
 }
+

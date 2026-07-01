@@ -1,4 +1,4 @@
-namespace DiGi.GIS.WebAPI.UI.Classes
+namespace DiGi.GIS.WebAPI.UI.ViewModels
 {
     /// <summary>
     /// Represents a view for a PostgreSQL table, providing access to the underlying table data and structure.

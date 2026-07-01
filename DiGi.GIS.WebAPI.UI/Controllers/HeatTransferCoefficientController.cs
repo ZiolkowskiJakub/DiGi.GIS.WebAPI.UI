@@ -1,16 +1,17 @@
-﻿using DiGi.Analytical.Building.HVAC.Classes;
+using DiGi.Analytical.Building.HVAC.Classes;
 using DiGi.Analytical.Building.HVAC.Interfaces;
 using DiGi.GIS.Classes;
 using DiGi.GIS.Interfaces;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
+using DiGi.GIS.WebAPI.UI.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DiGi.GIS.WebAPI.UI.Classes
+namespace DiGi.GIS.WebAPI.UI.Controllers
 {
     /// <summary>
     /// Controller responsible for handling requests related to heat transfer coefficients, 

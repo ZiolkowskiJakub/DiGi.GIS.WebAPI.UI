@@ -28,7 +28,7 @@
 </head>
 <body class="gis-app-body">
     @{
-        var currentPath = Context.Request.Path.Value ?? "";
+        string currentPath = Context.Request.Path.Value ?? "";
     }
     <header class="gis-header">
         <div class="gis-header-container">

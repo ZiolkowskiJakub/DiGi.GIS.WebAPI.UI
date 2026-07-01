@@ -4,6 +4,7 @@ using DiGi.GIS.PostgreSQL;
 using DiGi.GIS.PostgreSQL.Enums;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
+using DiGi.GIS.WebAPI.UI.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 
-namespace DiGi.GIS.WebAPI.UI.Classes
+namespace DiGi.GIS.WebAPI.UI.Controllers
 {
     /// <summary>
     /// Provides API endpoints for managing and retrieving 2D administrative areal data.
@@ -281,7 +282,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 
             AdministrativeAreal2DView administrativeAreal2DView = new(administrativeAreal2DReference, administrativeAreal2D, administrativeAreal2DReferencePath, administrativeAreal2DReferences);
 
-            return View("_AdministrativeAreal2DView", administrativeAreal2DView);
+            return View("AdministrativeAreal2DView", administrativeAreal2DView);
         }
 
         /// <summary>
@@ -387,7 +388,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 
             AdministrativeAreal2DView administrativeAreal2DView = new(administrativeAreal2DReference, administrativeAreal2D, administrativeAreal2DReferencePath, administrativeAreal2DReferences);
 
-            return View("_AdministrativeAreal2DView", administrativeAreal2DView);
+            return View("AdministrativeAreal2DView", administrativeAreal2DView);
         }
 
         /// <summary>
@@ -417,7 +418,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             // you might need a specific converter or a concrete type.
             AdministrativeAreal2D? administrativeAreal2D = Core.Convert.ToDiGi<AdministrativeAreal2D>(json)?.FirstOrDefault();
             // We pass the object to a View
-            return View("_AdministrativeAreal2DView", administrativeAreal2D);
+            return View("AdministrativeAreal2DView", administrativeAreal2D);
         }
 
         /// <summary>

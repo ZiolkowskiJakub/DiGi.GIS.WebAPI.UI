@@ -2,13 +2,14 @@ using DiGi.Geometry.Planar.Classes;
 using DiGi.GIS.PostgreSQL.Classes;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
+using DiGi.GIS.WebAPI.UI.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 
-namespace DiGi.GIS.WebAPI.UI.Classes
+namespace DiGi.GIS.WebAPI.UI.Controllers
 {
     /// <summary>
     /// Provides API endpoints for managing and retrieving building 2D information.
@@ -59,7 +60,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             List<Building2DReference>? building2DReferences = Core.Convert.ToDiGi<Building2DReference>(json);
 
             // We pass the objects to a View
-            return View("_Building2DReferencesView", new Building2DReferencesView(building2DReferences));
+            return View("Building2DReferencesView", new Building2DReferencesView(building2DReferences));
         }
 
         /// <summary>

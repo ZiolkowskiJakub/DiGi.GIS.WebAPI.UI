@@ -1,7 +1,7 @@
-﻿using DiGi.GIS.Classes;
+using DiGi.GIS.Classes;
 using System.Collections.Generic;
 
-namespace DiGi.GIS.WebAPI.UI.Classes
+namespace DiGi.GIS.WebAPI.UI.ViewModels
 {
     /// <summary>
     /// Represents a view model for an administrative areal in 2D, providing access to its references and associated data.

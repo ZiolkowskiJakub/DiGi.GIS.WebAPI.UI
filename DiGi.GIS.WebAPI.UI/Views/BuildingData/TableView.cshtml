@@ -1,6 +1,7 @@
 @using System.Linq
 @using System.Collections.Generic
-@using DiGi.GIS.WebAPI.UI.Classes
+@using DiGi.GIS.WebAPI.UI.ViewModels
+@using DiGi.PostgreSQL.Table.Classes
 @model TableView
 
 @{
@@ -13,7 +14,7 @@
     TableView tableView = Model ?? new TableView();
 
     // Group columns by category, default to "Other" if null/whitespace
-    var groupedColumns = tableView.Table?.Columns?
+    List<IGrouping<string, Column?>>? groupedColumns = tableView.Table?.Columns?
         .Where(c => c != null)
         .GroupBy(c => string.IsNullOrWhiteSpace(c!.Category) ? "Other" : c.Category)
         .OrderBy(g => g!.Key)
@@ -25,12 +26,12 @@
 
     @if (groupedColumns != null && groupedColumns.Any())
     {
-        foreach (var group in groupedColumns)
+        foreach (IGrouping<string, Column?> group in groupedColumns)
         {
             <div class="property-group">
                 <h4>@group.Key</h4>
                 <table class="gis-property-table">
-                    @foreach (var col in group.OrderBy(c => c?.Index))
+                    @foreach (Column? col in group.OrderBy(c => c?.Index))
                     {
                         if (col != null)
                         {
@@ -50,14 +51,14 @@
                                 </td>
                                 <td>
                                     @{
-                                        var valuesList = new List<string>();
+                                        List<string> valuesList = [];
                                         if (tableView.Table?.Rows != null)
                                         {
-                                            foreach (var row in tableView.Table.Rows)
+                                            foreach (object?[] row in tableView.Table.Rows)
                                             {
                                                 if (col.Index >= 0 && col.Index < row.Length)
                                                 {
-                                                    var val = row[col.Index]?.ToString();
+                                                    string? val = row[col.Index]?.ToString();
                                                     if (!string.IsNullOrWhiteSpace(val))
                                                     {
                                                         valuesList.Add(val);
@@ -68,8 +69,8 @@
                                     }
                                     @for (int idx = 0; idx < valuesList.Count; idx++)
                                     {
-                                        var val = valuesList[idx];
-                                        if (Uri.TryCreate(val, UriKind.Absolute, out var uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
+                                        string val = valuesList[idx];
+                                        if (Uri.TryCreate(val, UriKind.Absolute, out Uri? uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
                                         {
                                             <a href="@val" target="_blank" rel="noopener noreferrer">@val</a>
                                         }
@@ -94,3 +95,4 @@
         </div>
     }
 </div>
+

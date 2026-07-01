@@ -1,6 +1,6 @@
-﻿using DiGi.GIS.PostgreSQL.Classes;
+using DiGi.GIS.PostgreSQL.Classes;
 
-namespace DiGi.GIS.WebAPI.UI.Classes
+namespace DiGi.GIS.WebAPI.UI.ViewModels
 {
     /// <summary>
     /// Represents a view model that associates a 2D building reference with its corresponding year built data.
