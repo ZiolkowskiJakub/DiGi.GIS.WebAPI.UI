@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using DiGi.GIS.WebAPI.UI.ViewModels;
 
 namespace DiGi.GIS.WebAPI.UI.Controllers
 {
@@ -10,7 +9,8 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
     public class HomeController : Controller
     {
         // Constructor injection for the PostgreSQL data source
-        /// <summary> Handles the request for the start page and returns the corresponding view. </summary>
+        /// <summary> Handles the request for the start page and returns the corresponding view. </summary>
+
         public HomeController()
         {
         }
@@ -39,4 +39,3 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
     }
 }
-

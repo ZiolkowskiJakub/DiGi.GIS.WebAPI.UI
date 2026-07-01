@@ -66,7 +66,7 @@ async function drawPolygons(id, isBase = false, signal = null) {
 
             allPolygonsData.forEach(coords => {
                 for (let i = 0; i < coords.length; i += 2) {
-                    let x = coords[i]; let y = coords[i+1];
+                    let x = coords[i]; let y = coords[i + 1];
                     if (x < minX) minX = x; if (x > maxX) maxX = x;
                     if (y < minY) minY = y; if (y > maxY) maxY = y;
                 }
@@ -88,7 +88,7 @@ async function drawPolygons(id, isBase = false, signal = null) {
             const pointsString = [];
             for (let i = 0; i < coords.length; i += 2) {
                 const px = (coords[i] - minX) * scale + padding;
-                const py = canvasSize - ((coords[i+1] - minY) * scale + padding);
+                const py = canvasSize - ((coords[i + 1] - minY) * scale + padding);
                 pointsString.push(`${px.toFixed(2)},${py.toFixed(2)}`);
             }
 

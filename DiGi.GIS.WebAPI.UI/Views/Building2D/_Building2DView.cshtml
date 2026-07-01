@@ -168,7 +168,40 @@
             </div>
         </div>
 
-        @* --- BLOCK 7: Other --- *@
+        @* --- BLOCK 7: Weather --- *@
+        <div class="property-group">
+            <h4>Weather</h4>
+            <table class="gis-property-table">
+                <tr>
+                    <td class="property-label">EPW Data:</td>
+                    <td>
+                        @{
+                            double centroidX = 0.0;
+                            double centroidY = 0.0;
+                            DiGi.Geometry.Planar.Classes.Point2D? centroidPoint = building2DView.Building2D?.PolygonalFace2D?.ExternalEdge?.GetCentroid();
+                            if (centroidPoint != null)
+                            {
+                                centroidX = centroidPoint.X;
+                                centroidY = centroidPoint.Y;
+                            }
+                            string stringX = centroidX.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                            string stringY = centroidY.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        }
+                        <a href="/epwfile/item?x=@stringX&y=@stringY" target="_blank" class="btn-buildings btn-active" style="padding: 4px 12px;">Show</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="property-label">Weather Data:</td>
+                    <td>
+                        @* FUTURE: Will be connected to an active link when endpoint is ready: *@
+                        @* <a href="/weatherdata/tablebyreference?reference=@(building2DView.Building2DReference?.Reference ?? string.Empty)&countyid=@(building2DView.Building2DReference?.CountyId?.ToString() ?? string.Empty)" target="_blank" class="btn-buildings btn-active" style="padding: 4px 12px;">Show</a> *@
+                        <button type="button" class="btn-buildings btn-disabled" disabled style="padding: 4px 12px;">Show</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        @* --- BLOCK 8: Other --- *@
         <div class="property-group">
             <h4>Other</h4>
             <table class="gis-property-table">

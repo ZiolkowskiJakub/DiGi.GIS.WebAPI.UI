@@ -18,10 +18,10 @@ function getResolvedUrl(path) {
  * @param {number} initialLimit - Initial record count shown.
  * @param {number} totalRecords - Total record count.
  */
-window.initTablePager = function(initialLimit, totalRecords) {
+window.initTablePager = function (initialLimit, totalRecords) {
     let displayedCount = initialLimit;
 
-    window.revealNext = function(batchSize) {
+    window.revealNext = function (batchSize) {
         const hiddenRows = document.querySelectorAll('#mainBuildingsTable tbody tr.row-hidden');
         const toShow = Math.min(batchSize, hiddenRows.length);
 
@@ -32,7 +32,7 @@ window.initTablePager = function(initialLimit, totalRecords) {
         updateUI();
     };
 
-    window.revealAll = function() {
+    window.revealAll = function () {
         document.querySelectorAll('#mainBuildingsTable tbody tr.row-hidden').forEach(r => {
             r.classList.remove('row-hidden');
         });
@@ -45,7 +45,7 @@ window.initTablePager = function(initialLimit, totalRecords) {
         if (shownVal) shownVal.innerText = displayedCount;
         if (displayedCount >= totalRecords) {
             const btns = document.getElementById('paginationButtons');
-            if(btns) btns.style.display = 'none';
+            if (btns) btns.style.display = 'none';
         }
     }
 };
@@ -112,7 +112,7 @@ async function loadBuildingDetails(url, clickedElement) {
 function initBuildingReferencesView() {
     const listSide = document.getElementById('listSide');
     if (listSide) {
-        listSide.addEventListener('click', function(e) {
+        listSide.addEventListener('click', function (e) {
             const link = e.target.closest('.building-link');
             if (link) {
                 e.preventDefault();
@@ -151,7 +151,7 @@ async function drawPolygon(countyId, id) {
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
         for (let i = 0; i < coords.length; i += 2) {
             let x = coords[i];
-            let y = coords[i+1];
+            let y = coords[i + 1];
             if (x < minX) minX = x; if (x > maxX) maxX = x;
             if (y < minY) minY = y; if (y > maxY) maxY = y;
         }
@@ -175,7 +175,7 @@ async function drawPolygon(countyId, id) {
         for (let i = 0; i < coords.length; i += 2) {
             let screenX = (coords[i] - minX) * scale + offsetX;
             // Invert orientation since SVG Y increases downwards
-            let screenY = canvasSize - ((coords[i+1] - minY) * scale + offsetY);
+            let screenY = canvasSize - ((coords[i + 1] - minY) * scale + offsetY);
             pointsArray.push(`${screenX.toFixed(2)},${screenY.toFixed(2)}`);
         }
 
