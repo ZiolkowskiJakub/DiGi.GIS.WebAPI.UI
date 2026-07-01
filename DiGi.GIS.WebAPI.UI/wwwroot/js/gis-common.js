@@ -5,7 +5,7 @@
 /**
  * Performs a bulk request to estimate coverage factors for a list of administrative area IDs,
  * then updates the corresponding UI progress bars and text labels.
- * 
+ *
  * @param {Array<number>} ids - The list of administrative area reference IDs to load.
  */
 async function loadAllOrtoCoverages(ids) {
@@ -30,10 +30,10 @@ async function loadAllOrtoCoverages(ids) {
         ids.forEach((id, index) => {
             const textElement = document.getElementById(`text-coverage-${id}`);
             const barElement = document.getElementById(`bar-coverage-${id}`);
-        
+
             if (textElement && barElement && values[index] !== undefined) {
                 const percentage = (parseFloat(values[index]) * 100).toFixed(1);
-            
+
                 textElement.innerText = `${percentage}%`;
                 const safeWidth = Math.min(Math.max(percentage, 0), 100);
                 barElement.style.width = `${safeWidth}%`;
@@ -51,7 +51,6 @@ async function loadAllOrtoCoverages(ids) {
                 textElement.style.color = "";
             }
         });
-
     } catch (error) {
         console.error('Error loading bulk coverage:', error);
         ids.forEach(id => {

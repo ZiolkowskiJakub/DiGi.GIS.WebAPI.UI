@@ -14,7 +14,7 @@ function getResolvedUrl(path) {
 /**
  * Initializes table pagination for building references.
  * Exposes revealNext and revealAll functions globally.
- * 
+ *
  * @param {number} initialLimit - Initial record count shown.
  * @param {number} totalRecords - Total record count.
  */
@@ -24,7 +24,7 @@ window.initTablePager = function(initialLimit, totalRecords) {
     window.revealNext = function(batchSize) {
         const hiddenRows = document.querySelectorAll('#mainBuildingsTable tbody tr.row-hidden');
         const toShow = Math.min(batchSize, hiddenRows.length);
-        
+
         for (let i = 0; i < toShow; i++) {
             hiddenRows[i].classList.remove('row-hidden');
             displayedCount++;
@@ -52,7 +52,7 @@ window.initTablePager = function(initialLimit, totalRecords) {
 
 /**
  * Loads building details via AJAX and executes any scripts inside the returned HTML content.
- * 
+ *
  * @param {string} url - Detail endpoint URL.
  * @param {HTMLElement} clickedElement - Anchor link element that triggered the fetch.
  */
@@ -68,9 +68,9 @@ async function loadBuildingDetails(url, clickedElement) {
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error('API Error');
-    
+
         const html = await response.text();
-    
+
         // 1. Inject HTML
         contentContainer.innerHTML = html;
 
@@ -97,7 +97,6 @@ async function loadBuildingDetails(url, clickedElement) {
             const currentRow = clickedElement.closest('tr');
             if (currentRow) currentRow.classList.add('active-selection');
         }
-
     } catch (error) {
         console.error('Error:', error);
         contentContainer.innerHTML = `<div style="padding: 20px; color: #d9534f; text-align: center;"><strong>Error:</strong> Could not load building details.</div>`;
@@ -133,7 +132,7 @@ function initBuildingReferencesView() {
 
 /**
  * Fetches and draws building polygon geometry onto the SVG canvas.
- * 
+ *
  * @param {string|number} countyId - The associated county ID.
  * @param {string|number} id - The ID of the building.
  */
@@ -182,7 +181,7 @@ async function drawPolygon(countyId, id) {
 
         const pointsAttr = pointsArray.join(" ");
         const svg = document.getElementById("mainCanvas");
-    
+
         if (svg) {
             // Clear existing elements in SVG canvas
             while (svg.firstChild) {
@@ -247,7 +246,7 @@ async function loadOrtoDatas(reference, countyId) {
     const section = document.getElementById("orto-data-section");
     const container = document.getElementById("orto-datas-container");
     if (!section || !container) return;
-    
+
     const url = getResolvedUrl(`/ortodatas/itembyreference?reference=${encodeURIComponent(reference)}&countyid=${countyId}`);
 
     try {
@@ -282,7 +281,7 @@ async function loadOccupancyData(reference, countyId) {
     const section = document.getElementById("occupancy-data-section");
     const container = document.getElementById("occupancy-data-container");
     if (!section || !container) return;
-    
+
     const url = getResolvedUrl(`/occupancydata/building2d/itembyreference?reference=${encodeURIComponent(reference)}&countyid=${countyId}`);
 
     try {
@@ -317,7 +316,7 @@ async function loadRegulatedHeatTransferCoefficients(reference, countyId) {
     const section = document.getElementById("regulated-heat-transfer-coefficients-section");
     const container = document.getElementById("regulated-heat-transfer-coefficients-container");
     if (!section || !container) return;
-    
+
     const url = getResolvedUrl(`/heattransfercoefficient/regulatedheattransfercoefficientsbyreference?reference=${encodeURIComponent(reference)}&countyid=${countyId}`);
 
     try {

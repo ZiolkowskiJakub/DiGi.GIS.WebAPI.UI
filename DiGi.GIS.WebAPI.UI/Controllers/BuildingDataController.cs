@@ -1,6 +1,6 @@
+using DiGi.GIS.WebAPI.UI.ViewModels;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
-using DiGi.GIS.WebAPI.UI.ViewModels;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -37,11 +37,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             UrlBuilder urlBuilder = new("https://api.digiproject.uk/gis/buildingdata/tablebyreference");
             urlBuilder = urlBuilder.AddParameter("reference", reference);
 
-            if(countyId is not null)
+            if (countyId is not null)
             {
                 urlBuilder = urlBuilder.AddParameter("countyid", countyId.Value);
             }
-
 
             HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
             if (!httpResponseMessage.IsSuccessStatusCode)
@@ -79,5 +78,3 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
     }
 }
-
-

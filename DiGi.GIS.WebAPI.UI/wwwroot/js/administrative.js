@@ -9,21 +9,21 @@ const controllers = new Map();
 /**
  * Handles hover entry over an administrative area row.
  * Triggers drawing the area's polygons.
- * 
+ *
  * @param {number|string} id - The ID of the administrative area.
  */
 async function handleMouseEnter(id) {
     activeHovers.add(id);
     const controller = new AbortController();
     controllers.set(id, controller);
-    
+
     await drawPolygons(id, false, controller.signal);
 }
 
 /**
  * Handles hover exit from an administrative area row.
  * Aborts any pending fetch requests and removes the area's polygons.
- * 
+ *
  * @param {number|string} id - The ID of the administrative area.
  * @param {number|string} baseId - The ID of the base area which should not be removed.
  */
@@ -38,7 +38,7 @@ function handleMouseLeave(id, baseId) {
 
 /**
  * Fetches and draws polygons for the given administrative area ID onto the SVG canvas.
- * 
+ *
  * @param {number|string} id - The ID of the area.
  * @param {boolean} isBase - Whether this is the base/reference area.
  * @param {AbortSignal} signal - Optional abort signal.
@@ -56,14 +56,14 @@ async function drawPolygons(id, isBase = false, signal = null) {
 
         // Data is now a JSON array of arrays: [[x1, y1, x2, y2...], [...]]
         const allPolygonsData = await response.json();
-    
+
         if (!isBase && !activeHovers.has(id)) return;
         if (!allPolygonsData || allPolygonsData.length === 0) return;
 
         // Calculate bounding box for ALL polygons to set scale
         if (isBase || !globalScaleParams) {
             let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-        
+
             allPolygonsData.forEach(coords => {
                 for (let i = 0; i < coords.length; i += 2) {
                     let x = coords[i]; let y = coords[i+1];
@@ -77,7 +77,7 @@ async function drawPolygons(id, isBase = false, signal = null) {
         }
 
         const { minX, minY, scale, padding, canvasSize } = globalScaleParams;
-    
+
         // Create a group to hold multiple polygons for this ID
         const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
         group.setAttribute("id", `group-${id}`);
@@ -95,7 +95,7 @@ async function drawPolygons(id, isBase = false, signal = null) {
             const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
             polygon.setAttribute("id", `poly-${id}-${index}`);
             polygon.setAttribute("points", pointsString.join(" "));
-        
+
             // Styling
             polygon.style.fill = isBase ? "rgba(0, 120, 212, 0.1)" : "rgba(0, 120, 212, 0.4)";
             polygon.style.stroke = "#0078d4";
@@ -104,7 +104,7 @@ async function drawPolygons(id, isBase = false, signal = null) {
 
             group.appendChild(polygon);
         });
-    
+
         const mainCanvas = document.getElementById("mainCanvas");
         if (mainCanvas) {
             mainCanvas.appendChild(group);
@@ -116,7 +116,7 @@ async function drawPolygons(id, isBase = false, signal = null) {
 
 /**
  * Removes drawn polygons for the given ID from the SVG canvas.
- * 
+ *
  * @param {number|string} id - The ID of the area.
  * @param {number|string} baseId - The ID of the base area which should not be removed.
  */

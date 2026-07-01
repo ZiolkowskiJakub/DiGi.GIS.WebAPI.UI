@@ -2,9 +2,9 @@ using DiGi.Analytical.Building.HVAC.Classes;
 using DiGi.Analytical.Building.HVAC.Interfaces;
 using DiGi.GIS.Classes;
 using DiGi.GIS.Interfaces;
+using DiGi.GIS.WebAPI.UI.ViewModels;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
-using DiGi.GIS.WebAPI.UI.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace DiGi.GIS.WebAPI.UI.Controllers
 {
     /// <summary>
-    /// Controller responsible for handling requests related to heat transfer coefficients, 
+    /// Controller responsible for handling requests related to heat transfer coefficients,
     /// providing data based on year or building reference.
     /// </summary>
     [Route("[controller]")]
@@ -78,7 +78,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
 
         /// <summary>
-        /// Retrieves regulated heat transfer coefficients for a building identified by its reference, 
+        /// Retrieves regulated heat transfer coefficients for a building identified by its reference,
         /// determining the applicable year based on the building's construction data.
         /// </summary>
         /// <param name="reference">The unique reference string of the building.</param>
@@ -130,7 +130,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             #region Year
 
             YearBuiltData? yearBuiltData = yearBuiltDatas.Find(x => x is YearBuiltData) as YearBuiltData;
-            if(yearBuiltData is null)
+            if (yearBuiltData is null)
             {
                 return NoContent();
             }
@@ -178,7 +178,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             bool? isResidential = null;
 
             IRegulatedHeatTransferCoefficients? regulatedHeatTransferCoefficients = regulatedHeatTransferCoefficientsList?.FirstOrDefault();
-            if(regulatedHeatTransferCoefficients is RegulatedHeatTransferCoefficients_2002)
+            if (regulatedHeatTransferCoefficients is RegulatedHeatTransferCoefficients_2002)
             {
                 #region Building2D
 
@@ -192,7 +192,6 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
                 if (httpResponseMessage.IsSuccessStatusCode)
                 {
-
                     json = await httpResponseMessage.Content.ReadAsStringAsync();
                     if (!string.IsNullOrWhiteSpace(json))
                     {
@@ -203,7 +202,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                         }
                     }
                 }
-             
+
                 #endregion Building2D
             }
 
