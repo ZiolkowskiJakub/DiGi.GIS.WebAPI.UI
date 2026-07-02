@@ -58,6 +58,9 @@
 		<Reference Include="DiGi.PostgreSQL.Table">
 		  <HintPath>..\..\DiGi.PostgreSQL\bin\DiGi.PostgreSQL.Table.dll</HintPath>
 		</Reference>
+		<Reference Include="DiGi.Weather">
+		  <HintPath>..\..\DiGi.Weather\bin\DiGi.Weather.dll</HintPath>
+		</Reference>
 		<Reference Include="DiGi.WebAPI">
 			<HintPath>..\..\DiGi.WebAPI\bin\DiGi.WebAPI.dll</HintPath>
 		</Reference>

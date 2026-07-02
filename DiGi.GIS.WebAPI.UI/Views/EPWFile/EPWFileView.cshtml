@@ -133,7 +133,7 @@
                             foreach (DataRecord record in epwFile.DataRecords)
                             {
                                 <tr style="border-bottom: 1px solid #eee;">
-                                    <td style="padding: 8px 10px; border-right: 1px solid #eee;">@($"{record.Year}-{record.Month:D2}-{record.Day:D2} {record.Hour:D2}:{record.Minute:D2}")</td>
+                                    <td style="padding: 8px 10px; border-right: 1px solid #eee;">@($"{record.DateTime.Year}-{record.DateTime.Month:D2}-{record.DateTime.Day:D2} {record.DateTime.Hour:D2}:{record.DateTime.Minute:D2}")</td>
                                     <td style="padding: 8px 10px; text-align: right; border-right: 1px solid #eee;">@record.DryBulbTemperature.ToString("F1")</td>
                                     <td style="padding: 8px 10px; text-align: right; border-right: 1px solid #eee;">@record.DewPointTemperature.ToString("F1")</td>
                                     <td style="padding: 8px 10px; text-align: right; border-right: 1px solid #eee;">@record.RelativeHumidity.ToString("F0")</td>
