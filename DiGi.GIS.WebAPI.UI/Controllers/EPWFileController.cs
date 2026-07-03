@@ -2,8 +2,8 @@ using DiGi.EPW.Classes;
 using DiGi.GIS.WebAPI.UI.ViewModels;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Controllers
@@ -52,7 +52,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NoContent();
             }
 
-            EPWFile? epwFile = JsonSerializer.Deserialize<EPWFile>(json);
+            EPWFile? epwFile = Core.Convert.ToDiGi<EPWFile>(json)?.FirstOrDefault();
             if (epwFile is null)
             {
                 return BadRequest();

@@ -112,19 +112,31 @@
         <div class="property-group">
             <h4>Data</h4>
             <div style="overflow-x: auto; max-height: 500px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px; margin-top: 10px;">
-                <table class="gis-property-table" style="min-width: 100%; border-collapse: collapse; margin: 0;">
+                <table class="gis-property-table" style="width: 100%; table-layout: fixed; border-collapse: collapse; margin: 0; font-size: 0.85em;">
+                    <colgroup>
+                        <col style="width: 11%;" />
+                        <col style="width: 9%;" />
+                        <col style="width: 9%;" />
+                        <col style="width: 8%;" />
+                        <col style="width: 10%;" />
+                        <col style="width: 9%;" />
+                        <col style="width: 8%;" />
+                        <col style="width: 9%;" />
+                        <col style="width: 9%;" />
+                        <col style="width: 9%;" />
+                    </colgroup>
                     <thead>
                         <tr style="border-bottom: 2px solid #ddd; position: sticky; top: 0; background-color: #fff; z-index: 1;">
-                            <th style="padding: 10px; text-align: left; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee;">Time</th>
-                            <th style="padding: 10px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee;">Dry Bulb Temp (°C)</th>
-                            <th style="padding: 10px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee;">Dew Point Temp (°C)</th>
-                            <th style="padding: 10px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee;">Rel. Humidity (%)</th>
-                            <th style="padding: 10px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee;">Pressure (Pa)</th>
-                            <th style="padding: 10px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee;">Wind Speed (m/s)</th>
-                            <th style="padding: 10px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee;">Wind Dir (°)</th>
-                            <th style="padding: 10px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee;">Global Rad (Wh/m²)</th>
-                            <th style="padding: 10px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee;">Direct Rad (Wh/m²)</th>
-                            <th style="padding: 10px; text-align: right; background-color: #f9f9f9; font-weight: bold;">Diffuse Rad (Wh/m²)</th>
+                            <th style="padding: 6px 6px; text-align: left; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee; white-space: normal; word-wrap: break-word;">Time</th>
+                            <th style="padding: 6px 6px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee; white-space: normal; word-wrap: break-word;">Dry Bulb<br />(°C)</th>
+                            <th style="padding: 6px 6px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee; white-space: normal; word-wrap: break-word;">Dew Point<br />(°C)</th>
+                            <th style="padding: 6px 6px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee; white-space: normal; word-wrap: break-word;">RH<br />(%)</th>
+                            <th style="padding: 6px 6px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee; white-space: normal; word-wrap: break-word;">Pressure<br />(Pa)</th>
+                            <th style="padding: 6px 6px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee; white-space: normal; word-wrap: break-word;">Wind Spd<br />(m/s)</th>
+                            <th style="padding: 6px 6px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee; white-space: normal; word-wrap: break-word;">Wind Dir<br />(°)</th>
+                            <th style="padding: 6px 6px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee; white-space: normal; word-wrap: break-word;">Global<br />(Wh/m²)</th>
+                            <th style="padding: 6px 6px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee; white-space: normal; word-wrap: break-word;">Direct<br />(Wh/m²)</th>
+                            <th style="padding: 6px 6px; text-align: right; background-color: #f9f9f9; font-weight: bold; white-space: normal; word-wrap: break-word;">Diffuse<br />(Wh/m²)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -133,16 +145,16 @@
                             foreach (DataRecord record in epwFile.DataRecords)
                             {
                                 <tr style="border-bottom: 1px solid #eee;">
-                                    <td style="padding: 8px 10px; border-right: 1px solid #eee;">@($"{record.DateTime.Year}-{record.DateTime.Month:D2}-{record.DateTime.Day:D2} {record.DateTime.Hour:D2}:{record.DateTime.Minute:D2}")</td>
-                                    <td style="padding: 8px 10px; text-align: right; border-right: 1px solid #eee;">@record.DryBulbTemperature.ToString("F1")</td>
-                                    <td style="padding: 8px 10px; text-align: right; border-right: 1px solid #eee;">@record.DewPointTemperature.ToString("F1")</td>
-                                    <td style="padding: 8px 10px; text-align: right; border-right: 1px solid #eee;">@record.RelativeHumidity.ToString("F0")</td>
-                                    <td style="padding: 8px 10px; text-align: right; border-right: 1px solid #eee;">@record.AtmosphericStationPressure.ToString("N0")</td>
-                                    <td style="padding: 8px 10px; text-align: right; border-right: 1px solid #eee;">@record.WindSpeed.ToString("F1")</td>
-                                    <td style="padding: 8px 10px; text-align: right; border-right: 1px solid #eee;">@record.WindDirection.ToString("F0")</td>
-                                    <td style="padding: 8px 10px; text-align: right; border-right: 1px solid #eee;">@record.GlobalHorizontalRadiation.ToString("F0")</td>
-                                    <td style="padding: 8px 10px; text-align: right; border-right: 1px solid #eee;">@record.DirectNormalRadiation.ToString("F0")</td>
-                                    <td style="padding: 8px 10px; text-align: right;">@record.DiffuseHorizontalRadiation.ToString("F0")</td>
+                                    <td style="padding: 6px 6px; border-right: 1px solid #eee; white-space: nowrap;">@($"{record.DateTime.Year}-{record.DateTime.Month:D2}-{record.DateTime.Day:D2} {record.DateTime.Hour:D2}:{record.DateTime.Minute:D2}")</td>
+                                    <td style="padding: 6px 6px; text-align: right; border-right: 1px solid #eee;">@record.DryBulbTemperature.ToString("F1")</td>
+                                    <td style="padding: 6px 6px; text-align: right; border-right: 1px solid #eee;">@record.DewPointTemperature.ToString("F1")</td>
+                                    <td style="padding: 6px 6px; text-align: right; border-right: 1px solid #eee;">@record.RelativeHumidity.ToString("F0")</td>
+                                    <td style="padding: 6px 6px; text-align: right; border-right: 1px solid #eee;">@record.AtmosphericStationPressure.ToString("N0")</td>
+                                    <td style="padding: 6px 6px; text-align: right; border-right: 1px solid #eee;">@record.WindSpeed.ToString("F1")</td>
+                                    <td style="padding: 6px 6px; text-align: right; border-right: 1px solid #eee;">@record.WindDirection.ToString("F0")</td>
+                                    <td style="padding: 6px 6px; text-align: right; border-right: 1px solid #eee;">@record.GlobalHorizontalRadiation.ToString("F0")</td>
+                                    <td style="padding: 6px 6px; text-align: right; border-right: 1px solid #eee;">@record.DirectNormalRadiation.ToString("F0")</td>
+                                    <td style="padding: 6px 6px; text-align: right;">@record.DiffuseHorizontalRadiation.ToString("F0")</td>
                                 </tr>
                             }
                         }
