@@ -1,0 +1,49 @@
+@{
+    ViewData["Title"] = "3D Viewer";
+    ViewData["Description"] = "Render buildings and spatial objects in 3D using the glTF standard.";
+}
+
+<div class="gis-panel">
+    <div class="gis-card" style="text-align: center; padding: 50px 20px;">
+        <div style="font-size: 4rem; margin-bottom: 20px; color: var(--primary-color);">🧊</div>
+        <h2 class="gis-title" style="border: none; padding: 0; margin-bottom: 15px; display: block; font-size: 1.8rem;">3D glTF Viewer</h2>
+        <p style="color: var(--text-muted); max-width: 520px; margin: 0 auto 30px; font-size: 1.1rem; line-height: 1.6;">
+            Load a building by its identifier and explore it in 3D. The footprint is extruded by the number of storeys and rendered using the glTF standard.
+        </p>
+        <form method="get" action="~/gltf/building2dbyid" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: center;">
+            <label style="color: var(--text-muted);">Building Id
+                <input type="number" name="id" value="5072294" required style="margin-left: 6px; padding: 8px; width: 140px;" />
+            </label>
+            <label style="color: var(--text-muted);">County Id
+                <input type="number" name="countyid" value="12668" style="margin-left: 6px; padding: 8px; width: 110px;" />
+            </label>
+            <label style="color: var(--text-muted);">Storey height [m]
+                <input type="number" name="storeyheight" value="3" step="0.1" min="1" style="margin-left: 6px; padding: 8px; width: 90px;" />
+            </label>
+            <button type="submit" class="gis-button">Open in 3D</button>
+        </form>
+    </div>
+
+    <div class="gis-card" style="text-align: center; padding: 50px 20px; margin-top: 16px;">
+        <div style="font-size: 4rem; margin-bottom: 20px; color: var(--primary-color);">🏙️</div>
+        <h2 class="gis-title" style="border: none; padding: 0; margin-bottom: 15px; display: block; font-size: 1.8rem;">Multiple Buildings by Radius</h2>
+        <p style="color: var(--text-muted); max-width: 520px; margin: 0 auto 30px; font-size: 1.1rem; line-height: 1.6;">
+            Enter a central point and a radius to load all buildings within that circular area and explore the whole district in 3D.
+        </p>
+        <form method="get" action="~/gltf/buildingsbyradius" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: center;">
+            <label style="color: var(--text-muted);">Point X
+                <input type="number" name="centerX" value="730519.9" step="any" required style="margin-left: 6px; padding: 8px; width: 130px;" />
+            </label>
+            <label style="color: var(--text-muted);">Point Y
+                <input type="number" name="centerY" value="407094.0" step="any" required style="margin-left: 6px; padding: 8px; width: 130px;" />
+            </label>
+            <label style="color: var(--text-muted);">Radius [m]
+                <input type="number" name="radius" value="250" step="any" min="1" required style="margin-left: 6px; padding: 8px; width: 90px;" />
+            </label>
+            <label style="color: var(--text-muted);">Storey height [m]
+                <input type="number" name="storeyheight" value="3" step="0.1" min="1" style="margin-left: 6px; padding: 8px; width: 90px;" />
+            </label>
+            <button type="submit" class="gis-button">Open in 3D</button>
+        </form>
+    </div>
+</div>

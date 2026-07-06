@@ -1,0 +1,163 @@
+@model DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel
+@inject Microsoft.AspNetCore.Mvc.ViewFeatures.IFileVersionProvider FileVersionProvider
+@{
+    ViewData["Title"] = Model.Title ?? "3D Viewer";
+    ViewData["Description"] = "Interactive 3D glTF view with object selection, properties panel and dynamic lighting.";
+}
+
+<div class="gis-panel">
+    <h2 id="gltf-title" class="gis-title">@(Model.Title ?? "3D Viewer")</h2>
+
+    <div class="gltf-layout">
+        @* Streamed delivery: the viewer fetches the binary glTF payload from data-glb-url; when the
+           attribute is empty, the embedded base64 payload below is used instead. *@
+        <div id="gltf-viewer-container" data-glb-url="@(string.IsNullOrEmpty(Model.GLBUrl) ? string.Empty : Url.Content(Model.GLBUrl))">
+            <div id="gltf-toolbar">
+                <button type="button" id="gltf-fit-button" class="gis-button" title="Frame the whole scene">Fit view</button>
+                <button type="button" id="gltf-clear-button" class="gis-button" title="Clear the current selection">Clear selection</button>
+            </div>
+            @* Hover label, selection marquee and navigation hint overlays are created by the generic viewer engine. *@
+        </div>
+
+        <aside class="gltf-side-panel">
+            <div class="gis-card gltf-card">
+                <h3 class="gltf-card-title">Lighting</h3>
+                <label class="gltf-slider-label">Sun azimuth <span id="gltf-sun-azimuth-value"></span>
+                    <input type="range" id="gltf-sun-azimuth" min="0" max="360" step="1" />
+                </label>
+                <label class="gltf-slider-label">Sun altitude <span id="gltf-sun-altitude-value"></span>
+                    <input type="range" id="gltf-sun-altitude" min="2" max="90" step="1" />
+                </label>
+                <label class="gltf-slider-label">Sun intensity <span id="gltf-sun-intensity-value"></span>
+                    <input type="range" id="gltf-sun-intensity" min="0" max="5" step="0.1" />
+                </label>
+                <label class="gltf-slider-label">Ambient intensity <span id="gltf-ambient-intensity-value"></span>
+                    <input type="range" id="gltf-ambient-intensity" min="0" max="2" step="0.05" />
+                </label>
+            </div>
+
+            <div class="gis-card gltf-card">
+                <h3 class="gltf-card-title">Properties</h3>
+                <div id="gltf-properties" class="gltf-properties">
+                    <span class="gltf-muted">Click an object or drag a selection rectangle in the 3D view. Properties are displayed when exactly one object is selected.</span>
+                </div>
+            </div>
+
+            <div class="gis-card gltf-card">
+                <h3 class="gltf-card-title">Scene</h3>
+                <div id="gltf-scene-info" class="gltf-properties"></div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<style>
+    /* The theme panel shrinks to fit (auto cross-axis margins prevent flex stretching) — force full width on this page so the 3D view can stretch with the window. */
+    .gis-panel {
+        width: 95%;
+        max-width: none;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    /* The 3D view always stretches with the window; the side panel stays docked on the right. */
+    .gltf-layout {
+        display: flex;
+        gap: 16px;
+        align-items: stretch;
+        height: calc(100vh - 250px);
+        min-height: 480px;
+    }
+
+    #gltf-viewer-container {
+        position: relative;
+        flex: 1 1 auto;
+        min-width: 0;
+        height: 100%;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #171a21;
+    }
+
+    #gltf-toolbar {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 5;
+        display: flex;
+        gap: 8px;
+    }
+
+    .gltf-side-panel {
+        flex: 0 0 340px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        height: 100%;
+        overflow-y: auto;
+    }
+
+    .gltf-card-title {
+        margin: 0 0 10px 0;
+        font-size: 1rem;
+    }
+
+    .gltf-slider-label {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+    }
+
+    .gltf-slider-label input[type="range"] {
+        width: 100%;
+        display: block;
+    }
+
+    .gltf-properties {
+        font-size: 0.85rem;
+        word-break: break-word;
+        max-height: 320px;
+        overflow-y: auto;
+    }
+
+    .gltf-properties table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .gltf-properties td {
+        padding: 3px 6px;
+        vertical-align: top;
+        border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+    }
+
+    .gltf-properties td:first-child {
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .gltf-muted {
+        color: var(--text-muted);
+    }
+</style>
+
+<script type="application/json" id="gltf-scene-data">@Html.Raw(Model.GLTFSceneJson ?? "null")</script>
+@* Html.Raw is required: Razor would HTML-encode '+' characters of the base64 payload, and entities are not decoded inside script elements. *@
+<script type="text/plain" id="gltf-glb-base64">@Html.Raw(Model.GLBBase64)</script>
+
+@section Scripts {
+    @* The '!' prefix opts this element out of tag helper processing: the script tag helper
+       would otherwise strip the type="importmap" attribute and break module resolution. *@
+    <!script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+                "three-mesh-bvh": "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.8/build/index.module.js",
+                "gltf-viewer-core": "@FileVersionProvider.AddFileVersionToPath(Context.Request.PathBase, "/js/gltf-viewer-core.js")"
+            }
+        }
+    </!script>
+    <script type="module" src="~/js/gltf-viewer.js" asp-append-version="true"></script>
+}

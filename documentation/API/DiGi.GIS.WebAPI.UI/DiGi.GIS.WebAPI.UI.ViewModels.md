@@ -387,6 +387,155 @@ public DiGi.EPW.Classes.EPWFile? EPWFile { get; }
 #### Property Value
 [DiGi\.EPW\.Classes\.EPWFile](https://learn.microsoft.com/en-us/dotnet/api/digi.epw.classes.epwfile 'DiGi\.EPW\.Classes\.EPWFile')
 
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel'></a>
+
+## GLTFSceneViewModel Class
+
+Represents a view model for rendering a [GLTFScene](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFScene 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel\.GLTFScene') in the 3D glTF viewer\.
+
+Two delivery modes are supported: streamed (the view carries only [GLBUrl](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLBUrl 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel\.GLBUrl') and the viewer fetches the binary glTF payload, whose scene extras are fully self-describing) and embedded (the scene JSON and the base64 encoded payload are inlined in the page).
+
+```csharp
+public class GLTFSceneViewModel
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → GLTFSceneViewModel
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel()'></a>
+
+## GLTFSceneViewModel\(\) Constructor
+
+Initializes a new instance of the [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel') class\.
+
+```csharp
+public GLTFSceneViewModel();
+```
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string)'></a>
+
+## GLTFSceneViewModel\(GLTFScene, string, string, string\) Constructor
+
+Initializes a new instance of the [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel') class for embedded delivery\.
+
+```csharp
+public GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene? gLTFScene, string? gLTFSceneJson, string? gLBBase64, string? title);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string).gLTFScene'></a>
+
+`gLTFScene` [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene')
+
+The [GLTFScene](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFScene 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel\.GLTFScene') to be rendered\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string).gLTFSceneJson'></a>
+
+`gLTFSceneJson` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The JSON representation of the scene used by the viewer for lights, camera and reference point configuration\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string).gLBBase64'></a>
+
+`gLBBase64` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The base64 encoded binary glTF \(\.glb\) payload rendered by the viewer\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string).title'></a>
+
+`title` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The title displayed above the viewer\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string)'></a>
+
+## GLTFSceneViewModel\(string, string\) Constructor
+
+Initializes a new instance of the [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel') class for streamed delivery: the viewer fetches the binary glTF payload from [gLBUrl](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string).gLBUrl 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel\.GLTFSceneViewModel\(string, string\)\.gLBUrl') and reads the scene configuration from its extras\.
+
+```csharp
+public GLTFSceneViewModel(string? title, string? gLBUrl);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string).title'></a>
+
+`title` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The title displayed above the viewer\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string).gLBUrl'></a>
+
+`gLBUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The application relative URL of the binary glTF \(\.glb\) endpoint\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLBBase64'></a>
+
+## GLTFSceneViewModel\.GLBBase64 Property
+
+Gets the base64 encoded binary glTF \(\.glb\) payload rendered by the viewer \(embedded delivery only\)\.
+
+```csharp
+public string? GLBBase64 { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLBUrl'></a>
+
+## GLTFSceneViewModel\.GLBUrl Property
+
+Gets the application relative URL of the binary glTF \(\.glb\) endpoint \(streamed delivery only\)\.
+
+```csharp
+public string? GLBUrl { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFScene'></a>
+
+## GLTFSceneViewModel\.GLTFScene Property
+
+Gets the [GLTFScene](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFScene 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel\.GLTFScene') to be rendered \(embedded delivery only\)\.
+
+```csharp
+public DiGi.GLTF.Classes.GLTFScene? GLTFScene { get; }
+```
+
+#### Property Value
+[DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneJson'></a>
+
+## GLTFSceneViewModel\.GLTFSceneJson Property
+
+Gets the JSON representation of the scene used by the viewer for lights, camera and reference point configuration \(embedded delivery only\)\.
+
+```csharp
+public string? GLTFSceneJson { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.Title'></a>
+
+## GLTFSceneViewModel\.Title Property
+
+Gets the title displayed above the viewer\.
+
+```csharp
+public string? Title { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.OrtoDatasViewModel'></a>
 
 ## OrtoDatasViewModel Class

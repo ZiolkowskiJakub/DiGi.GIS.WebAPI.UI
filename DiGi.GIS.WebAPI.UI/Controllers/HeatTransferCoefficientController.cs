@@ -198,7 +198,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                         Building2D? building2D = Core.Convert.ToDiGi<Building2D>(json)?.FirstOrDefault();
                         if (building2D is not null)
                         {
-                            isResidential = Query.IsResidential(building2D);
+                            isResidential = GIS.Query.IsResidential(building2D);
                         }
                     }
                 }

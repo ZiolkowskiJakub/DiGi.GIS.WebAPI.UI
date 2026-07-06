@@ -14,8 +14,19 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
 		<PackageReference Include="NetTopologySuite" Version="2.6.0" />
+		<!-- Npgsql and ProjNET4GeoAPI are NuGet dependencies of DiGi.GIS.PostgreSQL (referenced via HintPath), so they must be re-added here to reach the application output. -->
+		<PackageReference Include="Npgsql" Version="10.0.2" />
+		<PackageReference Include="ProjNET4GeoAPI" Version="1.4.1" />
+		<!-- SharpGLTF is a NuGet dependency of DiGi.GLTF (referenced via HintPath), so it must be re-added here to reach the application output. -->
+		<PackageReference Include="SharpGLTF.Toolkit" Version="1.0.6" />
 		<PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="10.2.1" />
 	</ItemGroup>
+
+	<!-- The generic 3D viewer engine is owned by the DiGi.GLTF.WebAPI repository; it is synchronized
+	     into this project's wwwroot at build time (the static-asset analogue of the HintPath references). -->
+	<Target Name="CopyGLTFViewerCore" BeforeTargets="Build">
+		<Copy SourceFiles="$(ProjectDir)..\..\DiGi.GLTF.WebAPI\DiGi.GLTF.WebAPI\wwwroot\js\gltf-viewer-core.js" DestinationFolder="$(ProjectDir)wwwroot\js\" SkipUnchangedFiles="true" />
+	</Target>
 
 	<Target Name="CopyFiles" AfterTargets="Build">
 		<ItemGroup>
@@ -37,8 +48,17 @@
 		<Reference Include="DiGi.Analytical.Building.HVAC">
 		  <HintPath>..\..\DiGi.Analytical\bin\DiGi.Analytical.Building.HVAC.dll</HintPath>
 		</Reference>
+		<Reference Include="DiGi.Analytical.Urban">
+		  <HintPath>..\..\DiGi.Analytical\bin\DiGi.Analytical.Urban.dll</HintPath>
+		</Reference>
 		<Reference Include="DiGi.Core">
 			<HintPath>..\..\DiGi.Core\bin\DiGi.Core.dll</HintPath>
+		</Reference>
+		<Reference Include="DiGi.Core.Parameter">
+			<HintPath>..\..\DiGi.Core\bin\DiGi.Core.Parameter.dll</HintPath>
+		</Reference>
+		<Reference Include="DiGi.Core.Relation">
+			<HintPath>..\..\DiGi.Core\bin\DiGi.Core.Relation.dll</HintPath>
 		</Reference>
 		<Reference Include="DiGi.EPW">
 			<HintPath>..\..\DiGi.EPW\bin\DiGi.EPW.dll</HintPath>
@@ -46,8 +66,17 @@
 		<Reference Include="DiGi.Geometry">
 		  <HintPath>..\..\DiGi.Geometry\bin\DiGi.Geometry.dll</HintPath>
 		</Reference>
+		<Reference Include="DiGi.Geometry.Object">
+		  <HintPath>..\..\DiGi.Geometry\bin\DiGi.Geometry.Object.dll</HintPath>
+		</Reference>
+		<Reference Include="DiGi.Geometry.Visual">
+		  <HintPath>..\..\DiGi.Geometry.Visual\bin\DiGi.Geometry.Visual.dll</HintPath>
+		</Reference>
 		<Reference Include="DiGi.GIS">
 			<HintPath>..\..\DiGi.GIS\bin\DiGi.GIS.dll</HintPath>
+		</Reference>
+		<Reference Include="DiGi.GLTF">
+			<HintPath>..\..\DiGi.GLTF\bin\DiGi.GLTF.dll</HintPath>
 		</Reference>
 		<Reference Include="DiGi.GIS.PostgreSQL">
 		  <HintPath>..\..\DiGi.GIS.PostgreSQL\bin\DiGi.GIS.PostgreSQL.dll</HintPath>

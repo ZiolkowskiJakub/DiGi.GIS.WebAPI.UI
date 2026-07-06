@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Linq;
 
 // WebApplicationBuilder is the factory for our web application
 WebApplicationBuilder webApplicationBuilder = WebApplication.CreateBuilder(args);
@@ -24,8 +26,20 @@ webApplicationBuilder.Services.AddCors(options =>
 // Register IHttpClientFactory to allow server-side API calls
 webApplicationBuilder.Services.AddHttpClient();
 
+// Compress streamed binary glTF payloads (their JSON chunk with object properties compresses very well).
+webApplicationBuilder.Services.AddResponseCompression(responseCompressionOptions =>
+{
+    responseCompressionOptions.EnableForHttps = true;
+    responseCompressionOptions.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(["model/gltf-binary"]);
+});
+
 // We use AddControllersWithViews because you want to display HTML pages (.cshtml)
 webApplicationBuilder.Services.AddControllersWithViews();
+
+// Register all IGLTFNodeConverter implementations of this assembly with the generic DiGi.GLTF
+// engine (plugin pattern): adding support for a new domain type only requires adding a new
+// converter class under /Classes/Converter - no other code changes.
+DiGi.GLTF.Modify.Register(typeof(Program).Assembly);
 
 // Build the application
 WebApplication webApplication = webApplicationBuilder.Build();
@@ -39,6 +53,7 @@ if (!webApplication.Environment.IsDevelopment())
 }
 
 webApplication.UseHttpsRedirection();
+webApplication.UseResponseCompression();
 webApplication.UseStaticFiles(); // Required to serve CSS, JS, and Images from wwwroot
 webApplication.UseRouting();
 webApplication.UseCors(corsPolicyName);
