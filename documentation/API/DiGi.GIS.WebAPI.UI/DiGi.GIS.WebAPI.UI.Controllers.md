@@ -359,6 +359,49 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the \.glb file\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_)'></a>
+
+## Building2DController\.GetDetailsByReferenceAsync\(string, Nullable\<int\>, Nullable\<double\>, Nullable\<double\>\) Method
+
+Renders the standalone building details page for the specified building reference \(used e\.g\. by the "Show" button of the 3D viewer "Details" panel\)\.
+
+The partial view _Building2DView cannot be rendered on its own: it depends on the scripts, styles and AJAX loading logic of the references master-detail layout. The building context is therefore injected into `Building2DDetailsView`, which renders only the details side and loads the partial through the same AJAX pipeline.
+
+The building data is partitioned per county, so the by-reference lookup requires a county identifier. When it is not provided, it is resolved from the optional [x](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_).x 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.Building2DController\.GetDetailsByReferenceAsync\(string, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Nullable\<double\>\)\.x')/[y](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_).y 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.Building2DController\.GetDetailsByReferenceAsync\(string, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Nullable\<double\>\)\.y') point (e.g. the building centroid known to the 3D viewer).
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetDetailsByReferenceAsync(string? reference, System.Nullable<int> countyId=null, System.Nullable<double> x=null, System.Nullable<double> y=null);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_).reference'></a>
+
+`reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The unique reference string of the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional unique identifier of the county associated with the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_).x'></a>
+
+`x` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional X coordinate of a point inside the building used to resolve the county when [countyId](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_).countyId 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.Building2DController\.GetDetailsByReferenceAsync\(string, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Nullable\<double\>\)\.countyId') is not provided\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_).y'></a>
+
+`y` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional Y coordinate of a point inside the building used to resolve the county when [countyId](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_).countyId 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.Building2DController\.GetDetailsByReferenceAsync\(string, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Nullable\<double\>\)\.countyId') is not provided\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') rendering the building details page\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetItemByIdAsync(long,System.Nullable_int_)'></a>
 
 ## Building2DController\.GetItemByIdAsync\(long, Nullable\<int\>\) Method
@@ -537,6 +580,125 @@ public Microsoft.AspNetCore.Mvc.IActionResult Start();
 #### Returns
 [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
 An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') representing the start view\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController'></a>
+
+## CommunicationController Class
+
+Provides the communication analysis feature: an input page for the analyzed circular area, the 3D scene view with the antenna toolbar and the calculation endpoint bridging the 3D view with the GIS agnostic DiGi\.Communication\.WebAPI service\.
+
+```csharp
+public class CommunicationController : Microsoft.AspNetCore.Mvc.Controller
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [Microsoft\.AspNetCore\.Mvc\.ControllerBase](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controllerbase 'Microsoft\.AspNetCore\.Mvc\.ControllerBase') → [Microsoft\.AspNetCore\.Mvc\.Controller](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controller 'Microsoft\.AspNetCore\.Mvc\.Controller') → CommunicationController
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CommunicationController(System.Net.Http.IHttpClientFactory,Microsoft.AspNetCore.Hosting.IWebHostEnvironment)'></a>
+
+## CommunicationController\(IHttpClientFactory, IWebHostEnvironment\) Constructor
+
+Initializes a new instance of the [CommunicationController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.CommunicationController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.CommunicationController') class\.
+
+```csharp
+public CommunicationController(System.Net.Http.IHttpClientFactory httpClientFactory, Microsoft.AspNetCore.Hosting.IWebHostEnvironment webHostEnvironment);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CommunicationController(System.Net.Http.IHttpClientFactory,Microsoft.AspNetCore.Hosting.IWebHostEnvironment).httpClientFactory'></a>
+
+`httpClientFactory` [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory')
+
+The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') used to create [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') instances\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CommunicationController(System.Net.Http.IHttpClientFactory,Microsoft.AspNetCore.Hosting.IWebHostEnvironment).webHostEnvironment'></a>
+
+`webHostEnvironment` [Microsoft\.AspNetCore\.Hosting\.IWebHostEnvironment](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.hosting.iwebhostenvironment 'Microsoft\.AspNetCore\.Hosting\.IWebHostEnvironment')
+
+The [Microsoft\.AspNetCore\.Hosting\.IWebHostEnvironment](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.hosting.iwebhostenvironment 'Microsoft\.AspNetCore\.Hosting\.IWebHostEnvironment') used to select the DiGi\.Communication\.WebAPI base URI\.
+### Methods
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CalculateAsync(DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter,System.Threading.CancellationToken)'></a>
+
+## CommunicationController\.CalculateAsync\(CommunicationCalculationParameter, CancellationToken\) Method
+
+Executes the communication calculation for the antennas placed in the 3D view\.
+
+The buildings of the analyzed area are fetched and converted on the fly (Building -> Mesh3D -> ScatteringObject), packaged together with the antennas into a [DiGi\.Communication\.Classes\.GeometricalPropagationModel](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.geometricalpropagationmodel 'DiGi\.Communication\.Classes\.GeometricalPropagationModel') and sent to the GIS agnostic DiGi.Communication.WebAPI service; nothing is persisted.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> CalculateAsync(DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter? communicationCalculationParameter, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CalculateAsync(DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter,System.Threading.CancellationToken).communicationCalculationParameter'></a>
+
+`communicationCalculationParameter` [CommunicationCalculationParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.CommunicationCalculationParameter')
+
+The analyzed circular area and the antennas placed by the user\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CalculateAsync(DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the calculation result JSON \(currently the connecting [DiGi\.Geometry\.Spatial\.Classes\.Segment3D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.spatial.classes.segment3d 'DiGi\.Geometry\.Spatial\.Classes\.Segment3D') and its length\)\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.GetBuildingsByRadius(double,double,double,System.Nullable_double_)'></a>
+
+## CommunicationController\.GetBuildingsByRadius\(double, double, double, Nullable\<double\>\) Method
+
+Renders the communication 3D scene view for all buildings within the specified circular area \(streamed as a binary glTF payload from the existing glb endpoint\) together with the antenna toolbar\.
+
+```csharp
+public Microsoft.AspNetCore.Mvc.IActionResult GetBuildingsByRadius(double centerX, double centerY, double radius, System.Nullable<double> storeyHeight=null);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.GetBuildingsByRadius(double,double,double,System.Nullable_double_).centerX'></a>
+
+`centerX` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The X coordinate of the center of the analyzed circular area\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.GetBuildingsByRadius(double,double,double,System.Nullable_double_).centerY'></a>
+
+`centerY` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The Y coordinate of the center of the analyzed circular area\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.GetBuildingsByRadius(double,double,double,System.Nullable_double_).radius'></a>
+
+`radius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The radius of the analyzed circular area in meters\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.GetBuildingsByRadius(double,double,double,System.Nullable_double_).storeyHeight'></a>
+
+`storeyHeight` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional storey height in meters used for the building extrusions\.
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') rendering the communication scene view\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.Start()'></a>
+
+## CommunicationController\.Start\(\) Method
+
+Initializes and returns the start view of the communication analysis feature\.
+
+```csharp
+public Microsoft.AspNetCore.Mvc.IActionResult Start();
+```
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') result that renders the starting view\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.EPWFileController'></a>
 

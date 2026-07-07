@@ -14,6 +14,72 @@ public static class Convert
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → Convert
 ### Methods
 
+<a name='DiGi.GIS.WebAPI.UI.Convert.ToCommunication_ScatteringObject(thisDiGi.GIS.Classes.Building2D,double,double)'></a>
+
+## Convert\.ToCommunication\_ScatteringObject\(this Building2D, double, double\) Method
+
+Converts the specified [DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D') into a [DiGi\.Communication\.Classes\.ScatteringObject](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.scatteringobject 'DiGi\.Communication\.Classes\.ScatteringObject') by extruding its 2D polygonal footprint by the number of storeys multiplied by the storey height and triangulating the resulting polyhedron into a [DiGi\.Geometry\.Spatial\.Classes\.Mesh3D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.spatial.classes.mesh3d 'DiGi\.Geometry\.Spatial\.Classes\.Mesh3D')\.
+
+```csharp
+public static DiGi.Communication.Classes.ScatteringObject? ToCommunication_ScatteringObject(this DiGi.GIS.Classes.Building2D? building2D, double storeyHeight=3.0, double tolerance=1E-06);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Convert.ToCommunication_ScatteringObject(thisDiGi.GIS.Classes.Building2D,double,double).building2D'></a>
+
+`building2D` [DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D')
+
+The [DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D') to be converted\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Convert.ToCommunication_ScatteringObject(thisDiGi.GIS.Classes.Building2D,double,double).storeyHeight'></a>
+
+`storeyHeight` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The height of a single storey in meters used for the extrusion\.
+
+<a name='DiGi.GIS.WebAPI.UI.Convert.ToCommunication_ScatteringObject(thisDiGi.GIS.Classes.Building2D,double,double).tolerance'></a>
+
+`tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The distance tolerance used during triangulation\.
+
+#### Returns
+[DiGi\.Communication\.Classes\.ScatteringObject](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.scatteringobject 'DiGi\.Communication\.Classes\.ScatteringObject')  
+A [DiGi\.Communication\.Classes\.ScatteringObject](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.scatteringobject 'DiGi\.Communication\.Classes\.ScatteringObject') holding the triangulated building geometry in world coordinates, or null if the building or its geometry is null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Convert.ToCommunication_ScatteringObjects(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.Classes.Building2D_,double,double)'></a>
+
+## Convert\.ToCommunication\_ScatteringObjects\(this IEnumerable\<Building2D\>, double, double\) Method
+
+Converts the specified [DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D') collection into [DiGi\.Communication\.Classes\.ScatteringObject](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.scatteringobject 'DiGi\.Communication\.Classes\.ScatteringObject') instances \(see [ToCommunication\_ScatteringObject\(this Building2D, double, double\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Convert.ToCommunication_ScatteringObject(thisDiGi.GIS.Classes.Building2D,double,double) 'DiGi\.GIS\.WebAPI\.UI\.Convert\.ToCommunication\_ScatteringObject\(this DiGi\.GIS\.Classes\.Building2D, double, double\)')\)\.
+
+```csharp
+public static System.Collections.Generic.List<DiGi.Communication.Classes.ScatteringObject>? ToCommunication_ScatteringObjects(this System.Collections.Generic.IEnumerable<DiGi.GIS.Classes.Building2D>? building2Ds, double storeyHeight=3.0, double tolerance=1E-06);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Convert.ToCommunication_ScatteringObjects(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.Classes.Building2D_,double,double).building2Ds'></a>
+
+`building2Ds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The [DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D') collection to be converted\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Convert.ToCommunication_ScatteringObjects(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.Classes.Building2D_,double,double).storeyHeight'></a>
+
+`storeyHeight` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The height of a single storey in meters used for the extrusions\.
+
+<a name='DiGi.GIS.WebAPI.UI.Convert.ToCommunication_ScatteringObjects(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.Classes.Building2D_,double,double).tolerance'></a>
+
+`tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The distance tolerance used during triangulation\.
+
+#### Returns
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.Communication\.Classes\.ScatteringObject](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.scatteringobject 'DiGi\.Communication\.Classes\.ScatteringObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
+A list of [DiGi\.Communication\.Classes\.ScatteringObject](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.scatteringobject 'DiGi\.Communication\.Classes\.ScatteringObject') instances for all convertible buildings, or null if [building2Ds](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Convert.ToCommunication_ScatteringObjects(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.Classes.Building2D_,double,double).building2Ds 'DiGi\.GIS\.WebAPI\.UI\.Convert\.ToCommunication\_ScatteringObjects\(this System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.Classes\.Building2D\>, double, double\)\.building2Ds') is null\.
+
 <a name='DiGi.GIS.WebAPI.UI.Convert.ToGLTF_GLTFNodes(thisDiGi.Analytical.Building.Classes.BuildingModel,double)'></a>
 
 ## Convert\.ToGLTF\_GLTFNodes\(this BuildingModel, double\) Method

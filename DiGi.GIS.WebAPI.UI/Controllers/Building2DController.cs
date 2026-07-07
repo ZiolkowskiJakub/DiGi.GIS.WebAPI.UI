@@ -67,6 +67,102 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
 
         /// <summary>
+        /// Renders the standalone building details page for the specified building reference (used e.g. by the "Show" button of the 3D viewer "Details" panel).
+        /// <para>The partial view _Building2DView cannot be rendered on its own: it depends on the scripts, styles and AJAX loading logic of the references master-detail layout. The building context is therefore injected into <c>Building2DDetailsView</c>, which renders only the details side and loads the partial through the same AJAX pipeline.</para>
+        /// <para>The building data is partitioned per county, so the by-reference lookup requires a county identifier. When it is not provided, it is resolved from the optional <paramref name="x"/>/<paramref name="y"/> point (e.g. the building centroid known to the 3D viewer).</para>
+        /// </summary>
+        /// <param name="reference">The unique reference string of the building.</param>
+        /// <param name="countyId">The optional unique identifier of the county associated with the building.</param>
+        /// <param name="x">The optional X coordinate of a point inside the building used to resolve the county when <paramref name="countyId"/> is not provided.</param>
+        /// <param name="y">The optional Y coordinate of a point inside the building used to resolve the county when <paramref name="countyId"/> is not provided.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> rendering the building details page.</returns>
+        [HttpGet("detailsbyreference")]
+        public async Task<IActionResult> GetDetailsByReferenceAsync(
+            [FromQuery(Name = "reference")] string? reference,
+            [FromQuery(Name = "countyid")] int? countyId = null,
+            [FromQuery(Name = "x")] double? x = null,
+            [FromQuery(Name = "y")] double? y = null)
+        {
+            if (string.IsNullOrWhiteSpace(reference))
+            {
+                return BadRequest();
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            UrlBuilder urlBuilder;
+            HttpResponseMessage httpResponseMessage;
+            string json;
+
+            #region CountyId by point
+
+            if (countyId is null && x is not null && y is not null && !double.IsNaN(x.Value) && !double.IsNaN(y.Value))
+            {
+                urlBuilder = new("https://api.digiproject.uk/gis/administrativeareal2D/itemsbypoint");
+                urlBuilder = urlBuilder.AddParameter("x", x.Value);
+                urlBuilder = urlBuilder.AddParameter("y", y.Value);
+                urlBuilder = urlBuilder.AddParameter("type", "County");
+
+                httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
+                if (httpResponseMessage.IsSuccessStatusCode)
+                {
+                    json = await httpResponseMessage.Content.ReadAsStringAsync();
+
+                    string? code = string.IsNullOrWhiteSpace(json) ? null : Core.Convert.ToDiGi<GIS.Classes.AdministrativeAreal2D>(json)?.FirstOrDefault()?.Code;
+                    if (!string.IsNullOrWhiteSpace(code))
+                    {
+                        urlBuilder = new("https://api.digiproject.uk/gis/administrativeareal2D/idbycode");
+                        urlBuilder = urlBuilder.AddParameter("code", code);
+                        urlBuilder = urlBuilder.AddParameter("administrativearealtype", "County");
+
+                        httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
+                        if (httpResponseMessage.IsSuccessStatusCode)
+                        {
+                            json = await httpResponseMessage.Content.ReadAsStringAsync();
+                            if (int.TryParse(json, out int countyId_Temp))
+                            {
+                                countyId = countyId_Temp;
+                            }
+                        }
+                    }
+                }
+            }
+
+            #endregion CountyId by point
+
+            #region Building2DReference
+
+            urlBuilder = new("https://api.digiproject.uk/gis/building2D/building2Dreferencebyreference");
+            urlBuilder = urlBuilder.AddParameter("reference", reference);
+            if (countyId is not null && countyId.HasValue)
+            {
+                urlBuilder = urlBuilder.AddParameter("countyId", countyId.Value);
+            }
+
+            httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
+            if (!httpResponseMessage.IsSuccessStatusCode)
+            {
+                return NotFound();
+            }
+
+            json = await httpResponseMessage.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return NotFound();
+            }
+
+            Building2DReference? building2DReference = Core.Convert.ToDiGi<Building2DReference>(json)?.FirstOrDefault();
+            if (building2DReference is null)
+            {
+                return NotFound();
+            }
+
+            #endregion Building2DReference
+
+            return View("Building2DDetailsView", new Building2DReferencesViewModel([building2DReference]));
+        }
+
+        /// <summary>
         /// Asynchronously retrieves a building 2D item by its unique identifier.
         /// </summary>
         /// <param name="id">The unique identifier of the item to retrieve.</param>

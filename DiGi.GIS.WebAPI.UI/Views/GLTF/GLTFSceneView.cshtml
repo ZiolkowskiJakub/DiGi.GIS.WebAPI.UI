@@ -11,7 +11,9 @@
     <div class="gltf-layout">
         @* Streamed delivery: the viewer fetches the binary glTF payload from data-glb-url; when the
            attribute is empty, the embedded base64 payload below is used instead. *@
-        <div id="gltf-viewer-container" data-glb-url="@(string.IsNullOrEmpty(Model.GLBUrl) ? string.Empty : Url.Content(Model.GLBUrl))">
+        <div id="gltf-viewer-container"
+             data-glb-url="@(string.IsNullOrEmpty(Model.GLBUrl) ? string.Empty : Url.Content(Model.GLBUrl))"
+             data-building-details-url="@Url.Content("~/building2D/detailsbyreference")">
             <div id="gltf-toolbar">
                 <button type="button" id="gltf-fit-button" class="gis-button" title="Frame the whole scene">Fit view</button>
                 <button type="button" id="gltf-clear-button" class="gis-button" title="Clear the current selection">Clear selection</button>
@@ -34,6 +36,15 @@
                 <label class="gltf-slider-label">Ambient intensity <span id="gltf-ambient-intensity-value"></span>
                     <input type="range" id="gltf-ambient-intensity" min="0" max="2" step="0.05" />
                 </label>
+            </div>
+
+            @* Details card: shown by building-details-panel.js when exactly one building is selected;
+               the "Show" button opens the standalone building details page. *@
+            <div class="gis-card gltf-card" id="building-details-card" style="display: none;">
+                <h3 class="gltf-card-title">Details</h3>
+                <div style="text-align: center;">
+                    <a id="building-details-show-link" class="gis-button" href="#" target="_blank" rel="noopener" style="display: inline-block;">Show</a>
+                </div>
             </div>
 
             <div class="gis-card gltf-card">
@@ -160,4 +171,5 @@
         }
     </!script>
     <script type="module" src="~/js/gltf-viewer.js" asp-append-version="true"></script>
+    <script type="module" src="~/js/building-details-panel.js" asp-append-version="true"></script>
 }

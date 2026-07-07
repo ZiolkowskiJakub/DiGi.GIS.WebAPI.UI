@@ -51,6 +51,9 @@
 		<Reference Include="DiGi.Analytical.Urban">
 		  <HintPath>..\..\DiGi.Analytical\bin\DiGi.Analytical.Urban.dll</HintPath>
 		</Reference>
+		<Reference Include="DiGi.Communication">
+			<HintPath>..\..\DiGi.Communication\bin\DiGi.Communication.dll</HintPath>
+		</Reference>
 		<Reference Include="DiGi.Core">
 			<HintPath>..\..\DiGi.Core\bin\DiGi.Core.dll</HintPath>
 		</Reference>

@@ -1,0 +1,49 @@
+@using DiGi.GIS.PostgreSQL.Classes
+@using DiGi.GIS.WebAPI.UI.ViewModels
+
+@model Building2DReferencesViewModel
+
+@{
+    Building2DReference? building2DReference = Model?.Building2DReferences is { Count: > 0 } ? Model.Building2DReferences[0] : null;
+
+    ViewData["Title"] = building2DReference?.Reference ?? "Building";
+    ViewData["Description"] = "Detailed view of a single building: geometry, administrative path and technical properties.";
+}
+
+<link rel="stylesheet" href="~/css/gis-theme.css" />
+
+@* Standalone building details page: only the details side of the master-detail layout is rendered.
+   The _Building2DView partial cannot be rendered on its own, so it is loaded through the same AJAX
+   pipeline (building.js loadBuildingDetails) as on the references page — all scripts and styles of
+   the partial keep working. *@
+<div class="master-detail-wrapper">
+    <div id="detailsSide">
+        <div id="detailsLoader" class="details-loader">
+            <div class="gis-loader"></div>
+            <p style="font-size: 0.9em; color: #0078d4; font-weight: 500;">Fetching data...</p>
+        </div>
+
+        <div id="detailsContent">
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/building.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            @if (building2DReference != null)
+            {
+                string url = $"~/building2D/itembyid?id={building2DReference.Id}";
+                if (building2DReference.CountyId is not null && building2DReference.CountyId.HasValue)
+                {
+                    url += $"&countyid={building2DReference.CountyId.Value}";
+                }
+
+                @* Html.Raw is required: Razor would HTML-encode the '&' query separators, and
+                   entities are not decoded inside script elements. *@
+                <text>loadBuildingDetails('@Html.Raw(Url.Content(url))', null);</text>
+            }
+        });
+    </script>
+}
