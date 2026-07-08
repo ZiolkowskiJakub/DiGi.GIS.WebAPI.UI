@@ -581,6 +581,78 @@ public Microsoft.AspNetCore.Mvc.IActionResult Start();
 [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
 An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') representing the start view\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController'></a>
+
+## BuildingModelController Class
+
+Provides controller endpoints for accessing analytical [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') data, acting as an interface between the client and the underlying GIS building data services\.
+
+```csharp
+public class BuildingModelController : Microsoft.AspNetCore.Mvc.Controller
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [Microsoft\.AspNetCore\.Mvc\.ControllerBase](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controllerbase 'Microsoft\.AspNetCore\.Mvc\.ControllerBase') → [Microsoft\.AspNetCore\.Mvc\.Controller](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controller 'Microsoft\.AspNetCore\.Mvc\.Controller') → BuildingModelController
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.BuildingModelController(System.Net.Http.IHttpClientFactory)'></a>
+
+## BuildingModelController\(IHttpClientFactory\) Constructor
+
+Initializes a new instance of the [BuildingModelController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.BuildingModelController') class\.
+
+```csharp
+public BuildingModelController(System.Net.Http.IHttpClientFactory httpClientFactory);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.BuildingModelController(System.Net.Http.IHttpClientFactory).httpClientFactory'></a>
+
+`httpClientFactory` [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory')
+
+The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') used to create and manage [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') instances for making API requests\.
+### Methods
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByIdAsync(long,System.Nullable_int_)'></a>
+
+## BuildingModelController\.GetItemByIdAsync\(long, Nullable\<int\>\) Method
+
+Asynchronously creates a [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') for the building with the specified unique identifier \(see [BuildingModelAsync\(this HttpClient, long, Nullable&lt;int&gt;, double, double\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double) 'DiGi\.GIS\.WebAPI\.UI\.Create\.BuildingModelAsync\(this System\.Net\.Http\.HttpClient, long, System\.Nullable\<int\>, double, double\)')\) and returns it as JSON\.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetItemByIdAsync(long id, System.Nullable<int> countyId);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByIdAsync(long,System.Nullable_int_).id'></a>
+
+`id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The unique identifier of the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByIdAsync(long,System.Nullable_int_).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional unique identifier of the county associated with the building\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the serialized [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.Start()'></a>
+
+## BuildingModelController\.Start\(\) Method
+
+Handles the HTTP GET request to the root endpoint and returns the starting view for building data operations\.
+
+```csharp
+public Microsoft.AspNetCore.Mvc.IActionResult Start();
+```
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') representing the start view\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController'></a>
 
 ## CommunicationController Class
@@ -842,7 +914,9 @@ An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us
 
 ## GLTFController\.GetBuilding2DGLBByIdAsync\(long, Nullable\<int\>, Nullable\<double\>\) Method
 
-Asynchronously retrieves a [DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D') by its unique identifier, converts it into a batched [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene') \(2D footprint converted to a 3D polygonal face, extruded by storeys and translated to a local origin\) and streams it as a binary glTF \(\.glb\) payload\.
+Asynchronously creates a [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') for the building with the specified unique identifier \(see [BuildingModelAsync\(this HttpClient, long, Nullable&lt;int&gt;, double, double\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double) 'DiGi\.GIS\.WebAPI\.UI\.Create\.BuildingModelAsync\(this System\.Net\.Http\.HttpClient, long, System\.Nullable\<int\>, double, double\)')\), converts each of its components \(walls, floors and roofs\) into a separate node of a batched [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene') \(translated to a local origin\) and streams it as a binary glTF \(\.glb\) payload\.
+
+Each component carries its own identity in the scene object map, so the 3D viewer can hit-test and select individual components instead of the building as a whole.
 
 ```csharp
 public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetBuilding2DGLBByIdAsync(long id, System.Nullable<int> countyId, System.Nullable<double> storeyHeight=null);

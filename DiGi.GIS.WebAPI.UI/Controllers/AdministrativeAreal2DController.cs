@@ -629,7 +629,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// <summary>
         /// Starts the Administrative Areal 2D view.
         /// </summary>
-        /// <returns>An <see cref="Microsoft.AspNetCore.Mvc.IActionResult"/> result that renders the start view.</returns>
+        /// <returns>An <see cref="IActionResult"/> result that renders the start view.</returns>
         [HttpGet("")]
         public IActionResult Start()
         {

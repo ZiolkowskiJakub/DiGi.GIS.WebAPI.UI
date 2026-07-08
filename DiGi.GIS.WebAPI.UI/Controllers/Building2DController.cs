@@ -77,11 +77,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// <param name="y">The optional Y coordinate of a point inside the building used to resolve the county when <paramref name="countyId"/> is not provided.</param>
         /// <returns>A <see cref="Task{IActionResult}"/> rendering the building details page.</returns>
         [HttpGet("detailsbyreference")]
-        public async Task<IActionResult> GetDetailsByReferenceAsync(
-            [FromQuery(Name = "reference")] string? reference,
-            [FromQuery(Name = "countyid")] int? countyId = null,
-            [FromQuery(Name = "x")] double? x = null,
-            [FromQuery(Name = "y")] double? y = null)
+        public async Task<IActionResult> GetDetailsByReferenceAsync([FromQuery(Name = "reference")] string? reference, [FromQuery(Name = "countyid")] int? countyId = null, [FromQuery(Name = "x")] double? x = null, [FromQuery(Name = "y")] double? y = null)
         {
             if (string.IsNullOrWhiteSpace(reference))
             {
@@ -391,11 +387,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// <param name="storeyHeight">The optional storey height in meters used for the extrusions.</param>
         /// <returns>An <see cref="IActionResult"/> rendering the glTF scene view.</returns>
         [HttpGet("/gltf/buildingsbyradius")]
-        public IActionResult GetBuildingsByRadius(
-            [FromQuery(Name = "centerX")] double centerX,
-            [FromQuery(Name = "centerY")] double centerY,
-            [FromQuery(Name = "radius")] double radius,
-            [FromQuery(Name = "storeyheight")] double? storeyHeight = null)
+        public IActionResult GetBuildingsByRadius([FromQuery(Name = "centerX")] double centerX, [FromQuery(Name = "centerY")] double centerY, [FromQuery(Name = "radius")] double radius, [FromQuery(Name = "storeyheight")] double? storeyHeight = null)
         {
             if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0)
             {
@@ -426,12 +418,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
         /// <returns>A <see cref="Task{IActionResult}"/> holding the .glb file.</returns>
         [HttpGet("/gltf/glb/buildingsbyradius")]
-        public async Task<IActionResult> GetBuildingsGLBByRadiusAsync(
-            [FromQuery(Name = "centerX")] double centerX,
-            [FromQuery(Name = "centerY")] double centerY,
-            [FromQuery(Name = "radius")] double radius,
-            [FromQuery(Name = "storeyheight")] double? storeyHeight = null,
-            CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetBuildingsGLBByRadiusAsync([FromQuery(Name = "centerX")] double centerX, [FromQuery(Name = "centerY")] double centerY, [FromQuery(Name = "radius")] double radius, [FromQuery(Name = "storeyheight")] double? storeyHeight = null, CancellationToken cancellationToken = default)
         {
             if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0)
             {

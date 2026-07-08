@@ -1,6 +1,7 @@
+using DiGi.Analytical.Building.Classes;
 using DiGi.GIS.WebAPI.UI.ViewModels;
+using DiGi.GLTF.Analytical;
 using DiGi.GLTF.Classes;
-using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Globalization;
@@ -48,13 +49,14 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 gLBUrl += $"&storeyheight={storeyHeight.Value.ToString(CultureInfo.InvariantCulture)}";
             }
 
-            GLTFSceneViewModel gLTFSceneViewModel = new($"Building2D {id}", gLBUrl);
+            GLTFSceneViewModel gLTFSceneViewModel = new($"BuildingModel {id}", gLBUrl);
 
             return View("GLTFSceneView", gLTFSceneViewModel);
         }
 
         /// <summary>
-        /// Asynchronously retrieves a <see cref="GIS.Classes.Building2D"/> by its unique identifier, converts it into a batched <see cref="GLTFScene"/> (2D footprint converted to a 3D polygonal face, extruded by storeys and translated to a local origin) and streams it as a binary glTF (.glb) payload.
+        /// Asynchronously creates a <see cref="BuildingModel"/> for the building with the specified unique identifier (see <see cref="Create.BuildingModelAsync(HttpClient?, long, int?, double, double)"/>), converts each of its components (walls, floors and roofs) into a separate node of a batched <see cref="GLTFScene"/> (translated to a local origin) and streams it as a binary glTF (.glb) payload.
+        /// <para>Each component carries its own identity in the scene object map, so the 3D viewer can hit-test and select individual components instead of the building as a whole.</para>
         /// </summary>
         /// <param name="id">The unique identifier of the building.</param>
         /// <param name="countyId">The optional unique identifier of the county associated with the building.</param>
@@ -65,39 +67,19 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         {
             HttpClient httpClient = httpClientFactory.CreateClient();
 
-            UrlBuilder urlBuilder = new("https://api.digiproject.uk/gis/building2D/itembyid");
-            urlBuilder = urlBuilder.AddParameter("id", id);
-            if (countyId is not null && countyId.HasValue)
-            {
-                urlBuilder = urlBuilder.AddParameter("countyId", countyId.Value);
-            }
-
-            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
-            if (!httpResponseMessage.IsSuccessStatusCode)
-            {
-                return BadRequest();
-            }
-
-            string json = await httpResponseMessage.Content.ReadAsStringAsync();
-            if (string.IsNullOrWhiteSpace(json))
+            BuildingModel? buildingModel = await httpClient.BuildingModelAsync(id, countyId, storeyHeight ?? Constants.Default.StoreyHeight);
+            if (buildingModel is null)
             {
                 return NoContent();
             }
 
-            List<GIS.Classes.Building2D>? building2Ds = Core.Convert.ToDiGi<GIS.Classes.Building2D>(json);
-            GIS.Classes.Building2D? building2D = building2Ds is null || building2Ds.Count == 0 ? null : building2Ds[0];
-            if (building2D is null)
-            {
-                return NoContent();
-            }
-
-            List<GLTFNode>? gLTFNodes = building2D.ToGLTF_GLTFNodes(storeyHeight ?? Constants.Default.StoreyHeight);
+            List<GLTFNode>? gLTFNodes = buildingModel.ToGLTF_GLTFNodes();
             if (gLTFNodes is null || gLTFNodes.Count == 0)
             {
                 return NoContent();
             }
 
-            string name = $"Building2D {building2D.Reference ?? id.ToString(CultureInfo.InvariantCulture)}";
+            string name = $"BuildingModel {id.ToString(CultureInfo.InvariantCulture)}";
 
             GLTFScene? gLTFScene = GLTF.Create.GLTFScene(gLTFNodes, name);
             if (gLTFScene is null)

@@ -51,6 +51,9 @@
 		<Reference Include="DiGi.Analytical.Urban">
 		  <HintPath>..\..\DiGi.Analytical\bin\DiGi.Analytical.Urban.dll</HintPath>
 		</Reference>
+		<Reference Include="DiGi.CityGML">
+		  <HintPath>..\..\DiGi.CityGML\bin\DiGi.CityGML.dll</HintPath>
+		</Reference>
 		<Reference Include="DiGi.Communication">
 			<HintPath>..\..\DiGi.Communication\bin\DiGi.Communication.dll</HintPath>
 		</Reference>
@@ -78,8 +81,14 @@
 		<Reference Include="DiGi.GIS">
 			<HintPath>..\..\DiGi.GIS\bin\DiGi.GIS.dll</HintPath>
 		</Reference>
+		<Reference Include="DiGi.GIS.Analytical">
+		  <HintPath>..\..\DiGi.GIS.Analytical\bin\DiGi.GIS.Analytical.dll</HintPath>
+		</Reference>
 		<Reference Include="DiGi.GLTF">
 			<HintPath>..\..\DiGi.GLTF\bin\DiGi.GLTF.dll</HintPath>
+		</Reference>
+		<Reference Include="DiGi.GLTF.Analytical">
+			<HintPath>..\..\DiGi.GLTF.Analytical\bin\DiGi.GLTF.Analytical.dll</HintPath>
 		</Reference>
 		<Reference Include="DiGi.GIS.PostgreSQL">
 		  <HintPath>..\..\DiGi.GIS.PostgreSQL\bin\DiGi.GIS.PostgreSQL.dll</HintPath>

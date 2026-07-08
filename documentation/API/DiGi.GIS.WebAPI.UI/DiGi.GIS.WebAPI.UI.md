@@ -80,87 +80,6 @@ The distance tolerance used during triangulation\.
 [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.Communication\.Classes\.ScatteringObject](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.scatteringobject 'DiGi\.Communication\.Classes\.ScatteringObject')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
 A list of [DiGi\.Communication\.Classes\.ScatteringObject](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.scatteringobject 'DiGi\.Communication\.Classes\.ScatteringObject') instances for all convertible buildings, or null if [building2Ds](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Convert.ToCommunication_ScatteringObjects(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.Classes.Building2D_,double,double).building2Ds 'DiGi\.GIS\.WebAPI\.UI\.Convert\.ToCommunication\_ScatteringObjects\(this System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.Classes\.Building2D\>, double, double\)\.building2Ds') is null\.
 
-<a name='DiGi.GIS.WebAPI.UI.Convert.ToGLTF_GLTFNodes(thisDiGi.Analytical.Building.Classes.BuildingModel,double)'></a>
-
-## Convert\.ToGLTF\_GLTFNodes\(this BuildingModel, double\) Method
-
-Converts all components of the specified [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') \(walls, roofs, floors and other components with surface geometry\) into [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode') instances\.
-
-```csharp
-public static System.Collections.Generic.List<DiGi.GLTF.Classes.GLTFNode>? ToGLTF_GLTFNodes(this DiGi.Analytical.Building.Classes.BuildingModel? buildingModel, double tolerance=1E-06);
-```
-#### Parameters
-
-<a name='DiGi.GIS.WebAPI.UI.Convert.ToGLTF_GLTFNodes(thisDiGi.Analytical.Building.Classes.BuildingModel,double).buildingModel'></a>
-
-`buildingModel` [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')
-
-The [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') to be converted\. This value can be null\.
-
-<a name='DiGi.GIS.WebAPI.UI.Convert.ToGLTF_GLTFNodes(thisDiGi.Analytical.Building.Classes.BuildingModel,double).tolerance'></a>
-
-`tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-The distance tolerance used during triangulation\.
-
-#### Returns
-[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
-A list of [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode') instances for all convertible components, or null if the building model is null or has no components\.
-
-<a name='DiGi.GIS.WebAPI.UI.Convert.ToGLTF_GLTFNodes(thisDiGi.Analytical.Building.Interfaces.IComponent,double)'></a>
-
-## Convert\.ToGLTF\_GLTFNodes\(this IComponent, double\) Method
-
-Converts the specified building [DiGi\.Analytical\.Building\.Interfaces\.IComponent](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.interfaces.icomponent 'DiGi\.Analytical\.Building\.Interfaces\.IComponent') \(for example a wall or a roof\) into [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode') instances using its surface geometry and default component styling\.
-
-```csharp
-public static System.Collections.Generic.List<DiGi.GLTF.Classes.GLTFNode>? ToGLTF_GLTFNodes(this DiGi.Analytical.Building.Interfaces.IComponent? component, double tolerance=1E-06);
-```
-#### Parameters
-
-<a name='DiGi.GIS.WebAPI.UI.Convert.ToGLTF_GLTFNodes(thisDiGi.Analytical.Building.Interfaces.IComponent,double).component'></a>
-
-`component` [DiGi\.Analytical\.Building\.Interfaces\.IComponent](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.interfaces.icomponent 'DiGi\.Analytical\.Building\.Interfaces\.IComponent')
-
-The building component to be converted\. This value can be null\.
-
-<a name='DiGi.GIS.WebAPI.UI.Convert.ToGLTF_GLTFNodes(thisDiGi.Analytical.Building.Interfaces.IComponent,double).tolerance'></a>
-
-`tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-The distance tolerance used during triangulation\.
-
-#### Returns
-[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
-A list with a single [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode') representing the component, or null if the component has no supported surface geometry\.
-
-<a name='DiGi.GIS.WebAPI.UI.Convert.ToGLTF_GLTFNodes(thisDiGi.Analytical.Urban.Classes.UrbanModel,double)'></a>
-
-## Convert\.ToGLTF\_GLTFNodes\(this UrbanModel, double\) Method
-
-Converts the specified [DiGi\.Analytical\.Urban\.Classes\.UrbanModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.urban.classes.urbanmodel 'DiGi\.Analytical\.Urban\.Classes\.UrbanModel') into [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode') instances by converting all contained [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') instances\.
-
-```csharp
-public static System.Collections.Generic.List<DiGi.GLTF.Classes.GLTFNode>? ToGLTF_GLTFNodes(this DiGi.Analytical.Urban.Classes.UrbanModel? urbanModel, double tolerance=1E-06);
-```
-#### Parameters
-
-<a name='DiGi.GIS.WebAPI.UI.Convert.ToGLTF_GLTFNodes(thisDiGi.Analytical.Urban.Classes.UrbanModel,double).urbanModel'></a>
-
-`urbanModel` [DiGi\.Analytical\.Urban\.Classes\.UrbanModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.urban.classes.urbanmodel 'DiGi\.Analytical\.Urban\.Classes\.UrbanModel')
-
-The [DiGi\.Analytical\.Urban\.Classes\.UrbanModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.urban.classes.urbanmodel 'DiGi\.Analytical\.Urban\.Classes\.UrbanModel') to be converted\. This value can be null\.
-
-<a name='DiGi.GIS.WebAPI.UI.Convert.ToGLTF_GLTFNodes(thisDiGi.Analytical.Urban.Classes.UrbanModel,double).tolerance'></a>
-
-`tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-The distance tolerance used during triangulation\.
-
-#### Returns
-[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
-A list of [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode') instances for all contained building models, or null if the urban model is null or empty\.
-
 <a name='DiGi.GIS.WebAPI.UI.Convert.ToGLTF_GLTFNodes(thisDiGi.GIS.Classes.Building2D,double,double)'></a>
 
 ## Convert\.ToGLTF\_GLTFNodes\(this Building2D, double, double\) Method
@@ -237,6 +156,51 @@ public static class Create
 
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → Create
 ### Methods
+
+<a name='DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double)'></a>
+
+## Create\.BuildingModelAsync\(this HttpClient, long, Nullable\<int\>, double, double\) Method
+
+Asynchronously creates a [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') for the building with the specified unique identifier by fetching the [DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D') from the GIS Web API and extruding its 2D footprint storey by storey into individual components \(walls, floors and roofs\)\.
+
+```csharp
+public static System.Threading.Tasks.Task<DiGi.Analytical.Building.Classes.BuildingModel?> BuildingModelAsync(this System.Net.Http.HttpClient? httpClient, long id, System.Nullable<int> countyId=null, double storeyHeight=3.0, double tolerance=1E-06);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') used to call the GIS Web API\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double).id'></a>
+
+`id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The unique identifier of the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional unique identifier of the county associated with the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double).storeyHeight'></a>
+
+`storeyHeight` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The height of a single storey in meters used for the extrusion\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double).tolerance'></a>
+
+`tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The distance tolerance used during component creation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the created [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel'), or null if the building could not be fetched or converted\.
 
 <a name='DiGi.GIS.WebAPI.UI.Create.GLTFScene(thisSystem.Collections.Generic.IEnumerable_DiGi.GIS.Classes.Building2D_,string,double,double)'></a>
 
@@ -357,23 +321,23 @@ public static class Query
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → Query
 ### Methods
 
-<a name='DiGi.GIS.WebAPI.UI.Query.Color(thisDiGi.Core.Interfaces.ISerializableObject)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Query.Color(thisDiGi.GIS.Classes.Building2D)'></a>
 
-## Query\.Color\(this ISerializableObject\) Method
+## Query\.Color\(this Building2D\) Method
 
-Gets the default display [DiGi\.Core\.Classes\.Color](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.color 'DiGi\.Core\.Classes\.Color') for the specified domain object\.
+Gets the default display [DiGi\.Core\.Classes\.Color](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.color 'DiGi\.Core\.Classes\.Color') for the specified [DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D')\.
 
 ```csharp
-public static DiGi.Core.Classes.Color? Color(this DiGi.Core.Interfaces.ISerializableObject? serializableObject);
+public static DiGi.Core.Classes.Color? Color(this DiGi.GIS.Classes.Building2D? building2D);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Query.Color(thisDiGi.Core.Interfaces.ISerializableObject).serializableObject'></a>
+<a name='DiGi.GIS.WebAPI.UI.Query.Color(thisDiGi.GIS.Classes.Building2D).building2D'></a>
 
-`serializableObject` [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject')
+`building2D` [DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D')
 
-The domain object to be styled\. This value can be null\.
+The [DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D') to be styled\. This value can be null\.
 
 #### Returns
 [DiGi\.Core\.Classes\.Color](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.color 'DiGi\.Core\.Classes\.Color')  
-A [DiGi\.Core\.Classes\.Color](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.color 'DiGi\.Core\.Classes\.Color') representing the default styling of the object, or null if no default styling is defined\.
+A [DiGi\.Core\.Classes\.Color](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.color 'DiGi\.Core\.Classes\.Color') representing the default styling of the building, or null if [building2D](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Color(thisDiGi.GIS.Classes.Building2D).building2D 'DiGi\.GIS\.WebAPI\.UI\.Query\.Color\(this DiGi\.GIS\.Classes\.Building2D\)\.building2D') is null\.

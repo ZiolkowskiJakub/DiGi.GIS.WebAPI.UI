@@ -1,44 +1,25 @@
-using DiGi.Analytical.Building.Interfaces;
-using DiGi.Core.Interfaces;
 using DiGi.GIS.Classes;
 
 namespace DiGi.GIS.WebAPI.UI
 {
     public static partial class Query
     {
+        // The default colors of the DiGi.Analytical building components (walls, floors, roofs)
+        // are owned by the shared DiGi.GLTF.Analytical library (DiGi.GLTF.Analytical.Query.Color).
+
         /// <summary>
-        /// Gets the default display <see cref="Core.Classes.Color"/> for the specified domain object.
+        /// Gets the default display <see cref="Core.Classes.Color"/> for the specified <see cref="Building2D"/>.
         /// </summary>
-        /// <param name="serializableObject">The domain object to be styled. This value can be null.</param>
-        /// <returns>A <see cref="Core.Classes.Color"/> representing the default styling of the object, or null if no default styling is defined.</returns>
-        public static Core.Classes.Color? Color(this ISerializableObject? serializableObject)
+        /// <param name="building2D">The <see cref="Building2D"/> to be styled. This value can be null.</param>
+        /// <returns>A <see cref="Core.Classes.Color"/> representing the default styling of the building, or null if <paramref name="building2D"/> is null.</returns>
+        public static Core.Classes.Color? Color(this Building2D? building2D)
         {
-            switch (serializableObject)
+            if (building2D is null)
             {
-                case IWindow:
-                    return new Core.Classes.Color(byte.MaxValue, 135, 206, 235);
-
-                case IDoor:
-                    return new Core.Classes.Color(byte.MaxValue, 139, 90, 43);
-
-                case IRoof:
-                    return new Core.Classes.Color(byte.MaxValue, 178, 34, 34);
-
-                case IWall:
-                    return new Core.Classes.Color(byte.MaxValue, 235, 230, 220);
-
-                case IFloor:
-                    return new Core.Classes.Color(byte.MaxValue, 128, 128, 128);
-
-                case IShade:
-                    return new Core.Classes.Color(byte.MaxValue, 105, 105, 105);
-
-                case Building2D:
-                    return new Core.Classes.Color(byte.MaxValue, 222, 184, 135);
-
-                default:
-                    return null;
+                return null;
             }
+
+            return new Core.Classes.Color(byte.MaxValue, 222, 184, 135);
         }
     }
 }

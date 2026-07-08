@@ -36,9 +36,12 @@ webApplicationBuilder.Services.AddResponseCompression(responseCompressionOptions
 // We use AddControllersWithViews because you want to display HTML pages (.cshtml)
 webApplicationBuilder.Services.AddControllersWithViews();
 
-// Register all IGLTFNodeConverter implementations of this assembly with the generic DiGi.GLTF
-// engine (plugin pattern): adding support for a new domain type only requires adding a new
-// converter class under /Classes/Converter - no other code changes.
+// Register all IGLTFNodeConverter implementations with the generic DiGi.GLTF engine (plugin
+// pattern): the shared DiGi.GLTF.Analytical assembly owns the DiGi.Analytical converters
+// (BuildingModel, UrbanModel, IComponent), this assembly owns the GIS converters (Building2D).
+// Adding support for a new domain type only requires adding a new converter class - no other
+// code changes.
+DiGi.GLTF.Analytical.Modify.Register();
 DiGi.GLTF.Modify.Register(typeof(Program).Assembly);
 
 // Build the application
