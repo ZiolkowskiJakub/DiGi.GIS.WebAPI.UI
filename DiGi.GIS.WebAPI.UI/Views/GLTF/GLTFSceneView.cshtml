@@ -18,10 +18,16 @@
                 <button type="button" id="gltf-fit-button" class="gis-button" title="Frame the whole scene">Fit view</button>
                 <button type="button" id="gltf-clear-button" class="gis-button" title="Clear the current selection">Clear selection</button>
             </div>
+            @* Small toggle in the top-right corner that folds/unfolds the right side panel. *@
+            <button type="button" id="gltf-panel-toggle" class="gltf-panel-toggle" title="Hide panel" aria-label="Hide panel" aria-controls="gltf-side-panel" aria-expanded="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m9 18 6-6-6-6" />
+                </svg>
+            </button>
             @* Hover label, selection marquee and navigation hint overlays are created by the generic viewer engine. *@
         </div>
 
-        <aside class="gltf-side-panel">
+        <aside id="gltf-side-panel" class="gltf-side-panel">
             <div class="gis-card gltf-card">
                 <h3 class="gltf-card-title">Lighting</h3>
                 <label class="gltf-slider-label">Sun azimuth <span id="gltf-sun-azimuth-value"></span>
@@ -97,6 +103,44 @@
         z-index: 5;
         display: flex;
         gap: 8px;
+    }
+
+    /* Small toggle in the top-right corner that folds/unfolds the right side panel. */
+    .gltf-panel-toggle {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 5;
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        background: rgba(255, 255, 255, 0.92);
+        color: #333333;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .gltf-panel-toggle:hover {
+        color: var(--primary-color);
+        background: #ffffff;
+    }
+
+    .gltf-panel-toggle svg {
+        transition: transform 0.2s ease;
+    }
+
+    /* Folded state: hide the side panel (the viewer expands to fill) and flip the chevron. */
+    .gltf-layout.gltf-panel-collapsed .gltf-side-panel {
+        display: none;
+    }
+
+    .gltf-layout.gltf-panel-collapsed .gltf-panel-toggle svg {
+        transform: rotate(180deg);
     }
 
     .gltf-side-panel {

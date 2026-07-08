@@ -35,11 +35,24 @@
             <a href="~/" class="gis-logo-link">
                 <img src="~/images/logo.png" alt="GIS Logo" class="gis-header-logo" />
             </a>
+            @* The navigation links are collapsed into a hamburger button and dropdown menu. The menu
+               items mirror the main menu (Views/Home/Start.cshtml), including Communication, plus the
+               3D Viewer entry. *@
             <nav class="gis-nav">
-                <a href="~/administrativeareal2D" class="gis-nav-link @(currentPath.StartsWith("/administrativeareal2D", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Administrative Areas</a>
-                <a href="~/building2D" class="gis-nav-link @(currentPath.StartsWith("/building2D", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Buildings</a>
-                <a href="~/gltf" class="gis-nav-link @(currentPath.StartsWith("/gltf", StringComparison.OrdinalIgnoreCase) ? "active" : "")">3D Viewer</a>
-                <a href="~/about" class="gis-nav-link @(currentPath.StartsWith("/about", StringComparison.OrdinalIgnoreCase) ? "active" : "")">About</a>
+                <button type="button" id="gis-nav-toggle" class="gis-nav-toggle" aria-label="Open navigation menu" aria-haspopup="true" aria-expanded="false" aria-controls="gis-nav-menu">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-hidden="true">
+                        <line x1="4" x2="20" y1="6" y2="6" />
+                        <line x1="4" x2="20" y1="12" y2="12" />
+                        <line x1="4" x2="20" y1="18" y2="18" />
+                    </svg>
+                </button>
+                <div id="gis-nav-menu" class="gis-nav-menu" role="menu" hidden>
+                    <a href="~/administrativeareal2D" role="menuitem" class="gis-nav-link @(currentPath.StartsWith("/administrativeareal2D", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Administrative Areas</a>
+                    <a href="~/building2D" role="menuitem" class="gis-nav-link @(currentPath.StartsWith("/building2D", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Buildings</a>
+                    <a href="~/communication" role="menuitem" class="gis-nav-link @(currentPath.StartsWith("/communication", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Communication</a>
+                    <a href="~/gltf" role="menuitem" class="gis-nav-link @(currentPath.StartsWith("/gltf", StringComparison.OrdinalIgnoreCase) ? "active" : "")">3D Viewer</a>
+                    <a href="~/about" role="menuitem" class="gis-nav-link @(currentPath.StartsWith("/about", StringComparison.OrdinalIgnoreCase) ? "active" : "")">About</a>
+                </div>
             </nav>
         </div>
     </header>
@@ -63,6 +76,39 @@
             </div>
         </div>
     </footer>
+    @* Header navigation dropdown: toggles the hamburger menu, closing on outside click or Escape. *@
+    <script>
+        (function () {
+            var toggle = document.getElementById('gis-nav-toggle');
+            var menu = document.getElementById('gis-nav-menu');
+            if (!toggle || !menu) {
+                return;
+            }
+
+            function setOpen(open) {
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+                menu.hidden = !open;
+            }
+
+            toggle.addEventListener('click', function (event) {
+                event.stopPropagation();
+                setOpen(menu.hidden);
+            });
+
+            document.addEventListener('click', function (event) {
+                if (!menu.hidden && !menu.contains(event.target) && !toggle.contains(event.target)) {
+                    setOpen(false);
+                }
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && !menu.hidden) {
+                    setOpen(false);
+                    toggle.focus();
+                }
+            });
+        })();
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

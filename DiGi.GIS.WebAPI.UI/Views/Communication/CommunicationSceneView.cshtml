@@ -33,15 +33,20 @@
                 <button type="button" id="gltf-fit-button" class="gis-button" title="Frame the whole scene">Fit view</button>
                 <button type="button" id="gltf-clear-button" class="gis-button" title="Clear the current selection">Clear selection</button>
             </div>
+            @* Small toggle in the top-right corner that folds/unfolds the right side panel. *@
+            <button type="button" id="gltf-panel-toggle" class="gltf-panel-toggle" title="Hide panel" aria-label="Hide panel" aria-controls="gltf-side-panel" aria-expanded="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m9 18 6-6-6-6" />
+                </svg>
+            </button>
             @* Hover label, selection marquee and navigation hint overlays are created by the generic viewer engine. *@
         </div>
 
-        <aside class="gltf-side-panel">
-            @* AI-NOTE (placeholder results panel): hidden until a calculation succeeds; currently it
-               only shows the distance between the two antenna tops (the length of the temporary
-               Segment3D returned by DiGi.Communication.WebAPI). It will be redesigned when the
-               proper propagation calculations (scattering profiles, power delay profiles) are fully
-               implemented. *@
+        <aside id="gltf-side-panel" class="gltf-side-panel">
+            @* Results panel: hidden until a calculation succeeds. It shows the general propagation
+               results (total/directional power, per delay components) after a calculation and the
+               ray specific values when a green ray is selected in the 3D view; the content is filled
+               by communication-tools.js. *@
             <div class="gis-card gltf-card" id="communication-results-card" style="display: none;">
                 <h3 class="gltf-card-title">Results</h3>
                 <div id="communication-results" class="gltf-properties"></div>
@@ -84,6 +89,51 @@
                 <div id="gltf-scene-info" class="gltf-properties"></div>
             </div>
         </aside>
+    </div>
+</div>
+
+@* Calculation modal: opened by the "Calculate" button; collects the propagation inputs that are
+   not part of the geometrical model (frequency, polarization and the electrical material
+   properties of the scattering objects).
+   AI-NOTE (mocked remaining inputs): the multipath power delay profile (TypicalUrban preset) and
+   the antenna radiation characteristics are currently hardcoded server side — the profile in
+   CommunicationController.CalculateAsync, the characteristics in the DiGi.Communication.WebAPI
+   propagationresults endpoint — both mirroring the reference xUnit fact
+   ToPropagation_PropagationModel_TypicalUrban. Replace them with additional modal inputs here once
+   they become user configurable.
+   AI-NOTE (multi-frequency extensibility): the frequency field accepts a comma separated list
+   (e.g. "900, 1800"); communication-tools.js parses it into the Frequencies array of the request
+   payload and the backend calculates every entry. The 3D view currently renders the first
+   frequency only — add a per frequency toggle to the results panel to expose the remaining
+   entries (see renderResults in communication-tools.js). *@
+<div id="communication-calculation-modal" class="communication-modal-overlay" style="display: none;">
+    <div class="gis-card communication-modal">
+        <h3 class="gltf-card-title">Calculate propagation</h3>
+        <label class="communication-modal-label">Frequency [MHz] (comma separated for multiple)
+            <input type="text" id="communication-calculation-frequency" value="900" required />
+        </label>
+        <label class="communication-modal-label">Polarization
+            <select id="communication-calculation-polarization">
+                @* The option list maps to the DiGi.Communication.Propagation Polarization enum. *@
+                @foreach (DiGi.Communication.Propagation.Enums.Polarization polarization in System.Enum.GetValues<DiGi.Communication.Propagation.Enums.Polarization>())
+                {
+                    <option value="@polarization">@polarization</option>
+                }
+            </select>
+        </label>
+        <fieldset class="communication-modal-functions">
+            <legend>Material properties</legend>
+            <label class="communication-modal-label">Relative electrical permittivity [-]
+                <input type="number" id="communication-calculation-permittivity" step="any" min="1" value="15" required />
+            </label>
+            <label class="communication-modal-label">Electrical conductivity [S/m]
+                <input type="number" id="communication-calculation-conductivity" step="any" min="0" value="0.005" required />
+            </label>
+        </fieldset>
+        <div class="communication-modal-buttons">
+            <button type="button" id="communication-calculation-ok-button" class="gis-button">OK</button>
+            <button type="button" id="communication-calculation-cancel-button" class="gis-button">Cancel</button>
+        </div>
     </div>
 </div>
 
@@ -173,6 +223,44 @@
         gap: 8px;
     }
 
+    /* Small toggle in the top-right corner that folds/unfolds the right side panel. */
+    .gltf-panel-toggle {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 5;
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        background: rgba(255, 255, 255, 0.92);
+        color: #333333;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .gltf-panel-toggle:hover {
+        color: var(--primary-color);
+        background: #ffffff;
+    }
+
+    .gltf-panel-toggle svg {
+        transition: transform 0.2s ease;
+    }
+
+    /* Folded state: hide the side panel (the viewer expands to fill) and flip the chevron. */
+    .gltf-layout.gltf-panel-collapsed .gltf-side-panel {
+        display: none;
+    }
+
+    .gltf-layout.gltf-panel-collapsed .gltf-panel-toggle svg {
+        transform: rotate(180deg);
+    }
+
     .gltf-side-panel {
         flex: 0 0 340px;
         display: flex;
@@ -248,7 +336,8 @@
         margin-bottom: 10px;
     }
 
-    .communication-modal-label input {
+    .communication-modal-label input,
+    .communication-modal-label select {
         display: block;
         width: 100%;
         box-sizing: border-box;

@@ -5,25 +5,35 @@
 
 <div class="gis-panel">
     <div class="gis-card" style="text-align: center; padding: 50px 20px;">
-        <div style="font-size: 4rem; margin-bottom: 20px; color: var(--primary-color);">📡</div>
+        @* Radio-tower line icon (consistent line-icon set shared with the glTF start page). *@
+        <div style="margin-bottom: 20px; color: var(--primary-color); line-height: 0;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" role="img" aria-hidden="true" style="display: inline-block;">
+                <path d="M4.9 16.1C1 12.2 1 5.8 4.9 2" />
+                <path d="M7.8 4.7a6.14 6.14 0 0 0-.8 7.5" />
+                <circle cx="12" cy="9" r="2" />
+                <path d="M16.2 4.8c2 2 2 5.2 0 7.2" />
+                <path d="M19.1 2c3.9 3.9 3.9 10.3 0 14.2" />
+                <path d="M9.9 21.2 12 12l2.1 9.2" />
+            </svg>
+        </div>
         <h2 class="gis-title" style="border: none; padding: 0; margin-bottom: 15px; display: block; font-size: 1.8rem;">Communication</h2>
         <p style="color: var(--text-muted); max-width: 520px; margin: 0 auto 30px; font-size: 1.1rem; line-height: 1.6;">
             Enter a central point and a radius to load all buildings within that circular area, place antennas in the 3D view and analyze the radio communication between them.
         </p>
         <form method="get" action="~/communication/buildingsbyradius" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: center;">
             <label style="color: var(--text-muted);">Point X
-                <input type="number" name="centerX" value="730519.9" step="any" required style="margin-left: 6px; padding: 8px; width: 130px;" />
+                <input type="number" name="centerX" value="629671.3" step="any" required style="margin-left: 6px; padding: 6px; width: 100px;" />
             </label>
             <label style="color: var(--text-muted);">Point Y
-                <input type="number" name="centerY" value="407094.0" step="any" required style="margin-left: 6px; padding: 8px; width: 130px;" />
+                <input type="number" name="centerY" value="489136.8" step="any" required style="margin-left: 6px; padding: 6px; width: 100px;" />
             </label>
             <label style="color: var(--text-muted);">Radius [m]
-                <input type="number" name="radius" value="250" step="any" min="1" required style="margin-left: 6px; padding: 8px; width: 90px;" />
+                <input type="number" name="radius" value="500" step="any" min="1" required style="margin-left: 6px; padding: 6px; width: 70px;" />
             </label>
             <label style="color: var(--text-muted);">Storey height [m]
-                <input type="number" name="storeyheight" value="3" step="0.1" min="1" style="margin-left: 6px; padding: 8px; width: 90px;" />
+                <input type="number" name="storeyheight" value="3" step="0.1" min="1" style="margin-left: 6px; padding: 6px; width: 70px;" />
             </label>
-            <button type="submit" class="gis-button">Open in 3D</button>
+            <button type="submit" class="gis-button">Open</button>
         </form>
     </div>
 </div>

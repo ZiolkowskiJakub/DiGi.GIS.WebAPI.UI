@@ -121,6 +121,82 @@ function initLightingPanel(viewer) {
     apply();
 }
 
+// Right side panel fold/unfold toggle. Collapsing the panel widens the viewer container; the
+// engine's ResizeObserver then refits the 3D canvas automatically, so only the layout class is
+// toggled here. Wired independently of the viewer so it works before the glTF payload finishes
+// loading.
+(function initPanelToggle() {
+    const layout = document.querySelector('.gltf-layout');
+    const toggle = document.getElementById('gltf-panel-toggle');
+    if (!layout || !toggle) {
+        return;
+    }
+
+    toggle.addEventListener('click', () => {
+        const collapsed = layout.classList.toggle('gltf-panel-collapsed');
+        const label = collapsed ? 'Show panel' : 'Hide panel';
+        toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        toggle.setAttribute('aria-label', label);
+        toggle.title = label;
+    });
+})();
+
+// Per-card fold/unfold. Every card in the right side panel becomes independently collapsible with a
+// chevron toggle in its title, and all cards start folded. Each card's content is moved into a
+// wrapper so a single class toggle shows or hides it; element ids inside the cards are preserved, so
+// the viewer, lighting, properties and results code keeps finding them unchanged.
+(function initCardFolding() {
+    const panel = document.querySelector('.gltf-side-panel');
+    if (!panel) {
+        return;
+    }
+
+    const cards = panel.querySelectorAll('.gltf-card');
+    cards.forEach((card) => {
+        const title = card.querySelector('.gltf-card-title');
+        if (!title) {
+            return;
+        }
+
+        const label = title.textContent.trim();
+
+        // Move everything after the title into a collapsible content wrapper.
+        const content = document.createElement('div');
+        content.className = 'gltf-card-content';
+        let node = title.nextSibling;
+        while (node) {
+            const next = node.nextSibling;
+            content.appendChild(node);
+            node = next;
+        }
+        card.appendChild(content);
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'gltf-card-toggle';
+        button.setAttribute('aria-label', 'Expand ' + label);
+        button.setAttribute('aria-expanded', 'false');
+        button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>';
+        title.appendChild(button);
+
+        // Folded by default.
+        card.classList.add('gltf-card-collapsed');
+
+        function toggle() {
+            const collapsed = card.classList.toggle('gltf-card-collapsed');
+            button.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+            button.setAttribute('aria-label', (collapsed ? 'Expand ' : 'Collapse ') + label);
+        }
+
+        // The whole title acts as the click target; the button stops propagation to avoid toggling twice.
+        title.addEventListener('click', toggle);
+        button.addEventListener('click', (event) => {
+            event.stopPropagation();
+            toggle();
+        });
+    });
+})();
+
 const container = document.getElementById('gltf-viewer-container');
 if (container) {
     (async () => {

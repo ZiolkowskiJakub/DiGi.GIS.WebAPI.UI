@@ -162,6 +162,47 @@ public double CenterY { get; set; }
 #### Property Value
 [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
+<a name='DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter.Conductivity'></a>
+
+## CommunicationCalculationParameter\.Conductivity Property
+
+Gets or sets the default electrical conductivity applied to the scattering object mesh cells \[S/m\]\.
+
+```csharp
+public System.Nullable<double> Conductivity { get; set; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter.Frequencies'></a>
+
+## CommunicationCalculationParameter\.Frequencies Property
+
+Gets or sets the frequencies of the propagating electromagnetic wave \[MHz\]\.
+
+AI-NOTE (multi-frequency extensibility): the payload is a list so the calculation can be executed for multiple frequencies in one request. The 3D view currently sends a single frequency; once the per frequency toggling UI is implemented, the additional values flow through this property without any backend change.
+
+```csharp
+public System.Collections.Generic.List<double>? Frequencies { get; set; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter.Polarization'></a>
+
+## CommunicationCalculationParameter\.Polarization Property
+
+Gets or sets the polarization type of the propagating electromagnetic wave \(Vertical or Horizontal\)\.
+
+```csharp
+public string? Polarization { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter.Radius'></a>
 
 ## CommunicationCalculationParameter\.Radius Property
@@ -174,6 +215,19 @@ public double Radius { get; set; }
 
 #### Property Value
 [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter.RelativePermittivity'></a>
+
+## CommunicationCalculationParameter\.RelativePermittivity Property
+
+Gets or sets the default relative electrical permittivity applied to the scattering object mesh cells \[\-\]\.
+
+```csharp
+public System.Nullable<double> RelativePermittivity { get; set; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 <a name='DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter.StoreyHeight'></a>
 

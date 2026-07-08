@@ -707,6 +707,7 @@ h1.gis-title-large {
     display: flex;
     gap: 30px;
     align-items: center;
+    position: relative; /* anchor for the absolutely positioned dropdown menu */
 }
 
 .gis-nav-link {
@@ -748,6 +749,72 @@ h1.gis-title-large {
         .gis-nav-link.active::after {
             transform: scaleX(1);
             background-color: var(--primary-color);
+        }
+
+/* Hamburger navigation toggle and its dropdown menu */
+.gis-nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 8px;
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+    .gis-nav-toggle:hover,
+    .gis-nav-toggle[aria-expanded="true"] {
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+        background: rgba(0, 0, 0, 0.02);
+    }
+
+.gis-nav-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    min-width: 220px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    z-index: 1100;
+}
+
+    /* The hidden attribute must win over the flex display above. */
+    .gis-nav-menu[hidden] {
+        display: none;
+    }
+
+    .gis-nav-menu .gis-nav-link {
+        display: block;
+        padding: 10px 14px;
+        border-radius: 6px;
+        white-space: nowrap;
+    }
+
+        /* The animated underline is designed for the old horizontal bar; suppress it in the dropdown. */
+        .gis-nav-menu .gis-nav-link::after {
+            display: none;
+        }
+
+        .gis-nav-menu .gis-nav-link:hover {
+            background: rgba(0, 0, 0, 0.04);
+            color: var(--primary-color);
+        }
+
+        .gis-nav-menu .gis-nav-link.active {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--primary-color);
         }
 
 .gis-content-wrapper {
@@ -912,4 +979,54 @@ h1.gis-title-large {
         visibility: visible;
         opacity: 1;
         transform: translateX(-50%) translateY(-2px);
+    }
+
+/* Collapsible right-panel cards. The card title becomes a clickable header with a chevron toggle
+   (added by gltf-viewer.js); the card content is hidden while the card carries gltf-card-collapsed. */
+.gltf-card-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.gltf-card-toggle {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+
+    .gltf-card-toggle:hover {
+        color: var(--primary-color);
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    .gltf-card-toggle svg {
+        transition: transform 0.2s ease;
+    }
+
+/* Chevron points down when folded; rotate it up when the card is expanded. */
+.gltf-card:not(.gltf-card-collapsed) .gltf-card-toggle svg {
+    transform: rotate(180deg);
+}
+
+.gltf-card.gltf-card-collapsed .gltf-card-content {
+    display: none;
+}
+
+    /* Drop the title's bottom margin when folded so a collapsed card is just its header. */
+    .gltf-card.gltf-card-collapsed .gltf-card-title {
+        margin-bottom: 0;
     }

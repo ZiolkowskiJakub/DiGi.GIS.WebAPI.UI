@@ -1,22 +1,33 @@
 // DiGi.GIS.WebAPI.UI — communication analysis tooling layered on top of the generic
 // DiGi.GLTF.WebAPI viewer engine (gltf-viewer.js owns the base panels; this module owns the
-// antenna toolbar, the antenna edit/erase modes, the calculation request and the results panel).
+// antenna toolbar, the antenna edit/erase modes, the calculation modal/request and the results
+// rendering: the propagation ellipsoid, the arrival rays and the results panel).
 //
-// AI-NOTE (temporary calculation flow): the "Calculate" button currently posts the scene input
-// parameters and the two antennas to ~/communication/calculate. The server rebuilds the analyzed
-// area on the fly (Building -> Mesh3D -> ScatteringObject), packages everything into a
-// GeometricalPropagationModel and calls the temporary DiGi.Communication.WebAPI segment3d
-// endpoint, which returns a Segment3D connecting the two antenna tops. When the proper propagation
-// calculations are implemented, the response will carry calculation objects (scattering profiles,
-// rays, power delay profiles) and this module will render them in the 3D view instead of the
-// single line of sight.
+// Calculation flow: the "Calculate" button opens a modal collecting the propagation inputs that
+// are not part of the geometrical model (frequency, polarization, material properties). The
+// request goes to ~/communication/calculate; the server rebuilds the analyzed area on the fly
+// (Building -> Mesh3D -> ScatteringObject), packages everything into a GeometricalPropagationModel
+// and runs the multi-ellipsoidal propagation cascade through DiGi.Communication.WebAPI. The
+// response carries world coordinates only: the dominant propagation ellipsoid, the arrival rays
+// with their corrected powers and the per delay component summary (see renderResults).
+//
+// AI-NOTE (mocked remaining inputs): the multipath power delay profile (TypicalUrban preset) and
+// the antenna radiation characteristics are hardcoded server side, mirroring the reference xUnit
+// fact ToPropagation_PropagationModel_TypicalUrban; extend the calculation modal once they become
+// user configurable.
 
 import * as THREE from 'three';
 
 const MAX_ANTENNAS = 2;
 const ANTENNA_COLOR = 0xd13438;          // red mast + dot
 const ANTENNA_SELECTED_COLOR = 0xffa500; // orange tint in erase mode
-const RESULT_COLOR = 0xffd700;           // gold line for the temporary calculation result
+const RAY_COLOR = 0x2ecc40;              // green propagation rays (requirement)
+const RAY_SELECTED_COLOR = 0x9dff57;     // lighter green tint of the selected ray
+const ELLIPSOID_COLOR = 0x4da6ff;        // semi-transparent propagation ellipsoid
+const ELLIPSOID_OPACITY = 0.18;
+const ELLIPSOID_SELECTED_OPACITY = 0.32;
+const BUILDING_RESULT_OPACITY = 0.35;    // building opacity while calculation results are displayed
+const RAY_DECIBEL_WINDOW = 30;           // dB range mapped onto the ray length scale
 const CLICK_THRESHOLD = 5;               // pixels of pointer travel before a click becomes a drag
 
 const container = document.getElementById('gltf-viewer-container');
@@ -34,6 +45,14 @@ const modalZ = document.getElementById('communication-antenna-z');
 const modalOkButton = document.getElementById('communication-antenna-ok-button');
 const modalCancelButton = document.getElementById('communication-antenna-cancel-button');
 
+const calculationModal = document.getElementById('communication-calculation-modal');
+const calculationFrequencyInput = document.getElementById('communication-calculation-frequency');
+const calculationPolarizationSelect = document.getElementById('communication-calculation-polarization');
+const calculationPermittivityInput = document.getElementById('communication-calculation-permittivity');
+const calculationConductivityInput = document.getElementById('communication-calculation-conductivity');
+const calculationOkButton = document.getElementById('communication-calculation-ok-button');
+const calculationCancelButton = document.getElementById('communication-calculation-cancel-button');
+
 const resultsCard = document.getElementById('communication-results-card');
 const resultsPanel = document.getElementById('communication-results');
 
@@ -46,6 +65,12 @@ let pointerDownPosition = null;
 
 const antennas = [];               // { group, meshes, selected, data: { x, y, z, functions } }
 const resultObjects = [];          // three.js objects added by "Calculate"
+const resultMeshes = [];           // selectable subset of resultObjects (ellipsoid + ray cylinders)
+let activePayload = null;          // last successful calculation payload (world coordinates)
+let selectedResultMesh = null;     // currently highlighted result mesh
+let resultPickCandidate = null;    // result mesh hit on pointerdown, resolved on pointerup
+let suppressResultClick = false;   // swallows the click event that follows a result pick
+const buildingMaterialStates = new Map(); // building material -> original appearance (transparency)
 
 const raycaster = new THREE.Raycaster();
 const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // DiGi Z = 0 plane in three.js Y-up world
@@ -63,6 +88,11 @@ function toWorld(vector3) {
         y: -vector3.z + referencePoint.Y,
         z: vector3.y + (referencePoint.Z ?? 0)
     };
+}
+
+// Direction vectors only need the Z-up -> Y-up rotation (no reference point translation).
+function toSceneDirection(direction) {
+    return new THREE.Vector3(direction.x, direction.z, -direction.y).normalize();
 }
 
 function setHint(text) {
@@ -158,17 +188,53 @@ function pointerNdc(event) {
 }
 
 function onPointerDown(event) {
-    if (mode === null || event.button !== 0) {
+    if (event.button !== 0) {
         return;
     }
+
+    // Result selection: while calculation results are displayed (and no edit mode is active), a
+    // press on the ellipsoid or on a ray is intercepted before the generic viewer sees it, exactly
+    // like the antenna edit modes — otherwise the viewer would start a marquee/building selection.
+    if (mode === null) {
+        resultPickCandidate = pickResultMesh(event);
+        if (resultPickCandidate === null) {
+            return;
+        }
+    }
+
     event.stopPropagation();
     pointerDownPosition = { x: event.clientX, y: event.clientY };
 }
 
 function onPointerUp(event) {
-    if (mode === null || event.button !== 0) {
+    if (event.button !== 0) {
         return;
     }
+
+    if (mode === null) {
+        if (resultPickCandidate === null) {
+            return;
+        }
+
+        event.stopPropagation();
+        suppressResultClick = true;
+
+        const resultMesh = resultPickCandidate;
+        resultPickCandidate = null;
+
+        if (!pointerDownPosition) {
+            return;
+        }
+        const travel_Result = Math.hypot(event.clientX - pointerDownPosition.x, event.clientY - pointerDownPosition.y);
+        pointerDownPosition = null;
+        if (travel_Result > CLICK_THRESHOLD) {
+            return;
+        }
+
+        selectResultMesh(resultMesh);
+        return;
+    }
+
     event.stopPropagation();
 
     if (!pointerDownPosition) {
@@ -188,7 +254,17 @@ function onPointerUp(event) {
 }
 
 function onClickCapture(event) {
-    if (mode !== null && event.button === 0) {
+    if (event.button !== 0) {
+        return;
+    }
+
+    if (suppressResultClick) {
+        suppressResultClick = false;
+        event.stopPropagation();
+        return;
+    }
+
+    if (mode !== null) {
         event.stopPropagation();
     }
 }
@@ -275,6 +351,11 @@ function finishErase(remove) {
 }
 
 window.addEventListener('keydown', (event) => {
+    if (calculationModal.style.display !== 'none' && event.key === 'Escape') {
+        calculationModal.style.display = 'none';
+        return;
+    }
+
     if (modal.style.display !== 'none' && event.key === 'Escape') {
         modal.style.display = 'none';
         updateToolbar();
@@ -293,27 +374,260 @@ window.addEventListener('keydown', (event) => {
 });
 
 // ---------------------------------------------------------------------------------------------
-// Calculate: send the analyzed area and the antennas to the server, render the returned line.
+// Calculate: collect the propagation inputs in the modal, send the analyzed area, the antennas and
+// the inputs to the server and render the returned propagation results (ellipsoid + rays + panel).
 // ---------------------------------------------------------------------------------------------
 
-function showResults(distance) {
-    // AI-NOTE (placeholder results): only the distance between the two antenna tops is displayed.
-    // This panel will be redesigned to present the proper propagation calculation results.
+function formatPower(value) {
+    return value >= 0.001 ? value.toFixed(4) : value.toExponential(3);
+}
+
+function formatDelay(delay) {
+    return `${(delay * 1e6).toFixed(2)} µs`;
+}
+
+function formatAngle(radians) {
+    return `${(radians * 180 / Math.PI).toFixed(1)}°`;
+}
+
+function appendResultRow(table, key, value) {
+    const row = table.insertRow();
+    row.insertCell().textContent = key;
+    row.insertCell().textContent = value;
+}
+
+// Building transparency: while calculation results are displayed all building materials become
+// partially transparent so the green rays and the ellipsoid stay visible; the original appearance
+// is stored per material and fully restored by "Clear". Result/antenna meshes are not part of
+// viewer.root (the loaded glTF scene), so they are never touched here.
+function setBuildingsTransparent(transparent) {
+    if (!viewer?.root) {
+        return;
+    }
+
+    if (transparent) {
+        viewer.root.traverse((child) => {
+            if (!child.isMesh) {
+                return;
+            }
+
+            const materials = Array.isArray(child.material) ? child.material : [child.material];
+            for (const material of materials) {
+                if (!material || buildingMaterialStates.has(material)) {
+                    continue; // batched scenes share materials between meshes: process each once
+                }
+
+                buildingMaterialStates.set(material, {
+                    transparent: material.transparent,
+                    opacity: material.opacity,
+                    depthWrite: material.depthWrite
+                });
+
+                material.transparent = true;
+                material.opacity = Math.min(material.opacity, BUILDING_RESULT_OPACITY);
+                material.depthWrite = false;
+                material.needsUpdate = true;
+            }
+        });
+        return;
+    }
+
+    for (const [material, state] of buildingMaterialStates) {
+        material.transparent = state.transparent;
+        material.opacity = state.opacity;
+        material.depthWrite = state.depthWrite;
+        material.needsUpdate = true;
+    }
+    buildingMaterialStates.clear();
+}
+
+function pickResultMesh(event) {
+    if (resultMeshes.length === 0 || viewer === null) {
+        return null;
+    }
+
+    raycaster.setFromCamera(pointerNdc(event), viewer.camera);
+
+    // Rays win over the ellipsoid: the semi-transparent ellipsoid usually encloses the receiver,
+    // so a nearest-hit-only strategy would make the rays inside it unselectable.
+    const rayMeshes = resultMeshes.filter((mesh) => mesh.userData.communication?.type === 'ray');
+    const rayIntersections = raycaster.intersectObjects(rayMeshes, false);
+    if (rayIntersections.length > 0) {
+        return rayIntersections[0].object;
+    }
+
+    const ellipsoidMeshes = resultMeshes.filter((mesh) => mesh.userData.communication?.type === 'ellipsoid');
+    const ellipsoidIntersections = raycaster.intersectObjects(ellipsoidMeshes, false);
+    return ellipsoidIntersections.length > 0 ? ellipsoidIntersections[0].object : null;
+}
+
+function setResultMeshHighlighted(mesh, highlighted) {
+    const communication = mesh.userData.communication;
+    if (communication.type === 'ray') {
+        mesh.material.color.setHex(highlighted ? RAY_SELECTED_COLOR : RAY_COLOR);
+    } else {
+        mesh.material.opacity = highlighted ? ELLIPSOID_SELECTED_OPACITY : ELLIPSOID_OPACITY;
+    }
+}
+
+// Selecting the ellipsoid shows the general calculation results; selecting a ray shows the ray
+// specific values (requirement of the comparative analysis view).
+function selectResultMesh(mesh) {
+    if (selectedResultMesh !== null) {
+        setResultMeshHighlighted(selectedResultMesh, false);
+    }
+
+    selectedResultMesh = mesh;
+    setResultMeshHighlighted(mesh, true);
+
+    const communication = mesh.userData.communication;
+    if (communication.type === 'ray') {
+        showRayResults(communication.data, communication.frequencyResult);
+    } else {
+        showGeneralResults(activePayload, communication.frequencyResult);
+    }
+}
+
+function showGeneralResults(payload, frequencyResult) {
     resultsPanel.innerHTML = '';
 
     const table = document.createElement('table');
-    const row = table.insertRow();
-    row.insertCell().textContent = 'Distance';
-    row.insertCell().textContent = `${distance.toFixed(2)} m`;
+    appendResultRow(table, 'Frequency', `${frequencyResult.frequency} MHz`);
+    appendResultRow(table, 'Polarization', frequencyResult.polarization);
+    appendResultRow(table, 'Distance', `${payload.distance.toFixed(2)} m`);
+    appendResultRow(table, 'Total power P', formatPower(frequencyResult.totalPower));
+    appendResultRow(table, 'Directional power P₀', formatPower(frequencyResult.directionalPower));
+    appendResultRow(table, 'Rays', String(frequencyResult.rays?.length ?? 0));
+    if (frequencyResult.ellipsoid) {
+        appendResultRow(table, 'Dominant delay', formatDelay(frequencyResult.ellipsoid.delay));
+    }
+    resultsPanel.appendChild(table);
+
+    // Per delay ellipsoid components P_n, collapsed by default.
+    const components = frequencyResult.ellipsoidComponents ?? [];
+    if (components.length > 0) {
+        const details = document.createElement('details');
+        const summary = document.createElement('summary');
+        summary.textContent = `Ellipsoid components [${components.length}]`;
+        details.appendChild(summary);
+
+        const componentsTable = document.createElement('table');
+        for (const component of components) {
+            appendResultRow(componentsTable, formatDelay(component.delay), `p'ₙ = ${formatPower(component.measuredFractionalPower)}`);
+        }
+        details.appendChild(componentsTable);
+        resultsPanel.appendChild(details);
+    }
+
+    const note = document.createElement('div');
+    note.className = 'gltf-muted';
+    note.style.marginTop = '6px';
+    note.textContent = 'Click a green ray in the 3D view for the ray specific values; click the ellipsoid to return to this summary.';
+    resultsPanel.appendChild(note);
+
+    resultsCard.style.display = '';
+}
+
+function showRayResults(ray, frequencyResult) {
+    resultsPanel.innerHTML = '';
+
+    const table = document.createElement('table');
+    appendResultRow(table, 'Selected', 'Ray');
+    appendResultRow(table, 'Frequency', `${frequencyResult.frequency} MHz`);
+    appendResultRow(table, 'Delay', formatDelay(ray.delay));
+    appendResultRow(table, 'Theta', formatAngle(ray.theta));
+    appendResultRow(table, 'Phi', formatAngle(ray.phi));
+    appendResultRow(table, 'Power pₙₖₗ', formatPower(ray.power));
+    appendResultRow(table, 'Relative power', `${(10 * Math.log10(ray.power)).toFixed(1)} dB`);
     resultsPanel.appendChild(table);
 
     const note = document.createElement('div');
     note.className = 'gltf-muted';
     note.style.marginTop = '6px';
-    note.textContent = 'Temporary result: the distance between the two antenna tops. Proper propagation results will be displayed here once implemented.';
+    note.textContent = 'Click the ellipsoid to return to the general results.';
     resultsPanel.appendChild(note);
 
     resultsCard.style.display = '';
+}
+
+function addEllipsoidObject(payload, frequencyResult) {
+    const ellipsoid = frequencyResult.ellipsoid;
+    if (!ellipsoid) {
+        return;
+    }
+
+    // Unit sphere scaled to the semi axes: the local X axis carries the semi-major axis and is
+    // rotated onto the transmitter-receiver direction (the ellipsoid is rotationally symmetric
+    // around it, so no further orientation is needed).
+    const mesh = new THREE.Mesh(
+        new THREE.SphereGeometry(1, 48, 32),
+        new THREE.MeshBasicMaterial({ color: ELLIPSOID_COLOR, transparent: true, opacity: ELLIPSOID_OPACITY, side: THREE.DoubleSide, depthWrite: false }));
+
+    mesh.position.copy(toScene(ellipsoid.center.x, ellipsoid.center.y, ellipsoid.center.z));
+    mesh.scale.set(ellipsoid.semiMajorAxis, ellipsoid.semiMinorAxis, ellipsoid.semiMinorAxis);
+    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), toSceneDirection(ellipsoid.axis));
+    mesh.userData.communication = { type: 'ellipsoid', data: ellipsoid, frequencyResult };
+
+    viewer.scene.add(mesh);
+    resultObjects.push(mesh);
+    resultMeshes.push(mesh);
+}
+
+function addRayObjects(payload, frequencyResult) {
+    const rays = frequencyResult.rays ?? [];
+
+    let maximumPower = 0;
+    for (const ray of rays) {
+        maximumPower = Math.max(maximumPower, ray.power);
+    }
+    if (maximumPower <= 0) {
+        return;
+    }
+
+    const origin = toScene(payload.receiver.x, payload.receiver.y, payload.receiver.z);
+    const radius = Math.max(0.15, antennaDotRadius() * 0.3);
+
+    for (const ray of rays) {
+        if (ray.power <= 0) {
+            continue;
+        }
+
+        // Ray lengths follow a dB scale relative to the strongest ray: the corrected powers span
+        // several orders of magnitude, so linear scaling would hide all but the dominant ray.
+        const attenuation = 10 * Math.log10(ray.power / maximumPower); // <= 0
+        const factor = Math.max(0, 1 + (attenuation / RAY_DECIBEL_WINDOW));
+        const length = payload.distance * (0.08 + (0.32 * factor));
+
+        const direction = toSceneDirection(ray.direction);
+
+        // Thin cylinders instead of THREE.Line so the rays raycast (select) reliably.
+        const mesh = new THREE.Mesh(
+            new THREE.CylinderGeometry(radius, radius, length, 8),
+            new THREE.MeshBasicMaterial({ color: RAY_COLOR }));
+        mesh.position.copy(origin.clone().add(direction.clone().multiplyScalar(length / 2)));
+        mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+        mesh.userData.communication = { type: 'ray', data: ray, frequencyResult };
+
+        viewer.scene.add(mesh);
+        resultObjects.push(mesh);
+        resultMeshes.push(mesh);
+    }
+}
+
+function renderResults(payload) {
+    clearResults();
+    activePayload = payload;
+
+    // AI-NOTE (multi-frequency rendering): payload.results holds one entry per calculated
+    // frequency; only the first entry is rendered today. To expose the remaining entries, iterate
+    // the array here, keep the created meshes grouped per frequency and bind per frequency
+    // visibility toggles in the results panel.
+    const frequencyResult = payload.results[0];
+
+    setBuildingsTransparent(true);
+    addEllipsoidObject(payload, frequencyResult);
+    addRayObjects(payload, frequencyResult);
+    showGeneralResults(payload, frequencyResult);
 }
 
 function clearResults() {
@@ -323,12 +637,19 @@ function clearResults() {
         object.material?.dispose();
     }
     resultObjects.length = 0;
+    resultMeshes.length = 0;
+    selectedResultMesh = null;
+    resultPickCandidate = null;
+    activePayload = null;
+
+    // Restore the original building appearance (opacity, depth writing).
+    setBuildingsTransparent(false);
 
     resultsPanel.innerHTML = '';
     resultsCard.style.display = 'none';
 }
 
-async function calculate() {
+async function calculate(calculationParameters) {
     if (calculating || antennas.length !== MAX_ANTENNAS) {
         return;
     }
@@ -351,7 +672,11 @@ async function calculate() {
                     y: antenna.data.y,
                     z: antenna.data.z,
                     functions: antenna.data.functions
-                }))
+                })),
+                frequencies: calculationParameters.frequencies,
+                polarization: calculationParameters.polarization,
+                relativePermittivity: calculationParameters.relativePermittivity,
+                conductivity: calculationParameters.conductivity
             })
         });
 
@@ -360,25 +685,13 @@ async function calculate() {
             return;
         }
 
-        const result = await response.json();
-        if (!result || !result.start || !result.end) {
+        const payload = await response.json();
+        if (!payload || !Array.isArray(payload.results) || payload.results.length === 0) {
             setHint('Calculation failed.');
             return;
         }
 
-        clearResults();
-
-        // Temporary rendering: one line connecting the two antenna tops. The final implementation
-        // will render the calculation objects returned by the propagation calculation.
-        const geometry = new THREE.BufferGeometry().setFromPoints([
-            toScene(result.start.x, result.start.y, result.start.z),
-            toScene(result.end.x, result.end.y, result.end.z)
-        ]);
-        const line = new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: RESULT_COLOR }));
-        viewer.scene.add(line);
-        resultObjects.push(line);
-
-        showResults(result.distance);
+        renderResults(payload);
         setHint('');
     } catch {
         setHint('Calculation failed.');
@@ -404,7 +717,46 @@ removeButton.addEventListener('click', () => {
     }
 });
 
-calculateButton.addEventListener('click', calculate);
+// "Calculate" opens the modal collecting the propagation inputs that are missing from the
+// geometrical model; the calculation request is sent when the modal is confirmed.
+calculateButton.addEventListener('click', () => {
+    if (calculating || antennas.length !== MAX_ANTENNAS) {
+        return;
+    }
+
+    calculationModal.style.display = 'flex';
+    calculationFrequencyInput.focus();
+});
+
+calculationOkButton.addEventListener('click', () => {
+    // AI-NOTE (multi-frequency input): the frequency field accepts a comma separated list; every
+    // valid value is sent, the backend calculates all of them and the response carries one result
+    // entry per frequency (see renderResults for the rendering extensibility point).
+    const frequencies = calculationFrequencyInput.value
+        .split(',')
+        .map((value) => parseFloat(value.trim()))
+        .filter((value) => isFinite(value) && value > 0);
+
+    const relativePermittivity = parseFloat(calculationPermittivityInput.value);
+    const conductivity = parseFloat(calculationConductivityInput.value);
+
+    if (frequencies.length === 0 || !isFinite(relativePermittivity) || relativePermittivity < 1 || !isFinite(conductivity) || conductivity < 0) {
+        return;
+    }
+
+    calculationModal.style.display = 'none';
+
+    calculate({
+        frequencies,
+        polarization: calculationPolarizationSelect.value,
+        relativePermittivity,
+        conductivity
+    });
+});
+
+calculationCancelButton.addEventListener('click', () => {
+    calculationModal.style.display = 'none';
+});
 
 function clearAntennas() {
     for (const antenna of antennas) {
