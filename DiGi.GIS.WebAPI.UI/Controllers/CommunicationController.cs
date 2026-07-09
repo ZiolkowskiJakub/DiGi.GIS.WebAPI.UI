@@ -133,7 +133,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             #region Transmitter/receiver selection and model coordinate system
 
-            // The selection below mirrors DiGi.Communication.Propagation
+            // The selection below mirrors DiGi.Communication
             // Convert.ToPropagation_PropagationModel (first antenna with the Transmitter function,
             // first other antenna with the Receiver function), so the world geometry rendered by the
             // 3D view matches the model coordinate system used by the calculation.
@@ -183,7 +183,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             #region Calculation parameters
 
             // AI-NOTE (placeholder defaults): the fallback values below mirror the reference xUnit
-            // fact (DiGi.Communication.Propagation.xUnit Facts.ToPropagation_PropagationModel_TypicalUrban):
+            // fact (DiGi.Communication.xUnit Facts.ToPropagation_PropagationModel_TypicalUrban):
             // 900 MHz, vertical polarization and the 15 / 0.005 material. They apply only when the
             // 3D view modal does not provide the values; replace them with user/project settings
             // once available.
@@ -258,26 +258,26 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
                 double frequency = jsonObject_Result["Frequency"]?.GetValue<double>() ?? double.NaN;
 
-                Communication.Propagation.Classes.PropagationResult? propagationResult = Core.Create.SerializableObject<Communication.Propagation.Classes.PropagationResult>(jsonObject_Result["PropagationResult"] as System.Text.Json.Nodes.JsonObject);
+                Communication.Classes.PropagationResult? propagationResult = Core.Create.SerializableObject<Communication.Classes.PropagationResult>(jsonObject_Result["PropagationResult"] as System.Text.Json.Nodes.JsonObject);
                 if (double.IsNaN(frequency) || propagationResult is null)
                 {
                     continue;
                 }
 
-                List<Communication.Propagation.Classes.EllipsoidComponent>? ellipsoidComponents = propagationResult.EllipsoidComponents;
-                List<Communication.Propagation.Classes.Ray>? rays = propagationResult.Rays;
+                List<Communication.Classes.EllipsoidComponent>? ellipsoidComponents = propagationResult.EllipsoidComponents;
+                List<Communication.Classes.ArrivalRay>? rays = propagationResult.Rays;
 
                 // Ray arrival directions are expressed in the model coordinate system (origin at the
                 // receiver for the angles theta/phi); they are converted to world direction vectors
                 // here so the 3D view only deals with world coordinates. The component walk mirrors
-                // the ray generation order of DiGi.Communication.Propagation Create.PropagationResult
+                // the ray generation order of DiGi.Communication Create.PropagationResult
                 // (components with non-positive power contribute no rays), which associates each ray
                 // with the delay of its propagation ellipsoid.
                 List<object> rayPayloads = [];
                 if (ellipsoidComponents is not null && rays is not null)
                 {
                     int rayIndex = 0;
-                    foreach (Communication.Propagation.Classes.EllipsoidComponent ellipsoidComponent in ellipsoidComponents)
+                    foreach (Communication.Classes.EllipsoidComponent ellipsoidComponent in ellipsoidComponents)
                     {
                         if (ellipsoidComponent.Power <= 0 || ellipsoidComponent.ReferencePower <= 0)
                         {
@@ -287,7 +287,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                         int rayContributionCount = ellipsoidComponent.RayContributions?.Count ?? 0;
                         for (int i = 0; i < rayContributionCount && rayIndex < rays.Count; i++, rayIndex++)
                         {
-                            Communication.Propagation.Classes.Ray ray = rays[rayIndex];
+                            Communication.Classes.ArrivalRay ray = rays[rayIndex];
 
                             double x_Model = Math.Sin(ray.Theta) * Math.Cos(ray.Phi);
                             double y_Model = Math.Sin(ray.Theta) * Math.Sin(ray.Phi);
@@ -313,10 +313,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 // The 3D view renders one propagation ellipsoid: the component carrying the highest
                 // measured fractional power (the dominant propagation path). All components are still
                 // returned for the results panel.
-                Communication.Propagation.Classes.EllipsoidComponent? ellipsoidComponent_Dominant = null;
+                Communication.Classes.EllipsoidComponent? ellipsoidComponent_Dominant = null;
                 if (ellipsoidComponents is not null)
                 {
-                    foreach (Communication.Propagation.Classes.EllipsoidComponent ellipsoidComponent in ellipsoidComponents)
+                    foreach (Communication.Classes.EllipsoidComponent ellipsoidComponent in ellipsoidComponents)
                     {
                         if (ellipsoidComponent.SemiMinorAxis <= 0)
                         {
@@ -345,7 +345,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 List<object> componentPayloads = [];
                 if (ellipsoidComponents is not null)
                 {
-                    foreach (Communication.Propagation.Classes.EllipsoidComponent ellipsoidComponent in ellipsoidComponents)
+                    foreach (Communication.Classes.EllipsoidComponent ellipsoidComponent in ellipsoidComponents)
                     {
                         componentPayloads.Add(new
                         {

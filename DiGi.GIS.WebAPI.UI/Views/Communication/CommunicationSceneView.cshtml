@@ -114,8 +114,8 @@
         </label>
         <label class="communication-modal-label">Polarization
             <select id="communication-calculation-polarization">
-                @* The option list maps to the DiGi.Communication.Propagation Polarization enum. *@
-                @foreach (DiGi.Communication.Propagation.Enums.Polarization polarization in System.Enum.GetValues<DiGi.Communication.Propagation.Enums.Polarization>())
+                @* The option list maps to the DiGi.Communication Polarization enum. *@
+                @foreach (DiGi.Communication.Enums.Polarization polarization in System.Enum.GetValues<DiGi.Communication.Enums.Polarization>())
                 {
                     <option value="@polarization">@polarization</option>
                 }
