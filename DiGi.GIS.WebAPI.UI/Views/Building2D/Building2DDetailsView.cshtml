@@ -10,8 +10,6 @@
     ViewData["Description"] = "Detailed view of a single building: geometry, administrative path and technical properties.";
 }
 
-<link rel="stylesheet" href="~/css/gis-theme.css" />
-
 @* Standalone building details page: only the details side of the master-detail layout is rendered.
    The _Building2DView partial cannot be rendered on its own, so it is loaded through the same AJAX
    pipeline (building.js loadBuildingDetails) as on the references page — all scripts and styles of
@@ -20,7 +18,7 @@
     <div id="detailsSide">
         <div id="detailsLoader" class="details-loader">
             <div class="gis-loader"></div>
-            <p style="font-size: 0.9em; color: #0078d4; font-weight: 500;">Fetching data...</p>
+            <p class="gis-loader-text">Fetching data...</p>
         </div>
 
         <div id="detailsContent">

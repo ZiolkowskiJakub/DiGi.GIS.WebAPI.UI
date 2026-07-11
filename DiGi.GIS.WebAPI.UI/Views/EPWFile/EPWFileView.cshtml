@@ -111,8 +111,8 @@
         @* --- BLOCK 2: Data --- *@
         <div class="property-group">
             <h4>Data</h4>
-            <div style="overflow-x: auto; max-height: 500px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px; margin-top: 10px;">
-                <table class="gis-property-table" style="width: 100%; table-layout: fixed; border-collapse: collapse; margin: 0; font-size: 0.85em;">
+            <div class="gis-scroll-box">
+                <table class="gis-data-table">
                     <colgroup>
                         <col style="width: 11%;" />
                         <col style="width: 9%;" />
@@ -126,17 +126,17 @@
                         <col style="width: 9%;" />
                     </colgroup>
                     <thead>
-                        <tr style="border-bottom: 2px solid #ddd; position: sticky; top: 0; background-color: #fff; z-index: 1;">
-                            <th style="padding: 6px 6px; text-align: left; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee; white-space: normal; word-wrap: break-word;">Time</th>
-                            <th style="padding: 6px 6px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee; white-space: normal; word-wrap: break-word;">Dry Bulb<br />(°C)</th>
-                            <th style="padding: 6px 6px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee; white-space: normal; word-wrap: break-word;">Dew Point<br />(°C)</th>
-                            <th style="padding: 6px 6px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee; white-space: normal; word-wrap: break-word;">RH<br />(%)</th>
-                            <th style="padding: 6px 6px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee; white-space: normal; word-wrap: break-word;">Pressure<br />(Pa)</th>
-                            <th style="padding: 6px 6px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee; white-space: normal; word-wrap: break-word;">Wind Spd<br />(m/s)</th>
-                            <th style="padding: 6px 6px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee; white-space: normal; word-wrap: break-word;">Wind Dir<br />(°)</th>
-                            <th style="padding: 6px 6px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee; white-space: normal; word-wrap: break-word;">Global<br />(Wh/m²)</th>
-                            <th style="padding: 6px 6px; text-align: right; background-color: #f9f9f9; font-weight: bold; border-right: 1px solid #eee; white-space: normal; word-wrap: break-word;">Direct<br />(Wh/m²)</th>
-                            <th style="padding: 6px 6px; text-align: right; background-color: #f9f9f9; font-weight: bold; white-space: normal; word-wrap: break-word;">Diffuse<br />(Wh/m²)</th>
+                        <tr>
+                            <th>Time</th>
+                            <th class="num">Dry Bulb<br />(°C)</th>
+                            <th class="num">Dew Point<br />(°C)</th>
+                            <th class="num">RH<br />(%)</th>
+                            <th class="num">Pressure<br />(Pa)</th>
+                            <th class="num">Wind Spd<br />(m/s)</th>
+                            <th class="num">Wind Dir<br />(°)</th>
+                            <th class="num">Global<br />(Wh/m²)</th>
+                            <th class="num">Direct<br />(Wh/m²)</th>
+                            <th class="num">Diffuse<br />(Wh/m²)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -144,24 +144,24 @@
                         {
                             foreach (DataRecord record in epwFile.DataRecords)
                             {
-                                <tr style="border-bottom: 1px solid #eee;">
-                                    <td style="padding: 6px 6px; border-right: 1px solid #eee; white-space: nowrap;">@($"{record.DateTime.Year}-{record.DateTime.Month:D2}-{record.DateTime.Day:D2} {record.DateTime.Hour:D2}:{record.DateTime.Minute:D2}")</td>
-                                    <td style="padding: 6px 6px; text-align: right; border-right: 1px solid #eee;">@record.DryBulbTemperature.ToString("F1")</td>
-                                    <td style="padding: 6px 6px; text-align: right; border-right: 1px solid #eee;">@record.DewPointTemperature.ToString("F1")</td>
-                                    <td style="padding: 6px 6px; text-align: right; border-right: 1px solid #eee;">@record.RelativeHumidity.ToString("F0")</td>
-                                    <td style="padding: 6px 6px; text-align: right; border-right: 1px solid #eee;">@record.AtmosphericStationPressure.ToString("N0")</td>
-                                    <td style="padding: 6px 6px; text-align: right; border-right: 1px solid #eee;">@record.WindSpeed.ToString("F1")</td>
-                                    <td style="padding: 6px 6px; text-align: right; border-right: 1px solid #eee;">@record.WindDirection.ToString("F0")</td>
-                                    <td style="padding: 6px 6px; text-align: right; border-right: 1px solid #eee;">@record.GlobalHorizontalRadiation.ToString("F0")</td>
-                                    <td style="padding: 6px 6px; text-align: right; border-right: 1px solid #eee;">@record.DirectNormalRadiation.ToString("F0")</td>
-                                    <td style="padding: 6px 6px; text-align: right;">@record.DiffuseHorizontalRadiation.ToString("F0")</td>
+                                <tr>
+                                    <td class="nowrap">@($"{record.DateTime.Year}-{record.DateTime.Month:D2}-{record.DateTime.Day:D2} {record.DateTime.Hour:D2}:{record.DateTime.Minute:D2}")</td>
+                                    <td class="num">@record.DryBulbTemperature.ToString("F1")</td>
+                                    <td class="num">@record.DewPointTemperature.ToString("F1")</td>
+                                    <td class="num">@record.RelativeHumidity.ToString("F0")</td>
+                                    <td class="num">@record.AtmosphericStationPressure.ToString("N0")</td>
+                                    <td class="num">@record.WindSpeed.ToString("F1")</td>
+                                    <td class="num">@record.WindDirection.ToString("F0")</td>
+                                    <td class="num">@record.GlobalHorizontalRadiation.ToString("F0")</td>
+                                    <td class="num">@record.DirectNormalRadiation.ToString("F0")</td>
+                                    <td class="num">@record.DiffuseHorizontalRadiation.ToString("F0")</td>
                                 </tr>
                             }
                         }
                         else
                         {
                             <tr>
-                                <td colspan="10" style="padding: 20px; text-align: center; color: var(--text-muted);">
+                                <td colspan="10" class="gis-empty-state">
                                     No detailed weather records available.
                                 </td>
                             </tr>
@@ -173,7 +173,7 @@
     }
     else
     {
-        <div style="padding: 20px; text-align: center; color: var(--text-muted);">
+        <div class="gis-empty-state">
             No EPW weather data available.
         </div>
     }

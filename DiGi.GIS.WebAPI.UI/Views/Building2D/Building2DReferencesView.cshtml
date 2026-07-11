@@ -7,8 +7,6 @@
     ViewData["Description"] = "Browse and query building details from the GIS database.";
 }
 
-<link rel="stylesheet" href="~/css/gis-theme.css" />
-
 <div class="master-detail-wrapper">
     @* LEWA STRONA: LISTA *@
     <div id="listSide">
@@ -20,12 +18,12 @@
     <div id="detailsSide">
         <div id="detailsLoader" class="details-loader">
             <div class="gis-loader"></div>
-            <p style="font-size: 0.9em; color: #0078d4; font-weight: 500;">Fetching data...</p>
+            <p class="gis-loader-text">Fetching data...</p>
         </div>
 
         <div id="detailsContent">
-            <div style="padding: 40px; text-align: center; color: #999;">
-                <i style="font-size: 48px; display: block; margin-bottom: 10px;">🏢</i>
+            <div class="gis-placeholder">
+                <i class="gis-placeholder-icon">🏢</i>
                 <p>Select a building from the list to view its technical details and location.</p>
             </div>
         </div>

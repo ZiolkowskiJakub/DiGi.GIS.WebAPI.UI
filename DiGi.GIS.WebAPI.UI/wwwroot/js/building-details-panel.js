@@ -1,6 +1,6 @@
-// DiGi.GIS.WebAPI.UI — building "Details" panel for the 3D viewers.
-// When exactly one building is selected in the 3D view (single click or marquee), a "Details" card
-// appears in the side panel with a single centered "Show" button linking to the standalone building
+// DiGi.GIS.WebAPI.UI — building "Selection" panel for the 3D viewers.
+// When exactly one building is selected in the 3D view (single click or marquee), a "Selection" card
+// appears in the side panel with a "Details" button linking to the standalone building
 // details page (building2D/detailsbyreference). That page renders only the details side of the
 // references master-detail layout (Building2DDetailsView) and loads the _Building2DView partial
 // through the same AJAX pipeline, so all of its scripts and styles work correctly.

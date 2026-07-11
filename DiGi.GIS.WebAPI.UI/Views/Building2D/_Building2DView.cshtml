@@ -10,8 +10,6 @@
     System.Collections.Generic.List<AdministrativeAreal2DReference>? administrativeAreal2DReferences_Path = building2DView.AdministrativeAreal2DReferencePath?.AdministrativeAreal2DReferences;
 }
 
-<link rel="stylesheet" href="~/css/gis-theme.css" />
-
 <div class="gis-table-container">
     
     @* --- SECTION 1: Building2D (Geometry) --- *@
@@ -36,10 +34,9 @@
                 AdministrativeAreal2DReference administrativeAreal2DReference_Path = administrativeAreal2DReferences_Path[i];
 
                 <div class="breadcrumb-item-wrapper">
-                    <span style="font-weight: 500;">@administrativeAreal2DReference_Path.Name</span>
+                    <span class="fw-medium">@administrativeAreal2DReference_Path.Name</span>
                     <a href="~/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@administrativeAreal2DReference_Path.Id"
-                           class="btn-buildings btn-active"
-                           style="padding: 2px 8px; font-size: 0.8em;">
+                           class="btn-buildings btn-active btn-xs">
                         @administrativeAreal2DReference_Path.Code
                     </a>
                 </div>
@@ -53,7 +50,7 @@
     </div>
 
     @* --- SECTION 3: Building2D properties (Divided into logical blocks) --- *@
-    <div style="border-top: 1px solid #eee; padding-top: 20px;">
+    <div class="gis-section-divider">
         @if (building2DView.Building2D != null)
         {
 
@@ -102,18 +99,18 @@
                 </tr>
                 <tr>
                     <td class="property-label">Azimuth:</td>
-                    <td style="font-weight: bold;">@DiGi.Core.Query.Round(DiGi.GIS.Query.Azimuth(building2DView.Building2D), 1)°</td>
+                    <td class="fw-bold">@DiGi.Core.Query.Round(DiGi.GIS.Query.Azimuth(building2DView.Building2D), 1)°</td>
                 </tr>
                 <tr>
                     <td class="property-label">Is Occupied:</td>
                     <td>
                         @if (DiGi.GIS.Query.IsOccupied(building2DView.Building2D))
                         {
-                            <span style="color: #5cb85c; font-weight: bold;">Yes</span>
+                            <span class="text-success fw-bold">Yes</span>
                         }
                         else
                         {
-                            <span style="color: #d9534f; font-weight: bold;">No</span>
+                            <span class="text-danger fw-bold">No</span>
                         }
                     </td>
                 </tr>
@@ -129,7 +126,7 @@
                             defaultShape = DiGi.Core.Query.Description(buildingShapeSolver.Output) ?? string.Empty;
                         }
                     }
-                    <td style="font-weight: bold;">@defaultShape</td>
+                    <td class="fw-bold">@defaultShape</td>
                 </tr>
             </table>
         </div>
@@ -149,8 +146,8 @@
         </div>
 
         @* --- BLOCK 5: Orto Datas --- *@
-        <div id="orto-data-section" class="property-group" style="display: none;">
-            <h4 style="color: #28a745; margin-bottom: 12px; font-size: 1.1em; border-left: 4px solid #28a745; padding-left: 10px;">
+        <div id="orto-data-section" class="property-group success" style="display: none;">
+            <h4>
                 Orto Data
             </h4>
             <div id="orto-datas-container">
@@ -159,8 +156,8 @@
         </div>
 
         @* --- BLOCK 6: Regulated Heat Transfer Coefficients --- *@
-        <div id="regulated-heat-transfer-coefficients-section" class="property-group" style="display: none;">
-                <h4 style="color: #28a745; margin-bottom: 12px; font-size: 1.1em; border-left: 4px solid #28a745; padding-left: 10px;">
+        <div id="regulated-heat-transfer-coefficients-section" class="property-group success" style="display: none;">
+                <h4>
                 Regulated Heat Transfer Coefficients
                 </h4>
             <div id="regulated-heat-transfer-coefficients-container">
@@ -187,15 +184,15 @@
                             string stringX = centroidX.ToString(System.Globalization.CultureInfo.InvariantCulture);
                             string stringY = centroidY.ToString(System.Globalization.CultureInfo.InvariantCulture);
                         }
-                        <a href="/epwfile/item?x=@stringX&y=@stringY" target="_blank" class="btn-buildings btn-active" style="padding: 4px 12px;">Show</a>
+                        <a href="/epwfile/item?x=@stringX&y=@stringY" target="_blank" class="btn-buildings btn-active btn-sm">Show</a>
                     </td>
                 </tr>
                 <tr>
                     <td class="property-label">Weather Data:</td>
                     <td>
                         @* FUTURE: Will be connected to an active link when endpoint is ready: *@
-                        @* <a href="/weatherdata/tablebyreference?reference=@(building2DView.Building2DReference?.Reference ?? string.Empty)&countyid=@(building2DView.Building2DReference?.CountyId?.ToString() ?? string.Empty)" target="_blank" class="btn-buildings btn-active" style="padding: 4px 12px;">Show</a> *@
-                        <button type="button" class="btn-buildings btn-disabled" disabled style="padding: 4px 12px;">Show</button>
+                        @* <a href="/weatherdata/tablebyreference?reference=@(building2DView.Building2DReference?.Reference ?? string.Empty)&countyid=@(building2DView.Building2DReference?.CountyId?.ToString() ?? string.Empty)" target="_blank" class="btn-buildings btn-active btn-sm">Show</a> *@
+                        <button type="button" class="btn-buildings btn-disabled btn-sm" disabled>Show</button>
                     </td>
                 </tr>
             </table>
@@ -208,13 +205,13 @@
                 <tr>
                     <td class="property-label">Detailed Data:</td>
                     <td>
-                        <a href="/buildingdata/tablebyreference?reference=@(building2DView.Building2DReference?.Reference ?? string.Empty)&countyid=@(building2DView.Building2DReference?.CountyId?.ToString() ?? string.Empty)" target="_blank" class="btn-buildings btn-active" style="padding: 4px 12px;">Show</a>
+                        <a href="/buildingdata/tablebyreference?reference=@(building2DView.Building2DReference?.Reference ?? string.Empty)&countyid=@(building2DView.Building2DReference?.CountyId?.ToString() ?? string.Empty)" target="_blank" class="btn-buildings btn-active btn-sm">Show</a>
                     </td>
                 </tr>
                 <tr>
                     <td class="property-label">3D Model:</td>
                     <td>
-                        <button type="button" class="btn-buildings btn-disabled" disabled style="padding: 4px 12px;">Show</button>
+                        <button type="button" class="btn-buildings btn-disabled btn-sm" disabled>Show</button>
                     </td>
                 </tr>
             </table>

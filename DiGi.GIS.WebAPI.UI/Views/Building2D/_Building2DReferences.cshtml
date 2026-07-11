@@ -10,14 +10,14 @@
     <div class="master-header">
         <span class="gis-title">Building References</span>
         <div class="controls-row">
-            <span id="pagingStatus" style="font-size: 0.8em; color: #666; white-space: nowrap;">
+            <span id="pagingStatus" class="paging-status">
                 Total: <b>@building2DReferences.Count</b> (<span id="shownVal">@Math.Min(building2DReferences.Count, initialLimit)</span>)
             </span>
             <div id="paginationButtons">
                 @if (building2DReferences.Count > initialLimit)
                 {
-                    <button type="button" class="btn-buildings" style="min-width: 60px;" onclick="revealNext(100)">+100</button>
-                    <button type="button" class="btn-buildings" style="min-width: 60px; background-color: #28a745; color: white; border-color: #28a745;" onclick="revealAll()">All</button>
+                    <button type="button" class="btn-buildings btn-active btn-pager" onclick="revealNext(100)">+100</button>
+                    <button type="button" class="btn-buildings btn-pager btn-pager-all" onclick="revealAll()">All</button>
                 }
             </div>
         </div>
@@ -36,7 +36,7 @@
                 {
                     Building2DReference building2DReference = building2DReferences[i];
                     <tr class="@(i >= initialLimit ? "row-hidden" : "")">
-                        <td class="col-idx" style="color: #999; font-size: 0.8em;">@(i + 1)</td>
+                        <td class="col-idx">@(i + 1)</td>
                         <td class="col-ref">
                             <a href="~/building2D/itembyid?id=@building2DReference.Id&countyid=@building2DReference.CountyId"
                                class="btn-buildings building-link"

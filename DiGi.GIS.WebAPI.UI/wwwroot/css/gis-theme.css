@@ -75,6 +75,9 @@ button.gis-menu-btn {
 .gis-button {
     padding: 12px 24px;
     cursor: pointer;
+    /* Explicit font so <a> and <button> variants match: a native button falls back to the UA
+       default (~13.3px) while an anchor inherits the document size, otherwise diverging. */
+    font-size: 0.875rem;
     font-weight: 600;
     border: 1px solid var(--primary-color);
     border-radius: 4px;
@@ -85,6 +88,7 @@ button.gis-menu-btn {
     align-items: center;
     gap: 8px;
     font-family: var(--font-sans);
+    text-decoration: none;
 }
 
     .gis-button:hover {
@@ -983,11 +987,19 @@ h1.gis-title-large {
 
 /* Collapsible right-panel cards. The card title becomes a clickable header with a chevron toggle
    (added by gltf-viewer.js); the card content is hidden while the card carries gltf-card-collapsed. */
+/* Tighter vertical padding than the default card so more panels fit in the side panel. */
+.gis-card.gltf-card {
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
 .gltf-card-title {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
+    margin: 0 0 10px 0;
+    font-size: 1rem;
     cursor: pointer;
     user-select: none;
 }
@@ -1030,3 +1042,473 @@ h1.gis-title-large {
     .gltf-card.gltf-card-collapsed .gltf-card-title {
         margin-bottom: 0;
     }
+
+/* Text & layout utilities */
+.text-center {
+    text-align: center;
+}
+
+.text-muted {
+    color: var(--text-muted);
+}
+
+.text-success {
+    color: var(--success-color);
+}
+
+.text-danger {
+    color: var(--danger-color);
+}
+
+.fw-medium {
+    font-weight: 500;
+}
+
+.fw-bold {
+    font-weight: bold;
+}
+
+/* Button size modifiers for .btn-buildings */
+.btn-buildings.btn-xs {
+    padding: 2px 8px;
+    font-size: 0.8em;
+    line-height: 1.5;
+}
+
+.btn-buildings.btn-sm {
+    padding: 4px 12px;
+}
+
+/* Hero / start-page cards */
+.gis-hero-card {
+    text-align: center;
+    padding: 50px 20px;
+}
+
+.gis-hero-icon {
+    margin-bottom: 20px;
+    color: var(--primary-color);
+    font-size: 4rem;
+    line-height: 1;
+}
+
+    .gis-hero-icon svg {
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+.gis-title.gis-title-hero {
+    border: none;
+    padding: 0;
+    margin-bottom: 15px;
+    display: block;
+    font-size: 1.8rem;
+}
+
+.gis-hero-text {
+    color: var(--text-muted);
+    max-width: 520px;
+    margin: 0 auto 30px;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+/* Inline parameter forms on hero cards */
+.gis-inline-form {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+    .gis-inline-form label {
+        color: var(--text-muted);
+    }
+
+    .gis-inline-form input {
+        margin-left: 6px;
+        padding: 6px;
+        width: 100px;
+    }
+
+        .gis-inline-form input.gis-input-md {
+            width: 80px;
+        }
+
+        .gis-inline-form input.gis-input-sm {
+            width: 70px;
+        }
+
+/* Narrow centered card (single control panel) */
+.gis-card-narrow {
+    max-width: 520px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Horizontal control rows inside cards */
+.gis-form-row {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+    /* The shrink-to-fit panel gives percentage widths nothing to resolve against — pin the select. */
+    .gis-form-row .gis-select {
+        width: 300px;
+        max-width: 100%;
+    }
+
+    .gis-form-row .gis-button {
+        flex-shrink: 0;
+    }
+
+/* AJAX results target below a control card */
+.gis-results-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+/* Loader caption below .gis-loader */
+.gis-loader-text {
+    text-align: center;
+    color: var(--primary-color);
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+/* Empty-state and placeholder messages */
+.gis-empty-state {
+    padding: 20px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.gis-placeholder {
+    padding: 40px;
+    text-align: center;
+    color: var(--text-gray-light);
+}
+
+.gis-placeholder-icon {
+    font-size: 48px;
+    font-style: normal;
+    display: block;
+    margin-bottom: 10px;
+}
+
+/* Section separated by a top border (detail pages) */
+.gis-section-divider {
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+/* Inline tooltip trigger next to a label */
+.tooltip-hint {
+    margin-left: 4px;
+    color: var(--text-muted);
+}
+
+/* Master list paging controls */
+.paging-status {
+    font-size: 0.8em;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.btn-buildings.btn-pager {
+    min-width: 60px;
+}
+
+.btn-buildings.btn-pager-all {
+    background-color: var(--success-color);
+    color: white;
+    border-color: var(--success-color);
+}
+
+    .btn-buildings.btn-pager-all:hover {
+        background-color: var(--success-hover);
+        border-color: var(--success-hover);
+    }
+
+.gis-master-wrapper .gis-table td.col-idx {
+    color: var(--text-gray-light);
+    font-size: 0.8em;
+}
+
+/* Scrollable raw-data tables (e.g. EPW weather records) */
+.gis-scroll-box {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 500px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+.gis-data-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    margin: 0;
+    font-size: 0.85em;
+    background-color: var(--bg-table-alt);
+}
+
+    .gis-data-table thead tr {
+        border-bottom: 2px solid var(--border-color-card);
+        position: sticky;
+        top: 0;
+        background-color: var(--bg-card);
+        z-index: 1;
+    }
+
+    .gis-data-table th {
+        padding: 6px;
+        text-align: left;
+        background-color: #f9f9f9;
+        font-weight: bold;
+        border-right: 1px solid #eee;
+        white-space: normal;
+        word-wrap: break-word;
+    }
+
+    .gis-data-table td {
+        padding: 6px;
+        border-right: 1px solid #eee;
+    }
+
+    .gis-data-table th:last-child,
+    .gis-data-table td:last-child {
+        border-right: none;
+    }
+
+    .gis-data-table tbody tr {
+        border-bottom: 1px solid #eee;
+    }
+
+    .gis-data-table .num {
+        text-align: right;
+    }
+
+    .gis-data-table .nowrap {
+        white-space: nowrap;
+    }
+
+/* 3D viewer pages (GLTF & Communication scene views) */
+
+/* The theme panel shrinks to fit (auto cross-axis margins prevent flex stretching) — force full width on viewer pages so the 3D view can stretch with the window. */
+.gis-panel.gis-panel-full {
+    width: 95%;
+    max-width: none;
+    margin: 20px auto;
+}
+
+/* The 3D view always stretches with the window; the side panel stays docked on the right. */
+.gltf-layout {
+    display: flex;
+    gap: 16px;
+    align-items: stretch;
+    height: calc(100vh - 250px);
+    min-height: 480px;
+}
+
+    /* Variant for pages with an extra toolbar row above the canvas (communication view). */
+    .gltf-layout.gltf-layout-toolbar {
+        height: calc(100vh - 300px);
+    }
+
+#gltf-viewer-container {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #171a21;
+}
+
+#gltf-toolbar {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 5;
+    display: flex;
+    gap: 8px;
+}
+
+/* Small toggle in the top-right corner that folds/unfolds the right side panel. */
+.gltf-panel-toggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 5;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--text-dark);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+    .gltf-panel-toggle:hover {
+        color: var(--primary-color);
+        background: #ffffff;
+    }
+
+    .gltf-panel-toggle svg {
+        transition: transform 0.2s ease;
+    }
+
+/* Folded state: hide the side panel (the viewer expands to fill) and flip the chevron. */
+.gltf-layout.gltf-panel-collapsed .gltf-side-panel {
+    display: none;
+}
+
+.gltf-layout.gltf-panel-collapsed .gltf-panel-toggle svg {
+    transform: rotate(180deg);
+}
+
+.gltf-side-panel {
+    flex: 0 0 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.gltf-slider-label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+    .gltf-slider-label input[type="range"] {
+        width: 100%;
+        display: block;
+    }
+
+.gltf-properties {
+    font-size: 0.85rem;
+    word-break: break-word;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+    .gltf-properties table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .gltf-properties td {
+        padding: 3px 6px;
+        vertical-align: top;
+        border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+    }
+
+        .gltf-properties td:first-child {
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+.gltf-muted {
+    color: var(--text-muted);
+}
+
+/* Selection card: the "Details" button fills the card width like the other panels' content, with a
+   centered label. border-box keeps the padding inside the 100% so it doesn't overflow the card. */
+#building-details-card .gis-button {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+}
+
+/* Communication viewer: toolbar between the page header and the 3D canvas. */
+.communication-toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0 0 12px 0;
+}
+
+/* The hint must never wrap: growing the toolbar would shift the 3D canvas mid-interaction. */
+.communication-mode-hint {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Communication viewer: modal dialogs (calculation inputs, antenna placement). */
+.communication-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.communication-modal {
+    width: 320px;
+    max-width: 90vw;
+}
+
+.communication-modal-label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+
+    .communication-modal-label input,
+    .communication-modal-label select {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 6px 8px;
+        margin-top: 4px;
+    }
+
+.communication-modal-functions {
+    border: 1px solid rgba(128, 128, 128, 0.35);
+    border-radius: 4px;
+    margin: 0 0 12px 0;
+    padding: 8px 10px;
+}
+
+    .communication-modal-functions legend {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        padding: 0 4px;
+    }
+
+.communication-modal-checkbox {
+    display: block;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+}
+
+.communication-modal-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}

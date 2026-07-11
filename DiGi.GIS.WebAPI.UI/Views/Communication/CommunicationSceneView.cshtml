@@ -5,7 +5,7 @@
     ViewData["Description"] = "Interactive communication analysis: place antennas in the 3D district model and calculate the radio propagation between them.";
 }
 
-<div class="gis-panel">
+<div class="gis-panel gis-panel-full">
     <h2 id="gltf-title" class="gis-title">@(Model.Title ?? "Communication 3D Viewer")</h2>
 
     @* Communication toolbar: sits between the page header and the 3D canvas viewport. *@
@@ -17,7 +17,7 @@
         <span id="communication-mode-hint" class="communication-mode-hint"></span>
     </div>
 
-    <div class="gltf-layout">
+    <div class="gltf-layout gltf-layout-toolbar">
         @* Streamed delivery: the viewer fetches the binary glTF payload from data-glb-url. The data-*
            attributes carry the scene input parameters so the calculation request can rebuild the
            analyzed area on the server without any client side storage. *@
@@ -42,25 +42,10 @@
             @* Hover label, selection marquee and navigation hint overlays are created by the generic viewer engine. *@
         </div>
 
+        @* The cards are kept in alphabetical order by title (Lighting, Properties, Results, Scene,
+           Selection) — hidden cards (Results, Selection) appear in place when user interaction
+           reveals them. *@
         <aside id="gltf-side-panel" class="gltf-side-panel">
-            @* Results panel: hidden until a calculation succeeds. It shows the general propagation
-               results (total/directional power, per delay components) after a calculation and the
-               ray specific values when a green ray is selected in the 3D view; the content is filled
-               by communication-tools.js. *@
-            <div class="gis-card gltf-card" id="communication-results-card" style="display: none;">
-                <h3 class="gltf-card-title">Results</h3>
-                <div id="communication-results" class="gltf-properties"></div>
-            </div>
-
-            @* Details card: shown by building-details-panel.js when exactly one building is selected;
-               the "Show" button opens the standalone building details page. *@
-            <div class="gis-card gltf-card" id="building-details-card" style="display: none;">
-                <h3 class="gltf-card-title">Details</h3>
-                <div style="text-align: center;">
-                    <a id="building-details-show-link" class="gis-button" href="#" target="_blank" rel="noopener" style="display: inline-block;">Show</a>
-                </div>
-            </div>
-
             <div class="gis-card gltf-card">
                 <h3 class="gltf-card-title">Lighting</h3>
                 <label class="gltf-slider-label">Sun azimuth <span id="gltf-sun-azimuth-value"></span>
@@ -84,9 +69,25 @@
                 </div>
             </div>
 
+            @* Results panel: hidden until a calculation succeeds. It shows the general propagation
+               results (total/directional power, per delay components) after a calculation and the
+               ray specific values when a green ray is selected in the 3D view; the content is filled
+               by communication-tools.js. *@
+            <div class="gis-card gltf-card" id="communication-results-card" style="display: none;">
+                <h3 class="gltf-card-title">Results</h3>
+                <div id="communication-results" class="gltf-properties"></div>
+            </div>
+
             <div class="gis-card gltf-card">
                 <h3 class="gltf-card-title">Scene</h3>
                 <div id="gltf-scene-info" class="gltf-properties"></div>
+            </div>
+
+            @* Selection card: shown by building-details-panel.js when exactly one building is selected;
+               the "Details" button opens the standalone building details page. *@
+            <div class="gis-card gltf-card" id="building-details-card" style="display: none;">
+                <h3 class="gltf-card-title">Selection</h3>
+                <a id="building-details-show-link" class="gis-button" href="#" target="_blank" rel="noopener">Details</a>
             </div>
         </aside>
     </div>
@@ -166,210 +167,6 @@
         </div>
     </div>
 </div>
-
-<style>
-    /* The theme panel shrinks to fit (auto cross-axis margins prevent flex stretching) — force full width on this page so the 3D view can stretch with the window. */
-    .gis-panel {
-        width: 95%;
-        max-width: none;
-        margin-top: 20px;
-        margin-bottom: 20px;
-    }
-
-    .communication-toolbar {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-        flex-wrap: wrap;
-        margin: 0 0 12px 0;
-    }
-
-    /* The hint must never wrap: growing the toolbar would shift the 3D canvas mid-interaction. */
-    .communication-mode-hint {
-        color: var(--text-muted);
-        font-size: 0.85rem;
-        flex: 1;
-        min-width: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    /* The 3D view always stretches with the window; the side panel stays docked on the right. */
-    .gltf-layout {
-        display: flex;
-        gap: 16px;
-        align-items: stretch;
-        height: calc(100vh - 300px);
-        min-height: 480px;
-    }
-
-    #gltf-viewer-container {
-        position: relative;
-        flex: 1 1 auto;
-        min-width: 0;
-        height: 100%;
-        border-radius: 8px;
-        overflow: hidden;
-        background: #171a21;
-    }
-
-    #gltf-toolbar {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        z-index: 5;
-        display: flex;
-        gap: 8px;
-    }
-
-    /* Small toggle in the top-right corner that folds/unfolds the right side panel. */
-    .gltf-panel-toggle {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        z-index: 5;
-        width: 34px;
-        height: 34px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        background: rgba(255, 255, 255, 0.92);
-        color: #333333;
-        border: 1px solid rgba(0, 0, 0, 0.12);
-        border-radius: 8px;
-        cursor: pointer;
-        transition: background 0.2s ease, color 0.2s ease;
-    }
-
-    .gltf-panel-toggle:hover {
-        color: var(--primary-color);
-        background: #ffffff;
-    }
-
-    .gltf-panel-toggle svg {
-        transition: transform 0.2s ease;
-    }
-
-    /* Folded state: hide the side panel (the viewer expands to fill) and flip the chevron. */
-    .gltf-layout.gltf-panel-collapsed .gltf-side-panel {
-        display: none;
-    }
-
-    .gltf-layout.gltf-panel-collapsed .gltf-panel-toggle svg {
-        transform: rotate(180deg);
-    }
-
-    .gltf-side-panel {
-        flex: 0 0 340px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        height: 100%;
-        overflow-y: auto;
-    }
-
-    .gltf-card-title {
-        margin: 0 0 10px 0;
-        font-size: 1rem;
-    }
-
-    .gltf-slider-label {
-        display: block;
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        margin-bottom: 8px;
-    }
-
-    .gltf-slider-label input[type="range"] {
-        width: 100%;
-        display: block;
-    }
-
-    .gltf-properties {
-        font-size: 0.85rem;
-        word-break: break-word;
-        max-height: 320px;
-        overflow-y: auto;
-    }
-
-    .gltf-properties table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .gltf-properties td {
-        padding: 3px 6px;
-        vertical-align: top;
-        border-bottom: 1px solid rgba(128, 128, 128, 0.15);
-    }
-
-    .gltf-properties td:first-child {
-        font-weight: 600;
-        white-space: nowrap;
-    }
-
-    .gltf-muted {
-        color: var(--text-muted);
-    }
-
-    .communication-modal-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 100;
-        background: rgba(0, 0, 0, 0.45);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .communication-modal {
-        width: 320px;
-        max-width: 90vw;
-    }
-
-    .communication-modal-label {
-        display: block;
-        font-size: 0.9rem;
-        color: var(--text-muted);
-        margin-bottom: 10px;
-    }
-
-    .communication-modal-label input,
-    .communication-modal-label select {
-        display: block;
-        width: 100%;
-        box-sizing: border-box;
-        padding: 6px 8px;
-        margin-top: 4px;
-    }
-
-    .communication-modal-functions {
-        border: 1px solid rgba(128, 128, 128, 0.35);
-        border-radius: 4px;
-        margin: 0 0 12px 0;
-        padding: 8px 10px;
-    }
-
-    .communication-modal-functions legend {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        padding: 0 4px;
-    }
-
-    .communication-modal-checkbox {
-        display: block;
-        font-size: 0.9rem;
-        margin-bottom: 4px;
-    }
-
-    .communication-modal-buttons {
-        display: flex;
-        gap: 8px;
-        justify-content: flex-end;
-    }
-</style>
 
 @section Scripts {
     @* The '!' prefix opts this element out of tag helper processing: the script tag helper

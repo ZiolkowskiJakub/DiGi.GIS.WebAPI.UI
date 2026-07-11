@@ -4,28 +4,28 @@
 }
 
 <div class="gis-panel">
-    <div class="gis-card" style="max-width: 520px; width: 100%; box-sizing: border-box; margin-left: auto; margin-right: auto;">
+    <div class="gis-card gis-card-narrow">
         <h2 class="gis-title">Administrative Areas</h2>
-        
-        <div style="display: flex; gap: 15px; align-items: center;">
-            <select id="typeSelect" class="gis-select" style="width: 300px; max-width: 100%;">
+
+        <div class="gis-form-row">
+            <select id="typeSelect" class="gis-select">
                 <option value="Voivodeship">Voivodeship</option>
                 <option value="County">County</option>
                 <option value="Municipality">Municipality</option>
             </select>
-            
-            <button id="loadItemsBtn" class="gis-button" style="flex-shrink: 0;">
+
+            <button id="loadItemsBtn" class="gis-button">
                 <span>Load Items</span>
             </button>
         </div>
 
         <div id="loading" style="display:none;">
             <div class="gis-loader"></div>
-            <p style="text-align: center; color: #0078d4; font-size: 0.9em;">Fetching data from database...</p>
+            <p class="gis-loader-text">Fetching data from database...</p>
         </div>
     </div>
 
-    <div id="tableContainer" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+    <div id="tableContainer" class="gis-results-container">
     </div>
 </div>
 

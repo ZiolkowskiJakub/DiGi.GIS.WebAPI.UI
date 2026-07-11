@@ -34,8 +34,6 @@
     administrativeAreal2DReferences.Sort((x, y) => (x?.Name ?? string.Empty).CompareTo((y?.Name ?? string.Empty)));
 }
 
-<link rel="stylesheet" href="~/css/gis-theme.css" />
-
 <div class="gis-table-container">
 
     @* --- SECTION 1: AdministrativeAreal2D (Details) --- *@
@@ -52,8 +50,7 @@
                     <span class="gis-info-label">Code:</span>
                     <span>
                         <a href="~/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@Model.AdministrativeAreal2DReference!.Id"
-                           class="btn-buildings btn-active"
-                           style="padding: 2px 8px; font-size: 0.8em; line-height: 1.5;">
+                           class="btn-buildings btn-active btn-xs">
                             @Model.AdministrativeAreal2DReference!.Code
                         </a>
                     </span>
@@ -122,9 +119,8 @@
                     <span>@administrativeAreal2DReference_Path.Name</span>
 
                     @* Interactive Code Button *@
-                    <a href="~/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@administrativeAreal2DReference_Path.Id" 
-                       class="btn-buildings btn-active" 
-                       style="padding: 2px 8px; font-size: 0.8em; line-height: 1.5;">
+                    <a href="~/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@administrativeAreal2DReference_Path.Id"
+                       class="btn-buildings btn-active btn-xs">
                        @administrativeAreal2DReference_Path.Code
                     </a>
                 </div>
@@ -162,7 +158,7 @@
                             <a href="~/administrativeareal2D/administrativeareal2Dreferencesbyid?id=@administrativeAreal2DReference.Id"
                                onmouseenter="handleMouseEnter('@administrativeAreal2DReference.Id')"
                                onmouseleave="handleMouseLeave('@administrativeAreal2DReference.Id', '@(Model.AdministrativeAreal2DReference?.Id)')"
-                               class="btn-buildings btn-active" style="padding: 4px 8px;">
+                               class="btn-buildings btn-active btn-sm">
                                 @administrativeAreal2DReference.Code
                             </a>
                         </td>
