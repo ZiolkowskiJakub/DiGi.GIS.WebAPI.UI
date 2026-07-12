@@ -29,17 +29,14 @@
              data-center-y="@Model.CenterY.ToString(System.Globalization.CultureInfo.InvariantCulture)"
              data-radius="@Model.Radius.ToString(System.Globalization.CultureInfo.InvariantCulture)"
              data-storey-height="@Model.StoreyHeight.ToString(System.Globalization.CultureInfo.InvariantCulture)">
-            <div id="gltf-toolbar">
-                <button type="button" id="gltf-fit-button" class="gis-button" title="Frame the whole scene">Fit view</button>
-                <button type="button" id="gltf-clear-button" class="gis-button" title="Clear the current selection">Clear selection</button>
-            </div>
             @* Small toggle in the top-right corner that folds/unfolds the right side panel. *@
             <button type="button" id="gltf-panel-toggle" class="gltf-panel-toggle" title="Hide panel" aria-label="Hide panel" aria-controls="gltf-side-panel" aria-expanded="true">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="m9 18 6-6-6-6" />
                 </svg>
             </button>
-            @* Hover label, selection marquee and navigation hint overlays are created by the generic viewer engine. *@
+            @* Hover label, selection marquee, navigation hint and right-click context menu (Fit view,
+               Fit selection, Clear selection) overlays are created by the generic viewer engine. *@
         </div>
 
         @* The cards are kept in alphabetical order by title (Lighting, Properties, Results, Scene,

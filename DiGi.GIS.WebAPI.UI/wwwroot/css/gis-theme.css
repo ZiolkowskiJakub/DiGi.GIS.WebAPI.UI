@@ -1337,15 +1337,6 @@ h1.gis-title-large {
     background: #171a21;
 }
 
-#gltf-toolbar {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 5;
-    display: flex;
-    gap: 8px;
-}
-
 /* Small toggle in the top-right corner that folds/unfolds the right side panel. */
 .gltf-panel-toggle {
     position: absolute;

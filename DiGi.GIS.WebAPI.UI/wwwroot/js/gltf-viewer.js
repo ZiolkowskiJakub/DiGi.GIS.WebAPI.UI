@@ -235,8 +235,5 @@ if (container) {
         container.addEventListener('gltf-selectionchanged', (event) => {
             fillProperties(viewer, event.detail.references);
         });
-
-        document.getElementById('gltf-fit-button')?.addEventListener('click', () => viewer.frameScene());
-        document.getElementById('gltf-clear-button')?.addEventListener('click', () => viewer.clearSelection());
     })();
 }
