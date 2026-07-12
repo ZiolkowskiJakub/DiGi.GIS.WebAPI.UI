@@ -59,10 +59,12 @@
             </div>
 
             @* Selection card: shown by building-details-panel.js when exactly one building is selected;
-               the "Details" button opens the standalone building details page. *@
+               "Details" opens the standalone building details page, "Export" shows the selected
+               object's data as formatted JSON in a modal. *@
             <div class="gis-card gltf-card" id="building-details-card" style="display: none;">
                 <h3 class="gltf-card-title">Selection</h3>
                 <a id="building-details-show-link" class="gis-button" href="#" target="_blank" rel="noopener">Details</a>
+                <button type="button" id="building-export-button" class="gis-button">Export</button>
             </div>
         </aside>
     </div>

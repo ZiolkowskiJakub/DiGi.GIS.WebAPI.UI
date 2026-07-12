@@ -206,9 +206,13 @@ button.gis-menu-btn {
 }
 
 /* Master Detail Split layout */
+/* Fill the flex-column content wrapper rather than recomputing from 100vh: the viewport-based calc
+   ignored the header's 1px bottom border, so the wrapper ran 1px taller than the space its parent
+   actually provides and spilled a stray outer scrollbar onto .gis-content-wrapper. */
 .master-detail-wrapper {
     display: flex;
-    height: calc(100vh - 140px);
+    flex: 1 1 auto;
+    min-height: 0;
     gap: 12px;
     padding: 12px;
     background-color: #f0f2f5;
@@ -1428,13 +1432,18 @@ h1.gis-title-large {
     color: var(--text-muted);
 }
 
-/* Selection card: the "Details" button fills the card width like the other panels' content, with a
-   centered label. border-box keeps the padding inside the 100% so it doesn't overflow the card. */
+/* Selection card: the "Details" and "Export" buttons fill the card width like the other panels'
+   content, with centered labels. border-box keeps the padding inside the 100% so it doesn't
+   overflow the card. */
 #building-details-card .gis-button {
     width: 100%;
     box-sizing: border-box;
     justify-content: center;
 }
+
+    #building-details-card .gis-button + .gis-button {
+        margin-top: 8px;
+    }
 
 /* Communication viewer: toolbar between the page header and the 3D canvas. */
 .communication-toolbar {
@@ -1456,8 +1465,8 @@ h1.gis-title-large {
     text-overflow: ellipsis;
 }
 
-/* Communication viewer: modal dialogs (calculation inputs, antenna placement). */
-.communication-modal-overlay {
+/* Modal dialogs (communication calculation inputs, antenna placement, selection export). */
+.gis-modal-overlay {
     position: fixed;
     inset: 0;
     z-index: 100;
@@ -1467,9 +1476,28 @@ h1.gis-title-large {
     justify-content: center;
 }
 
-.communication-modal {
+.gis-modal {
     width: 320px;
     max-width: 90vw;
+    /* Cancel the gis-card bottom margin so flex centering in the overlay is exact. */
+    margin: 0;
+}
+
+    .gis-modal.gis-modal-wide {
+        width: 560px;
+    }
+
+/* Preformatted payload block inside a modal (selection export JSON). */
+.gis-modal-pre {
+    max-height: 60vh;
+    overflow: auto;
+    background: var(--bg-table-alt);
+    border: 1px solid var(--border-color-light);
+    border-radius: 4px;
+    padding: 10px;
+    margin: 0 0 12px 0;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
 }
 
 .communication-modal-label {
@@ -1507,7 +1535,7 @@ h1.gis-title-large {
     margin-bottom: 4px;
 }
 
-.communication-modal-buttons {
+.gis-modal-buttons {
     display: flex;
     gap: 8px;
     justify-content: flex-end;

@@ -84,10 +84,12 @@
             </div>
 
             @* Selection card: shown by building-details-panel.js when exactly one building is selected;
-               the "Details" button opens the standalone building details page. *@
+               "Details" opens the standalone building details page, "Export" shows the selected
+               object's data as formatted JSON in a modal. *@
             <div class="gis-card gltf-card" id="building-details-card" style="display: none;">
                 <h3 class="gltf-card-title">Selection</h3>
                 <a id="building-details-show-link" class="gis-button" href="#" target="_blank" rel="noopener">Details</a>
+                <button type="button" id="building-export-button" class="gis-button">Export</button>
             </div>
         </aside>
     </div>
@@ -107,8 +109,8 @@
    payload and the backend calculates every entry. The 3D view currently renders the first
    frequency only — add a per frequency toggle to the results panel to expose the remaining
    entries (see renderResults in communication-tools.js). *@
-<div id="communication-calculation-modal" class="communication-modal-overlay" style="display: none;">
-    <div class="gis-card communication-modal">
+<div id="communication-calculation-modal" class="gis-modal-overlay" style="display: none;">
+    <div class="gis-card gis-modal">
         <h3 class="gltf-card-title">Calculate propagation</h3>
         <label class="communication-modal-label">Frequency [MHz] (comma separated for multiple)
             <input type="text" id="communication-calculation-frequency" value="900" required />
@@ -131,7 +133,7 @@
                 <input type="number" id="communication-calculation-conductivity" step="any" min="0" value="0.005" required />
             </label>
         </fieldset>
-        <div class="communication-modal-buttons">
+        <div class="gis-modal-buttons">
             <button type="button" id="communication-calculation-ok-button" class="gis-button">OK</button>
             <button type="button" id="communication-calculation-cancel-button" class="gis-button">Cancel</button>
         </div>
@@ -139,8 +141,8 @@
 </div>
 
 @* Antenna modal: opened after the user clicks a point on the ground plane in "Add antenna" mode. *@
-<div id="communication-antenna-modal" class="communication-modal-overlay" style="display: none;">
-    <div class="gis-card communication-modal">
+<div id="communication-antenna-modal" class="gis-modal-overlay" style="display: none;">
+    <div class="gis-card gis-modal">
         <h3 class="gltf-card-title">Add antenna</h3>
         <label class="communication-modal-label">X coordinate
             <input type="number" id="communication-antenna-x" step="any" required />
@@ -161,7 +163,7 @@
                 </label>
             }
         </fieldset>
-        <div class="communication-modal-buttons">
+        <div class="gis-modal-buttons">
             <button type="button" id="communication-antenna-ok-button" class="gis-button">OK</button>
             <button type="button" id="communication-antenna-cancel-button" class="gis-button">Cancel</button>
         </div>
