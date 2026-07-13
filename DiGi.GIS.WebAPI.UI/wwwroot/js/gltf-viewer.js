@@ -200,40 +200,61 @@ function initLightingPanel(viewer) {
 const container = document.getElementById('gltf-viewer-container');
 if (container) {
     (async () => {
-        const sceneData = readSceneData('gltf-scene-data');
+        const loader = document.getElementById('gltf-loader');
 
-        // Streamed delivery is preferred: the binary glTF payload is fetched from the glb endpoint
-        // (raw binary, browser-cacheable). The embedded base64 payload is the fallback mode; its
-        // decode is asynchronous so multi-megabyte scenes never block the UI thread.
-        const glbUrl = container.dataset.glbUrl;
-        const glbBuffer = glbUrl ? await fetchGlbBytes(glbUrl) : await readGlbBytes('gltf-glb-base64');
+        try {
+            const sceneData = readSceneData('gltf-scene-data');
 
-        if (!glbBuffer) {
-            const panel = document.getElementById('gltf-properties');
-            if (panel) {
-                panel.innerHTML = '<span class="gltf-muted">No objects were found for this request.</span>';
+            // Streamed delivery is preferred: the binary glTF payload is fetched from the glb endpoint
+            // (raw binary, browser-cacheable). The embedded base64 payload is the fallback mode; its
+            // decode is asynchronous so multi-megabyte scenes never block the UI thread.
+            const glbUrl = container.dataset.glbUrl;
+            const glbBuffer = glbUrl ? await fetchGlbBytes(glbUrl) : await readGlbBytes('gltf-glb-base64');
+
+            if (!glbBuffer) {
+                if (loader) {
+                    loader.style.display = 'none';
+                }
+
+                const panel = document.getElementById('gltf-properties');
+                if (panel) {
+                    panel.innerHTML = '<span class="gltf-muted">No objects were found for this request.</span>';
+                }
+                return;
             }
-            return;
-        }
 
-        const viewer = new GltfViewer(container, sceneData, glbBuffer);
+            const viewer = new GltfViewer(container, sceneData, glbBuffer);
 
-        // Exposed on window for debugging and UI automation.
-        window.gltfViewer = viewer;
+            // Exposed on window for debugging and UI automation.
+            window.gltfViewer = viewer;
 
-        container.addEventListener('gltf-ready', (event) => {
-            initLightingPanel(viewer);
-            fillSceneInfo(event.detail.referencePoint, event.detail.objectCount);
+            container.addEventListener('gltf-ready', (event) => {
+                if (loader) {
+                    loader.style.display = 'none';
+                }
 
-            // The page shell does not know the object count upfront in streamed mode.
-            const title = document.getElementById('gltf-title');
-            if (title && event.detail.objectCount > 0) {
-                title.textContent = `${title.textContent} — ${event.detail.objectCount} objects`;
-            }
-        });
+                initLightingPanel(viewer);
+                fillSceneInfo(event.detail.referencePoint, event.detail.objectCount);
+
+                // The page shell does not know the object count upfront in streamed mode.
+                const title = document.getElementById('gltf-title');
+                if (title && event.detail.objectCount > 0) {
+                    title.textContent = `${title.textContent} — ${event.detail.objectCount} objects`;
+                }
+            });
 
         container.addEventListener('gltf-selectionchanged', (event) => {
             fillProperties(viewer, event.detail.references);
         });
+        } catch {
+            if (loader) {
+                loader.style.display = 'none';
+            }
+
+            const panel = document.getElementById('gltf-properties');
+            if (panel) {
+                panel.innerHTML = '<span class="gltf-muted">Failed to load the 3D scene.</span>';
+            }
+        }
     })();
 }
