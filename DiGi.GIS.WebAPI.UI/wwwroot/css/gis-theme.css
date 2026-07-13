@@ -709,7 +709,7 @@ h1.gis-title-large {
 }
 
 .gis-header-container {
-    width: 95%;
+    width: calc(100% - 40px);
     max-width: none;
     margin: 0 auto;
     padding: 0;
@@ -885,7 +885,7 @@ h1.gis-title-large {
 }
 
 .gis-footer-container {
-    width: 95%;
+    width: calc(100% - 40px);
     max-width: none;
     margin: 0 auto;
     padding: 0;
@@ -1333,7 +1333,7 @@ h1.gis-title-large {
 
 /* The theme panel shrinks to fit (auto cross-axis margins prevent flex stretching) — force full width on viewer pages so the 3D view can stretch with the window. */
 .gis-panel.gis-panel-full {
-    width: 95%;
+    width: calc(100% - 40px);
     max-width: none;
     margin: 20px auto;
 }
@@ -1343,13 +1343,13 @@ h1.gis-title-large {
     display: flex;
     gap: 16px;
     align-items: stretch;
-    height: calc(100vh - 250px);
+    height: calc(100vh - 180px);
     min-height: 480px;
 }
 
     /* Variant for pages with an extra toolbar row above the canvas (communication view). */
     .gltf-layout.gltf-layout-toolbar {
-        height: calc(100vh - 300px);
+        height: calc(100vh - 230px);
     }
 
 #gltf-viewer-container {
@@ -1555,4 +1555,80 @@ h1.gis-title-large {
     display: flex;
     gap: 8px;
     justify-content: flex-end;
+}
+
+/* Layout Toggle Button */
+.gis-layout-toggle {
+    position: absolute;
+    top: 70px;
+    left: 50%;
+    transform: translate(-50%, 0);
+    z-index: 1001;
+    width: 50px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-top: none;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.03);
+    color: var(--text-dark);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: top 0.3s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.gis-layout-toggle:hover {
+    background: #ffffff;
+    color: var(--primary-color);
+}
+
+.gis-layout-toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+/* Collapsed state adjustments */
+.gis-layout-collapsed .gis-header {
+    margin-top: -70px;
+    transform: translateY(-100%);
+}
+
+.gis-layout-collapsed .gis-footer {
+    margin-bottom: -70px;
+    transform: translateY(100%);
+}
+
+.gis-layout-collapsed .gis-layout-toggle {
+    top: 0;
+}
+
+.gis-layout-collapsed .gis-layout-toggle-icon {
+    transform: rotate(180deg);
+}
+
+/* Transition settings for layout elements */
+.gis-header {
+    transition: margin-top 0.3s ease, transform 0.3s ease;
+}
+
+.gis-footer {
+    transition: margin-bottom 0.3s ease, transform 0.3s ease;
+}
+
+.gltf-layout {
+    transition: height 0.3s ease;
+}
+
+/* Update height for GLTF scenes when header/footer are collapsed */
+.gis-layout-collapsed .gltf-layout {
+    height: calc(100vh - 40px);
+}
+
+.gis-layout-collapsed .gltf-layout.gltf-layout-toolbar {
+    height: calc(100vh - 90px);
 }

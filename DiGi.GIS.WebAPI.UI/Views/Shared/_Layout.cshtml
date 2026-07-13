@@ -56,6 +56,11 @@
             </nav>
         </div>
     </header>
+    <button type="button" id="gis-layout-toggle" class="gis-layout-toggle" aria-label="Toggle header and footer" title="Toggle header and footer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="gis-layout-toggle-icon">
+            <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+    </button>
     <main class="gis-content-wrapper">
         @RenderBody()
     </main>
@@ -106,6 +111,23 @@
                     setOpen(false);
                     toggle.focus();
                 }
+            });
+        })();
+
+        (function () {
+            var layoutToggle = document.getElementById('gis-layout-toggle');
+            if (!layoutToggle) {
+                return;
+            }
+            layoutToggle.addEventListener('click', function () {
+                document.body.classList.toggle('gis-layout-collapsed');
+                
+                // Trigger window resize event to adjust 3D viewports dynamically
+                window.dispatchEvent(new Event('resize'));
+                // Also trigger after the 300ms CSS transition completes to make sure the final bounds are correct
+                setTimeout(function () {
+                    window.dispatchEvent(new Event('resize'));
+                }, 300);
             });
         })();
     </script>
