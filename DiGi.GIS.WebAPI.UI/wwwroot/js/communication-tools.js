@@ -29,6 +29,8 @@ const ELLIPSOID_SELECTED_OPACITY = 0.32;
 const BUILDING_RESULT_OPACITY = 0.35;    // building opacity while calculation results are displayed
 const RAY_DECIBEL_WINDOW = 30;           // dB range mapped onto the ray length scale
 const CLICK_THRESHOLD = 5;               // pixels of pointer travel before a click becomes a drag
+const DEFAULT_ANTENNA_HEIGHT = 10;       // default Z coordinate for the antenna modal and live preview
+const ANTENNA_PREVIEW_OPACITY = 0.5;     // semi-transparent live preview during add mode
 
 const container = document.getElementById('gltf-viewer-container');
 
@@ -70,6 +72,7 @@ let activePayload = null;          // last successful calculation payload (world
 let selectedResultMesh = null;     // currently highlighted result mesh
 let resultPickCandidate = null;    // result mesh hit on pointerdown, resolved on pointerup
 let suppressResultClick = false;   // swallows the click event that follows a result pick
+let antennaPreview = null;         // semi-transparent antenna preview shown during add mode
 const buildingMaterialStates = new Map(); // building material -> original appearance (transparency)
 
 const raycaster = new THREE.Raycaster();
@@ -106,11 +109,12 @@ function setMode(value) {
     container.style.cursor = value === 'add' ? 'crosshair' : value === 'erase' ? 'pointer' : '';
 
     if (value === 'add') {
-        setHint('Click a point on the ground plane (Z = 0) to place the antenna. Press Esc to cancel.');
+        setHint('Click a point on the ground plane to place the antenna. Press Esc to cancel.');
     } else if (value === 'erase') {
         setHint('Click antennas to select them. Press Enter to remove the selected antennas, Esc to cancel.');
     } else {
         setHint('');
+        removeAntennaPreview();
     }
 
     updateToolbar();
@@ -172,6 +176,67 @@ function setAntennaSelected(antenna, selected) {
     for (const mesh of antenna.meshes) {
         mesh.material.color.setHex(selected ? ANTENNA_SELECTED_COLOR : ANTENNA_COLOR);
     }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Antenna preview: a semi-transparent antenna symbol that follows the cursor during add mode.
+// ---------------------------------------------------------------------------------------------
+
+function createAntennaPreview() {
+    if (antennaPreview || !viewer) {
+        return;
+    }
+
+    const dotRadius = antennaDotRadius();
+    const group = new THREE.Group();
+
+    if (DEFAULT_ANTENNA_HEIGHT > 0) {
+        const mastGeometry = new THREE.CylinderGeometry(dotRadius * 0.12, dotRadius * 0.12, DEFAULT_ANTENNA_HEIGHT, 8);
+        const mast = new THREE.Mesh(mastGeometry, new THREE.MeshBasicMaterial({ color: ANTENNA_COLOR, transparent: true, opacity: ANTENNA_PREVIEW_OPACITY, depthWrite: false }));
+        mast.position.set(0, DEFAULT_ANTENNA_HEIGHT / 2, 0);
+        group.add(mast);
+    }
+
+    const dot = new THREE.Mesh(new THREE.SphereGeometry(dotRadius, 16, 12), new THREE.MeshBasicMaterial({ color: ANTENNA_COLOR, transparent: true, opacity: ANTENNA_PREVIEW_OPACITY, depthWrite: false }));
+    dot.position.set(0, DEFAULT_ANTENNA_HEIGHT, 0);
+    group.add(dot);
+
+    group.visible = false;
+    viewer.scene.add(group);
+    antennaPreview = group;
+}
+
+function updateAntennaPreview(position) {
+    if (!antennaPreview) {
+        createAntennaPreview();
+    }
+    if (antennaPreview) {
+        antennaPreview.position.copy(position);
+        antennaPreview.visible = true;
+    }
+}
+
+function hideAntennaPreview() {
+    if (antennaPreview) {
+        antennaPreview.visible = false;
+    }
+}
+
+function removeAntennaPreview() {
+    if (!antennaPreview) {
+        return;
+    }
+
+    viewer.scene.remove(antennaPreview);
+    antennaPreview.traverse((child) => {
+        child.geometry?.dispose();
+        if (Array.isArray(child.material)) {
+            child.material.forEach((m) => m.dispose());
+        } else {
+            child.material?.dispose();
+        }
+    });
+    antennaPreview = null;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -273,6 +338,22 @@ container.addEventListener('pointerdown', onPointerDown, true);
 container.addEventListener('pointerup', onPointerUp, true);
 container.addEventListener('click', onClickCapture, true);
 
+function onPointerMove(event) {
+    if (mode !== 'add' || !viewer) {
+        return;
+    }
+
+    raycaster.setFromCamera(pointerNdc(event), viewer.camera);
+    const intersection = new THREE.Vector3();
+    if (raycaster.ray.intersectPlane(groundPlane, intersection)) {
+        updateAntennaPreview(intersection);
+    } else {
+        hideAntennaPreview();
+    }
+}
+
+container.addEventListener('pointermove', onPointerMove);
+
 // ---------------------------------------------------------------------------------------------
 // Add antenna: click on the ground plane (restricted to Z = 0) -> modal with editable values.
 // ---------------------------------------------------------------------------------------------
@@ -289,7 +370,7 @@ function handleAddClick(event) {
 
     modalX.value = world.x.toFixed(2);
     modalY.value = world.y.toFixed(2);
-    modalZ.value = '10';
+    modalZ.value = String(DEFAULT_ANTENNA_HEIGHT);
     for (const checkbox of modal.querySelectorAll('.communication-antenna-function')) {
         checkbox.checked = true; // all Function values are selected by default
     }
