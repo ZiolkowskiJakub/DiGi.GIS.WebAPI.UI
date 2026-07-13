@@ -1396,7 +1396,7 @@ h1.gis-title-large {
     display: none;
 }
 
-.gltf-layout.gltf-panel-collapsed .gltf-resizer {
+.gltf-layout.gltf-panel-collapsed #gltf-resizer {
     display: none;
 }
 
