@@ -1,5 +1,6 @@
 using DiGi.Analytical.Building.Classes;
 using DiGi.Geometry.Planar.Classes;
+using DiGi.Geometry.Spatial.Classes;
 using DiGi.GIS.PostgreSQL.Classes;
 using DiGi.GIS.WebAPI.UI.ViewModels;
 using DiGi.GLTF;
@@ -470,7 +471,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NoContent();
             }
 
-            GLTFScene? gLTFScene = GLTF.Create.GLTFScene(gLTFNodes, name);
+            GLTFScene? gLTFScene = GLTF.Create.GLTFScene(gLTFNodes, name, referencePointOverride: new Point3D(centerX, centerY, 0));
             if (gLTFScene is null)
             {
                 return NoContent();

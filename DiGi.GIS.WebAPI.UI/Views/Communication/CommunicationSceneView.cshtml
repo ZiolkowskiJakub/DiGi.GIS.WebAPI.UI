@@ -215,6 +215,31 @@
     </div>
 </div>
 
+@* Scene change modal: opened by the "Change" button in the Scene panel; collects the
+   analyzed circular area parameters (center X/Y, radius, storey height) so the user
+   can reload the 3D view for a different area without going back to the start page. *@
+<div id="scene-change-modal" class="gis-modal-overlay" style="display: none;">
+    <div class="gis-card gis-modal">
+        <h3 class="gltf-card-title">Change scene</h3>
+        <label class="communication-modal-label">Point X
+            <input type="number" id="scene-change-x" step="any" required />
+        </label>
+        <label class="communication-modal-label">Point Y
+            <input type="number" id="scene-change-y" step="any" required />
+        </label>
+        <label class="communication-modal-label">Radius [m]
+            <input type="number" id="scene-change-radius" step="any" min="1" required />
+        </label>
+        <label class="communication-modal-label">Storey height [m]
+            <input type="number" id="scene-change-storey-height" step="0.1" min="1" />
+        </label>
+        <div class="gis-modal-buttons">
+            <button type="button" id="scene-change-ok-button" class="gis-button">OK</button>
+            <button type="button" id="scene-change-cancel-button" class="gis-button">Cancel</button>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     @* The '!' prefix opts this element out of tag helper processing: the script tag helper
        would otherwise strip the type="importmap" attribute and break module resolution. *@

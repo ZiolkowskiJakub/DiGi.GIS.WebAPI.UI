@@ -81,6 +81,27 @@ function fillSceneInfo(referencePoint, objectCount) {
     panel.innerHTML = '';
     panel.appendChild(table);
 
+    const changeModal = document.getElementById('scene-change-modal');
+    if (changeModal) {
+        const changeButton = document.createElement('button');
+        changeButton.type = 'button';
+        changeButton.className = 'gis-button';
+        changeButton.textContent = 'Change';
+        changeButton.title = 'Change the analyzed circular area';
+        changeButton.addEventListener('click', () => {
+            const container = document.getElementById('gltf-viewer-container');
+            if (!container) {
+                return;
+            }
+            document.getElementById('scene-change-x').value = container.dataset.centerX || '';
+            document.getElementById('scene-change-y').value = container.dataset.centerY || '';
+            document.getElementById('scene-change-radius').value = container.dataset.radius || '';
+            document.getElementById('scene-change-storey-height').value = container.dataset.storeyHeight || '';
+            changeModal.style.display = 'flex';
+        });
+        panel.appendChild(changeButton);
+    }
+
     const note = document.createElement('div');
     note.className = 'gltf-muted';
     note.style.marginTop = '6px';
@@ -362,7 +383,7 @@ if (container) {
         resizer.classList.add('is-dragging');
         
         const startX = mouseDownEvent.clientX;
-        const startWidth = leftPanel.getBoundingClientRect().width;
+        const startWidth = leftPanel.getBClientRect().width;
         
         function onMouseMove(mouseMoveEvent) {
             const deltaX = mouseMoveEvent.clientX - startX;
@@ -381,7 +402,7 @@ if (container) {
             document.removeEventListener('mouseup', onMouseUp);
             
             // Save width preference
-            const finalWidth = leftPanel.getBoundingClientRect().width;
+            const finalWidth = leftPanel.getBClientRect().width;
             localStorage.setItem('gltf-left-panel-width', finalWidth);
             
             // Final resize dispatch
@@ -391,5 +412,40 @@ if (container) {
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
     });
+})();
+
+(function () {
+    const modal = document.getElementById('scene-change-modal');
+    if (!modal) {
+        return;
+    }
+
+    const okButton = document.getElementById('scene-change-ok-button');
+    const cancelButton = document.getElementById('scene-change-cancel-button');
+
+    if (cancelButton) {
+        cancelButton.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+
+    if (okButton) {
+        okButton.addEventListener('click', () => {
+            const x = document.getElementById('scene-change-x')?.value;
+            const y = document.getElementById('scene-change-y')?.value;
+            const radius = document.getElementById('scene-change-radius')?.value;
+            const storeyHeight = document.getElementById('scene-change-storey-height')?.value;
+
+            if (!x || !y || !radius) {
+                return;
+            }
+
+            let url = `/communication/buildingsbyradius?centerX=${encodeURIComponent(x)}&centerY=${encodeURIComponent(y)}&radius=${encodeURIComponent(radius)}`;
+            if (storeyHeight) {
+                url += `&storeyheight=${encodeURIComponent(storeyHeight)}`;
+            }
+            window.location.href = url;
+        });
+    }
 })();
 

@@ -1477,6 +1477,14 @@ h1.gis-title-large {
         margin-top: 8px;
     }
 
+/* Scene panel "Change" button matches the Selection/Communication panel layout. */
+#gltf-scene-info .gis-button {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+    margin-top: 6px;
+}
+
 #communication-card .communication-mode-hint {
     display: block;
     margin-top: 12px;
