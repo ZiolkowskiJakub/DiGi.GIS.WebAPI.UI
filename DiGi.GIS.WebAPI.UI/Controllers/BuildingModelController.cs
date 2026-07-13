@@ -75,6 +75,35 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             HttpClient httpClient = httpClientFactory.CreateClient();
 
+            string? building2DReference = null;
+            try
+            {
+                UrlBuilder building2DUrlBuilder = new("https://api.digiproject.uk/gis/building2D/itemsbycircle");
+                building2DUrlBuilder = building2DUrlBuilder.AddParameter("x", x);
+                building2DUrlBuilder = building2DUrlBuilder.AddParameter("y", y);
+                building2DUrlBuilder = building2DUrlBuilder.AddParameter("radius", 5);
+
+                HttpResponseMessage building2DResponse = await httpClient.GetAsync(building2DUrlBuilder.ToString());
+                if (building2DResponse.IsSuccessStatusCode)
+                {
+                    string building2DJson = await building2DResponse.Content.ReadAsStringAsync();
+                    if (!string.IsNullOrWhiteSpace(building2DJson))
+                    {
+                        List<GIS.Classes.Building2D>? building2Ds = Core.Convert.ToDiGi<GIS.Classes.Building2D>(building2DJson);
+                        if (building2Ds is not null && building2Ds.Count > 0)
+                        {
+                            building2DReference = building2Ds[0].Reference;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Fallback to id parameter
+            }
+
+            ViewData["Building2DReference"] = building2DReference ?? id;
+
             UrlBuilder urlBuilder = new("https://api.digiproject.uk/gis/buildingmodel/itemsbycircle");
             urlBuilder = urlBuilder.AddParameter("x", x);
             urlBuilder = urlBuilder.AddParameter("y", y);

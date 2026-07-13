@@ -998,37 +998,37 @@ public GLTFController(System.Net.Http.IHttpClientFactory httpClientFactory);
 The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') used to create [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') instances\.
 ### Methods
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.GLTFController.GetBuilding2DById(long,System.Nullable_int_,System.Nullable_double_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.GLTFController.GetBuilding2DByIdAsync(long,System.Nullable_int_,System.Nullable_double_)'></a>
 
-## GLTFController\.GetBuilding2DById\(long, Nullable\<int\>, Nullable\<double\>\) Method
+## GLTFController\.GetBuilding2DByIdAsync\(long, Nullable\<int\>, Nullable\<double\>\) Method
 
 Renders the 3D viewer page for a single building\. The page itself carries no geometry; the viewer streams the binary glTF payload from the glb endpoint\.
 
 ```csharp
-public Microsoft.AspNetCore.Mvc.IActionResult GetBuilding2DById(long id, System.Nullable<int> countyId, System.Nullable<double> storeyHeight=null);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetBuilding2DByIdAsync(long id, System.Nullable<int> countyId, System.Nullable<double> storeyHeight=null);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.GLTFController.GetBuilding2DById(long,System.Nullable_int_,System.Nullable_double_).id'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.GLTFController.GetBuilding2DByIdAsync(long,System.Nullable_int_,System.Nullable_double_).id'></a>
 
 `id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 The unique identifier of the building\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.GLTFController.GetBuilding2DById(long,System.Nullable_int_,System.Nullable_double_).countyId'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.GLTFController.GetBuilding2DByIdAsync(long,System.Nullable_int_,System.Nullable_double_).countyId'></a>
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional unique identifier of the county associated with the building\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.GLTFController.GetBuilding2DById(long,System.Nullable_int_,System.Nullable_double_).storeyHeight'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.GLTFController.GetBuilding2DByIdAsync(long,System.Nullable_int_,System.Nullable_double_).storeyHeight'></a>
 
 `storeyHeight` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional storey height in meters used for the extrusion\.
 
 #### Returns
-[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') rendering the glTF scene view\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.GLTFController.GetBuilding2DGLBByIdAsync(long,System.Nullable_int_,System.Nullable_double_)'></a>

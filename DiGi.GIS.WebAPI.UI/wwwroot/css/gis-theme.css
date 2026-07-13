@@ -1455,7 +1455,8 @@ h1.gis-title-large {
 /* Selection card: the "Details" and "Export" buttons fill the card width like the other panels'
    content, with centered labels. border-box keeps the padding inside the 100% so it doesn't
    overflow the card. */
-#building-details-card .gis-button {
+#building-details-card .gis-button,
+#building-general-card .gis-button {
     width: 100%;
     box-sizing: border-box;
     justify-content: center;

@@ -112,6 +112,35 @@ function ensureExportModal() {
 if (container && card && showLink) {
     container.addEventListener('gltf-ready', (event) => {
         referencePoint = event.detail.referencePoint ?? { X: 0, Y: 0, Z: 0 };
+
+        // Single building: populate General Details button url using scene centroid
+        const generalCard = document.getElementById('building-general-card');
+        const generalLink = document.getElementById('building-general-details-link');
+        const buildingDetailsUrl = container.dataset.buildingDetailsUrl;
+        if (generalCard && generalLink && buildingDetailsUrl && window.gltfViewer) {
+            const buildingId = generalCard.dataset.buildingId;
+            if (buildingId) {
+                const urlParams = new URLSearchParams(window.location.search);
+                let x = parseFloat(urlParams.get('x'));
+                let y = parseFloat(urlParams.get('y'));
+                if (isNaN(x) || isNaN(y)) {
+                    const center = new THREE.Vector3();
+                    new THREE.Box3().setFromObject(window.gltfViewer.scene).getCenter(center);
+                    x = center.x + referencePoint.X;
+                    y = -center.z + referencePoint.Y;
+                }
+
+                let href = `${buildingDetailsUrl}?reference=${encodeURIComponent(buildingId)}&x=${x.toFixed(3)}&y=${y.toFixed(3)}`;
+                const countyId = urlParams.get('countyid');
+                if (countyId) {
+                    href += `&countyid=${encodeURIComponent(countyId)}`;
+                }
+
+                generalLink.href = href;
+                generalLink.title = `Building Reference ${buildingId}`;
+                generalCard.style.display = '';
+            }
+        }
     });
 
     container.addEventListener('gltf-selectionchanged', (event) => {

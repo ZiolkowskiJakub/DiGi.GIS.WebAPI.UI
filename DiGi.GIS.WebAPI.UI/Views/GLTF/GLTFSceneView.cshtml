@@ -71,9 +71,18 @@
 
         <div id="gltf-resizer" class="gltf-resizer" role="separator" aria-label="Resize panels"></div>
 
-        @* The cards are kept in alphabetical order by title (Lighting, Properties, Scene, Selection) —
+        @* The cards are kept in alphabetical order by title (General, Lighting, Properties, Scene, Selection) —
            hidden cards (Selection) appear in place when user interaction reveals them. *@
         <aside id="gltf-side-panel" class="gltf-side-panel">
+            @if (Model.Title != null && Model.Title.StartsWith("BuildingModel "))
+            {
+                var buildingId = ViewData["Building2DReference"] as string ?? Model.Title.Substring("BuildingModel ".Length).Trim();
+                <div class="gis-card gltf-card" id="building-general-card" data-building-id="@buildingId" style="display: none;">
+                    <h3 class="gltf-card-title">General</h3>
+                    <a id="building-general-details-link" class="gis-button" href="#" target="_blank" rel="noopener">Details</a>
+                </div>
+            }
+
             <div class="gis-card gltf-card">
                 <h3 class="gltf-card-title">Lighting</h3>
                 <label class="gltf-slider-label">Sun azimuth <span id="gltf-sun-azimuth-value"></span>

@@ -36,8 +36,37 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// <param name="storeyHeight">The optional storey height in meters used for the extrusion.</param>
         /// <returns>An <see cref="IActionResult"/> rendering the glTF scene view.</returns>
         [HttpGet("building2dbyid")]
-        public IActionResult GetBuilding2DById([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "storeyheight")] double? storeyHeight = null)
+        public async Task<IActionResult> GetBuilding2DByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "storeyheight")] double? storeyHeight = null)
         {
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            DiGi.WebAPI.Classes.UrlBuilder urlBuilder = new("https://api.digiproject.uk/gis/building2D/building2Dreferencebyid");
+            urlBuilder = urlBuilder.AddParameter("id", id);
+            if (countyId is not null && countyId.HasValue)
+            {
+                urlBuilder = urlBuilder.AddParameter("countyId", countyId.Value);
+            }
+
+            string? referenceString = null;
+            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
+            if (httpResponseMessage.IsSuccessStatusCode)
+            {
+                string json = await httpResponseMessage.Content.ReadAsStringAsync();
+                if (!string.IsNullOrWhiteSpace(json))
+                {
+                    List<DiGi.GIS.PostgreSQL.Classes.Building2DReference>? building2DReferences = Core.Convert.ToDiGi<DiGi.GIS.PostgreSQL.Classes.Building2DReference>(json);
+                    if (building2DReferences is not null && building2DReferences.Count > 0)
+                    {
+                        referenceString = building2DReferences[0].Reference;
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(referenceString))
+            {
+                ViewData["Building2DReference"] = referenceString;
+            }
+
             string gLBUrl = $"~/gltf/glb/building2dbyid?id={id.ToString(CultureInfo.InvariantCulture)}";
             if (countyId is not null && countyId.HasValue)
             {
