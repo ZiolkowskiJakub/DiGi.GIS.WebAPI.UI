@@ -709,10 +709,10 @@ h1.gis-title-large {
 }
 
 .gis-header-container {
-    width: 100%;
-    max-width: 1400px;
+    width: 95%;
+    max-width: none;
     margin: 0 auto;
-    padding: 0 30px;
+    padding: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -885,10 +885,10 @@ h1.gis-title-large {
 }
 
 .gis-footer-container {
-    width: 100%;
-    max-width: 1400px;
+    width: 95%;
+    max-width: none;
     margin: 0 auto;
-    padding: 0 30px;
+    padding: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
