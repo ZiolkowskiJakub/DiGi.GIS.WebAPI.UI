@@ -258,3 +258,59 @@ if (container) {
         }
     })();
 }
+
+// Side panel resizer/splitter logic
+(function () {
+    const resizer = document.getElementById('gltf-resizer');
+    const sidePanel = document.getElementById('gltf-side-panel');
+    const layout = document.querySelector('.gltf-layout');
+    
+    if (!resizer || !sidePanel || !layout) {
+        return;
+    }
+    
+    // Load saved width on start
+    const savedWidth = localStorage.getItem('gltf-side-panel-width');
+    if (savedWidth) {
+        const widthVal = parseInt(savedWidth, 10);
+        if (widthVal >= 200 && widthVal <= 600) {
+            sidePanel.style.flex = `0 0 ${widthVal}px`;
+        }
+    }
+    
+    resizer.addEventListener('mousedown', function (mouseDownEvent) {
+        mouseDownEvent.preventDefault();
+        resizer.classList.add('is-dragging');
+        
+        const startX = mouseDownEvent.clientX;
+        const startWidth = sidePanel.getBoundingClientRect().width;
+        
+        function onMouseMove(mouseMoveEvent) {
+            const deltaX = mouseMoveEvent.clientX - startX;
+            // The side panel is on the right, so dragging left (negative deltaX) increases its width.
+            const newWidth = Math.max(200, Math.min(600, startWidth - deltaX));
+            
+            sidePanel.style.flex = `0 0 ${newWidth}px`;
+            
+            // Dispatch resize event so Three.js canvas adjusts instantly
+            window.dispatchEvent(new Event('resize'));
+        }
+        
+        function onMouseUp() {
+            resizer.classList.remove('is-dragging');
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            
+            // Save width preference
+            const finalWidth = sidePanel.getBoundingClientRect().width;
+            localStorage.setItem('gltf-side-panel-width', finalWidth);
+            
+            // Final resize dispatch
+            window.dispatchEvent(new Event('resize'));
+        }
+        
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    });
+})();
+

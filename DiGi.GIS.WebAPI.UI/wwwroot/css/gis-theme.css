@@ -1341,7 +1341,7 @@ h1.gis-title-large {
 /* The 3D view always stretches with the window; the side panel stays docked on the right. */
 .gltf-layout {
     display: flex;
-    gap: 16px;
+    gap: 0;
     align-items: stretch;
     height: calc(100vh - 180px);
     min-height: 480px;
@@ -1393,6 +1393,10 @@ h1.gis-title-large {
 
 /* Folded state: hide the side panel (the viewer expands to fill) and flip the chevron. */
 .gltf-layout.gltf-panel-collapsed .gltf-side-panel {
+    display: none;
+}
+
+.gltf-layout.gltf-panel-collapsed .gltf-resizer {
     display: none;
 }
 
@@ -1631,4 +1635,33 @@ h1.gis-title-large {
 
 .gis-layout-collapsed .gltf-layout.gltf-layout-toolbar {
     height: calc(100vh - 90px);
+}
+
+/* Side panel vertical splitter/resizer */
+.gltf-resizer {
+    width: 16px;
+    background: transparent;
+    cursor: col-resize;
+    flex: 0 0 auto;
+    position: relative;
+    user-select: none;
+    z-index: 10;
+}
+
+.gltf-resizer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.05);
+    transition: background 0.2s ease, width 0.2s ease;
+}
+
+.gltf-resizer:hover::after,
+.gltf-resizer.is-dragging::after {
+    background: var(--primary-color);
+    width: 4px;
 }
