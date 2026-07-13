@@ -1466,6 +1466,22 @@ h1.gis-title-large {
         margin-top: 8px;
     }
 
+/* Communication card buttons match the Selection panel layout. */
+#communication-card .gis-button {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+}
+
+    #communication-card .gis-button + .gis-button {
+        margin-top: 8px;
+    }
+
+#communication-card .communication-mode-hint {
+    display: block;
+    margin-top: 12px;
+}
+
 /* Communication viewer: toolbar between the page header and the 3D canvas. */
 .communication-toolbar {
     display: flex;

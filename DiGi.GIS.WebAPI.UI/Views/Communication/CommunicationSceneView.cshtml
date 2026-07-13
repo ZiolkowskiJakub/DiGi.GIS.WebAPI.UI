@@ -6,17 +6,9 @@
 }
 
 <div class="gis-panel gis-panel-full">
-    @* Communication toolbar: sits between the page header and the 3D canvas viewport. *@
-    <div id="communication-toolbar" class="communication-toolbar">
-        <button type="button" id="communication-add-antenna-button" class="gis-button" disabled title="Place a new antenna on the ground plane (Z = 0)">Add antenna</button>
-        <button type="button" id="communication-remove-antenna-button" class="gis-button" disabled title="Select antennas to remove (Enter removes, Esc cancels)">Remove antenna</button>
-        <button type="button" id="communication-calculate-button" class="gis-button" disabled title="Calculate the communication between the two antennas">Calculate</button>
-        <button type="button" id="communication-clear-button" class="gis-button" title="Remove all antennas and calculation results">Clear</button>
-        <span id="communication-mode-hint" class="communication-mode-hint"></span>
-    </div>
 
-    <div class="gltf-layout gltf-layout-toolbar gltf-left-panel-collapsed">
-        @* Left side panel (hidden by default) *@
+    <div class="gltf-layout">
+        @* Left side panel (open by default) *@
         <aside id="gltf-left-panel" class="gltf-left-panel">
             <div class="gis-card gltf-card">
                 <h3 class="gltf-card-title">Controls</h3>
@@ -47,9 +39,18 @@
                     </div>
                 </div>
             </div>
+
+            <div class="gis-card gltf-card" id="communication-card" data-expanded="true">
+                <h3 class="gltf-card-title">Communication</h3>
+                <button type="button" id="communication-add-antenna-button" class="gis-button" disabled title="Place a new antenna on the ground plane (Z = 0)">Add antenna</button>
+                <button type="button" id="communication-remove-antenna-button" class="gis-button" disabled title="Select antennas to remove (Enter removes, Esc cancels)">Remove antenna</button>
+                <button type="button" id="communication-calculate-button" class="gis-button" disabled title="Calculate the communication between the two antennas">Calculate</button>
+                <button type="button" id="communication-clear-button" class="gis-button" title="Remove all antennas and calculation results">Clear</button>
+                <span id="communication-mode-hint" class="communication-mode-hint"></span>
+            </div>
         </aside>
 
-        @* Left resizer (hidden by default) *@
+        @* Left resizer *@
         <div id="gltf-left-resizer" class="gltf-resizer" role="separator" aria-label="Resize left panels"></div>
 
         @* Streamed delivery: the viewer fetches the binary glTF payload from data-glb-url. The data-*
@@ -69,7 +70,7 @@
                 <p class="gis-loader-text">Loading 3D scene…</p>
             </div>
             @* Small toggle in the top-left corner that folds/unfolds the left side panel. *@
-            <button type="button" id="gltf-left-panel-toggle" class="gltf-left-panel-toggle" title="Show controls" aria-label="Show controls" aria-controls="gltf-left-panel" aria-expanded="false">
+            <button type="button" id="gltf-left-panel-toggle" class="gltf-left-panel-toggle" title="Hide controls" aria-label="Hide controls" aria-controls="gltf-left-panel" aria-expanded="true">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="m9 18 6-6-6-6" />
                 </svg>
@@ -195,7 +196,7 @@
             <input type="number" id="communication-antenna-y" step="any" required />
         </label>
         <label class="communication-modal-label">Z (Height) [m]
-            <input type="number" id="communication-antenna-z" step="any" min="0" value="0" required />
+            <input type="number" id="communication-antenna-z" step="any" min="0" value="10" required />
         </label>
         <fieldset class="communication-modal-functions">
             <legend>Functions</legend>

@@ -289,7 +289,7 @@ function handleAddClick(event) {
 
     modalX.value = world.x.toFixed(2);
     modalY.value = world.y.toFixed(2);
-    modalZ.value = '0';
+    modalZ.value = '10';
     for (const checkbox of modal.querySelectorAll('.communication-antenna-function')) {
         checkbox.checked = true; // all Function values are selected by default
     }
