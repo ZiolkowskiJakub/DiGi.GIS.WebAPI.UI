@@ -170,7 +170,7 @@ if (container && card && showLink) {
         } else if (isBuildingModel) {
             const buildingModelUrl = container.dataset.buildingmodelDetailsUrl;
             if (buildingModelUrl) {
-                let href = `${buildingModelUrl}?id=${encodeURIComponent(reference)}`;
+                let href = `${buildingModelUrl}?reference=${encodeURIComponent(reference)}`;
                 const centroid = worldCentroidOf(reference);
                 if (centroid) {
                     href += `&x=${centroid.x.toFixed(3)}&y=${centroid.y.toFixed(3)}`;

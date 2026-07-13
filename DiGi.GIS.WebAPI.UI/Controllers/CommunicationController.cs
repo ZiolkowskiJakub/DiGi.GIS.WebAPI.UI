@@ -407,7 +407,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return BadRequest();
             }
 
-            string gLBUrl = $"~/gltf/glb/buildingsbyradius?centerX={centerX.ToString(CultureInfo.InvariantCulture)}&centerY={centerY.ToString(CultureInfo.InvariantCulture)}&radius={radius.ToString(CultureInfo.InvariantCulture)}";
+            string gLBUrl = $"~/buildingmodel/glb/buildingsbyradius?centerX={centerX.ToString(CultureInfo.InvariantCulture)}&centerY={centerY.ToString(CultureInfo.InvariantCulture)}&radius={radius.ToString(CultureInfo.InvariantCulture)}";
             if (storeyHeight is not null && storeyHeight.HasValue)
             {
                 gLBUrl += $"&storeyheight={storeyHeight.Value.ToString(CultureInfo.InvariantCulture)}";
@@ -430,5 +430,795 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         {
             return View();
         }
+
+        #region [TEMPORARY A/B TESTING]
+
+        // ============================================================================================
+        // [TEMPORARY A/B TESTING]
+        // Temporary version switch used to compare the current calculation ("V1") against the new
+        // implementation ("V2"). The Start view prompt routes the user to v1/buildingsbyradius or
+        // v2/buildingsbyradius; each renders the scene wired (via CommunicationSceneViewModel.CalculateUrl)
+        // to the matching v1/calculate or v2/calculate endpoint below.
+        //
+        // Each version is a full, self-contained copy so the losing one can be deleted wholesale.
+        // The original GetBuildingsByRadius / CalculateAsync / calculate route above are left untouched
+        // as the standard-routing restore target.
+        //
+        // TO REMOVE (restore standard routing): delete this whole region, then revert the tagged lines
+        // in Start.cshtml, CommunicationSceneView.cshtml and CommunicationSceneViewModel.cs.
+        // ============================================================================================
+
+        /// <summary>
+        /// [TEMPORARY A/B TESTING] Renders the communication 3D scene view (version 1) wired to the v1 calculation endpoint.
+        /// </summary>
+        /// <param name="centerX">The X coordinate of the center of the analyzed circular area.</param>
+        /// <param name="centerY">The Y coordinate of the center of the analyzed circular area.</param>
+        /// <param name="radius">The radius of the analyzed circular area in meters.</param>
+        /// <param name="storeyHeight">The optional storey height in meters used for the building extrusions.</param>
+        /// <returns>An <see cref="IActionResult"/> rendering the communication scene view for version 1.</returns>
+        [HttpGet("v1/buildingsbyradius")]
+        public IActionResult GetBuildingsByRadiusV1(
+            [FromQuery(Name = "centerX")] double centerX,
+            [FromQuery(Name = "centerY")] double centerY,
+            [FromQuery(Name = "radius")] double radius,
+            [FromQuery(Name = "storeyheight")] double? storeyHeight = null)
+        {
+            if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0)
+            {
+                return BadRequest();
+            }
+
+            string gLBUrl = $"~/buildingmodel/glb/buildingsbyradius?centerX={centerX.ToString(CultureInfo.InvariantCulture)}&centerY={centerY.ToString(CultureInfo.InvariantCulture)}&radius={radius.ToString(CultureInfo.InvariantCulture)}";
+            if (storeyHeight is not null && storeyHeight.HasValue)
+            {
+                gLBUrl += $"&storeyheight={storeyHeight.Value.ToString(CultureInfo.InvariantCulture)}";
+            }
+
+            string title = $"Buildings V1 ({centerX}, {centerY}) r = {radius} m";
+
+            CommunicationSceneViewModel communicationSceneViewModel = new(title, gLBUrl, centerX, centerY, radius, storeyHeight ?? Constants.Default.StoreyHeight)
+            {
+                CalculateUrl = "~/communication/v1/calculate"
+            };
+
+            return View("CommunicationSceneView", communicationSceneViewModel);
+        }
+
+        /// <summary>
+        /// [TEMPORARY A/B TESTING] Renders the communication 3D scene view (version 2) wired to the v2 calculation endpoint.
+        /// </summary>
+        /// <param name="centerX">The X coordinate of the center of the analyzed circular area.</param>
+        /// <param name="centerY">The Y coordinate of the center of the analyzed circular area.</param>
+        /// <param name="radius">The radius of the analyzed circular area in meters.</param>
+        /// <param name="storeyHeight">The optional storey height in meters used for the building extrusions.</param>
+        /// <returns>An <see cref="IActionResult"/> rendering the communication scene view for version 2.</returns>
+        [HttpGet("v2/buildingsbyradius")]
+        public IActionResult GetBuildingsByRadiusV2(
+            [FromQuery(Name = "centerX")] double centerX,
+            [FromQuery(Name = "centerY")] double centerY,
+            [FromQuery(Name = "radius")] double radius,
+            [FromQuery(Name = "storeyheight")] double? storeyHeight = null)
+        {
+            if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0)
+            {
+                return BadRequest();
+            }
+
+            string gLBUrl = $"~/buildingmodel/glb/buildingsbyradius?centerX={centerX.ToString(CultureInfo.InvariantCulture)}&centerY={centerY.ToString(CultureInfo.InvariantCulture)}&radius={radius.ToString(CultureInfo.InvariantCulture)}";
+            if (storeyHeight is not null && storeyHeight.HasValue)
+            {
+                gLBUrl += $"&storeyheight={storeyHeight.Value.ToString(CultureInfo.InvariantCulture)}";
+            }
+
+            string title = $"Buildings V2 ({centerX}, {centerY}) r = {radius} m";
+
+            CommunicationSceneViewModel communicationSceneViewModel = new(title, gLBUrl, centerX, centerY, radius, storeyHeight ?? Constants.Default.StoreyHeight)
+            {
+                CalculateUrl = "~/communication/v2/calculate"
+            };
+
+            return View("CommunicationSceneView", communicationSceneViewModel);
+        }
+
+        /// <summary>
+        /// [TEMPORARY A/B TESTING] Version 1 (current implementation) of the communication calculation. Full self-contained copy of <see cref="CalculateAsync"/>.
+        /// </summary>
+        /// <param name="communicationCalculationParameter">The analyzed circular area and the antennas placed by the user.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> holding the calculation result JSON.</returns>
+        [HttpPost("v1/calculate")]
+        public async Task<IActionResult> CalculateAsyncV1([FromBody] CommunicationCalculationParameter? communicationCalculationParameter, CancellationToken cancellationToken = default)
+        {
+            if (communicationCalculationParameter is null || communicationCalculationParameter.Antennas is null || communicationCalculationParameter.Antennas.Count != 2)
+            {
+                return BadRequest();
+            }
+
+            if (double.IsNaN(communicationCalculationParameter.CenterX) || double.IsNaN(communicationCalculationParameter.CenterY) || double.IsNaN(communicationCalculationParameter.Radius) || communicationCalculationParameter.Radius <= 0)
+            {
+                return BadRequest();
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            #region Building2Ds -> ScatteringObjects
+
+            // The buildings are fetched on the fly for the analyzed area (no database storage on the
+            // communication side) and reduced to plain triangulated geometry so no GIS type ever
+            // crosses the DiGi.Communication.WebAPI boundary.
+            UrlBuilder urlBuilder = new("https://api.digiproject.uk/gis/building2D/itemsbycircle");
+            urlBuilder = urlBuilder.AddParameter("x", communicationCalculationParameter.CenterX);
+            urlBuilder = urlBuilder.AddParameter("y", communicationCalculationParameter.CenterY);
+            urlBuilder = urlBuilder.AddParameter("radius", communicationCalculationParameter.Radius);
+
+            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString(), cancellationToken);
+            if (!httpResponseMessage.IsSuccessStatusCode)
+            {
+                return BadRequest();
+            }
+
+            string json = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return NoContent();
+            }
+
+            List<GIS.Classes.Building2D>? building2Ds = Core.Convert.ToDiGi<GIS.Classes.Building2D>(json);
+
+            List<ScatteringObject>? scatteringObjects = building2Ds.ToCommunication_ScatteringObjects(communicationCalculationParameter.StoreyHeight ?? Constants.Default.StoreyHeight);
+
+            #endregion Building2Ds -> ScatteringObjects
+
+            #region Antennas
+
+            List<Antenna> antennas = [];
+            foreach (AntennaParameter antennaParameter in communicationCalculationParameter.Antennas)
+            {
+                List<Function> functions = [];
+                if (antennaParameter.Functions is not null)
+                {
+                    foreach (string functionName in antennaParameter.Functions)
+                    {
+                        if (Enum.TryParse(functionName, true, out Function function) && !functions.Contains(function))
+                        {
+                            functions.Add(function);
+                        }
+                    }
+                }
+
+                antennas.Add(new Antenna(new Point3D(antennaParameter.X, antennaParameter.Y, antennaParameter.Z), [.. functions]));
+            }
+
+            #endregion Antennas
+
+            #region GeometricalPropagationModel
+
+            GeometricalPropagationModel geometricalPropagationModel = new();
+
+            // AI-NOTE (placeholder profile): the final implementation will let the user pick or
+            // configure the multipath power delay profile; until then the TypicalUrban preset keeps
+            // the payload identical in shape to the one produced by the Rhino/Grasshopper component
+            // (DiGi.Communication.Rhino GeometricalPropagationModel).
+            SimpleMultipathPowerDelayProfile? simpleMultipathPowerDelayProfile = Communication.Create.SimpleMultipathPowerDelayProfile(DefaultSimpleMultipathPowerDelayProfile.TypicalUrban);
+
+            geometricalPropagationModel.Assign(simpleMultipathPowerDelayProfile, antennas[0], antennas[1]);
+
+            if (scatteringObjects is not null)
+            {
+                foreach (ScatteringObject scatteringObject in scatteringObjects)
+                {
+                    geometricalPropagationModel.Update(scatteringObject);
+                }
+            }
+
+            #endregion GeometricalPropagationModel
+
+            #region Transmitter/receiver selection and model coordinate system
+
+            // The selection below mirrors DiGi.Communication
+            // Convert.ToPropagation_PropagationModel (first antenna with the Transmitter function,
+            // first other antenna with the Receiver function), so the world geometry rendered by the
+            // 3D view matches the model coordinate system used by the calculation.
+            Antenna? antenna_Transmitter = antennas.Find(x => x.Location is not null && x.Functions?.Contains(Function.Transmitter) == true);
+            Antenna? antenna_Receiver = antennas.Find(x => x.Guid != antenna_Transmitter?.Guid && x.Location is not null && x.Functions?.Contains(Function.Receiver) == true);
+
+            Point3D? location_Transmitter = antenna_Transmitter?.Location;
+            Point3D? location_Receiver = antenna_Receiver?.Location;
+            if (location_Transmitter is null || location_Receiver is null)
+            {
+                return BadRequest();
+            }
+
+            double distance = location_Transmitter.Distance(location_Receiver);
+            if (distance <= 0)
+            {
+                return BadRequest();
+            }
+
+            // Orthonormal basis of the model coordinate system in world coordinates (must stay in
+            // sync with Convert.ToPropagation_PropagationModel): the transmitter at the origin, the
+            // OX axis towards the receiver and the OZ axis as close to the world vertical as possible.
+            Vector3D? vector3D_AxisX = (location_Receiver - location_Transmitter)?.Unit;
+            if (vector3D_AxisX is null)
+            {
+                return BadRequest();
+            }
+
+            Vector3D vector3D_Up = new(0, 0, 1);
+
+            Vector3D? vector3D_AxisZ = vector3D_Up - (vector3D_AxisX * vector3D_Up.DotProduct(vector3D_AxisX));
+            if (vector3D_AxisZ is null || vector3D_AxisZ.Length == 0)
+            {
+                return BadRequest();
+            }
+
+            vector3D_AxisZ = vector3D_AxisZ.Unit;
+
+            Vector3D? vector3D_AxisY = vector3D_AxisZ?.CrossProduct(vector3D_AxisX);
+            if (vector3D_AxisZ is null || vector3D_AxisY is null)
+            {
+                return BadRequest();
+            }
+
+            #endregion Transmitter/receiver selection and model coordinate system
+
+            #region Calculation parameters
+
+            // AI-NOTE (placeholder defaults): the fallback values below mirror the reference xUnit
+            // fact (DiGi.Communication.xUnit Facts.ToPropagation_PropagationModel_TypicalUrban):
+            // 900 MHz, vertical polarization and the 15 / 0.005 material. They apply only when the
+            // 3D view modal does not provide the values; replace them with user/project settings
+            // once available.
+            List<double> frequencies = communicationCalculationParameter.Frequencies?.FindAll(x => !double.IsNaN(x) && x > 0) ?? [];
+            if (frequencies.Count == 0)
+            {
+                frequencies.Add(900);
+            }
+
+            string polarization = string.IsNullOrWhiteSpace(communicationCalculationParameter.Polarization) ? "Vertical" : communicationCalculationParameter.Polarization;
+            double relativePermittivity = communicationCalculationParameter.RelativePermittivity ?? 15;
+            double conductivity = communicationCalculationParameter.Conductivity ?? 0.005;
+
+            #endregion Calculation parameters
+
+            #region DiGi.Communication.WebAPI call
+
+            // The GeometricalPropagationModel (buildings as ScatteringObject instances + antennas) is
+            // sent to the GIS agnostic DiGi.Communication.WebAPI propagationresults endpoint, which
+            // runs the multi-ellipsoidal propagation cascade once per requested frequency and returns
+            // the serialized PropagationResult instances.
+            string communicationWebAPIUri = webHostEnvironment.IsDevelopment() ? Constants.Default.CommunicationWebAPIUri_Development : Constants.Default.CommunicationWebAPIUri;
+
+            string? json_GeometricalPropagationModel = Core.Convert.ToSystem_String(geometricalPropagationModel);
+            if (string.IsNullOrWhiteSpace(json_GeometricalPropagationModel))
+            {
+                return NoContent();
+            }
+
+            StringBuilder stringBuilder = new($"{communicationWebAPIUri}/communication/geometricalpropagationmodel/propagationresults");
+            stringBuilder.Append($"?polarization={Uri.EscapeDataString(polarization)}");
+            stringBuilder.Append($"&relativePermittivity={relativePermittivity.ToString(CultureInfo.InvariantCulture)}");
+            stringBuilder.Append($"&conductivity={conductivity.ToString(CultureInfo.InvariantCulture)}");
+            foreach (double frequency in frequencies)
+            {
+                stringBuilder.Append($"&frequency={frequency.ToString(CultureInfo.InvariantCulture)}");
+            }
+
+            using StringContent stringContent = new(json_GeometricalPropagationModel, Encoding.UTF8, "application/json");
+
+            httpResponseMessage = await httpClient.PostAsync(stringBuilder.ToString(), stringContent, cancellationToken);
+            if (!httpResponseMessage.IsSuccessStatusCode)
+            {
+                return BadRequest();
+            }
+
+            json = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return NoContent();
+            }
+
+            #endregion DiGi.Communication.WebAPI call
+
+            #region Render payload
+
+            if (System.Text.Json.Nodes.JsonNode.Parse(json) is not System.Text.Json.Nodes.JsonArray jsonArray)
+            {
+                return NoContent();
+            }
+
+            // AI-NOTE (multi-frequency extensibility): one entry per calculated frequency. The 3D
+            // view currently renders the first entry; a per frequency visibility toggle only needs to
+            // iterate this array (see communication-tools.js renderResults).
+            List<object> results = [];
+            foreach (System.Text.Json.Nodes.JsonNode? jsonNode in jsonArray)
+            {
+                if (jsonNode is not System.Text.Json.Nodes.JsonObject jsonObject_Result)
+                {
+                    continue;
+                }
+
+                double frequency = jsonObject_Result["Frequency"]?.GetValue<double>() ?? double.NaN;
+
+                Communication.Classes.PropagationResult? propagationResult = Core.Create.SerializableObject<Communication.Classes.PropagationResult>(jsonObject_Result["PropagationResult"] as System.Text.Json.Nodes.JsonObject);
+                if (double.IsNaN(frequency) || propagationResult is null)
+                {
+                    continue;
+                }
+
+                List<Communication.Classes.EllipsoidComponent>? ellipsoidComponents = propagationResult.EllipsoidComponents;
+                List<Communication.Classes.ArrivalRay>? rays = propagationResult.Rays;
+
+                // Ray arrival directions are expressed in the model coordinate system (origin at the
+                // receiver for the angles theta/phi); they are converted to world direction vectors
+                // here so the 3D view only deals with world coordinates. The component walk mirrors
+                // the ray generation order of DiGi.Communication Create.PropagationResult
+                // (components with non-positive power contribute no rays), which associates each ray
+                // with the delay of its propagation ellipsoid.
+                List<object> rayPayloads = [];
+                if (ellipsoidComponents is not null && rays is not null)
+                {
+                    int rayIndex = 0;
+                    foreach (Communication.Classes.EllipsoidComponent ellipsoidComponent in ellipsoidComponents)
+                    {
+                        if (ellipsoidComponent.Power <= 0 || ellipsoidComponent.ReferencePower <= 0)
+                        {
+                            continue;
+                        }
+
+                        int rayContributionCount = ellipsoidComponent.RayContributions?.Count ?? 0;
+                        for (int i = 0; i < rayContributionCount && rayIndex < rays.Count; i++, rayIndex++)
+                        {
+                            Communication.Classes.ArrivalRay ray = rays[rayIndex];
+
+                            double x_Model = Math.Sin(ray.Theta) * Math.Cos(ray.Phi);
+                            double y_Model = Math.Sin(ray.Theta) * Math.Sin(ray.Phi);
+                            double z_Model = Math.Cos(ray.Theta);
+
+                            rayPayloads.Add(new
+                            {
+                                direction = new
+                                {
+                                    x = (x_Model * vector3D_AxisX.X) + (y_Model * vector3D_AxisY.X) + (z_Model * vector3D_AxisZ.X),
+                                    y = (x_Model * vector3D_AxisX.Y) + (y_Model * vector3D_AxisY.Y) + (z_Model * vector3D_AxisZ.Y),
+                                    z = (x_Model * vector3D_AxisX.Z) + (y_Model * vector3D_AxisY.Z) + (z_Model * vector3D_AxisZ.Z)
+                                },
+                                theta = ray.Theta,
+                                phi = ray.Phi,
+                                power = ray.Power,
+                                delay = ellipsoidComponent.Delay
+                            });
+                        }
+                    }
+                }
+
+                // The 3D view renders one propagation ellipsoid: the component carrying the highest
+                // measured fractional power (the dominant propagation path). All components are still
+                // returned for the results panel.
+                Communication.Classes.EllipsoidComponent? ellipsoidComponent_Dominant = null;
+                if (ellipsoidComponents is not null)
+                {
+                    foreach (Communication.Classes.EllipsoidComponent ellipsoidComponent in ellipsoidComponents)
+                    {
+                        if (ellipsoidComponent.SemiMinorAxis <= 0)
+                        {
+                            continue;
+                        }
+
+                        if (ellipsoidComponent_Dominant is null || ellipsoidComponent.MeasuredFractionalPower > ellipsoidComponent_Dominant.MeasuredFractionalPower)
+                        {
+                            ellipsoidComponent_Dominant = ellipsoidComponent;
+                        }
+                    }
+                }
+
+                Point3D? point3D_Center = location_Transmitter.Mid(location_Receiver);
+
+                object? ellipsoidPayload = ellipsoidComponent_Dominant is null || point3D_Center is null ? null : new
+                {
+                    center = new { x = point3D_Center.X, y = point3D_Center.Y, z = point3D_Center.Z },
+                    axis = new { x = vector3D_AxisX.X, y = vector3D_AxisX.Y, z = vector3D_AxisX.Z },
+                    semiMajorAxis = ellipsoidComponent_Dominant.SemiMajorAxis,
+                    semiMinorAxis = ellipsoidComponent_Dominant.SemiMinorAxis,
+                    delay = ellipsoidComponent_Dominant.Delay,
+                    measuredFractionalPower = ellipsoidComponent_Dominant.MeasuredFractionalPower
+                };
+
+                List<object> componentPayloads = [];
+                if (ellipsoidComponents is not null)
+                {
+                    foreach (Communication.Classes.EllipsoidComponent ellipsoidComponent in ellipsoidComponents)
+                    {
+                        componentPayloads.Add(new
+                        {
+                            delay = ellipsoidComponent.Delay,
+                            power = ellipsoidComponent.Power,
+                            fractionalPower = ellipsoidComponent.FractionalPower,
+                            measuredFractionalPower = ellipsoidComponent.MeasuredFractionalPower
+                        });
+                    }
+                }
+
+                results.Add(new
+                {
+                    frequency,
+                    polarization,
+                    relativePermittivity,
+                    conductivity,
+                    totalPower = propagationResult.TotalPower,
+                    directionalPower = propagationResult.DirectionalPower,
+                    rays = rayPayloads,
+                    ellipsoid = ellipsoidPayload,
+                    ellipsoidComponents = componentPayloads
+                });
+            }
+
+            if (results.Count == 0)
+            {
+                return NoContent();
+            }
+
+            #endregion Render payload
+
+            return Json(new
+            {
+                distance,
+                transmitter = new { x = location_Transmitter.X, y = location_Transmitter.Y, z = location_Transmitter.Z },
+                receiver = new { x = location_Receiver.X, y = location_Receiver.Y, z = location_Receiver.Z },
+                results
+            });
+        }
+
+        /// <summary>
+        /// [TEMPORARY A/B TESTING] Version 2 (new implementation) of the communication calculation. Starts as a full self-contained copy of <see cref="CalculateAsync"/>; replace the body below with the new V2 algorithm.
+        /// </summary>
+        /// <param name="communicationCalculationParameter">The analyzed circular area and the antennas placed by the user.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> holding the calculation result JSON.</returns>
+        [HttpPost("v2/calculate")]
+        public async Task<IActionResult> CalculateAsyncV2([FromBody] CommunicationCalculationParameter? communicationCalculationParameter, CancellationToken cancellationToken = default)
+        {
+            // [TEMPORARY A/B TESTING] Replace the body below with the new V2 implementation. It is currently an exact clone of CalculateAsyncV1 so the two versions return identical results until the new code is dropped in.
+            if (communicationCalculationParameter is null || communicationCalculationParameter.Antennas is null || communicationCalculationParameter.Antennas.Count != 2)
+            {
+                return BadRequest();
+            }
+
+            if (double.IsNaN(communicationCalculationParameter.CenterX) || double.IsNaN(communicationCalculationParameter.CenterY) || double.IsNaN(communicationCalculationParameter.Radius) || communicationCalculationParameter.Radius <= 0)
+            {
+                return BadRequest();
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            #region Building2Ds -> ScatteringObjects
+
+            // The buildings are fetched on the fly for the analyzed area (no database storage on the
+            // communication side) and reduced to plain triangulated geometry so no GIS type ever
+            // crosses the DiGi.Communication.WebAPI boundary.
+            UrlBuilder urlBuilder = new("https://api.digiproject.uk/gis/building2D/itemsbycircle");
+            urlBuilder = urlBuilder.AddParameter("x", communicationCalculationParameter.CenterX);
+            urlBuilder = urlBuilder.AddParameter("y", communicationCalculationParameter.CenterY);
+            urlBuilder = urlBuilder.AddParameter("radius", communicationCalculationParameter.Radius);
+
+            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString(), cancellationToken);
+            if (!httpResponseMessage.IsSuccessStatusCode)
+            {
+                return BadRequest();
+            }
+
+            string json = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return NoContent();
+            }
+
+            List<GIS.Classes.Building2D>? building2Ds = Core.Convert.ToDiGi<GIS.Classes.Building2D>(json);
+
+            List<ScatteringObject>? scatteringObjects = building2Ds.ToCommunication_ScatteringObjects(communicationCalculationParameter.StoreyHeight ?? Constants.Default.StoreyHeight);
+
+            #endregion Building2Ds -> ScatteringObjects
+
+            #region Antennas
+
+            List<Antenna> antennas = [];
+            foreach (AntennaParameter antennaParameter in communicationCalculationParameter.Antennas)
+            {
+                List<Function> functions = [];
+                if (antennaParameter.Functions is not null)
+                {
+                    foreach (string functionName in antennaParameter.Functions)
+                    {
+                        if (Enum.TryParse(functionName, true, out Function function) && !functions.Contains(function))
+                        {
+                            functions.Add(function);
+                        }
+                    }
+                }
+
+                antennas.Add(new Antenna(new Point3D(antennaParameter.X, antennaParameter.Y, antennaParameter.Z), [.. functions]));
+            }
+
+            #endregion Antennas
+
+            #region GeometricalPropagationModel
+
+            GeometricalPropagationModel geometricalPropagationModel = new();
+
+            // AI-NOTE (placeholder profile): the final implementation will let the user pick or
+            // configure the multipath power delay profile; until then the TypicalUrban preset keeps
+            // the payload identical in shape to the one produced by the Rhino/Grasshopper component
+            // (DiGi.Communication.Rhino GeometricalPropagationModel).
+            SimpleMultipathPowerDelayProfile? simpleMultipathPowerDelayProfile = Communication.Create.SimpleMultipathPowerDelayProfile(DefaultSimpleMultipathPowerDelayProfile.TypicalUrban);
+
+            geometricalPropagationModel.Assign(simpleMultipathPowerDelayProfile, antennas[0], antennas[1]);
+
+            if (scatteringObjects is not null)
+            {
+                foreach (ScatteringObject scatteringObject in scatteringObjects)
+                {
+                    geometricalPropagationModel.Update(scatteringObject);
+                }
+            }
+
+            #endregion GeometricalPropagationModel
+
+            #region Transmitter/receiver selection and model coordinate system
+
+            // The selection below mirrors DiGi.Communication
+            // Convert.ToPropagation_PropagationModel (first antenna with the Transmitter function,
+            // first other antenna with the Receiver function), so the world geometry rendered by the
+            // 3D view matches the model coordinate system used by the calculation.
+            Antenna? antenna_Transmitter = antennas.Find(x => x.Location is not null && x.Functions?.Contains(Function.Transmitter) == true);
+            Antenna? antenna_Receiver = antennas.Find(x => x.Guid != antenna_Transmitter?.Guid && x.Location is not null && x.Functions?.Contains(Function.Receiver) == true);
+
+            Point3D? location_Transmitter = antenna_Transmitter?.Location;
+            Point3D? location_Receiver = antenna_Receiver?.Location;
+            if (location_Transmitter is null || location_Receiver is null)
+            {
+                return BadRequest();
+            }
+
+            double distance = location_Transmitter.Distance(location_Receiver);
+            if (distance <= 0)
+            {
+                return BadRequest();
+            }
+
+            // Orthonormal basis of the model coordinate system in world coordinates (must stay in
+            // sync with Convert.ToPropagation_PropagationModel): the transmitter at the origin, the
+            // OX axis towards the receiver and the OZ axis as close to the world vertical as possible.
+            Vector3D? vector3D_AxisX = (location_Receiver - location_Transmitter)?.Unit;
+            if (vector3D_AxisX is null)
+            {
+                return BadRequest();
+            }
+
+            Vector3D vector3D_Up = new(0, 0, 1);
+
+            Vector3D? vector3D_AxisZ = vector3D_Up - (vector3D_AxisX * vector3D_Up.DotProduct(vector3D_AxisX));
+            if (vector3D_AxisZ is null || vector3D_AxisZ.Length == 0)
+            {
+                return BadRequest();
+            }
+
+            vector3D_AxisZ = vector3D_AxisZ.Unit;
+
+            Vector3D? vector3D_AxisY = vector3D_AxisZ?.CrossProduct(vector3D_AxisX);
+            if (vector3D_AxisZ is null || vector3D_AxisY is null)
+            {
+                return BadRequest();
+            }
+
+            #endregion Transmitter/receiver selection and model coordinate system
+
+            #region Calculation parameters
+
+            // AI-NOTE (placeholder defaults): the fallback values below mirror the reference xUnit
+            // fact (DiGi.Communication.xUnit Facts.ToPropagation_PropagationModel_TypicalUrban):
+            // 900 MHz, vertical polarization and the 15 / 0.005 material. They apply only when the
+            // 3D view modal does not provide the values; replace them with user/project settings
+            // once available.
+            List<double> frequencies = communicationCalculationParameter.Frequencies?.FindAll(x => !double.IsNaN(x) && x > 0) ?? [];
+            if (frequencies.Count == 0)
+            {
+                frequencies.Add(900);
+            }
+
+            string polarization = string.IsNullOrWhiteSpace(communicationCalculationParameter.Polarization) ? "Vertical" : communicationCalculationParameter.Polarization;
+            double relativePermittivity = communicationCalculationParameter.RelativePermittivity ?? 15;
+            double conductivity = communicationCalculationParameter.Conductivity ?? 0.005;
+
+            #endregion Calculation parameters
+
+            #region DiGi.Communication.WebAPI call
+
+            // The GeometricalPropagationModel (buildings as ScatteringObject instances + antennas) is
+            // sent to the GIS agnostic DiGi.Communication.WebAPI propagationresults endpoint, which
+            // runs the multi-ellipsoidal propagation cascade once per requested frequency and returns
+            // the serialized PropagationResult instances.
+            string communicationWebAPIUri = webHostEnvironment.IsDevelopment() ? Constants.Default.CommunicationWebAPIUri_Development : Constants.Default.CommunicationWebAPIUri;
+
+            string? json_GeometricalPropagationModel = Core.Convert.ToSystem_String(geometricalPropagationModel);
+            if (string.IsNullOrWhiteSpace(json_GeometricalPropagationModel))
+            {
+                return NoContent();
+            }
+
+            StringBuilder stringBuilder = new($"{communicationWebAPIUri}/communication/geometricalpropagationmodel/propagationresults");
+            stringBuilder.Append($"?polarization={Uri.EscapeDataString(polarization)}");
+            stringBuilder.Append($"&relativePermittivity={relativePermittivity.ToString(CultureInfo.InvariantCulture)}");
+            stringBuilder.Append($"&conductivity={conductivity.ToString(CultureInfo.InvariantCulture)}");
+            foreach (double frequency in frequencies)
+            {
+                stringBuilder.Append($"&frequency={frequency.ToString(CultureInfo.InvariantCulture)}");
+            }
+
+            using StringContent stringContent = new(json_GeometricalPropagationModel, Encoding.UTF8, "application/json");
+
+            httpResponseMessage = await httpClient.PostAsync(stringBuilder.ToString(), stringContent, cancellationToken);
+            if (!httpResponseMessage.IsSuccessStatusCode)
+            {
+                return BadRequest();
+            }
+
+            json = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return NoContent();
+            }
+
+            #endregion DiGi.Communication.WebAPI call
+
+            #region Render payload
+
+            if (System.Text.Json.Nodes.JsonNode.Parse(json) is not System.Text.Json.Nodes.JsonArray jsonArray)
+            {
+                return NoContent();
+            }
+
+            // AI-NOTE (multi-frequency extensibility): one entry per calculated frequency. The 3D
+            // view currently renders the first entry; a per frequency visibility toggle only needs to
+            // iterate this array (see communication-tools.js renderResults).
+            List<object> results = [];
+            foreach (System.Text.Json.Nodes.JsonNode? jsonNode in jsonArray)
+            {
+                if (jsonNode is not System.Text.Json.Nodes.JsonObject jsonObject_Result)
+                {
+                    continue;
+                }
+
+                double frequency = jsonObject_Result["Frequency"]?.GetValue<double>() ?? double.NaN;
+
+                Communication.Classes.PropagationResult? propagationResult = Core.Create.SerializableObject<Communication.Classes.PropagationResult>(jsonObject_Result["PropagationResult"] as System.Text.Json.Nodes.JsonObject);
+                if (double.IsNaN(frequency) || propagationResult is null)
+                {
+                    continue;
+                }
+
+                List<Communication.Classes.EllipsoidComponent>? ellipsoidComponents = propagationResult.EllipsoidComponents;
+                List<Communication.Classes.ArrivalRay>? rays = propagationResult.Rays;
+
+                // Ray arrival directions are expressed in the model coordinate system (origin at the
+                // receiver for the angles theta/phi); they are converted to world direction vectors
+                // here so the 3D view only deals with world coordinates. The component walk mirrors
+                // the ray generation order of DiGi.Communication Create.PropagationResult
+                // (components with non-positive power contribute no rays), which associates each ray
+                // with the delay of its propagation ellipsoid.
+                List<object> rayPayloads = [];
+                if (ellipsoidComponents is not null && rays is not null)
+                {
+                    int rayIndex = 0;
+                    foreach (Communication.Classes.EllipsoidComponent ellipsoidComponent in ellipsoidComponents)
+                    {
+                        if (ellipsoidComponent.Power <= 0 || ellipsoidComponent.ReferencePower <= 0)
+                        {
+                            continue;
+                        }
+
+                        int rayContributionCount = ellipsoidComponent.RayContributions?.Count ?? 0;
+                        for (int i = 0; i < rayContributionCount && rayIndex < rays.Count; i++, rayIndex++)
+                        {
+                            Communication.Classes.ArrivalRay ray = rays[rayIndex];
+
+                            double x_Model = Math.Sin(ray.Theta) * Math.Cos(ray.Phi);
+                            double y_Model = Math.Sin(ray.Theta) * Math.Sin(ray.Phi);
+                            double z_Model = Math.Cos(ray.Theta);
+
+                            rayPayloads.Add(new
+                            {
+                                direction = new
+                                {
+                                    x = (x_Model * vector3D_AxisX.X) + (y_Model * vector3D_AxisY.X) + (z_Model * vector3D_AxisZ.X),
+                                    y = (x_Model * vector3D_AxisX.Y) + (y_Model * vector3D_AxisY.Y) + (z_Model * vector3D_AxisZ.Y),
+                                    z = (x_Model * vector3D_AxisX.Z) + (y_Model * vector3D_AxisY.Z) + (z_Model * vector3D_AxisZ.Z)
+                                },
+                                theta = ray.Theta,
+                                phi = ray.Phi,
+                                power = ray.Power,
+                                delay = ellipsoidComponent.Delay
+                            });
+                        }
+                    }
+                }
+
+                // The 3D view renders one propagation ellipsoid: the component carrying the highest
+                // measured fractional power (the dominant propagation path). All components are still
+                // returned for the results panel.
+                Communication.Classes.EllipsoidComponent? ellipsoidComponent_Dominant = null;
+                if (ellipsoidComponents is not null)
+                {
+                    foreach (Communication.Classes.EllipsoidComponent ellipsoidComponent in ellipsoidComponents)
+                    {
+                        if (ellipsoidComponent.SemiMinorAxis <= 0)
+                        {
+                            continue;
+                        }
+
+                        if (ellipsoidComponent_Dominant is null || ellipsoidComponent.MeasuredFractionalPower > ellipsoidComponent_Dominant.MeasuredFractionalPower)
+                        {
+                            ellipsoidComponent_Dominant = ellipsoidComponent;
+                        }
+                    }
+                }
+
+                Point3D? point3D_Center = location_Transmitter.Mid(location_Receiver);
+
+                object? ellipsoidPayload = ellipsoidComponent_Dominant is null || point3D_Center is null ? null : new
+                {
+                    center = new { x = point3D_Center.X, y = point3D_Center.Y, z = point3D_Center.Z },
+                    axis = new { x = vector3D_AxisX.X, y = vector3D_AxisX.Y, z = vector3D_AxisX.Z },
+                    semiMajorAxis = ellipsoidComponent_Dominant.SemiMajorAxis,
+                    semiMinorAxis = ellipsoidComponent_Dominant.SemiMinorAxis,
+                    delay = ellipsoidComponent_Dominant.Delay,
+                    measuredFractionalPower = ellipsoidComponent_Dominant.MeasuredFractionalPower
+                };
+
+                List<object> componentPayloads = [];
+                if (ellipsoidComponents is not null)
+                {
+                    foreach (Communication.Classes.EllipsoidComponent ellipsoidComponent in ellipsoidComponents)
+                    {
+                        componentPayloads.Add(new
+                        {
+                            delay = ellipsoidComponent.Delay,
+                            power = ellipsoidComponent.Power,
+                            fractionalPower = ellipsoidComponent.FractionalPower,
+                            measuredFractionalPower = ellipsoidComponent.MeasuredFractionalPower
+                        });
+                    }
+                }
+
+                results.Add(new
+                {
+                    frequency,
+                    polarization,
+                    relativePermittivity,
+                    conductivity,
+                    totalPower = propagationResult.TotalPower,
+                    directionalPower = propagationResult.DirectionalPower,
+                    rays = rayPayloads,
+                    ellipsoid = ellipsoidPayload,
+                    ellipsoidComponents = componentPayloads
+                });
+            }
+
+            if (results.Count == 0)
+            {
+                return NoContent();
+            }
+
+            #endregion Render payload
+
+            return Json(new
+            {
+                distance,
+                transmitter = new { x = location_Transmitter.X, y = location_Transmitter.Y, z = location_Transmitter.Z },
+                receiver = new { x = location_Receiver.X, y = location_Receiver.Y, z = location_Receiver.Z },
+                results
+            });
+        }
+
+        #endregion [TEMPORARY A/B TESTING]
     }
 }

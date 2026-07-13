@@ -25,7 +25,7 @@
         <p class="gis-hero-text">
             Load a single building by its identifier and explore it in 3D. The footprint is extruded to the building height from its number of storeys, so you can inspect its shape, size and surroundings from any angle.
         </p>
-        <form method="get" action="~/gltf/building2dbyid" class="gis-inline-form">
+        <form method="get" action="~/buildingmodel/buildingmodelbyid" class="gis-inline-form">
             <label>Building Id
                 <input type="number" name="id" value="5072294" required />
             </label>
@@ -56,7 +56,7 @@
         <p class="gis-hero-text">
             Enter a central point and a radius to load all buildings within that circular area and explore the whole district in 3D.
         </p>
-        <form method="get" action="~/gltf/buildingsbyradius" class="gis-inline-form">
+        <form method="get" action="~/buildingmodel/itemsbyradius" class="gis-inline-form">
             <label>Point X
                 <input type="number" name="centerX" value="629671.3" step="any" required />
             </label>

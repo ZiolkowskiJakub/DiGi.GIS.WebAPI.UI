@@ -24,6 +24,10 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
             StoreyHeight = storeyHeight;
         }
 
+        // [TEMPORARY A/B TESTING] Overrides the calculate endpoint the 3D scene posts to (v1 vs v2). When null the view falls back to the standard "~/communication/calculate" route.
+        /// <summary> Gets or sets the application relative URL of the communication calculation endpoint used by the 3D scene. </summary>
+        public string? CalculateUrl { get; set; }
+
         /// <summary> Gets the X coordinate of the center of the analyzed circular area. </summary>
         public double CenterX { get; }
 

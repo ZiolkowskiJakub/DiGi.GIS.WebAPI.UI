@@ -1,19 +1,12 @@
-using DiGi.Analytical.Building.Classes;
 using DiGi.Geometry.Planar.Classes;
-using DiGi.Geometry.Spatial.Classes;
 using DiGi.GIS.PostgreSQL.Classes;
 using DiGi.GIS.WebAPI.UI.ViewModels;
-using DiGi.GLTF;
-using DiGi.GLTF.Analytical;
-using DiGi.GLTF.Analytical.Enums;
-using DiGi.GLTF.Classes;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Controllers
@@ -379,111 +372,6 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             string result = point2Ds is null ? string.Empty : string.Join(" ", point2Ds.ConvertAll(p => $"{p.X} {p.Y}"));
 
             return Content(result, "text/plain");
-        }
-
-        /// <summary>
-        /// Renders the 3D viewer page for all buildings within the specified circular area. The page itself carries no geometry; the viewer streams the binary glTF payload from the glb endpoint.
-        /// <para>The search is purely spatial: the area may span multiple counties, so no county identifier is required.</para>
-        /// </summary>
-        /// <param name="centerX">The X coordinate of the center of the search circle.</param>
-        /// <param name="centerY">The Y coordinate of the center of the search circle.</param>
-        /// <param name="radius">The radius of the search circle in meters.</param>
-        /// <param name="storeyHeight">The optional storey height in meters used for the extrusions.</param>
-        /// <returns>An <see cref="IActionResult"/> rendering the glTF scene view.</returns>
-        [HttpGet("/gltf/buildingsbyradius")]
-        public IActionResult GetBuildingsByRadius([FromQuery(Name = "centerX")] double centerX, [FromQuery(Name = "centerY")] double centerY, [FromQuery(Name = "radius")] double radius, [FromQuery(Name = "storeyheight")] double? storeyHeight = null)
-        {
-            if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0)
-            {
-                return BadRequest();
-            }
-
-            string gLBUrl = $"~/gltf/glb/buildingsbyradius?centerX={centerX.ToString(System.Globalization.CultureInfo.InvariantCulture)}&centerY={centerY.ToString(System.Globalization.CultureInfo.InvariantCulture)}&radius={radius.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
-            if (storeyHeight is not null && storeyHeight.HasValue)
-            {
-                gLBUrl += $"&storeyheight={storeyHeight.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
-            }
-
-            string title = $"Buildings ({centerX}, {centerY}) r = {radius} m";
-
-            GLTFSceneViewModel gLTFSceneViewModel = new(title, gLBUrl);
-
-            return View("~/Views/GLTF/GLTFSceneView.cshtml", gLTFSceneViewModel);
-        }
-
-        /// <summary>
-        /// Asynchronously retrieves all building models within the specified circular area from the PostgreSQL database via the GIS Web API, converts each <see cref="BuildingModel"/> into a batched <see cref="GLTFScene"/> with buildings selectable as whole envelopes and streams it as a binary glTF (.glb) payload.
-        /// <para>The search is purely spatial: the area may span multiple counties, so no county identifier is required.</para>
-        /// </summary>
-        /// <param name="centerX">The X coordinate of the center of the search circle.</param>
-        /// <param name="centerY">The Y coordinate of the center of the search circle.</param>
-        /// <param name="radius">The radius of the search circle in meters.</param>
-        /// <param name="storeyHeight">The optional storey height in meters used for the extrusions.</param>
-        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
-        /// <returns>A <see cref="Task{IActionResult}"/> holding the .glb file.</returns>
-        [HttpGet("/gltf/glb/buildingsbyradius")]
-        public async Task<IActionResult> GetBuildingsGLBByRadiusAsync([FromQuery(Name = "centerX")] double centerX, [FromQuery(Name = "centerY")] double centerY, [FromQuery(Name = "radius")] double radius, [FromQuery(Name = "storeyheight")] double? storeyHeight = null, CancellationToken cancellationToken = default)
-        {
-            if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0)
-            {
-                return BadRequest();
-            }
-
-            HttpClient httpClient = httpClientFactory.CreateClient();
-
-            UrlBuilder urlBuilder = new("https://api.digiproject.uk/gis/buildingmodel/itemsbycircle");
-            urlBuilder = urlBuilder.AddParameter("x", centerX);
-            urlBuilder = urlBuilder.AddParameter("y", centerY);
-            urlBuilder = urlBuilder.AddParameter("radius", radius);
-
-            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString(), cancellationToken);
-            if (!httpResponseMessage.IsSuccessStatusCode)
-            {
-                return BadRequest();
-            }
-
-            string json = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return NoContent();
-            }
-
-            List<BuildingModel>? buildingModels = Core.Convert.ToDiGi<BuildingModel>(json);
-            if (buildingModels is null || buildingModels.Count == 0)
-            {
-                return NoContent();
-            }
-
-            string name = $"Buildings ({centerX}, {centerY}) r = {radius} m";
-
-            List<GLTFNode> gLTFNodes = [];
-            foreach (BuildingModel buildingModel in buildingModels)
-            {
-                List<GLTFNode>? gLTFNodes_Temp = buildingModel.ToGLTF_GLTFNodes(Core.Constants.Tolerance.Distance, BuildingDisplayMode.Envelope);
-                if (gLTFNodes_Temp is not null)
-                {
-                    gLTFNodes.AddRange(gLTFNodes_Temp);
-                }
-            }
-
-            if (gLTFNodes is null || gLTFNodes.Count == 0)
-            {
-                return NoContent();
-            }
-
-            GLTFScene? gLTFScene = GLTF.Create.GLTFScene(gLTFNodes, name, referencePointOverride: new Point3D(centerX, centerY, 0));
-            if (gLTFScene is null)
-            {
-                return NoContent();
-            }
-
-            byte[]? bytes = GLTF.Convert.ToSystem_Bytes(gLTFScene, true);
-            if (bytes is null || bytes.Length == 0)
-            {
-                return NoContent();
-            }
-
-            return File(bytes, "model/gltf-binary", "buildings.glb");
         }
 
         // This action will trigger for: gis.digiproject.uk/administrativeareal2D

@@ -20,7 +20,12 @@
         <p class="gis-hero-text">
             Enter a central point and a radius to load all buildings within that circular area, place antennas in the 3D view and analyze the radio communication between them.
         </p>
-        <form method="get" action="~/communication/buildingsbyradius" class="gis-inline-form">
+        @* [TEMPORARY A/B TESTING] The "Open" button no longer submits directly; it opens the version
+           selection prompt below, which points the form at v1/buildingsbyradius or v2/buildingsbyradius.
+           TO REMOVE (restore standard routing): change the form action back to
+           "~/communication/buildingsbyradius", make the button type="submit" again, delete the version
+           modal and the Scripts section. *@
+        <form id="communication-start-form" method="get" action="~/communication/buildingsbyradius" class="gis-inline-form">
             <label>Point X
                 <input type="number" name="centerX" value="629671.3" step="any" required />
             </label>
@@ -33,7 +38,62 @@
             <label>Storey height [m]
                 <input type="number" name="storeyheight" value="3" step="0.1" min="1" class="gis-input-sm" />
             </label>
-            <button type="submit" class="gis-button">Open</button>
+            @* [TEMPORARY A/B TESTING] type="button": opens the version prompt instead of submitting. *@
+            <button type="button" id="communication-open-button" class="gis-button">Open</button>
         </form>
     </div>
 </div>
+
+@* [TEMPORARY A/B TESTING] Version selection prompt (same modal style as the scene prompts). *@
+<div id="communication-version-modal" class="gis-modal-overlay" style="display: none;">
+    <div class="gis-card gis-modal">
+        <h3 class="gltf-card-title">Select version</h3>
+        <p class="gis-hero-text">Choose which implementation to open for this area.</p>
+        <div class="gis-modal-buttons">
+            <button type="button" id="communication-version-v1-button" class="gis-button">Version 1</button>
+            <button type="button" id="communication-version-v2-button" class="gis-button">Version 2</button>
+            <button type="button" id="communication-version-cancel-button" class="gis-button">Cancel</button>
+        </div>
+    </div>
+</div>
+
+@* [TEMPORARY A/B TESTING] Opens the prompt and routes the form to the selected version endpoint. *@
+@section Scripts {
+    <script>
+        (function () {
+            const form = document.getElementById('communication-start-form');
+            const openButton = document.getElementById('communication-open-button');
+            const modal = document.getElementById('communication-version-modal');
+            const v1Button = document.getElementById('communication-version-v1-button');
+            const v2Button = document.getElementById('communication-version-v2-button');
+            const cancelButton = document.getElementById('communication-version-cancel-button');
+
+            const urlV1 = '@Url.Content("~/communication/v1/buildingsbyradius")';
+            const urlV2 = '@Url.Content("~/communication/v2/buildingsbyradius")';
+
+            function submitTo(action) {
+                form.action = action;
+                form.submit();
+            }
+
+            openButton.addEventListener('click', function () {
+                if (!form.reportValidity()) {
+                    return;
+                }
+                modal.style.display = 'flex';
+            });
+
+            v1Button.addEventListener('click', function () {
+                submitTo(urlV1);
+            });
+
+            v2Button.addEventListener('click', function () {
+                submitTo(urlV2);
+            });
+
+            cancelButton.addEventListener('click', function () {
+                modal.style.display = 'none';
+            });
+        })();
+    </script>
+}

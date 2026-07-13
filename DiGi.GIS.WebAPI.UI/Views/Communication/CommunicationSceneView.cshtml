@@ -59,8 +59,9 @@
         <div id="gltf-viewer-container"
              data-glb-url="@(string.IsNullOrEmpty(Model.GLBUrl) ? string.Empty : Url.Content(Model.GLBUrl))"
              data-building-details-url="@Url.Content("~/building2D/detailsbyreference")"
-             data-buildingmodel-details-url="@Url.Content("~/buildingmodel/detailsbyid")"
-             data-calculate-url="@Url.Content("~/communication/calculate")"
+             data-buildingmodel-details-url="@Url.Content("~/buildingmodel/itembyreference")"
+             @* [TEMPORARY A/B TESTING] Model.CalculateUrl selects the v1/v2 calculate endpoint; null = standard routing. *@
+             data-calculate-url="@Url.Content(Model.CalculateUrl ?? "~/communication/calculate")"
              data-center-x="@Model.CenterX.ToString(System.Globalization.CultureInfo.InvariantCulture)"
              data-center-y="@Model.CenterY.ToString(System.Globalization.CultureInfo.InvariantCulture)"
              data-radius="@Model.Radius.ToString(System.Globalization.CultureInfo.InvariantCulture)"
