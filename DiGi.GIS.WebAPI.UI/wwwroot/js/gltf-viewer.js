@@ -141,18 +141,36 @@ function initLightingPanel(viewer) {
     });
 })();
 
+// Left side panel fold/unfold toggle. Starts hidden/collapsed by default.
+(function initLeftPanelToggle() {
+    const layout = document.querySelector('.gltf-layout');
+    const toggle = document.getElementById('gltf-left-panel-toggle');
+    const panel = document.getElementById('gltf-left-panel');
+    const resizer = document.getElementById('gltf-left-resizer');
+    if (!layout || !toggle || !panel || !resizer) {
+        return;
+    }
+
+    toggle.addEventListener('click', () => {
+        const collapsed = layout.classList.toggle('gltf-left-panel-collapsed');
+        const label = collapsed ? 'Show controls' : 'Hide controls';
+        toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        toggle.setAttribute('aria-label', label);
+        toggle.title = label;
+        
+        window.dispatchEvent(new Event('resize'));
+    });
+})();
+
 // Per-card fold/unfold. Every card in the right side panel becomes independently collapsible with a
 // chevron toggle in its title, and all cards start folded. Each card's content is moved into a
 // wrapper so a single class toggle shows or hides it; element ids inside the cards are preserved, so
 // the viewer, lighting, properties and results code keeps finding them unchanged.
 (function initCardFolding() {
-    const panel = document.querySelector('.gltf-side-panel');
-    if (!panel) {
-        return;
-    }
-
-    const cards = panel.querySelectorAll('.gltf-card');
-    cards.forEach((card) => {
+    const panels = document.querySelectorAll('.gltf-side-panel, .gltf-left-panel');
+    panels.forEach((panel) => {
+        const cards = panel.querySelectorAll('.gltf-card');
+        cards.forEach((card) => {
         const title = card.querySelector('.gltf-card-title');
         if (!title) {
             return;
@@ -193,6 +211,7 @@ function initLightingPanel(viewer) {
         button.addEventListener('click', (event) => {
             event.stopPropagation();
             toggle();
+        });
         });
     });
 })();
@@ -304,6 +323,61 @@ if (container) {
             // Save width preference
             const finalWidth = sidePanel.getBoundingClientRect().width;
             localStorage.setItem('gltf-side-panel-width', finalWidth);
+            
+            // Final resize dispatch
+            window.dispatchEvent(new Event('resize'));
+        }
+        
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    });
+})();
+
+// Left side panel resizer/splitter logic
+(function () {
+    const resizer = document.getElementById('gltf-left-resizer');
+    const leftPanel = document.getElementById('gltf-left-panel');
+    const layout = document.querySelector('.gltf-layout');
+    
+    if (!resizer || !leftPanel || !layout) {
+        return;
+    }
+    
+    // Load saved width on start
+    const savedWidth = localStorage.getItem('gltf-left-panel-width');
+    if (savedWidth) {
+        const widthVal = parseInt(savedWidth, 10);
+        if (widthVal >= 150 && widthVal <= 500) {
+            leftPanel.style.flex = `0 0 ${widthVal}px`;
+        }
+    }
+    
+    resizer.addEventListener('mousedown', function (mouseDownEvent) {
+        mouseDownEvent.preventDefault();
+        resizer.classList.add('is-dragging');
+        
+        const startX = mouseDownEvent.clientX;
+        const startWidth = leftPanel.getBoundingClientRect().width;
+        
+        function onMouseMove(mouseMoveEvent) {
+            const deltaX = mouseMoveEvent.clientX - startX;
+            // The left panel is on the left, so dragging right (positive deltaX) increases its width.
+            const newWidth = Math.max(150, Math.min(500, startWidth + deltaX));
+            
+            leftPanel.style.flex = `0 0 ${newWidth}px`;
+            
+            // Dispatch resize event so Three.js canvas adjusts instantly
+            window.dispatchEvent(new Event('resize'));
+        }
+        
+        function onMouseUp() {
+            resizer.classList.remove('is-dragging');
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            
+            // Save width preference
+            const finalWidth = leftPanel.getBoundingClientRect().width;
+            localStorage.setItem('gltf-left-panel-width', finalWidth);
             
             // Final resize dispatch
             window.dispatchEvent(new Event('resize'));
