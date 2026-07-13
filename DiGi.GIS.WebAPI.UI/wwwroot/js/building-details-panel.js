@@ -67,17 +67,17 @@ function ensureExportModal() {
         '<h3 class="gltf-card-title">Export</h3>' +
         '<pre class="gis-modal-pre"></pre>' +
         '<div class="gis-modal-buttons">' +
-        '<button type="button" id="building-export-ok-button" class="gis-button">OK</button>' +
+        '<button type="button" id="building-export-close-button" class="gis-button">Close</button>' +
         '<button type="button" id="building-export-copy-button" class="gis-button">Copy</button>' +
         '</div>' +
         '</div>';
     document.body.appendChild(exportModal);
 
     exportPre = exportModal.querySelector('.gis-modal-pre');
-    const okButton = exportModal.querySelector('#building-export-ok-button');
+    const closeButton = exportModal.querySelector('#building-export-close-button');
     const copyButton = exportModal.querySelector('#building-export-copy-button');
 
-    okButton.addEventListener('click', () => {
+    closeButton.addEventListener('click', () => {
         exportModal.style.display = 'none';
     });
 
@@ -124,22 +124,38 @@ if (container && card && showLink) {
 
         const reference = references[0];
 
-        // Only buildings expose the details page; any other selectable type keeps the card hidden.
+        // Show Export for any selected object; Details link only for buildings.
         const type = window.gltfViewer?.getUserData(reference)?._type;
-        if (type && !String(type).includes('Building2D')) {
-            card.style.display = 'none';
-            exportData = null;
-            return;
+        const isBuilding2D = String(type ?? '').includes('Building2D');
+        const isBuildingModel = String(type ?? '').includes('BuildingModel');
+
+        if (isBuilding2D) {
+            let href = `${container.dataset.buildingDetailsUrl}?reference=${encodeURIComponent(reference)}`;
+            const centroid = worldCentroidOf(reference);
+            if (centroid) {
+                href += `&x=${centroid.x.toFixed(3)}&y=${centroid.y.toFixed(3)}`;
+            }
+            showLink.href = href;
+            showLink.title = reference;
+            showLink.style.display = '';
+        } else if (isBuildingModel) {
+            const buildingModelUrl = container.dataset.buildingmodelDetailsUrl;
+            if (buildingModelUrl) {
+                let href = `${buildingModelUrl}?id=${encodeURIComponent(reference)}`;
+                const centroid = worldCentroidOf(reference);
+                if (centroid) {
+                    href += `&x=${centroid.x.toFixed(3)}&y=${centroid.y.toFixed(3)}`;
+                }
+                showLink.href = href;
+                showLink.title = reference;
+                showLink.style.display = '';
+            } else {
+                showLink.style.display = 'none';
+            }
+        } else {
+            showLink.style.display = 'none';
         }
 
-        let href = `${container.dataset.buildingDetailsUrl}?reference=${encodeURIComponent(reference)}`;
-        const centroid = worldCentroidOf(reference);
-        if (centroid) {
-            href += `&x=${centroid.x.toFixed(3)}&y=${centroid.y.toFixed(3)}`;
-        }
-
-        showLink.href = href;
-        showLink.title = reference;
         exportData = { Reference: reference, ...(window.gltfViewer?.getUserData(reference) ?? {}) };
         card.style.display = '';
     });

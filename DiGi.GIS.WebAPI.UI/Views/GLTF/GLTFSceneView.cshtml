@@ -13,7 +13,8 @@
            attribute is empty, the embedded base64 payload below is used instead. *@
         <div id="gltf-viewer-container"
              data-glb-url="@(string.IsNullOrEmpty(Model.GLBUrl) ? string.Empty : Url.Content(Model.GLBUrl))"
-             data-building-details-url="@Url.Content("~/building2D/detailsbyreference")">
+             data-building-details-url="@Url.Content("~/building2D/detailsbyreference")"
+             data-buildingmodel-details-url="@Url.Content("~/buildingmodel/detailsbyid")">
             @* Small toggle in the top-right corner that folds/unfolds the right side panel. *@
             <button type="button" id="gltf-panel-toggle" class="gltf-panel-toggle" title="Hide panel" aria-label="Hide panel" aria-controls="gltf-side-panel" aria-expanded="true">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

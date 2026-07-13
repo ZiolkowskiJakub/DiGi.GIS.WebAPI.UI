@@ -1,0 +1,35 @@
+@using DiGi.Analytical.Building.Classes
+@using DiGi.Analytical.Building.Interfaces
+@using DiGi.Core
+
+@model BuildingModel
+
+@{
+    ViewData["Title"] = $"Building Model {Model?.UniqueId}";
+}
+
+<div class="master-detail-wrapper">
+    <div id="detailsSide">
+        @if (Model is null)
+        {
+            <div class="gis-card">
+                <h2>Building Not Found</h2>
+                <p class="gltf-muted">The specified building model could not be located.</p>
+            </div>
+        }
+        else
+        {
+            <div class="gis-card">
+                <h2>Building Model</h2>
+                <table>
+                    <tr><td>Unique Identifier</td><td>@Model.UniqueId</td></tr>
+                    <tr><td>Components</td><td>@(Model.GetComponents<IComponent>()?.Count ?? 0)</td></tr>
+                </table>
+            </div>
+            <div class="gis-card" style="margin-top: 12px;">
+                <h3>Raw Data</h3>
+                <pre class="gis-modal-pre" style="max-height: 70vh; overflow-y: auto;">@Model.ToSystem_String()</pre>
+            </div>
+        }
+    </div>
+</div>

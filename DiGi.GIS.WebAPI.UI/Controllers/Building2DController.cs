@@ -1,9 +1,12 @@
+using DiGi.Analytical.Building.Classes;
 using DiGi.Geometry.Planar.Classes;
 using DiGi.GIS.PostgreSQL.Classes;
 using DiGi.GIS.WebAPI.UI.ViewModels;
+using DiGi.GLTF;
+using DiGi.GLTF.Analytical;
+using DiGi.GLTF.Analytical.Enums;
 using DiGi.GLTF.Classes;
 using DiGi.WebAPI.Classes;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
@@ -408,7 +411,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
 
         /// <summary>
-        /// Asynchronously retrieves all buildings within the specified circular area directly from the PostgreSQL database, converts them into a single batched <see cref="GLTFScene"/> (2D footprints extruded by storeys, geometry translated to a local origin) and streams it as a binary glTF (.glb) payload.
+        /// Asynchronously retrieves all building models within the specified circular area from the PostgreSQL database via the GIS Web API, converts each <see cref="BuildingModel"/> into a batched <see cref="GLTFScene"/> with buildings selectable as whole envelopes and streams it as a binary glTF (.glb) payload.
         /// <para>The search is purely spatial: the area may span multiple counties, so no county identifier is required.</para>
         /// </summary>
         /// <param name="centerX">The X coordinate of the center of the search circle.</param>
@@ -427,7 +430,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             HttpClient httpClient = httpClientFactory.CreateClient();
 
-            UrlBuilder urlBuilder = new("https://api.digiproject.uk/gis/building2D/itemsbycircle");
+            UrlBuilder urlBuilder = new("https://api.digiproject.uk/gis/buildingmodel/itemsbycircle");
             urlBuilder = urlBuilder.AddParameter("x", centerX);
             urlBuilder = urlBuilder.AddParameter("y", centerY);
             urlBuilder = urlBuilder.AddParameter("radius", radius);
@@ -444,15 +447,30 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NoContent();
             }
 
-            List<GIS.Classes.Building2D>? building2Ds = Core.Convert.ToDiGi<GIS.Classes.Building2D>(json);
-            if (building2Ds is null || building2Ds.Count == 0)
+            List<BuildingModel>? buildingModels = Core.Convert.ToDiGi<BuildingModel>(json);
+            if (buildingModels is null || buildingModels.Count == 0)
             {
                 return NoContent();
             }
 
             string name = $"Buildings ({centerX}, {centerY}) r = {radius} m";
 
-            GLTFScene? gLTFScene = building2Ds.GLTFScene(name, storeyHeight ?? Constants.Default.StoreyHeight);
+            List<GLTFNode> gLTFNodes = [];
+            foreach (BuildingModel buildingModel in buildingModels)
+            {
+                List<GLTFNode>? gLTFNodes_Temp = buildingModel.ToGLTF_GLTFNodes(Core.Constants.Tolerance.Distance, BuildingDisplayMode.Envelope);
+                if (gLTFNodes_Temp is not null)
+                {
+                    gLTFNodes.AddRange(gLTFNodes_Temp);
+                }
+            }
+
+            if (gLTFNodes is null || gLTFNodes.Count == 0)
+            {
+                return NoContent();
+            }
+
+            GLTFScene? gLTFScene = GLTF.Create.GLTFScene(gLTFNodes, name);
             if (gLTFScene is null)
             {
                 return NoContent();

@@ -2,11 +2,13 @@ using DiGi.Analytical.Building.Classes;
 using DiGi.GIS.WebAPI.UI.ViewModels;
 using DiGi.GLTF;
 using DiGi.GLTF.Analytical;
+using DiGi.GLTF.Analytical.Enums;
 using DiGi.GLTF.Classes;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,6 +59,71 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
 
         /// <summary>
+        /// Asynchronously loads a <see cref="BuildingModel"/> from the GIS Web API by searching for the building at the specified coordinates, converts its components into separate selectable <see cref="GLTFNode"/> instances and renders the 3D viewer page.
+        /// </summary>
+        /// <param name="id">The unique identifier of the building model (used as the page title).</param>
+        /// <param name="x">The X coordinate of the building centroid.</param>
+        /// <param name="y">The Y coordinate of the building centroid.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> rendering the 3D glTF scene view or a not found response.</returns>
+        [HttpGet("detailsbyid")]
+        public async Task<IActionResult> GetDetailsByIdAsync([FromQuery(Name = "id")] string id, [FromQuery(Name = "x")] double x, [FromQuery(Name = "y")] double y)
+        {
+            if (double.IsNaN(x) || double.IsNaN(y))
+            {
+                return BadRequest();
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            UrlBuilder urlBuilder = new("https://api.digiproject.uk/gis/buildingmodel/itemsbycircle");
+            urlBuilder = urlBuilder.AddParameter("x", x);
+            urlBuilder = urlBuilder.AddParameter("y", y);
+            urlBuilder = urlBuilder.AddParameter("radius", 5);
+            urlBuilder = urlBuilder.AddParameter("tolerance", 5);
+
+            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
+            if (!httpResponseMessage.IsSuccessStatusCode)
+            {
+                return NotFound();
+            }
+
+            string json = await httpResponseMessage.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return NotFound();
+            }
+
+            List<BuildingModel>? buildingModels = Core.Convert.ToDiGi<BuildingModel>(json);
+            BuildingModel? buildingModel = buildingModels?.FirstOrDefault();
+            if (buildingModel is null)
+            {
+                return NotFound();
+            }
+
+            List<GLTFNode>? gLTFNodes = buildingModel.ToGLTF_GLTFNodes();
+            if (gLTFNodes is null || gLTFNodes.Count == 0)
+            {
+                return NotFound();
+            }
+
+            string name = $"BuildingModel {buildingModel.UniqueId}";
+
+            GLTFScene? gLTFScene = GLTF.Create.GLTFScene(gLTFNodes, name);
+            if (gLTFScene is null)
+            {
+                return NotFound();
+            }
+
+            ViewModels.GLTFSceneViewModel? gLTFSceneViewModel = gLTFScene.GLTFSceneViewModel(name);
+            if (gLTFSceneViewModel is null)
+            {
+                return NotFound();
+            }
+
+            return View("~/Views/GLTF/GLTFSceneView.cshtml", gLTFSceneViewModel);
+        }
+
+        /// <summary>
         /// Renders the 3D viewer page for all building models within the specified circular area. The page itself carries no geometry; the viewer streams the binary glTF payload from the glb endpoint.
         /// <para>The search is purely spatial: the area may span multiple counties, so no county identifier is required.</para>
         /// </summary>
@@ -87,7 +154,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
 
         /// <summary>
-        /// Asynchronously retrieves all building models within the specified circular area from the PostgreSQL database via the GIS Web API, converts each <see cref="BuildingModel"/> and its components (walls, floors and roofs) into a single batched <see cref="GLTFScene"/> (geometry translated to a local origin) and streams it as a binary glTF (.glb) payload.
+        /// Asynchronously retrieves all building models within the specified circular area from the PostgreSQL database via the GIS Web API, converts each <see cref="BuildingModel"/> into a batched <see cref="GLTFScene"/> with buildings selectable as whole envelopes and streams it as a binary glTF (.glb) payload.
         /// <para>The search is purely spatial: the area may span multiple counties, so no county identifier is required.</para>
         /// </summary>
         /// <param name="centerX">The X coordinate of the center of the search circle.</param>
@@ -136,7 +203,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             List<GLTFNode> gLTFNodes = [];
             foreach (BuildingModel buildingModel in buildingModels)
             {
-                List<GLTFNode>? gLTFNodes_Temp = buildingModel.ToGLTF_GLTFNodes();
+                List<GLTFNode>? gLTFNodes_Temp = buildingModel.ToGLTF_GLTFNodes(Core.Constants.Tolerance.Distance, BuildingDisplayMode.Envelope);
                 if (gLTFNodes_Temp is not null)
                 {
                     gLTFNodes.AddRange(gLTFNodes_Temp);
