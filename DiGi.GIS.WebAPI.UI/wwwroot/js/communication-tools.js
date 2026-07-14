@@ -32,11 +32,13 @@ const RAY_SELECTED_COLOR = 0x9dff57;     // lighter green tint of the selected r
 const ELLIPSOID_COLOR = 0x4da6ff;        // semi-transparent propagation ellipsoid
 const ELLIPSOID_OPACITY = 0.18;
 const ELLIPSOID_SELECTED_OPACITY = 0.32;
-const SCATTERING_COLORS = [0xff8c00, 0xe81123, 0x00b294, 0xb146c2, 0x0078d4, 0xffb900]; // scattering polyline palette, cycled per ScatteringPointGroup
+const SCATTERING_COLOR = 0xff8c00;       // single color for every scattering polyline (was a cycled palette)
 const SCATTERING_SELECTED_COLOR = 0xffffff; // tint of the selected scattering polyline
 const AUXILIARY_OPACITY = 0.35;          // auxiliary polylines of the selected scattering polyline
 const VECTOR_COLOR = 0x2ecc40;           // angular power distribution vectors (green like the rays)
-const BUILDING_RESULT_OPACITY = 0.35;    // building opacity while calculation results are displayed
+const SCATTERING_RADIUS_FACTOR = 0.5;    // scattering polyline tube radius vs the antenna dot (rays use 0.3 — thicker)
+const VECTOR_RADIUS_FACTOR = 0.4;        // angular power vector tube radius vs the antenna dot
+const DEFAULT_VECTOR_SCALE = 1000;       // default stretch applied to the angular power vectors
 const RAY_DECIBEL_WINDOW = 30;           // dB range mapped onto the ray length scale
 const CLICK_THRESHOLD = 5;               // pixels of pointer travel before a click becomes a drag
 const DEFAULT_ANTENNA_HEIGHT = 10;       // default Z coordinate for the antenna modal and live preview
@@ -88,7 +90,6 @@ let selectedResultMesh = null;     // currently highlighted result mesh
 let resultPickCandidate = null;    // result mesh hit on pointerdown, resolved on pointerup
 let suppressResultClick = false;   // swallows the click event that follows a result pick
 let antennaPreview = null;         // semi-transparent antenna preview shown during add mode
-const buildingMaterialStates = new Map(); // building material -> original appearance (transparency)
 
 let delayPayload = null;           // last successful delay based (v1) calculation payload
 const delayObjects = [];           // three.js objects of the currently rendered delay frame
@@ -496,51 +497,6 @@ function appendResultRow(table, key, value) {
     row.insertCell().textContent = value;
 }
 
-// Building transparency: while calculation results are displayed all building materials become
-// partially transparent so the green rays and the ellipsoid stay visible; the original appearance
-// is stored per material and fully restored by "Clear". Result/antenna meshes are not part of
-// viewer.root (the loaded glTF scene), so they are never touched here.
-function setBuildingsTransparent(transparent) {
-    if (!viewer?.root) {
-        return;
-    }
-
-    if (transparent) {
-        viewer.root.traverse((child) => {
-            if (!child.isMesh) {
-                return;
-            }
-
-            const materials = Array.isArray(child.material) ? child.material : [child.material];
-            for (const material of materials) {
-                if (!material || buildingMaterialStates.has(material)) {
-                    continue; // batched scenes share materials between meshes: process each once
-                }
-
-                buildingMaterialStates.set(material, {
-                    transparent: material.transparent,
-                    opacity: material.opacity,
-                    depthWrite: material.depthWrite
-                });
-
-                material.transparent = true;
-                material.opacity = Math.min(material.opacity, BUILDING_RESULT_OPACITY);
-                material.depthWrite = false;
-                material.needsUpdate = true;
-            }
-        });
-        return;
-    }
-
-    for (const [material, state] of buildingMaterialStates) {
-        material.transparent = state.transparent;
-        material.opacity = state.opacity;
-        material.depthWrite = state.depthWrite;
-        material.needsUpdate = true;
-    }
-    buildingMaterialStates.clear();
-}
-
 function pickResultMesh(event) {
     if (resultMeshes.length === 0 || viewer === null) {
         return null;
@@ -548,11 +504,10 @@ function pickResultMesh(event) {
 
     raycaster.setFromCamera(pointerNdc(event), viewer.camera);
 
-    // Scattering polylines win over the ellipsoid for the same reason as the rays below; the
-    // raycast line threshold makes the thin THREE.Line objects reliably pickable.
+    // Scattering polylines win over the ellipsoid (like the rays below). They are now thick
+    // cylinder meshes, so they raycast directly — no THREE.Line threshold needed.
     const polylineMeshes = resultMeshes.filter((mesh) => mesh.userData.communication?.type === 'polyline');
     if (polylineMeshes.length > 0) {
-        raycaster.params.Line = { threshold: Math.max(0.5, sceneRadius * 0.005) };
         const polylineIntersections = raycaster.intersectObjects(polylineMeshes, false);
         if (polylineIntersections.length > 0) {
             return polylineIntersections[0].object;
@@ -744,7 +699,6 @@ function renderResults(payload) {
     // visibility toggles in the results panel.
     const frequencyResult = payload.results[0];
 
-    setBuildingsTransparent(true);
     addEllipsoidObject(payload, frequencyResult);
     addRayObjects(payload, frequencyResult);
     showGeneralResults(payload, frequencyResult);
@@ -753,22 +707,20 @@ function renderResults(payload) {
 // ---------------------------------------------------------------------------------------------
 // Delay based (v1) results: the payload carries one entry per delay (ascending). The General
 // panel drives which delay is rendered — the propagation ellipsoid(s), the scattering polylines
-// (one per ScatteringPointGroup, colored per group) and the angular power distribution vectors
-// (scaled by the user provided factor). Selecting a polyline shows its semi-transparent
-// auxiliary polylines (location 1 -> scattering point -> location 2, one per point).
+// (one per ScatteringPointGroup) and the angular power distribution vectors (scaled by the user
+// provided factor). Selecting a polyline shows its semi-transparent auxiliary polylines
+// (location 1 -> scattering point -> location 2, one per point).
 // ---------------------------------------------------------------------------------------------
 
 function vectorScale() {
     const scale = parseFloat(vectorScaleInput.value);
-    return isFinite(scale) && scale > 0 ? scale : 1;
+    return isFinite(scale) && scale > 0 ? scale : DEFAULT_VECTOR_SCALE;
 }
 
 function renderDelayResults(payload) {
     clearResults();
     activePayload = payload;
     delayPayload = payload;
-
-    setBuildingsTransparent(true);
 
     delaySlider.min = 0;
     delaySlider.max = payload.results.length - 1;
@@ -832,55 +784,85 @@ function addDelayEllipsoids(delayResult) {
     }
 }
 
+// A thick straight tube between two scene points, built like the ray cylinders (a Mesh, so it
+// raycasts reliably). Callers pass a shared material so a multi-segment polyline recolors as one.
+function cylinderBetween(start, end, radius, material) {
+    const direction = new THREE.Vector3().subVectors(end, start);
+    const length = direction.length();
+
+    const mesh = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, length, 8), material);
+    mesh.position.copy(start).add(end).multiplyScalar(0.5);
+    if (length > 1e-9) {
+        mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.divideScalar(length));
+    }
+    return mesh;
+}
+
 function addScatteringPolylines(delayResult) {
+    const radius = Math.max(0.25, antennaDotRadius() * SCATTERING_RADIUS_FACTOR);
     const polylines = delayResult.polylines ?? [];
     for (let index = 0; index < polylines.length; index++) {
         const polyline = polylines[index];
         const points = (polyline.points ?? []).map((point) => toScene(point.x, point.y, point.z));
-        if (points.length === 0) {
+
+        // A scattering point group can arrive as a closed ring (its last point duplicating the
+        // first). Drop the duplicated tail so the polyline keeps a distinct start and end.
+        if (points.length > 2 && points[0].distanceToSquared(points[points.length - 1]) < 1e-6) {
+            points.pop();
+        }
+
+        // A polyline needs at least two points. Single-point groups are no longer drawn — the old
+        // "big dot" sphere is intentionally hidden.
+        if (points.length < 2) {
             continue;
         }
 
-        const baseColor = SCATTERING_COLORS[index % SCATTERING_COLORS.length];
+        // One shared material and userData per polyline so every segment/joint highlights together
+        // on selection and resolves to the same scattering group when picked.
+        const communication = { type: 'polyline', data: polyline, delayResult, baseColor: SCATTERING_COLOR };
+        const material = new THREE.MeshBasicMaterial({ color: SCATTERING_COLOR });
 
-        // Single point groups degenerate to a small sphere so they stay visible and pickable.
-        let object;
-        if (points.length === 1) {
-            object = new THREE.Mesh(new THREE.SphereGeometry(antennaDotRadius() * 0.5, 12, 8), new THREE.MeshBasicMaterial({ color: baseColor }));
-            object.position.copy(points[0]);
-        } else {
-            object = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: baseColor }));
+        for (let i = 0; i < points.length - 1; i++) {
+            const segment = cylinderBetween(points[i], points[i + 1], radius, material);
+            segment.userData.communication = communication;
+            viewer.scene.add(segment);
+            delayObjects.push(segment);
+            resultMeshes.push(segment);
+
+            // Fill the interior joints (not the two ends) so corners have no wedge gap.
+            if (i > 0) {
+                const joint = new THREE.Mesh(new THREE.SphereGeometry(radius, 8, 6), material);
+                joint.position.copy(points[i]);
+                joint.userData.communication = communication;
+                viewer.scene.add(joint);
+                delayObjects.push(joint);
+                resultMeshes.push(joint);
+            }
         }
-
-        object.userData.communication = { type: 'polyline', data: polyline, delayResult, baseColor };
-
-        viewer.scene.add(object);
-        delayObjects.push(object);
-        resultMeshes.push(object);
     }
 }
 
 function addVectorGroups(delayResult) {
     const scale = vectorScale();
+    const radius = Math.max(0.2, antennaDotRadius() * VECTOR_RADIUS_FACTOR);
+    const material = new THREE.MeshBasicMaterial({ color: VECTOR_COLOR });
 
     for (const vectorGroup of delayResult.vectorGroups ?? []) {
         const origin = toScene(vectorGroup.location.x, vectorGroup.location.y, vectorGroup.location.z);
 
-        const points = [];
         for (const vector of vectorGroup.vectors ?? []) {
-            // Z-up -> Y-up rotation without normalization: the vector length carries the power
-            // and is only stretched by the user provided scale factor.
-            points.push(origin, origin.clone().add(new THREE.Vector3(vector.x, vector.z, -vector.y).multiplyScalar(scale)));
+            // Reversed direction (requirement): negate the (Z-up -> Y-up) vector so it points
+            // opposite to the raw sample, extended from the origin and stretched by the user scale
+            // factor (default 1000). The length still carries the power; drawn as a thick cylinder.
+            const tip = origin.clone().add(new THREE.Vector3(-vector.x, -vector.z, vector.y).multiplyScalar(scale));
+            if (origin.distanceToSquared(tip) < 1e-9) {
+                continue; // zero-power vector — nothing to draw
+            }
+
+            const cylinder = cylinderBetween(origin, tip, radius, material);
+            viewer.scene.add(cylinder);
+            delayObjects.push(cylinder);
         }
-
-        if (points.length === 0) {
-            continue;
-        }
-
-        const lineSegments = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: VECTOR_COLOR }));
-
-        viewer.scene.add(lineSegments);
-        delayObjects.push(lineSegments);
     }
 }
 
@@ -985,9 +967,6 @@ function clearResults() {
     selectedResultMesh = null;
     resultPickCandidate = null;
     activePayload = null;
-
-    // Restore the original building appearance (opacity, depth writing).
-    setBuildingsTransparent(false);
 
     resultsPanel.innerHTML = '';
     resultsCard.style.display = 'none';
