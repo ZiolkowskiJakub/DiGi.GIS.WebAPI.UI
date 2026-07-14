@@ -88,10 +88,25 @@
 
         <div id="gltf-resizer" class="gltf-resizer" role="separator" aria-label="Resize panels"></div>
 
-        @* The cards are kept in alphabetical order by title (Lighting, Properties, Results, Scene,
-           Selection) — hidden cards (Results, Selection) appear in place when user interaction
-           reveals them. *@
+        @* The cards are kept in alphabetical order by title (General, Lighting, Properties,
+           Results, Scene, Selection) — hidden cards (General, Results, Selection) appear in place
+           when user interaction reveals them. *@
         <aside id="gltf-side-panel" class="gltf-side-panel">
+            @* General panel: hidden until a delay based (v1) calculation succeeds. The delay
+               slider walks the available delays (ascending); the 3D view renders the propagation
+               ellipsoid, the scattering polylines and the angular power distribution vectors of
+               the selected delay. The vector scale factor stretches the rendered vectors; the
+               content is driven by communication-tools.js (renderDelayResults). *@
+            <div class="gis-card gltf-card" id="communication-general-card" style="display: none;">
+                <h3 class="gltf-card-title">General</h3>
+                <label class="gltf-slider-label">Delay <span id="communication-delay-value"></span>
+                    <input type="range" id="communication-delay-slider" min="0" max="0" step="1" value="0" />
+                </label>
+                <label class="communication-modal-label">Vector scale
+                    <input type="number" id="communication-vector-scale" step="any" min="0" value="1" />
+                </label>
+            </div>
+
             <div class="gis-card gltf-card">
                 <h3 class="gltf-card-title">Lighting</h3>
                 <label class="gltf-slider-label">Sun azimuth <span id="gltf-sun-azimuth-value"></span>

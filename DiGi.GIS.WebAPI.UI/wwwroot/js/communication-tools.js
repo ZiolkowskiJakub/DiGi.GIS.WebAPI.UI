@@ -11,6 +11,12 @@
 // response carries world coordinates only: the dominant propagation ellipsoid, the arrival rays
 // with their corrected powers and the per delay component summary (see renderResults).
 //
+// [TEMPORARY A/B TESTING] The v1 calculate endpoint returns a delay grouped payload instead
+// (discriminated by its delays array): one entry per delay carrying the propagation ellipsoid(s),
+// the scattering polylines (one per ScatteringPointGroup) and the angular power distribution
+// vectors. The General panel drives which delay is rendered and the vector scale factor; a
+// selected polyline shows its semi-transparent auxiliary polylines (see renderDelayResults).
+//
 // AI-NOTE (mocked remaining inputs): the multipath power delay profile (TypicalUrban preset) and
 // the antenna radiation characteristics are hardcoded server side, mirroring the reference xUnit
 // fact ToPropagation_PropagationModel_TypicalUrban; extend the calculation modal once they become
@@ -26,6 +32,10 @@ const RAY_SELECTED_COLOR = 0x9dff57;     // lighter green tint of the selected r
 const ELLIPSOID_COLOR = 0x4da6ff;        // semi-transparent propagation ellipsoid
 const ELLIPSOID_OPACITY = 0.18;
 const ELLIPSOID_SELECTED_OPACITY = 0.32;
+const SCATTERING_COLORS = [0xff8c00, 0xe81123, 0x00b294, 0xb146c2, 0x0078d4, 0xffb900]; // scattering polyline palette, cycled per ScatteringPointGroup
+const SCATTERING_SELECTED_COLOR = 0xffffff; // tint of the selected scattering polyline
+const AUXILIARY_OPACITY = 0.35;          // auxiliary polylines of the selected scattering polyline
+const VECTOR_COLOR = 0x2ecc40;           // angular power distribution vectors (green like the rays)
 const BUILDING_RESULT_OPACITY = 0.35;    // building opacity while calculation results are displayed
 const RAY_DECIBEL_WINDOW = 30;           // dB range mapped onto the ray length scale
 const CLICK_THRESHOLD = 5;               // pixels of pointer travel before a click becomes a drag
@@ -58,6 +68,11 @@ const calculationCancelButton = document.getElementById('communication-calculati
 const resultsCard = document.getElementById('communication-results-card');
 const resultsPanel = document.getElementById('communication-results');
 
+const generalCard = document.getElementById('communication-general-card');
+const delaySlider = document.getElementById('communication-delay-slider');
+const delayValueLabel = document.getElementById('communication-delay-value');
+const vectorScaleInput = document.getElementById('communication-vector-scale');
+
 let viewer = null;                 // GltfViewer instance exposed by gltf-viewer.js
 let referencePoint = { X: 0, Y: 0, Z: 0 };
 let sceneRadius = 10;
@@ -74,6 +89,10 @@ let resultPickCandidate = null;    // result mesh hit on pointerdown, resolved o
 let suppressResultClick = false;   // swallows the click event that follows a result pick
 let antennaPreview = null;         // semi-transparent antenna preview shown during add mode
 const buildingMaterialStates = new Map(); // building material -> original appearance (transparency)
+
+let delayPayload = null;           // last successful delay based (v1) calculation payload
+const delayObjects = [];           // three.js objects of the currently rendered delay frame
+let auxiliaryObject = null;        // auxiliary polylines of the selected scattering polyline
 
 const raycaster = new THREE.Raycaster();
 const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // DiGi Z = 0 plane in three.js Y-up world
@@ -529,6 +548,17 @@ function pickResultMesh(event) {
 
     raycaster.setFromCamera(pointerNdc(event), viewer.camera);
 
+    // Scattering polylines win over the ellipsoid for the same reason as the rays below; the
+    // raycast line threshold makes the thin THREE.Line objects reliably pickable.
+    const polylineMeshes = resultMeshes.filter((mesh) => mesh.userData.communication?.type === 'polyline');
+    if (polylineMeshes.length > 0) {
+        raycaster.params.Line = { threshold: Math.max(0.5, sceneRadius * 0.005) };
+        const polylineIntersections = raycaster.intersectObjects(polylineMeshes, false);
+        if (polylineIntersections.length > 0) {
+            return polylineIntersections[0].object;
+        }
+    }
+
     // Rays win over the ellipsoid: the semi-transparent ellipsoid usually encloses the receiver,
     // so a nearest-hit-only strategy would make the rays inside it unselectable.
     const rayMeshes = resultMeshes.filter((mesh) => mesh.userData.communication?.type === 'ray');
@@ -546,13 +576,16 @@ function setResultMeshHighlighted(mesh, highlighted) {
     const communication = mesh.userData.communication;
     if (communication.type === 'ray') {
         mesh.material.color.setHex(highlighted ? RAY_SELECTED_COLOR : RAY_COLOR);
+    } else if (communication.type === 'polyline') {
+        mesh.material.color.setHex(highlighted ? SCATTERING_SELECTED_COLOR : communication.baseColor);
     } else {
         mesh.material.opacity = highlighted ? ELLIPSOID_SELECTED_OPACITY : ELLIPSOID_OPACITY;
     }
 }
 
-// Selecting the ellipsoid shows the general calculation results; selecting a ray shows the ray
-// specific values (requirement of the comparative analysis view).
+// Selecting the ellipsoid shows the general calculation results (the delay summary in the delay
+// based flow); selecting a ray shows the ray specific values; selecting a scattering polyline
+// shows its semi-transparent auxiliary polylines and the group specific values.
 function selectResultMesh(mesh) {
     if (selectedResultMesh !== null) {
         setResultMeshHighlighted(selectedResultMesh, false);
@@ -564,6 +597,12 @@ function selectResultMesh(mesh) {
     const communication = mesh.userData.communication;
     if (communication.type === 'ray') {
         showRayResults(communication.data, communication.frequencyResult);
+    } else if (communication.type === 'polyline') {
+        showAuxiliaryPolylines(communication);
+        showPolylineResults(communication.data, communication.delayResult);
+    } else if (communication.delayResult) {
+        removeAuxiliaryPolylines();
+        showDelayResults(delayPayload, communication.delayResult);
     } else {
         showGeneralResults(activePayload, communication.frequencyResult);
     }
@@ -711,7 +750,225 @@ function renderResults(payload) {
     showGeneralResults(payload, frequencyResult);
 }
 
+// ---------------------------------------------------------------------------------------------
+// Delay based (v1) results: the payload carries one entry per delay (ascending). The General
+// panel drives which delay is rendered — the propagation ellipsoid(s), the scattering polylines
+// (one per ScatteringPointGroup, colored per group) and the angular power distribution vectors
+// (scaled by the user provided factor). Selecting a polyline shows its semi-transparent
+// auxiliary polylines (location 1 -> scattering point -> location 2, one per point).
+// ---------------------------------------------------------------------------------------------
+
+function vectorScale() {
+    const scale = parseFloat(vectorScaleInput.value);
+    return isFinite(scale) && scale > 0 ? scale : 1;
+}
+
+function renderDelayResults(payload) {
+    clearResults();
+    activePayload = payload;
+    delayPayload = payload;
+
+    setBuildingsTransparent(true);
+
+    delaySlider.min = 0;
+    delaySlider.max = payload.results.length - 1;
+    delaySlider.value = 0;
+    generalCard.style.display = '';
+
+    renderDelayFrame(0);
+}
+
+function clearDelayFrame() {
+    removeAuxiliaryPolylines();
+    selectedResultMesh = null;
+    resultPickCandidate = null;
+
+    for (const object of delayObjects) {
+        viewer.scene.remove(object);
+        object.geometry?.dispose();
+        object.material?.dispose();
+    }
+    delayObjects.length = 0;
+
+    // In the delay based flow every pickable result mesh belongs to the rendered delay frame.
+    resultMeshes.length = 0;
+}
+
+function renderDelayFrame(index) {
+    clearDelayFrame();
+
+    const delayResult = delayPayload.results[index];
+    delayValueLabel.textContent = formatDelay(delayResult.delay);
+
+    addDelayEllipsoids(delayResult);
+    addScatteringPolylines(delayResult);
+    addVectorGroups(delayResult);
+    showDelayResults(delayPayload, delayResult);
+}
+
+function addDelayEllipsoids(delayResult) {
+    for (const ellipsoid of delayResult.ellipsoids ?? []) {
+        // Unit sphere scaled to the semi axes, exactly like addEllipsoidObject: the local X axis
+        // carries the semi-major axis and is rotated onto the profile axis (the ellipsoid is
+        // rotationally symmetric around it).
+        const mesh = new THREE.Mesh(
+            new THREE.SphereGeometry(1, 48, 32),
+            new THREE.MeshBasicMaterial({ color: ELLIPSOID_COLOR, transparent: true, opacity: ELLIPSOID_OPACITY, side: THREE.DoubleSide, depthWrite: false }));
+
+        mesh.position.copy(toScene(ellipsoid.center.x, ellipsoid.center.y, ellipsoid.center.z));
+        mesh.scale.set(ellipsoid.semiMajorAxis, ellipsoid.semiMinorAxis, ellipsoid.semiMinorAxis);
+        mesh.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), toSceneDirection(ellipsoid.axis));
+        mesh.userData.communication = { type: 'ellipsoid', data: ellipsoid, delayResult };
+
+        viewer.scene.add(mesh);
+        delayObjects.push(mesh);
+        resultMeshes.push(mesh);
+    }
+}
+
+function addScatteringPolylines(delayResult) {
+    const polylines = delayResult.polylines ?? [];
+    for (let index = 0; index < polylines.length; index++) {
+        const polyline = polylines[index];
+        const points = (polyline.points ?? []).map((point) => toScene(point.x, point.y, point.z));
+        if (points.length === 0) {
+            continue;
+        }
+
+        const baseColor = SCATTERING_COLORS[index % SCATTERING_COLORS.length];
+
+        // Single point groups degenerate to a small sphere so they stay visible and pickable.
+        let object;
+        if (points.length === 1) {
+            object = new THREE.Mesh(new THREE.SphereGeometry(antennaDotRadius() * 0.5, 12, 8), new THREE.MeshBasicMaterial({ color: baseColor }));
+            object.position.copy(points[0]);
+        } else {
+            object = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: baseColor }));
+        }
+
+        object.userData.communication = { type: 'polyline', data: polyline, delayResult, baseColor };
+
+        viewer.scene.add(object);
+        delayObjects.push(object);
+        resultMeshes.push(object);
+    }
+}
+
+function addVectorGroups(delayResult) {
+    const scale = vectorScale();
+
+    for (const vectorGroup of delayResult.vectorGroups ?? []) {
+        const origin = toScene(vectorGroup.location.x, vectorGroup.location.y, vectorGroup.location.z);
+
+        const points = [];
+        for (const vector of vectorGroup.vectors ?? []) {
+            // Z-up -> Y-up rotation without normalization: the vector length carries the power
+            // and is only stretched by the user provided scale factor.
+            points.push(origin, origin.clone().add(new THREE.Vector3(vector.x, vector.z, -vector.y).multiplyScalar(scale)));
+        }
+
+        if (points.length === 0) {
+            continue;
+        }
+
+        const lineSegments = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: VECTOR_COLOR }));
+
+        viewer.scene.add(lineSegments);
+        delayObjects.push(lineSegments);
+    }
+}
+
+function showAuxiliaryPolylines(communication) {
+    removeAuxiliaryPolylines();
+
+    const polyline = communication.data;
+    const location1 = toScene(polyline.location1.x, polyline.location1.y, polyline.location1.z);
+    const location2 = toScene(polyline.location2.x, polyline.location2.y, polyline.location2.z);
+
+    // One auxiliary polyline (location 1 -> scattering point -> location 2) per point, merged
+    // into a single LineSegments object so even dense groups stay one draw call.
+    const points = [];
+    for (const point of polyline.points ?? []) {
+        const scenePoint = toScene(point.x, point.y, point.z);
+        points.push(location1, scenePoint, scenePoint, location2);
+    }
+
+    if (points.length === 0) {
+        return;
+    }
+
+    auxiliaryObject = new THREE.LineSegments(
+        new THREE.BufferGeometry().setFromPoints(points),
+        new THREE.LineBasicMaterial({ color: communication.baseColor, transparent: true, opacity: AUXILIARY_OPACITY, depthWrite: false }));
+
+    viewer.scene.add(auxiliaryObject);
+}
+
+function removeAuxiliaryPolylines() {
+    if (!auxiliaryObject) {
+        return;
+    }
+
+    viewer.scene.remove(auxiliaryObject);
+    auxiliaryObject.geometry.dispose();
+    auxiliaryObject.material.dispose();
+    auxiliaryObject = null;
+}
+
+function showDelayResults(payload, delayResult) {
+    resultsPanel.innerHTML = '';
+
+    let vectorCount = 0;
+    for (const vectorGroup of delayResult.vectorGroups ?? []) {
+        vectorCount += vectorGroup.vectors?.length ?? 0;
+    }
+
+    const table = document.createElement('table');
+    appendResultRow(table, 'Delay', formatDelay(delayResult.delay));
+    appendResultRow(table, 'Distance', `${payload.distance.toFixed(2)} m`);
+    appendResultRow(table, 'Scattering groups', String((delayResult.polylines ?? []).length));
+    appendResultRow(table, 'Vectors', String(vectorCount));
+    resultsPanel.appendChild(table);
+
+    const note = document.createElement('div');
+    note.className = 'gltf-muted';
+    note.style.marginTop = '6px';
+    note.textContent = 'Move the delay slider in the General panel to change the displayed delay. Click a scattering polyline for its auxiliary polylines.';
+    resultsPanel.appendChild(note);
+
+    resultsCard.style.display = '';
+}
+
+function showPolylineResults(polyline, delayResult) {
+    resultsPanel.innerHTML = '';
+
+    const table = document.createElement('table');
+    appendResultRow(table, 'Selected', 'Scattering polyline');
+    appendResultRow(table, 'Reference', polyline.reference ?? '-');
+    appendResultRow(table, 'Delay', formatDelay(delayResult.delay));
+    appendResultRow(table, 'Points', String(polyline.points?.length ?? 0));
+    resultsPanel.appendChild(table);
+
+    const note = document.createElement('div');
+    note.className = 'gltf-muted';
+    note.style.marginTop = '6px';
+    note.textContent = 'The semi-transparent auxiliary polylines connect each scattering point with the profile locations. Click the ellipsoid to return to the delay summary.';
+    resultsPanel.appendChild(note);
+
+    resultsCard.style.display = '';
+}
+
 function clearResults() {
+    removeAuxiliaryPolylines();
+    for (const object of delayObjects) {
+        viewer.scene.remove(object);
+        object.geometry?.dispose();
+        object.material?.dispose();
+    }
+    delayObjects.length = 0;
+    delayPayload = null;
+    generalCard.style.display = 'none';
+
     for (const object of resultObjects) {
         viewer.scene.remove(object);
         object.geometry?.dispose();
@@ -772,7 +1029,13 @@ async function calculate(calculationParameters) {
             return;
         }
 
-        renderResults(payload);
+        // [TEMPORARY A/B TESTING] The v1 endpoint returns the delay grouped payload
+        // (discriminated by its delays array); the v2 endpoint the frequency result payload.
+        if (Array.isArray(payload.delays)) {
+            renderDelayResults(payload);
+        } else {
+            renderResults(payload);
+        }
         setHint('');
     } catch {
         setHint('Calculation failed.');
@@ -837,6 +1100,20 @@ calculationOkButton.addEventListener('click', () => {
 
 calculationCancelButton.addEventListener('click', () => {
     calculationModal.style.display = 'none';
+});
+
+// General panel wiring: the delay slider walks payload.results (ascending delays); the vector
+// scale re-renders the current frame so the vectors stretch immediately.
+delaySlider.addEventListener('input', () => {
+    if (delayPayload !== null) {
+        renderDelayFrame(parseInt(delaySlider.value, 10));
+    }
+});
+
+vectorScaleInput.addEventListener('input', () => {
+    if (delayPayload !== null) {
+        renderDelayFrame(parseInt(delaySlider.value, 10));
+    }
 });
 
 function clearAntennas() {

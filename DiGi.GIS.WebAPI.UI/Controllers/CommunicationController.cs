@@ -525,11 +525,12 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
 
         /// <summary>
-        /// [TEMPORARY A/B TESTING] Version 1 (current implementation) of the communication calculation. Full self-contained copy of <see cref="CalculateAsync"/>.
+        /// [TEMPORARY A/B TESTING] Version 1 (current implementation) of the communication calculation.
+        /// <para>The buildings of the analyzed area are fetched as <see cref="BuildingModel"/> instances and converted to <see cref="ScatteringObject"/> instances, packaged together with the antennas into a <see cref="GeometricalPropagationModel"/> and solved in process (<see cref="ScatteringSolver"/> + <see cref="AngularPowerDistributionSolver"/>); nothing is persisted.</para>
         /// </summary>
         /// <param name="communicationCalculationParameter">The analyzed circular area and the antennas placed by the user.</param>
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
-        /// <returns>A <see cref="Task{IActionResult}"/> holding the calculation result JSON.</returns>
+        /// <returns>A <see cref="Task{IActionResult}"/> holding the calculation result JSON grouped by delay (ascending): the propagation ellipsoids, the scattering polylines (one per <see cref="ScatteringPointGroup"/>) and the angular power distribution vectors, all in world coordinates.</returns>
         [HttpPost("v1/calculate")]
         public async Task<IActionResult> CalculateAsyncV1([FromBody] CommunicationCalculationParameter? communicationCalculationParameter, CancellationToken cancellationToken = default)
         {
@@ -617,6 +618,32 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             #endregion GeometricalPropagationModel
 
+            #region Transmitter/receiver selection
+
+            // The selection below mirrors DiGi.Communication
+            // Convert.ToPropagation_PropagationModel (first antenna with the Transmitter function,
+            // first other antenna with the Receiver function); validated before the solvers run so
+            // an invalid antenna setup fails fast.
+            Antenna? antenna_Transmitter = antennas.Find(x => x.Location is not null && x.Functions?.Contains(Function.Transmitter) == true);
+            Antenna? antenna_Receiver = antennas.Find(x => x.Guid != antenna_Transmitter?.Guid && x.Location is not null && x.Functions?.Contains(Function.Receiver) == true);
+
+            Point3D? location_Transmitter = antenna_Transmitter?.Location;
+            Point3D? location_Receiver = antenna_Receiver?.Location;
+            if (location_Transmitter is null || location_Receiver is null)
+            {
+                return BadRequest();
+            }
+
+            double distance = location_Transmitter.Distance(location_Receiver);
+            if (distance <= 0)
+            {
+                return BadRequest();
+            }
+
+            #endregion Transmitter/receiver selection
+
+            #region Solvers
+
             ScatteringSolver scatteringSolver = new()
             {
                 GeometricalPropagationModel = geometricalPropagationModel,
@@ -633,54 +660,105 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             angularPowerDistributionSolver.Solve();
 
-            //All available delays. Shall be visible as an scrollbar (ascending) in panel
-            HashSet<double> delays = [];
+            #endregion Solvers
+
+            #region Render payload
+
+            // Everything below is expressed in world coordinates only, grouped by delay: the 3D
+            // view drives a delay slider (ascending, General panel) and renders, for the selected
+            // delay, the propagation ellipsoid(s), the scattering polylines (one per
+            // ScatteringPointGroup, with the profile locations required for the auxiliary
+            // polylines) and the angular power distribution vectors (scaled client side by the
+            // user provided factor). See renderDelayResults in communication-tools.js.
+            static object PointPayload(Point3D point3D) => new { x = point3D.X, y = point3D.Y, z = point3D.Z };
+            static object VectorPayload(Vector3D vector3D) => new { x = vector3D.X, y = vector3D.Y, z = vector3D.Z };
+
+            static void Add(Dictionary<double, List<object>> payloads, double delay, object payload)
+            {
+                if (!payloads.TryGetValue(delay, out List<object>? values))
+                {
+                    values = [];
+                    payloads[delay] = values;
+                }
+
+                values.Add(payload);
+            }
+
+            // All available delays, ascending (the delay slider order in the General panel).
+            SortedSet<double> delays = [];
+
+            // Payload fragments keyed by delay.
+            Dictionary<double, List<object>> ellipsoidPayloads = [];
+            Dictionary<double, List<object>> polylinePayloads = [];
+            Dictionary<double, List<object>> vectorGroupPayloads = [];
 
             IEnumerable<ScatteringProfile>? scatteringProfiles = geometricalPropagationModel.GetScatteringProfiles<ScatteringProfile>();
-            if(scatteringProfiles is not null)
+            if (scatteringProfiles is not null)
             {
                 foreach (ScatteringProfile scatteringProfile in scatteringProfiles)
                 {
-                    if(scatteringProfile?.Scatterings is not IEnumerable<Scattering> scatterings)
+                    if (scatteringProfile?.Scatterings is not IEnumerable<Scattering> scatterings)
                     {
                         continue;
                     }
 
                     Point3D? location_1 = scatteringProfile.Location_1;
                     Point3D? location_2 = scatteringProfile.Location_2;
+                    if (location_1 is null || location_2 is null)
+                    {
+                        continue;
+                    }
+
+                    object payload_Location_1 = PointPayload(location_1);
+                    object payload_Location_2 = PointPayload(location_2);
 
                     foreach (Scattering scattering in scatterings)
                     {
-                        //delay for given scattering is the same for all points in the scattering point group
+                        // The delay for a given scattering is the same for all points in its
+                        // scattering point groups.
                         double delay = scattering.Delay;
 
                         delays.Add(delay);
 
-                        //ellipsoid for given scattering
+                        // The propagation ellipsoid for the given delay: rotationally symmetric
+                        // around the axis between the profile locations, so the semi-major axis
+                        // direction and the two semi-axis lengths fully describe it.
                         Ellipsoid? ellipsoid = Communication.Create.Ellipsoid(location_1, location_2, delay);
-
-                        if(scattering.ScatteringPointGroups is IEnumerable<ScatteringPointGroup> scatteringPointGroups)
+                        if (ellipsoid?.Center is Point3D point3D_Center && ellipsoid.DirectionA is Vector3D vector3D_Axis)
                         {
-                            foreach(ScatteringPointGroup scatteringPointGroup in scatteringPointGroups)
+                            Add(ellipsoidPayloads, delay, new
                             {
-                                //reference of the component ScatteringPointGroup was created
-                                string? reference = scatteringPointGroup.Reference;
-
-                                //Scattering points for given scattering point group
-                                if (scatteringPointGroup.Points is IEnumerable<Point3D> point3Ds && point3Ds.Count() > 0)
-                                {
-                                    //Polyline visible on the view
-                                    Polyline3D polyline3D = new(point3Ds);
-
-                                    foreach(Point3D point3D in point3Ds)
-                                    {
-                                        //Auxiliary poliline shall be visible when polyline3D clicked by the user.
-                                        Polyline3D polyline3D_Auxiliary = new(new List<Point3D>() { location_1, point3D, location_2 });
-                                    }
-                                }
-                            }
+                                center = PointPayload(point3D_Center),
+                                axis = VectorPayload(vector3D_Axis),
+                                semiMajorAxis = ellipsoid.A,
+                                semiMinorAxis = ellipsoid.B
+                            });
                         }
 
+                        if (scattering.ScatteringPointGroups is not IEnumerable<ScatteringPointGroup> scatteringPointGroups)
+                        {
+                            continue;
+                        }
+
+                        foreach (ScatteringPointGroup scatteringPointGroup in scatteringPointGroups)
+                        {
+                            if (scatteringPointGroup?.Points is not List<Point3D> point3Ds || point3Ds.Count == 0)
+                            {
+                                continue;
+                            }
+
+                            // One polyline per ScatteringPointGroup (reference identifies the
+                            // component the group was created for); the profile locations enable
+                            // the auxiliary polylines (location_1 -> point -> location_2) shown
+                            // when the polyline is selected in the 3D view.
+                            Add(polylinePayloads, delay, new
+                            {
+                                reference = scatteringPointGroup.Reference,
+                                location1 = payload_Location_1,
+                                location2 = payload_Location_2,
+                                points = point3Ds.ConvertAll(PointPayload)
+                            });
+                        }
                     }
                 }
             }
@@ -695,21 +773,62 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                         continue;
                     }
 
+                    object payload_Location = PointPayload(location);
+
                     foreach (AngularPowerDistribution angularPowerDistribution in angularPowerDistributions)
                     {
-                        //Delay for angular power distribution is the same for all vectors in the distribution
+                        // The delay for an angular power distribution is the same for all vectors
+                        // in the distribution.
                         double delay = angularPowerDistribution.Delay;
 
                         delays.Add(delay);
 
-                        //Vectors to be visualized in location. Vectorrs can be scaled by value given in UI
+                        // The vectors visualized at the location; their length carries the power,
+                        // so they are sent unnormalized and scaled client side only.
                         List<Vector3D>? vector3Ds = angularPowerDistribution.Vectors;
+                        if (vector3Ds is null || vector3Ds.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        Add(vectorGroupPayloads, delay, new
+                        {
+                            location = payload_Location,
+                            vectors = vector3Ds.ConvertAll(VectorPayload)
+                        });
                     }
                 }
             }
 
-            //TODO: implement result as json for UI
-            return NoContent();
+            List<object> results = [];
+            foreach (double delay in delays)
+            {
+                results.Add(new
+                {
+                    delay,
+                    ellipsoids = ellipsoidPayloads.GetValueOrDefault(delay) ?? [],
+                    polylines = polylinePayloads.GetValueOrDefault(delay) ?? [],
+                    vectorGroups = vectorGroupPayloads.GetValueOrDefault(delay) ?? []
+                });
+            }
+
+            if (results.Count == 0)
+            {
+                return NoContent();
+            }
+
+            #endregion Render payload
+
+            return Json(new
+            {
+                distance,
+                transmitter = new { x = location_Transmitter.X, y = location_Transmitter.Y, z = location_Transmitter.Z },
+                receiver = new { x = location_Receiver.X, y = location_Receiver.Y, z = location_Receiver.Z },
+                // The delays array (ascending, one entry per results entry) discriminates this V1
+                // payload from the V2 one in communication-tools.js and feeds the delay slider.
+                delays = delays.ToList(),
+                results
+            });
         }
 
         /// <summary>

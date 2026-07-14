@@ -824,7 +824,9 @@ A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dot
 
 ## CommunicationController\.CalculateAsyncV1\(CommunicationCalculationParameter, CancellationToken\) Method
 
-\[TEMPORARY A/B TESTING\] Version 1 \(current implementation\) of the communication calculation\. Full self\-contained copy of [CalculateAsync\(CommunicationCalculationParameter, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CalculateAsync(DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.CommunicationController\.CalculateAsync\(DiGi\.GIS\.WebAPI\.UI\.Classes\.CommunicationCalculationParameter, System\.Threading\.CancellationToken\)')\.
+\[TEMPORARY A/B TESTING\] Version 1 \(current implementation\) of the communication calculation\.
+
+The buildings of the analyzed area are fetched as [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') instances and converted to [DiGi\.Communication\.Classes\.ScatteringObject](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.scatteringobject 'DiGi\.Communication\.Classes\.ScatteringObject') instances, packaged together with the antennas into a [DiGi\.Communication\.Classes\.GeometricalPropagationModel](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.geometricalpropagationmodel 'DiGi\.Communication\.Classes\.GeometricalPropagationModel') and solved in process ([DiGi\.Communication\.Classes\.ScatteringSolver](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.scatteringsolver 'DiGi\.Communication\.Classes\.ScatteringSolver') + [DiGi\.Communication\.Classes\.AngularPowerDistributionSolver](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.angularpowerdistributionsolver 'DiGi\.Communication\.Classes\.AngularPowerDistributionSolver')); nothing is persisted.
 
 ```csharp
 public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> CalculateAsyncV1(DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter? communicationCalculationParameter, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
@@ -845,7 +847,7 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the calculation result JSON\.
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the calculation result JSON grouped by delay \(ascending\): the propagation ellipsoids, the scattering polylines \(one per [DiGi\.Communication\.Classes\.ScatteringPointGroup](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.scatteringpointgroup 'DiGi\.Communication\.Classes\.ScatteringPointGroup')\) and the angular power distribution vectors, all in world coordinates\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CalculateAsyncV2(DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter,System.Threading.CancellationToken)'></a>
 
