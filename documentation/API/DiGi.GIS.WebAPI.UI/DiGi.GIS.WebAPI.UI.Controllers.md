@@ -1382,6 +1382,62 @@ The optional identifier for the county\.
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains an [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') representing the partial view or error response\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController'></a>
+
+## SolarController Class
+
+\[TEMPORARY\] Solar calculations for the 3D viewer Lighting panel, hosted locally until a
+DiGi\.Solar backed endpoint is available on the central GIS Web API\. The route contract
+\(solar/sundirection\) is final \- when the central endpoint exists this controller becomes a
+proxy like the other controllers in this project, and the consuming frontend
+\(gltf\-viewer\.js\) stays unchanged\.
+
+```csharp
+public class SolarController : Microsoft.AspNetCore.Mvc.Controller
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [Microsoft\.AspNetCore\.Mvc\.ControllerBase](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controllerbase 'Microsoft\.AspNetCore\.Mvc\.ControllerBase') → [Microsoft\.AspNetCore\.Mvc\.Controller](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controller 'Microsoft\.AspNetCore\.Mvc\.Controller') → SolarController
+### Methods
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetSunDirection(double,double,string,double)'></a>
+
+## SolarController\.GetSunDirection\(double, double, string, double\) Method
+
+Calculates the sun position for a world location and a local date and time\.
+
+```csharp
+public Microsoft.AspNetCore.Mvc.IActionResult GetSunDirection(double x, double y, string? date, double hour);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetSunDirection(double,double,string,double).x'></a>
+
+`x` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The X coordinate in the EPSG:2180 coordinate system \[m\]\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetSunDirection(double,double,string,double).y'></a>
+
+`y` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The Y coordinate in the EPSG:2180 coordinate system \[m\]\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetSunDirection(double,double,string,double).date'></a>
+
+`date` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The local calendar date in the yyyy\-MM\-dd format\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetSunDirection(double,double,string,double).hour'></a>
+
+`hour` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The local time of day as a decimal hour in the 0\-24 range\.
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+JSON with the true solar angles: azimuth \[deg\] \(0 = north, clockwise\) and altitude \[deg\] above the horizon \(negative at night\)\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.YearBuiltDataController'></a>
 
 ## YearBuiltDataController Class

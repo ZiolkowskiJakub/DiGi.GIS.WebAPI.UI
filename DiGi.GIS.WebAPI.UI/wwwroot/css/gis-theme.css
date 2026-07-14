@@ -1447,6 +1447,20 @@ h1.gis-title-large {
         display: block;
     }
 
+    /* Date picker in the Lighting panel: matches the 28px standard control height. */
+    .gltf-slider-label input[type="date"] {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        height: 28px;
+        padding: 4px 8px;
+        font-size: 0.85rem;
+        font-family: var(--font-sans);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        margin-top: 2px;
+    }
+
 .gltf-properties {
     font-size: 0.85rem;
     word-break: break-word;

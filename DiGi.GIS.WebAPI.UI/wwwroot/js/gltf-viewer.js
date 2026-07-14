@@ -142,6 +142,146 @@ function initLightingPanel(viewer) {
     apply();
 }
 
+// Date/time driven sun position. The date picker and the hour slider send the scene's world
+// location (the glTF reference point) and the selected moment to the sun-direction endpoint;
+// the solar math and the GIS coordinate conversion live server side (DiGi.Solar / DiGi.GIS).
+// The returned azimuth/altitude animate the two lighting sliders, which drive the scene light
+// through the existing initLightingPanel wiring (synthetic 'input' events), so this function
+// never touches the viewer directly.
+const SUN_CLOCK_DEBOUNCE_MS = 150;   // one request per drag pause instead of one per tick
+const SUN_CLOCK_TWEEN_MS = 500;      // smooth slider/light sweep to the fetched angles
+
+function initSunClock(viewer, referencePoint) {
+    const dateInput = document.getElementById('gltf-sun-date');
+    const hourInput = document.getElementById('gltf-sun-hour');
+    const hourValue = document.getElementById('gltf-sun-hour-value');
+    const azimuthInput = document.getElementById('gltf-sun-azimuth');
+    const altitudeInput = document.getElementById('gltf-sun-altitude');
+    const container = document.getElementById('gltf-viewer-container');
+    if (!dateInput || !hourInput || !azimuthInput || !altitudeInput || !container) {
+        return;
+    }
+
+    const sunDirectionUrl = container.dataset.sunDirectionUrl;
+
+    // World location of the scene: the glTF reference point holds the original world offset;
+    // scene-parameter pages (communication views) carry the analyzed center as a data attribute.
+    const x = referencePoint?.X ?? parseFloat(container.dataset.centerX);
+    const y = referencePoint?.Y ?? parseFloat(container.dataset.centerY);
+    if (!sunDirectionUrl || !isFinite(x) || !isFinite(y)) {
+        dateInput.disabled = true;
+        hourInput.disabled = true;
+        dateInput.title = 'The scene carries no world location - the sun position cannot be computed.';
+        return;
+    }
+
+    // Defaults: today, now (quarter-hour resolution). Built from local time parts - toISOString
+    // would shift the date across the UTC boundary.
+    const now = new Date();
+    const pad = (value) => String(value).padStart(2, '0');
+    dateInput.value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    hourInput.value = Math.round((now.getHours() + now.getMinutes() / 60) * 4) / 4;
+
+    const formatHour = (value) => {
+        const hours = Math.floor(value);
+        const minutes = Math.round((value - hours) * 60);
+        return `${pad(hours === 24 ? 24 : hours)}:${pad(minutes)}`;
+    };
+
+    let debounceTimer = null;
+    let abortController = null;
+    let tweenTimer = null;
+    let applyingTween = false;
+
+    // A manual grab of the azimuth/altitude sliders takes priority over a running sweep. The
+    // sweep itself re-dispatches 'input' on the same sliders, so those synthetic events are
+    // flagged and ignored here.
+    for (const input of [azimuthInput, altitudeInput]) {
+        input.addEventListener('input', () => {
+            if (!applyingTween && tweenTimer !== null) {
+                clearInterval(tweenTimer);
+                tweenTimer = null;
+            }
+        });
+    }
+
+    // Sweeps both sliders (and through their 'input' wiring the scene light) to the target
+    // angles: azimuth along the shortest arc across the 0/360 wrap, altitude clamped to the
+    // slider range (the backend reports negative altitudes at night; the light stays at the
+    // slider minimum then). Timer driven so the sweep is independent of the render loop.
+    const animateSunTo = (azimuth, altitude) => {
+        if (tweenTimer !== null) {
+            clearInterval(tweenTimer);
+        }
+
+        const startAzimuth = parseFloat(azimuthInput.value);
+        const startAltitude = parseFloat(altitudeInput.value);
+        const azimuthDelta = ((azimuth - startAzimuth + 540) % 360) - 180;
+        const targetAltitude = Math.min(Math.max(altitude, parseFloat(altitudeInput.min)), parseFloat(altitudeInput.max));
+        const start = performance.now();
+
+        tweenTimer = setInterval(() => {
+            const t = Math.min(1, (performance.now() - start) / SUN_CLOCK_TWEEN_MS);
+            const eased = t * t * (3 - 2 * t); // smoothstep ease-in-out
+
+            applyingTween = true;
+            azimuthInput.value = ((startAzimuth + azimuthDelta * eased) % 360 + 360) % 360;
+            altitudeInput.value = startAltitude + (targetAltitude - startAltitude) * eased;
+            azimuthInput.dispatchEvent(new Event('input'));
+            applyingTween = false;
+
+            if (t >= 1) {
+                clearInterval(tweenTimer);
+                tweenTimer = null;
+            }
+        }, 16);
+    };
+
+    const requestSunDirection = () => {
+        if (hourValue) {
+            hourValue.textContent = formatHour(parseFloat(hourInput.value));
+        }
+        if (!dateInput.value) {
+            return; // cleared date picker
+        }
+
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(async () => {
+            abortController?.abort();
+            abortController = new AbortController();
+            try {
+                const url = `${sunDirectionUrl}?x=${encodeURIComponent(x)}&y=${encodeURIComponent(y)}` +
+                    `&date=${encodeURIComponent(dateInput.value)}&hour=${encodeURIComponent(hourInput.value)}`;
+                const response = await fetch(url, { signal: abortController.signal });
+                if (!response.ok) {
+                    return;
+                }
+
+                const data = await response.json();
+                const azimuth = data.azimuth ?? data.Azimuth;
+                const altitude = data.altitude ?? data.Altitude;
+                if (!isFinite(azimuth) || !isFinite(altitude)) {
+                    return;
+                }
+
+                // The endpoint returns the true solar azimuth (0 = north, clockwise). The viewer
+                // places the sun with azimuth 0 at three.js +Z, which is geographic south in the
+                // Z-up -> Y-up rotated scene, so the compass angle maps to 180 - azimuth.
+                animateSunTo((((180 - azimuth) % 360) + 360) % 360, altitude);
+            } catch {
+                // Aborted by a newer request or the endpoint is unreachable - keep the current sun.
+            }
+        }, SUN_CLOCK_DEBOUNCE_MS);
+    };
+
+    dateInput.addEventListener('change', requestSunDirection);
+    hourInput.addEventListener('input', requestSunDirection);
+
+    if (hourValue) {
+        hourValue.textContent = formatHour(parseFloat(hourInput.value));
+    }
+}
+
 // Right side panel fold/unfold toggle. Collapsing the panel widens the viewer container; the
 // engine's ResizeObserver then refits the 3D canvas automatically, so only the layout class is
 // toggled here. Wired independently of the viewer so it works before the glTF payload finishes
@@ -279,6 +419,7 @@ if (container) {
                 }
 
                 initLightingPanel(viewer);
+                initSunClock(viewer, event.detail.referencePoint);
                 fillSceneInfo(event.detail.referencePoint, event.detail.objectCount);
 
                 // The page shell does not know the object count upfront in streamed mode.

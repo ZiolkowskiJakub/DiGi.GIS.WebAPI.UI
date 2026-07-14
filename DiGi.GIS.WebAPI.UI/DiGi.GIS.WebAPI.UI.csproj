@@ -19,6 +19,8 @@
 		<PackageReference Include="ProjNET4GeoAPI" Version="1.4.1" />
 		<!-- SharpGLTF is a NuGet dependency of DiGi.GLTF (referenced via HintPath), so it must be re-added here to reach the application output. -->
 		<PackageReference Include="SharpGLTF.Toolkit" Version="1.0.6" />
+		<!-- SolarCalculator is a NuGet dependency of DiGi.Solar (referenced via HintPath), so it must be re-added here to reach the application output. -->
+		<PackageReference Include="SolarCalculator" Version="3.6.0" />
 		<PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="10.2.1" />
 	</ItemGroup>
 
@@ -98,6 +100,9 @@
 		</Reference>
 		<Reference Include="DiGi.PostgreSQL.Table">
 		  <HintPath>..\..\DiGi.PostgreSQL\bin\DiGi.PostgreSQL.Table.dll</HintPath>
+		</Reference>
+		<Reference Include="DiGi.Solar">
+		  <HintPath>..\..\DiGi.Solar\bin\DiGi.Solar.dll</HintPath>
 		</Reference>
 		<Reference Include="DiGi.Weather">
 		  <HintPath>..\..\DiGi.Weather\bin\DiGi.Weather.dll</HintPath>

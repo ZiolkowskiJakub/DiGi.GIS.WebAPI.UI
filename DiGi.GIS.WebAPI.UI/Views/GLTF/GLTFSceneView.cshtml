@@ -48,7 +48,8 @@
         <div id="gltf-viewer-container"
              data-glb-url="@(string.IsNullOrEmpty(Model.GLBUrl) ? string.Empty : Url.Content(Model.GLBUrl))"
              data-building-details-url="@Url.Content("~/building2D/detailsbyreference")"
-             data-buildingmodel-details-url="@Url.Content("~/buildingmodel/itembyreference")">
+             data-buildingmodel-details-url="@Url.Content("~/buildingmodel/itembyreference")"
+             data-sun-direction-url="@Url.Content("~/solar/sundirection")">
             <div id="gltf-loader" class="gltf-loader">
                 <div class="gis-loader"></div>
                 <p class="gis-loader-text">Loading 3D scene…</p>
@@ -85,6 +86,15 @@
 
             <div class="gis-card gltf-card">
                 <h3 class="gltf-card-title">Lighting</h3>
+                @* Date + time drive the sun position: on change the scene's world location and the
+                   selected moment go to the sun-direction endpoint (DiGi.Solar / DiGi.GIS server
+                   side) and the returned azimuth/altitude animate the two sliders below. *@
+                <label class="gltf-slider-label">Date
+                    <input type="date" id="gltf-sun-date" class="gltf-date-input" />
+                </label>
+                <label class="gltf-slider-label">Time <span id="gltf-sun-hour-value"></span>
+                    <input type="range" id="gltf-sun-hour" min="0" max="24" step="0.25" />
+                </label>
                 <label class="gltf-slider-label">Sun azimuth <span id="gltf-sun-azimuth-value"></span>
                     <input type="range" id="gltf-sun-azimuth" min="0" max="360" step="1" />
                 </label>
