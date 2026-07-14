@@ -1,7 +1,11 @@
+using DiGi.Analytical.Building;
+using DiGi.Analytical.Building.Classes;
+using DiGi.Analytical.Building.Interfaces;
 using DiGi.Communication.Classes;
 using DiGi.Geometry.Planar.Classes;
 using DiGi.Geometry.Spatial;
 using DiGi.Geometry.Spatial.Classes;
+using DiGi.Geometry.Spatial.Interfaces;
 using DiGi.GIS.Classes;
 using System.Collections.Generic;
 
@@ -20,7 +24,7 @@ namespace DiGi.GIS.WebAPI.UI
         /// <param name="storeyHeight">The height of a single storey in meters used for the extrusion.</param>
         /// <param name="tolerance">The distance tolerance used during triangulation.</param>
         /// <returns>A <see cref="ScatteringObject"/> holding the triangulated building geometry in world coordinates, or null if the building or its geometry is null.</returns>
-        public static ScatteringObject? ToCommunication_ScatteringObject(this Building2D? building2D, double storeyHeight = Constants.Default.StoreyHeight, double tolerance = DiGi.Core.Constants.Tolerance.Distance)
+        public static ScatteringObject? ToCommunication(this Building2D? building2D, double storeyHeight = Constants.Default.StoreyHeight, double tolerance = Core.Constants.Tolerance.Distance)
         {
             PolygonalFace2D? polygonalFace2D = building2D?.PolygonalFace2D;
             if (building2D is null || polygonalFace2D is null)
@@ -62,13 +66,13 @@ namespace DiGi.GIS.WebAPI.UI
         }
 
         /// <summary>
-        /// Converts the specified <see cref="Building2D"/> collection into <see cref="ScatteringObject"/> instances (see <see cref="ToCommunication_ScatteringObject(Building2D, double, double)"/>).
+        /// Converts the specified <see cref="Building2D"/> collection into <see cref="ScatteringObject"/> instances (see <see cref="ToCommunication(Building2D, double, double)"/>).
         /// </summary>
         /// <param name="building2Ds">The <see cref="Building2D"/> collection to be converted. This value can be null.</param>
         /// <param name="storeyHeight">The height of a single storey in meters used for the extrusions.</param>
         /// <param name="tolerance">The distance tolerance used during triangulation.</param>
         /// <returns>A list of <see cref="ScatteringObject"/> instances for all convertible buildings, or null if <paramref name="building2Ds"/> is null.</returns>
-        public static List<ScatteringObject>? ToCommunication_ScatteringObjects(this IEnumerable<Building2D>? building2Ds, double storeyHeight = Constants.Default.StoreyHeight, double tolerance = DiGi.Core.Constants.Tolerance.Distance)
+        public static List<ScatteringObject>? ToCommunication(this IEnumerable<Building2D>? building2Ds, double storeyHeight = Constants.Default.StoreyHeight, double tolerance = Core.Constants.Tolerance.Distance)
         {
             if (building2Ds is null)
             {
@@ -78,7 +82,7 @@ namespace DiGi.GIS.WebAPI.UI
             List<ScatteringObject> result = [];
             foreach (Building2D building2D in building2Ds)
             {
-                ScatteringObject? scatteringObject = ToCommunication_ScatteringObject(building2D, storeyHeight, tolerance);
+                ScatteringObject? scatteringObject = ToCommunication(building2D, storeyHeight, tolerance);
                 if (scatteringObject is not null)
                 {
                     result.Add(scatteringObject);
@@ -87,5 +91,85 @@ namespace DiGi.GIS.WebAPI.UI
 
             return result;
         }
+
+        /// <summary>
+        /// Converts the specified <see cref="BuildingModel"/> into a list of <see cref="ScatteringObject"/> instances (one per building component) by gathering and triangulating the surface of each component.
+        /// </summary>
+        /// <param name="buidlingModel">The <see cref="BuildingModel"/> to be converted. This value can be null.</param>
+        /// <param name="tolerance">The distance tolerance used during triangulation.</param>
+        /// <returns>A list of <see cref="ScatteringObject"/> instances (one per component), or null if the building model or its components are null.</returns>
+        public static List<ScatteringObject>? ToCommunication(this BuildingModel? buidlingModel, double tolerance = Core.Constants.Tolerance.Distance)
+        {
+            if (buidlingModel is null)
+            {
+                return null;
+            }
+
+            string? referenceBuildingModel = buidlingModel.UniqueId ?? Core.Create.UniqueReference(buidlingModel)?.ToString();
+            if (string.IsNullOrWhiteSpace(referenceBuildingModel))
+            {
+                return null;
+            }
+
+            List<IComponent>? components = buidlingModel.GetComponents<IComponent>();
+            if (components is null)
+            {
+                return null;
+            }
+
+            List<ScatteringObject> result = [];
+            foreach (IComponent component in components)
+            {
+                ISurface3D? surface3D = component.Surface3D();
+                if (surface3D is null)
+                {
+                    continue;
+                }
+
+                Mesh3D? mesh3DComponent = GLTF.Create.Mesh3D(surface3D, tolerance);
+                if (mesh3DComponent is null)
+                {
+                    continue;
+                }
+
+                string? referenceComponent = Core.Create.UniqueReference(component)?.ToString();
+                if (string.IsNullOrWhiteSpace(referenceComponent))
+                {
+                    continue;
+                }
+
+                string reference = $"{referenceBuildingModel}::{referenceComponent}";
+
+                result.Add(new ScatteringObject(reference, mesh3DComponent));
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Converts the specified <see cref="BuildingModel"/> collection into <see cref="ScatteringObject"/> instances (see <see cref="ToCommunication(BuildingModel, double)"/>).
+        /// </summary>
+        /// <param name="buidlingModels">The <see cref="BuildingModel"/> collection to be converted. This value can be null.</param>
+        /// <param name="tolerance">The distance tolerance used during triangulation.</param>
+        /// <returns>A list of <see cref="ScatteringObject"/> instances for all components of the convertible building models, or null if <paramref name="buidlingModels"/> is null.</returns>
+        public static List<ScatteringObject>? ToCommunication(this IEnumerable<BuildingModel>? buidlingModels, double tolerance = Core.Constants.Tolerance.Distance)
+        {
+            if (buidlingModels is null)
+            {
+                return null;
+            }
+
+            List<ScatteringObject> result = [];
+            foreach (BuildingModel buildingModel in buidlingModels)
+            {
+                List<ScatteringObject>? scatteringObjects = ToCommunication(buildingModel, tolerance: tolerance);
+                if (scatteringObjects is not null)
+                {
+                    result.AddRange(scatteringObjects);
+                }
+            }
+            return result;
+        }
+
     }
 }
