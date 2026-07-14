@@ -73,11 +73,16 @@ button.gis-menu-btn {
     }
 
 .gis-button {
-    padding: 12px 24px;
+    /* Height 3 (standard action button): vertical padding + font match .btn-buildings.btn-sm
+       (the "0201" reference pill) so every action button — 3D side-panel, modal, toolbar and
+       form buttons — renders at the same ~28px height. Horizontal padding stays roomier than the
+       table pills so standalone labels ("Add antenna", "Go to Administrative Areas") aren't cramped. */
+    padding: 4px 16px;
     cursor: pointer;
-    /* Explicit font so <a> and <button> variants match: a native button falls back to the UA
-       default (~13.3px) while an anchor inherits the document size, otherwise diverging. */
-    font-size: 0.875rem;
+    /* Explicit rem font so <a> and <button> variants match (a native button otherwise falls back to
+       the UA default ~13.3px while an anchor inherits the document size) AND so the size is pinned to
+       13.6px regardless of context, matching the reference pill's 0.85em in its 16px table. */
+    font-size: 0.85rem;
     font-weight: 600;
     border: 1px solid var(--primary-color);
     border-radius: 4px;
@@ -103,14 +108,20 @@ button.gis-menu-btn {
     }
 
 /* Building Reference button / links */
+/* Height 3: 4px vertical padding matches .btn-sm (the "0201" reference), so plain pills
+   ("Buildings", pagers) sit at the same height as the code pills next to them. .btn-xs overrides
+   this down to height 2 for breadcrumb / inline code chips. */
 .btn-buildings {
-    padding: 6px 12px;
+    padding: 4px 12px;
     border-radius: 4px;
     text-decoration: none;
     font-size: 0.85em;
     font-weight: 600;
     display: inline-block;
-    border: none;
+    /* Transparent 1px border (not `none`) so borderless states (.btn-disabled, .btn-pager-all)
+       keep the same box height as bordered ones (.btn-active) — every pill lands on the 28px
+       reference. Variants only recolor the border (.btn-active/.btn-pager-all). */
+    border: 1px solid transparent;
     cursor: pointer;
     font-family: var(--font-sans);
     transition: all 0.2s;
@@ -380,7 +391,7 @@ h1.gis-title-large {
 .btn-buildings.building-link {
     display: block;
     width: 100%;
-    padding: 6px 12px;
+    padding: 4px 12px;
     border: 1px solid var(--primary-color);
     background-color: var(--primary-light);
     color: var(--primary-color);
@@ -461,8 +472,10 @@ h1.gis-title-large {
         }
 
 .gis-select {
-    padding: 12px;
-    font-size: 1rem;
+    /* Vertical padding + font match .gis-button so the combobox is the same 28px height as the
+       button it sits next to in a .gis-form-row. */
+    padding: 4px 12px;
+    font-size: 0.85rem;
     border: 1px solid var(--border-color);
     border-radius: 4px;
     width: 100%;
@@ -470,6 +483,8 @@ h1.gis-title-large {
     outline: none;
     cursor: pointer;
     font-family: var(--font-sans);
+    box-sizing: border-box;
+    height: 28px;
 }
 
     .gis-select:focus {
@@ -1157,7 +1172,14 @@ h1.gis-title-large {
 
     .gis-inline-form input {
         margin-left: 6px;
-        padding: 6px;
+        /* Match .gis-button height (28px): same vertical padding + font, an explicit 1px border and
+           radius so the text boxes line up with the "Open" button in the same row. */
+        padding: 4px 8px;
+        font-size: 0.85rem;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        box-sizing: border-box;
+        height: 28px;
         width: 100px;
     }
 

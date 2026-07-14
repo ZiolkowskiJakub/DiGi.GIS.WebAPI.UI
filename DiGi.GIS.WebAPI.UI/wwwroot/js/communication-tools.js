@@ -772,10 +772,16 @@ function renderDelayResults(payload) {
 
     delaySlider.min = 0;
     delaySlider.max = payload.results.length - 1;
-    delaySlider.value = 0;
+
+    // Start on the first delay above 0. Index 0 is the direct path (delay 0) which carries no
+    // scattering/propagation results, so defaulting to it leaves the view empty; jump to the first
+    // ascending entry with a positive delay so results are visible immediately. Falls back to 0 if
+    // no entry qualifies.
+    const initialDelayIndex = Math.max(0, payload.results.findIndex(result => result.delay > 0));
+    delaySlider.value = initialDelayIndex;
     generalCard.style.display = '';
 
-    renderDelayFrame(0);
+    renderDelayFrame(initialDelayIndex);
 }
 
 function clearDelayFrame() {
