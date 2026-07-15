@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = Model.Title ?? "Communication 3D Viewer";
     ViewData["Description"] = "Interactive communication analysis: place antennas in the 3D district model and calculate the radio propagation between them.";
+
+    bool isV1 = !string.IsNullOrEmpty(Model.CalculateUrl) && Model.CalculateUrl.Contains("v1", System.StringComparison.OrdinalIgnoreCase);
 }
 
 <div class="gis-panel gis-panel-full">
@@ -173,50 +175,77 @@
     </div>
 </div>
 
-@* Calculation modal: opened by the "Calculate" button; collects the propagation inputs that are
-   not part of the geometrical model (frequency, polarization and the electrical material
-   properties of the scattering objects).
-   AI-NOTE (mocked remaining inputs): the multipath power delay profile (TypicalUrban preset) and
-   the antenna radiation characteristics are currently hardcoded server side — the profile in
-   CommunicationController.CalculateAsync, the characteristics in the DiGi.Communication.WebAPI
-   propagationresults endpoint — both mirroring the reference xUnit fact
-   ToPropagation_PropagationModel_TypicalUrban. Replace them with additional modal inputs here once
-   they become user configurable.
-   AI-NOTE (multi-frequency extensibility): the frequency field accepts a comma separated list
-   (e.g. "900, 1800"); communication-tools.js parses it into the Frequencies array of the request
-   payload and the backend calculates every entry. The 3D view currently renders the first
-   frequency only — add a per frequency toggle to the results panel to expose the remaining
-   entries (see renderResults in communication-tools.js). *@
-<div id="communication-calculation-modal" class="gis-modal-overlay" style="display: none;">
-    <div class="gis-card gis-modal">
-        <h3 class="gltf-card-title">Calculate propagation</h3>
-        <label class="communication-modal-label">Frequency [MHz] (comma separated for multiple)
-            <input type="text" id="communication-calculation-frequency" value="900" required />
-        </label>
-        <label class="communication-modal-label">Polarization
-            <select id="communication-calculation-polarization">
-                @* The option list maps to the DiGi.Communication Polarization enum. *@
-                @foreach (DiGi.Communication.Enums.Polarization polarization in System.Enum.GetValues<DiGi.Communication.Enums.Polarization>())
-                {
-                    <option value="@polarization">@polarization</option>
-                }
-            </select>
-        </label>
-        <fieldset class="communication-modal-functions">
-            <legend>Material properties</legend>
-            <label class="communication-modal-label">Relative electrical permittivity [-]
-                <input type="number" id="communication-calculation-permittivity" step="any" min="1" value="15" required />
+@if (isV1)
+{
+    @* V1 calculation modal: only the multipath power delay profile is user configurable. *@
+    <div id="communication-calculation-modal" class="gis-modal-overlay" style="display: none;">
+        <div class="gis-card gis-modal">
+            <h3 class="gltf-card-title">Calculate propagation</h3>
+            <label class="communication-modal-label">Power delay profile
+                <select id="communication-calculation-profile">
+                    @foreach (DiGi.Communication.Enums.DefaultSimpleMultipathPowerDelayProfile profile in System.Enum.GetValues<DiGi.Communication.Enums.DefaultSimpleMultipathPowerDelayProfile>())
+                    {
+                        System.Reflection.FieldInfo? fieldInfo = typeof(DiGi.Communication.Enums.DefaultSimpleMultipathPowerDelayProfile).GetField(profile.ToString());
+                        System.ComponentModel.DescriptionAttribute? descriptionAttribute = fieldInfo is not null ? System.Attribute.GetCustomAttribute(fieldInfo, typeof(System.ComponentModel.DescriptionAttribute)) as System.ComponentModel.DescriptionAttribute : null;
+                        string displayName = descriptionAttribute?.Description ?? profile.ToString();
+                        <option value="@profile">@displayName</option>
+                    }
+                </select>
             </label>
-            <label class="communication-modal-label">Electrical conductivity [S/m]
-                <input type="number" id="communication-calculation-conductivity" step="any" min="0" value="0.005" required />
-            </label>
-        </fieldset>
-        <div class="gis-modal-buttons">
-            <button type="button" id="communication-calculation-ok-button" class="gis-button">OK</button>
-            <button type="button" id="communication-calculation-cancel-button" class="gis-button">Cancel</button>
+            <div class="gis-modal-buttons">
+                <button type="button" id="communication-calculation-ok-button" class="gis-button">OK</button>
+                <button type="button" id="communication-calculation-cancel-button" class="gis-button">Cancel</button>
+            </div>
         </div>
     </div>
-</div>
+}
+else
+{
+    @* Calculation modal: opened by the "Calculate" button; collects the propagation inputs that are
+       not part of the geometrical model (frequency, polarization and the electrical material
+       properties of the scattering objects).
+       AI-NOTE (mocked remaining inputs): the multipath power delay profile (TypicalUrban preset) and
+       the antenna radiation characteristics are currently hardcoded server side — the profile in
+       CommunicationController.CalculateAsync, the characteristics in the DiGi.Communication.WebAPI
+       propagationresults endpoint — both mirroring the reference xUnit fact
+       ToPropagation_PropagationModel_TypicalUrban. Replace them with additional modal inputs here once
+       they become user configurable.
+       AI-NOTE (multi-frequency extensibility): the frequency field accepts a comma separated list
+       (e.g. "900, 1800"); communication-tools.js parses it into the Frequencies array of the request
+       payload and the backend calculates every entry. The 3D view currently renders the first
+       frequency only — add a per frequency toggle to the results panel to expose the remaining
+       entries (see renderResults in communication-tools.js). *@
+    <div id="communication-calculation-modal" class="gis-modal-overlay" style="display: none;">
+        <div class="gis-card gis-modal">
+            <h3 class="gltf-card-title">Calculate propagation</h3>
+            <label class="communication-modal-label">Frequency [MHz] (comma separated for multiple)
+                <input type="text" id="communication-calculation-frequency" value="900" required />
+            </label>
+            <label class="communication-modal-label">Polarization
+                <select id="communication-calculation-polarization">
+                    @* The option list maps to the DiGi.Communication Polarization enum. *@
+                    @foreach (DiGi.Communication.Enums.Polarization polarization in System.Enum.GetValues<DiGi.Communication.Enums.Polarization>())
+                    {
+                        <option value="@polarization">@polarization</option>
+                    }
+                </select>
+            </label>
+            <fieldset class="communication-modal-functions">
+                <legend>Material properties</legend>
+                <label class="communication-modal-label">Relative electrical permittivity [-]
+                    <input type="number" id="communication-calculation-permittivity" step="any" min="1" value="15" required />
+                </label>
+                <label class="communication-modal-label">Electrical conductivity [S/m]
+                    <input type="number" id="communication-calculation-conductivity" step="any" min="0" value="0.005" required />
+                </label>
+            </fieldset>
+            <div class="gis-modal-buttons">
+                <button type="button" id="communication-calculation-ok-button" class="gis-button">OK</button>
+                <button type="button" id="communication-calculation-cancel-button" class="gis-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
 
 @* Antenna modal: opened after the user clicks a point on the ground plane in "Add antenna" mode. *@
 <div id="communication-antenna-modal" class="gis-modal-overlay" style="display: none;">
@@ -229,7 +258,7 @@
             <input type="number" id="communication-antenna-y" step="any" required />
         </label>
         <label class="communication-modal-label">Z (Height) [m]
-            <input type="number" id="communication-antenna-z" step="any" min="0" value="10" required />
+            <input type="number" id="communication-antenna-z" step="any" min="0" value="30" required />
         </label>
         <fieldset class="communication-modal-functions">
             <legend>Functions</legend>

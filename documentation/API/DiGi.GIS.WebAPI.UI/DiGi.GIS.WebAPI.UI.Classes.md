@@ -175,6 +175,19 @@ public System.Nullable<double> Conductivity { get; set; }
 #### Property Value
 [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
+<a name='DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter.DefaultSimpleMultipathPowerDelayProfile'></a>
+
+## CommunicationCalculationParameter\.DefaultSimpleMultipathPowerDelayProfile Property
+
+Gets or sets the default simple multipath power delay profile name\.
+
+```csharp
+public string? DefaultSimpleMultipathPowerDelayProfile { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter.Frequencies'></a>
 
 ## CommunicationCalculationParameter\.Frequencies Property

@@ -600,11 +600,13 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             GeometricalPropagationModel geometricalPropagationModel = new();
 
-            // AI-NOTE (placeholder profile): the final implementation will let the user pick or
-            // configure the multipath power delay profile; until then the TypicalUrban preset keeps
-            // the payload identical in shape to the one produced by the Rhino/Grasshopper component
-            // (DiGi.Communication.Rhino GeometricalPropagationModel).
-            SimpleMultipathPowerDelayProfile? simpleMultipathPowerDelayProfile = Communication.Create.SimpleMultipathPowerDelayProfile(DefaultSimpleMultipathPowerDelayProfile.TypicalUrban);
+            DefaultSimpleMultipathPowerDelayProfile profile = DefaultSimpleMultipathPowerDelayProfile.TypicalUrban;
+            if (!string.IsNullOrWhiteSpace(communicationCalculationParameter.DefaultSimpleMultipathPowerDelayProfile))
+            {
+                _ = Enum.TryParse(communicationCalculationParameter.DefaultSimpleMultipathPowerDelayProfile, true, out profile);
+            }
+
+            SimpleMultipathPowerDelayProfile? simpleMultipathPowerDelayProfile = Communication.Create.SimpleMultipathPowerDelayProfile(profile);
 
             geometricalPropagationModel.Assign(simpleMultipathPowerDelayProfile, antennas[0], antennas[1]);
 

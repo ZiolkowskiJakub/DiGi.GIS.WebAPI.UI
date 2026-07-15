@@ -40,6 +40,9 @@ namespace DiGi.GIS.WebAPI.UI.Classes
         /// <summary> Gets or sets the radius of the analyzed circular area in meters. </summary>
         public double Radius { get; set; }
 
+        /// <summary> Gets or sets the default simple multipath power delay profile name. </summary>
+        public string? DefaultSimpleMultipathPowerDelayProfile { get; set; }
+
         /// <summary> Gets or sets the storey height in meters used for the building extrusions. </summary>
         public double? StoreyHeight { get; set; }
     }

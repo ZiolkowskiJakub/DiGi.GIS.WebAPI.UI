@@ -36,12 +36,12 @@ const SCATTERING_COLOR = 0xff8c00;       // single color for every scattering po
 const SCATTERING_SELECTED_COLOR = 0xffffff; // tint of the selected scattering polyline
 const AUXILIARY_OPACITY = 0.35;          // auxiliary polylines of the selected scattering polyline
 const VECTOR_COLOR = 0x2ecc40;           // angular power distribution vectors (green like the rays)
-const SCATTERING_RADIUS_FACTOR = 0.5;    // scattering polyline tube radius vs the antenna dot (rays use 0.3 — thicker)
-const VECTOR_RADIUS_FACTOR = 0.4;        // angular power vector tube radius vs the antenna dot
+const SCATTERING_RADIUS_FACTOR = 0.15;   // scattering polyline tube radius vs the antenna dot
+const VECTOR_RADIUS_FACTOR = 0.1;        // angular power vector tube radius vs the antenna dot
 const DEFAULT_VECTOR_SCALE = 1000;       // default stretch applied to the angular power vectors
 const RAY_DECIBEL_WINDOW = 30;           // dB range mapped onto the ray length scale
 const CLICK_THRESHOLD = 5;               // pixels of pointer travel before a click becomes a drag
-const DEFAULT_ANTENNA_HEIGHT = 10;       // default Z coordinate for the antenna modal and live preview
+const DEFAULT_ANTENNA_HEIGHT = 30;       // default Z coordinate for the antenna modal and live preview
 const ANTENNA_PREVIEW_OPACITY = 0.5;     // semi-transparent live preview during add mode
 
 const container = document.getElementById('gltf-viewer-container');
@@ -64,6 +64,7 @@ const calculationFrequencyInput = document.getElementById('communication-calcula
 const calculationPolarizationSelect = document.getElementById('communication-calculation-polarization');
 const calculationPermittivityInput = document.getElementById('communication-calculation-permittivity');
 const calculationConductivityInput = document.getElementById('communication-calculation-conductivity');
+const calculationProfileSelect = document.getElementById('communication-calculation-profile');
 const calculationOkButton = document.getElementById('communication-calculation-ok-button');
 const calculationCancelButton = document.getElementById('communication-calculation-cancel-button');
 
@@ -392,7 +393,9 @@ function handleAddClick(event) {
     modalY.value = world.y.toFixed(2);
     modalZ.value = String(DEFAULT_ANTENNA_HEIGHT);
     for (const checkbox of modal.querySelectorAll('.communication-antenna-function')) {
-        checkbox.checked = true; // all Function values are selected by default
+        checkbox.checked = antennas.length === 0 ? checkbox.value === 'Transmitter'
+            : antennas.length === 1 ? checkbox.value === 'Receiver'
+            : false;
     }
 
     setMode(null);
@@ -982,35 +985,45 @@ async function calculate(calculationParameters) {
     setHint('Calculating…');
 
     try {
+        const body = {
+            centerX: parseFloat(container.dataset.centerX),
+            centerY: parseFloat(container.dataset.centerY),
+            radius: parseFloat(container.dataset.radius),
+            storeyHeight: parseFloat(container.dataset.storeyHeight),
+            antennas: antennas.map((antenna) => ({
+                x: antenna.data.x,
+                y: antenna.data.y,
+                z: antenna.data.z,
+                functions: antenna.data.functions
+            }))
+        };
+
+        if (calculationParameters.defaultSimpleMultipathPowerDelayProfile !== undefined) {
+            body.defaultSimpleMultipathPowerDelayProfile = calculationParameters.defaultSimpleMultipathPowerDelayProfile;
+        } else {
+            body.frequencies = calculationParameters.frequencies;
+            body.polarization = calculationParameters.polarization;
+            body.relativePermittivity = calculationParameters.relativePermittivity;
+            body.conductivity = calculationParameters.conductivity;
+        }
+
+        console.log('Calculate URL:', container.dataset.calculateUrl);
+        console.log('Calculate body:', body);
+
         const response = await fetch(container.dataset.calculateUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                centerX: parseFloat(container.dataset.centerX),
-                centerY: parseFloat(container.dataset.centerY),
-                radius: parseFloat(container.dataset.radius),
-                storeyHeight: parseFloat(container.dataset.storeyHeight),
-                antennas: antennas.map((antenna) => ({
-                    x: antenna.data.x,
-                    y: antenna.data.y,
-                    z: antenna.data.z,
-                    functions: antenna.data.functions
-                })),
-                frequencies: calculationParameters.frequencies,
-                polarization: calculationParameters.polarization,
-                relativePermittivity: calculationParameters.relativePermittivity,
-                conductivity: calculationParameters.conductivity
-            })
+            body: JSON.stringify(body)
         });
 
         if (!response.ok || response.status === 204) {
-            setHint('Calculation failed.');
+            setHint(`Calculation failed (${response.status}).`);
             return;
         }
 
         const payload = await response.json();
         if (!payload || !Array.isArray(payload.results) || payload.results.length === 0) {
-            setHint('Calculation failed.');
+            setHint('Calculation failed (empty results).');
             return;
         }
 
@@ -1022,8 +1035,9 @@ async function calculate(calculationParameters) {
             renderResults(payload);
         }
         setHint('');
-    } catch {
-        setHint('Calculation failed.');
+    } catch (error) {
+        console.error('Calculate error:', error);
+        setHint('Calculation failed (network).');
     } finally {
         calculating = false;
         updateToolbar();
@@ -1054,10 +1068,25 @@ calculateButton.addEventListener('click', () => {
     }
 
     calculationModal.style.display = 'flex';
-    calculationFrequencyInput.focus();
+    const isV1 = container.dataset.calculateUrl?.includes('/v1/');
+    if (isV1 && calculationProfileSelect) {
+        calculationProfileSelect.focus();
+    } else if (calculationFrequencyInput) {
+        calculationFrequencyInput.focus();
+    }
 });
 
 calculationOkButton.addEventListener('click', () => {
+    calculationModal.style.display = 'none';
+
+    const isV1 = container.dataset.calculateUrl?.includes('/v1/');
+    if (isV1) {
+        calculate({
+            defaultSimpleMultipathPowerDelayProfile: calculationProfileSelect?.value ?? 'TypicalUrban'
+        });
+        return;
+    }
+
     // AI-NOTE (multi-frequency input): the frequency field accepts a comma separated list; every
     // valid value is sent, the backend calculates all of them and the response carries one result
     // entry per frequency (see renderResults for the rendering extensibility point).
@@ -1072,8 +1101,6 @@ calculationOkButton.addEventListener('click', () => {
     if (frequencies.length === 0 || !isFinite(relativePermittivity) || relativePermittivity < 1 || !isFinite(conductivity) || conductivity < 0) {
         return;
     }
-
-    calculationModal.style.display = 'none';
 
     calculate({
         frequencies,
