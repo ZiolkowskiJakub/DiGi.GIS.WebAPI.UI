@@ -1255,7 +1255,13 @@ async function calculate(calculationParameters) {
         });
 
         if (!response.ok || response.status === 204) {
-            reportStatus(`Calculation failed (${response.status}).`);
+            let detail = '';
+            try {
+                detail = (await response.text()).trim();
+            } catch {
+                detail = '';
+            }
+            reportStatus(detail ? `Calculation failed (${response.status}): ${detail}` : `Calculation failed (${response.status}).`);
             return;
         }
 
