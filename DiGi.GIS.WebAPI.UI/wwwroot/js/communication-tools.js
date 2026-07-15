@@ -23,6 +23,7 @@
 // user configurable.
 
 import * as THREE from 'three';
+import { reportStatus } from 'gltf-viewer-core';
 
 const MAX_ANTENNAS = 2;
 const ANTENNA_COLOR = 0xd13438;          // red mast + dot
@@ -983,6 +984,7 @@ async function calculate(calculationParameters) {
     calculating = true;
     updateToolbar();
     setHint('Calculating…');
+    reportStatus('Calculating propagation…');
 
     try {
         const body = {
@@ -1018,12 +1020,14 @@ async function calculate(calculationParameters) {
 
         if (!response.ok || response.status === 204) {
             setHint(`Calculation failed (${response.status}).`);
+            reportStatus(`Calculation failed (${response.status}).`);
             return;
         }
 
         const payload = await response.json();
         if (!payload || !Array.isArray(payload.results) || payload.results.length === 0) {
             setHint('Calculation failed (empty results).');
+            reportStatus('Calculation failed (empty results).');
             return;
         }
 
@@ -1035,9 +1039,11 @@ async function calculate(calculationParameters) {
             renderResults(payload);
         }
         setHint('');
+        reportStatus('Calculation completed');
     } catch (error) {
         console.error('Calculate error:', error);
         setHint('Calculation failed (network).');
+        reportStatus('Calculation failed (network).');
     } finally {
         calculating = false;
         updateToolbar();

@@ -4,7 +4,7 @@
 // the properties panel (filled from the domain data attached to glTF extras when
 // exactly one object is selected) and the scene information panel.
 
-import { GltfViewer, readSceneData, readGlbBytes, fetchGlbBytes } from 'gltf-viewer-core';
+import { GltfViewer, GltfStatusTerminal, readSceneData, readGlbBytes, fetchGlbBytes, reportStatus } from 'gltf-viewer-core';
 
 const DEFAULT_PROPERTIES_HINT = 'Click an object or drag a selection rectangle in the 3D view. Properties are displayed when exactly one object is selected.';
 
@@ -387,6 +387,11 @@ if (container) {
     (async () => {
         const loader = document.getElementById('gltf-loader');
 
+        // Status terminal: attached before the payload fetch so the loading task is its first
+        // entry; the viewer engine reuses this instance instead of creating a second one.
+        GltfStatusTerminal.attach(container);
+        reportStatus('Loading...');
+
         try {
             const sceneData = readSceneData('gltf-scene-data');
 
@@ -405,6 +410,7 @@ if (container) {
                 if (panel) {
                     panel.innerHTML = '<span class="gltf-muted">No objects were found for this request.</span>';
                 }
+                reportStatus('No objects were found for this request.');
                 return;
             }
 
@@ -417,6 +423,8 @@ if (container) {
                 if (loader) {
                     loader.style.display = 'none';
                 }
+
+                reportStatus('Loaded');
 
                 initLightingPanel(viewer);
                 initSunClock(viewer, event.detail.referencePoint);
@@ -431,6 +439,11 @@ if (container) {
 
         container.addEventListener('gltf-selectionchanged', (event) => {
             fillProperties(viewer, event.detail.references);
+
+            const references = (event.detail.references ?? []).filter((reference) => reference);
+            reportStatus(references.length === 0
+                ? 'Selection cleared'
+                : `Selected (${references.length}): ${references.join(', ')}`);
         });
         } catch {
             if (loader) {
@@ -441,6 +454,7 @@ if (container) {
             if (panel) {
                 panel.innerHTML = '<span class="gltf-muted">Failed to load the 3D scene.</span>';
             }
+            reportStatus('Failed to load the 3D scene.');
         }
     })();
 }
