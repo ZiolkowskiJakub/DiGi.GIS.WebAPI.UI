@@ -8,6 +8,14 @@
 // so all of its scripts and styles work correctly.
 // The building data is partitioned per county, so the details link also carries the selected
 // building's world centroid: the server resolves the county from that point when needed.
+//
+// On the communication scene the card is shared with the antennas: communication-tools.js
+// dispatches 'communication-antennaselectionchanged' when an antenna is picked in the 3D view and
+// the card then shows "Edit" (wired by communication-tools.js) and "Export" (same modal as for
+// buildings, filled with the antenna data); the "Details" link stays hidden. It also dispatches
+// 'communication-resultselectionchanged' when a scattering polyline is picked: the polyline data
+// fills the card's #communication-selection block (owned by communication-tools.js) and all the
+// card buttons stay hidden.
 
 import * as THREE from 'three';
 
@@ -15,8 +23,11 @@ const container = document.getElementById('gltf-viewer-container');
 const card = document.getElementById('building-details-card');
 const showLink = document.getElementById('building-details-show-link');
 const exportButton = document.getElementById('building-export-button');
+const antennaEditButton = document.getElementById('communication-antenna-edit-button');
 
 let referencePoint = { X: 0, Y: 0, Z: 0 };
+let antennaSelected = false;
+let resultSelected = false;
 
 // Computes the world (DiGi) X/Y centroid of the selected object from its geometry. Batched
 // payloads store each object as a contiguous vertex range of a merged mesh; legacy payloads have
@@ -144,6 +155,16 @@ if (container && card && showLink) {
     });
 
     container.addEventListener('gltf-selectionchanged', (event) => {
+        // A building selection change always ends any antenna or polyline entry of the shared card.
+        antennaSelected = false;
+        resultSelected = false;
+        if (antennaEditButton) {
+            antennaEditButton.style.display = 'none';
+        }
+        if (exportButton) {
+            exportButton.style.display = '';
+        }
+
         const references = event.detail.references;
         if (!references || references.length !== 1 || !references[0]) {
             card.style.display = 'none';
@@ -186,6 +207,70 @@ if (container && card && showLink) {
         }
 
         exportData = { Reference: reference, ...(window.gltfViewer?.getUserData(reference) ?? {}) };
+        card.style.display = '';
+    });
+
+    // Antenna selection (communication scene): the card shows "Edit" + "Export" for the picked
+    // antenna; a null antenna drops the entry again (unless the card meanwhile shows a building).
+    container.addEventListener('communication-antennaselectionchanged', (event) => {
+        const antenna = event.detail?.antenna ?? null;
+
+        if (!antenna) {
+            if (!antennaSelected) {
+                return;
+            }
+
+            antennaSelected = false;
+            if (antennaEditButton) {
+                antennaEditButton.style.display = 'none';
+            }
+            card.style.display = 'none';
+            exportData = null;
+            return;
+        }
+
+        antennaSelected = true;
+        resultSelected = false;
+        showLink.style.display = 'none';
+        if (antennaEditButton) {
+            antennaEditButton.style.display = '';
+        }
+        if (exportButton) {
+            exportButton.style.display = '';
+        }
+
+        exportData = { Type: 'Antenna', X: antenna.x, Y: antenna.y, Z: antenna.z, Functions: antenna.functions ?? [] };
+        card.style.display = '';
+    });
+
+    // Scattering polyline selection (communication scene): the card only frames the polyline data
+    // block filled by communication-tools.js — the building/antenna buttons stay hidden.
+    container.addEventListener('communication-resultselectionchanged', (event) => {
+        const selected = event.detail?.selected === true;
+
+        if (!selected) {
+            if (!resultSelected) {
+                return;
+            }
+
+            resultSelected = false;
+            if (exportButton) {
+                exportButton.style.display = '';
+            }
+            card.style.display = 'none';
+            return;
+        }
+
+        resultSelected = true;
+        antennaSelected = false;
+        showLink.style.display = 'none';
+        if (antennaEditButton) {
+            antennaEditButton.style.display = 'none';
+        }
+        if (exportButton) {
+            exportButton.style.display = 'none';
+        }
+        exportData = null;
         card.style.display = '';
     });
 

@@ -48,7 +48,6 @@
                 <button type="button" id="communication-remove-antenna-button" class="gis-button" disabled title="Select antennas to remove (Enter removes, Esc cancels)">Remove antenna</button>
                 <button type="button" id="communication-calculate-button" class="gis-button" disabled title="Calculate the communication between the two antennas">Calculate</button>
                 <button type="button" id="communication-clear-button" class="gis-button" title="Remove all antennas and calculation results">Clear</button>
-                <span id="communication-mode-hint" class="communication-mode-hint"></span>
             </div>
 
             @* Environment settings card: the generic viewer engine mounts its controls (gizmo/ground
@@ -83,6 +82,10 @@
                 <div class="gis-loader"></div>
                 <p class="gis-loader-text">Loading 3D scene…</p>
             </div>
+            <div id="communication-calculation-loader" class="gltf-loader" style="display: none;">
+                <div class="gis-loader"></div>
+                <p class="gis-loader-text">Calculating propagation…</p>
+            </div>
             @* Small toggle in the top-left corner that folds/unfolds the left side panel. *@
             <button type="button" id="gltf-left-panel-toggle" class="gltf-left-panel-toggle" title="Hide controls" aria-label="Hide controls" aria-controls="gltf-left-panel" aria-expanded="true">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -101,25 +104,10 @@
 
         <div id="gltf-resizer" class="gltf-resizer" role="separator" aria-label="Resize panels"></div>
 
-        @* The cards are kept in alphabetical order by title (General, Lighting, Properties,
-           Results, Scene, Selection) — hidden cards (General, Results, Selection) appear in place
-           when user interaction reveals them. *@
+        @* The cards are kept in alphabetical order by title (Lighting, Properties, Results, Scene,
+           Selection) — hidden cards (Results, Selection) appear in place when user interaction
+           reveals them. *@
         <aside id="gltf-side-panel" class="gltf-side-panel">
-            @* General panel: hidden until a delay based (v1) calculation succeeds. The delay
-               slider walks the available delays (ascending); the 3D view renders the propagation
-               ellipsoid, the scattering polylines and the angular power distribution vectors of
-               the selected delay. The vector scale factor stretches the rendered vectors; the
-               content is driven by communication-tools.js (renderDelayResults). *@
-            <div class="gis-card gltf-card" id="communication-general-card" style="display: none;">
-                <h3 class="gltf-card-title">General</h3>
-                <label class="gltf-slider-label">Delay <span id="communication-delay-value"></span>
-                    <input type="range" id="communication-delay-slider" min="0" max="0" step="1" value="0" />
-                </label>
-                <label class="communication-modal-label">Vector scale
-                    <input type="number" id="communication-vector-scale" step="any" min="0" value="1000" />
-                </label>
-            </div>
-
             <div class="gis-card gltf-card">
                 <h3 class="gltf-card-title">Lighting</h3>
                 @* Date + time drive the sun position: on change the scene's world location and the
@@ -155,9 +143,20 @@
             @* Results panel: hidden until a calculation succeeds. It shows the general propagation
                results (total/directional power, per delay components) after a calculation and the
                ray specific values when a green ray is selected in the 3D view; the content is filled
-               by communication-tools.js. *@
+               by communication-tools.js. For the delay based (v1) flow the panel additionally hosts
+               the delay slider (the 3D view renders the propagation ellipsoid, the scattering
+               polylines and the angular power distribution vectors of the selected delay) and the
+               vector scale factor stretching the rendered vectors (see renderDelayResults). *@
             <div class="gis-card gltf-card" id="communication-results-card" style="display: none;">
                 <h3 class="gltf-card-title">Results</h3>
+                <div id="communication-delay-controls" style="display: none;">
+                    <label class="gltf-slider-label">Delay <span id="communication-delay-value"></span>
+                        <input type="range" id="communication-delay-slider" min="0" max="0" step="1" value="0" />
+                    </label>
+                    <label class="communication-modal-label">Vector scale
+                        <input type="number" id="communication-vector-scale" step="any" min="0" value="1000" />
+                    </label>
+                </div>
                 <div id="communication-results" class="gltf-properties"></div>
             </div>
 
@@ -166,12 +165,17 @@
                 <div id="gltf-scene-info" class="gltf-properties"></div>
             </div>
 
-            @* Selection card: shown by building-details-panel.js when exactly one building is selected;
-               "Details" opens the standalone building details page, "Export" shows the selected
-               object's data as formatted JSON in a modal. *@
+            @* Selection card: shown by building-details-panel.js when exactly one building is selected
+               ("Details" opens the standalone building details page, "Export" shows the selected
+               object's data as formatted JSON in a modal), when an antenna is selected in the 3D
+               view ("Edit" reopens the antenna modal with the antenna values, "Export" works like for
+               buildings) and when a scattering polyline is selected (the polyline data fills the
+               #communication-selection block, no buttons; see communication-tools.js). *@
             <div class="gis-card gltf-card" id="building-details-card" style="display: none;">
                 <h3 class="gltf-card-title">Selection</h3>
+                <div id="communication-selection" class="gltf-properties" style="display: none;"></div>
                 <a id="building-details-show-link" class="gis-button" href="#" target="_blank" rel="noopener">Details</a>
+                <button type="button" id="communication-antenna-edit-button" class="gis-button" style="display: none;">Edit</button>
                 <button type="button" id="building-export-button" class="gis-button">Export</button>
             </div>
         </aside>
@@ -250,10 +254,12 @@ else
     </div>
 }
 
-@* Antenna modal: opened after the user clicks a point on the ground plane in "Add antenna" mode. *@
+@* Antenna modal: opened after the user clicks a point on the ground plane in "Add antenna" mode and
+   by the "Edit" button of the Selection card (the title switches to "Edit antenna" and the fields are
+   pre-filled with the selected antenna values). *@
 <div id="communication-antenna-modal" class="gis-modal-overlay" style="display: none;">
     <div class="gis-card gis-modal">
-        <h3 class="gltf-card-title">Add antenna</h3>
+        <h3 class="gltf-card-title" id="communication-antenna-modal-title">Add antenna</h3>
         <label class="communication-modal-label">X coordinate
             <input type="number" id="communication-antenna-x" step="any" required />
         </label>

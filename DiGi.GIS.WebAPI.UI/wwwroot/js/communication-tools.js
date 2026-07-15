@@ -1,6 +1,8 @@
 // DiGi.GIS.WebAPI.UI — communication analysis tooling layered on top of the generic
 // DiGi.GLTF.WebAPI viewer engine (gltf-viewer.js owns the base panels; this module owns the
-// antenna toolbar, the antenna edit/erase modes, the calculation modal/request and the results
+// antenna toolbar, the antenna edit/erase modes, the antenna Selection card pick (clicking an
+// antenna shows it in the shared Selection card with "Edit" + "Export"; see
+// building-details-panel.js), the calculation modal/request and the results
 // rendering: the propagation ellipsoid, the arrival rays and the results panel).
 //
 // Calculation flow: the "Calculate" button opens a modal collecting the propagation inputs that
@@ -14,8 +16,9 @@
 // [TEMPORARY A/B TESTING] The v1 calculate endpoint returns a delay grouped payload instead
 // (discriminated by its delays array): one entry per delay carrying the propagation ellipsoid(s),
 // the scattering polylines (one per ScatteringPointGroup) and the angular power distribution
-// vectors. The General panel drives which delay is rendered and the vector scale factor; a
-// selected polyline shows its semi-transparent auxiliary polylines (see renderDelayResults).
+// vectors. The Results panel drives which delay is rendered and the vector scale factor; a
+// selected polyline shows its semi-transparent auxiliary polylines and its data in the shared
+// Selection card (see renderDelayResults).
 //
 // AI-NOTE (mocked remaining inputs): the multipath power delay profile (TypicalUrban preset) and
 // the antenna radiation characteristics are hardcoded server side, mirroring the reference xUnit
@@ -51,14 +54,17 @@ const addButton = document.getElementById('communication-add-antenna-button');
 const removeButton = document.getElementById('communication-remove-antenna-button');
 const calculateButton = document.getElementById('communication-calculate-button');
 const clearButton = document.getElementById('communication-clear-button');
-const modeHint = document.getElementById('communication-mode-hint');
+const calculationLoader = document.getElementById('communication-calculation-loader');
 
 const modal = document.getElementById('communication-antenna-modal');
+const modalTitle = document.getElementById('communication-antenna-modal-title');
 const modalX = document.getElementById('communication-antenna-x');
 const modalY = document.getElementById('communication-antenna-y');
 const modalZ = document.getElementById('communication-antenna-z');
 const modalOkButton = document.getElementById('communication-antenna-ok-button');
 const modalCancelButton = document.getElementById('communication-antenna-cancel-button');
+
+const antennaEditButton = document.getElementById('communication-antenna-edit-button');
 
 const calculationModal = document.getElementById('communication-calculation-modal');
 const calculationFrequencyInput = document.getElementById('communication-calculation-frequency');
@@ -71,8 +77,9 @@ const calculationCancelButton = document.getElementById('communication-calculati
 
 const resultsCard = document.getElementById('communication-results-card');
 const resultsPanel = document.getElementById('communication-results');
+const selectionPanel = document.getElementById('communication-selection');
 
-const generalCard = document.getElementById('communication-general-card');
+const delayControls = document.getElementById('communication-delay-controls');
 const delaySlider = document.getElementById('communication-delay-slider');
 const delayValueLabel = document.getElementById('communication-delay-value');
 const vectorScaleInput = document.getElementById('communication-vector-scale');
@@ -90,6 +97,10 @@ const resultMeshes = [];           // selectable subset of resultObjects (ellips
 let activePayload = null;          // last successful calculation payload (world coordinates)
 let selectedResultMesh = null;     // currently highlighted result mesh
 let resultPickCandidate = null;    // result mesh hit on pointerdown, resolved on pointerup
+let antennaPickCandidate = null;   // antenna hit on pointerdown, resolved on pointerup
+let selectedAntenna = null;        // antenna shown in the Selection card (normal mode click)
+let editingAntenna = null;         // antenna being edited through the antenna modal (null = add flow)
+let polylineSelected = false;      // Selection card currently shows a scattering polyline
 let suppressResultClick = false;   // swallows the click event that follows a result pick
 let antennaPreview = null;         // semi-transparent antenna preview shown during add mode
 
@@ -120,22 +131,21 @@ function toSceneDirection(direction) {
     return new THREE.Vector3(direction.x, direction.z, -direction.y).normalize();
 }
 
-function setHint(text) {
-    if (modeHint) {
-        modeHint.textContent = text ?? '';
-    }
-}
-
 function setMode(value) {
     mode = value;
     container.style.cursor = value === 'add' ? 'crosshair' : value === 'erase' ? 'pointer' : '';
 
+    if (value !== null) {
+        // The edit modes reuse the orange antenna highlight (erase) and the ground plane clicks
+        // (add), so the Selection card antenna pick is dropped before the mode starts.
+        deselectAntennaObject();
+    }
+
     if (value === 'add') {
-        setHint('Click a point on the ground plane to place the antenna. Press Esc to cancel.');
+        reportStatus('Click a point on the ground plane to place the antenna. Press Esc to cancel.');
     } else if (value === 'erase') {
-        setHint('Click antennas to select them. Press Enter to remove the selected antennas, Esc to cancel.');
+        reportStatus('Click antennas to select them. Press Enter to remove the selected antennas, Esc to cancel.');
     } else {
-        setHint('');
         removeAntennaPreview();
     }
 
@@ -158,7 +168,7 @@ function antennaDotRadius() {
     return Math.max(0.6, sceneRadius * 0.006);
 }
 
-function addAntennaObject(data) {
+function buildAntennaVisual(data) {
     const dotRadius = antennaDotRadius();
     const base = toScene(data.x, data.y, 0);
     const top = toScene(data.x, data.y, data.z);
@@ -179,10 +189,36 @@ function addAntennaObject(data) {
     group.add(dot);
     meshes.push(dot);
 
+    return { group, meshes };
+}
+
+function addAntennaObject(data) {
+    const { group, meshes } = buildAntennaVisual(data);
     viewer.scene.add(group);
 
     antennas.push({ group, meshes, selected: false, data });
     updateToolbar();
+}
+
+// Rebuilds the antenna visual in place (same antennas array entry, so the array order and the
+// Selection card pick survive the edit) and refreshes the Selection card payload.
+function updateAntennaObject(antenna, data) {
+    removeAntennaObject(antenna);
+
+    const { group, meshes } = buildAntennaVisual(data);
+    viewer.scene.add(group);
+
+    antenna.group = group;
+    antenna.meshes = meshes;
+    antenna.data = data;
+
+    if (antenna.selected) {
+        setAntennaSelected(antenna, true);
+    }
+
+    if (selectedAntenna === antenna) {
+        notifyAntennaSelection(antenna);
+    }
 }
 
 function removeAntennaObject(antenna) {
@@ -198,6 +234,66 @@ function setAntennaSelected(antenna, selected) {
     for (const mesh of antenna.meshes) {
         mesh.material.color.setHex(selected ? ANTENNA_SELECTED_COLOR : ANTENNA_COLOR);
     }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Antenna selection (normal mode): clicking an antenna shows it in the shared "Selection" card
+// (building-details-panel.js listens to the custom event below and drives the card: "Edit" reopens
+// the antenna modal, "Export" shows the antenna data like for buildings). The pick replaces any
+// building selection; any building selection change drops the antenna pick again.
+// ---------------------------------------------------------------------------------------------
+
+function notifyAntennaSelection(antenna) {
+    container.dispatchEvent(new CustomEvent('communication-antennaselectionchanged', {
+        detail: {
+            antenna: antenna === null ? null : {
+                x: antenna.data.x,
+                y: antenna.data.y,
+                z: antenna.data.z,
+                functions: [...(antenna.data.functions ?? [])]
+            }
+        }
+    }));
+}
+
+function pickAntennaObject(event) {
+    if (antennas.length === 0 || viewer === null) {
+        return null;
+    }
+
+    raycaster.setFromCamera(pointerNdc(event), viewer.camera);
+    for (const antenna of antennas) {
+        if (raycaster.intersectObjects(antenna.meshes, false).length > 0) {
+            return antenna;
+        }
+    }
+
+    return null;
+}
+
+function selectAntennaObject(antenna) {
+    // Clearing the viewer selection first: the resulting 'gltf-selectionchanged' event hides the
+    // building entries of the Selection card before the antenna entry is shown (and would otherwise
+    // drop the antenna pick made below).
+    viewer.clearSelection();
+
+    if (selectedAntenna !== null && selectedAntenna !== antenna) {
+        setAntennaSelected(selectedAntenna, false);
+    }
+
+    selectedAntenna = antenna;
+    setAntennaSelected(antenna, true);
+    notifyAntennaSelection(antenna);
+}
+
+function deselectAntennaObject() {
+    if (selectedAntenna === null) {
+        return;
+    }
+
+    setAntennaSelected(selectedAntenna, false);
+    selectedAntenna = null;
+    notifyAntennaSelection(null);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -279,12 +375,14 @@ function onPointerDown(event) {
         return;
     }
 
-    // Result selection: while calculation results are displayed (and no edit mode is active), a
-    // press on the ellipsoid or on a ray is intercepted before the generic viewer sees it, exactly
-    // like the antenna edit modes — otherwise the viewer would start a marquee/building selection.
+    // Result/antenna selection: while no edit mode is active, a press on an antenna, on the
+    // ellipsoid or on a ray is intercepted before the generic viewer sees it, exactly like the
+    // antenna edit modes — otherwise the viewer would start a marquee/building selection. Antennas
+    // win over the result meshes (they are the smaller targets).
     if (mode === null) {
-        resultPickCandidate = pickResultMesh(event);
-        if (resultPickCandidate === null) {
+        antennaPickCandidate = pickAntennaObject(event);
+        resultPickCandidate = antennaPickCandidate !== null ? null : pickResultMesh(event);
+        if (antennaPickCandidate === null && resultPickCandidate === null) {
             return;
         }
     }
@@ -299,14 +397,16 @@ function onPointerUp(event) {
     }
 
     if (mode === null) {
-        if (resultPickCandidate === null) {
+        if (antennaPickCandidate === null && resultPickCandidate === null) {
             return;
         }
 
         event.stopPropagation();
         suppressResultClick = true;
 
+        const antenna = antennaPickCandidate;
         const resultMesh = resultPickCandidate;
+        antennaPickCandidate = null;
         resultPickCandidate = null;
 
         if (!pointerDownPosition) {
@@ -318,7 +418,11 @@ function onPointerUp(event) {
             return;
         }
 
-        selectResultMesh(resultMesh);
+        if (antenna !== null) {
+            selectAntennaObject(antenna);
+        } else {
+            selectResultMesh(resultMesh);
+        }
         return;
     }
 
@@ -390,6 +494,8 @@ function handleAddClick(event) {
 
     const world = toWorld(intersection);
 
+    editingAntenna = null;
+    modalTitle.textContent = 'Add antenna';
     modalX.value = world.x.toFixed(2);
     modalY.value = world.y.toFixed(2);
     modalZ.value = String(DEFAULT_ANTENNA_HEIGHT);
@@ -404,6 +510,26 @@ function handleAddClick(event) {
     modalZ.focus();
 }
 
+// "Edit" (Selection card): reopens the antenna modal pre-filled with the selected antenna values;
+// OK applies the changes to the antenna, Cancel (and Esc) closes without touching it.
+antennaEditButton?.addEventListener('click', () => {
+    if (selectedAntenna === null) {
+        return;
+    }
+
+    editingAntenna = selectedAntenna;
+    modalTitle.textContent = 'Edit antenna';
+    modalX.value = String(editingAntenna.data.x);
+    modalY.value = String(editingAntenna.data.y);
+    modalZ.value = String(editingAntenna.data.z);
+    for (const checkbox of modal.querySelectorAll('.communication-antenna-function')) {
+        checkbox.checked = (editingAntenna.data.functions ?? []).includes(checkbox.value);
+    }
+
+    modal.style.display = 'flex';
+    modalZ.focus();
+});
+
 modalOkButton.addEventListener('click', () => {
     const x = parseFloat(modalX.value);
     const y = parseFloat(modalY.value);
@@ -417,11 +543,37 @@ modalOkButton.addEventListener('click', () => {
         .map((checkbox) => checkbox.value);
 
     modal.style.display = 'none';
+
+    if (editingAntenna !== null) {
+        const antenna = editingAntenna;
+        editingAntenna = null;
+
+        const data = antenna.data;
+        const changed = data.x !== x || data.y !== y || data.z !== z
+            || (data.functions ?? []).length !== functions.length
+            || (data.functions ?? []).some((value, index) => value !== functions[index]);
+        if (!changed) {
+            reportStatus('Antenna unchanged.');
+            return;
+        }
+
+        updateAntennaObject(antenna, { x, y, z, functions });
+        reportStatus('Antenna updated.');
+        return;
+    }
+
     addAntennaObject({ x, y, z, functions });
+    reportStatus('Antenna added.');
 });
 
 modalCancelButton.addEventListener('click', () => {
     modal.style.display = 'none';
+    if (editingAntenna !== null) {
+        editingAntenna = null;
+        reportStatus('Antenna edit cancelled.');
+        return;
+    }
+    reportStatus('Antenna placement cancelled.');
     updateToolbar();
 });
 
@@ -442,17 +594,28 @@ function handleEraseClick(event) {
 }
 
 function finishErase(remove) {
+    let removedCount = 0;
     for (let index = antennas.length - 1; index >= 0; index--) {
         const antenna = antennas[index];
         if (remove && antenna.selected) {
             removeAntennaObject(antenna);
             antennas.splice(index, 1);
+            removedCount++;
         } else {
             setAntennaSelected(antenna, false);
         }
     }
 
     setMode(null); // also re-enables "Add antenna" when applicable (see updateToolbar)
+    if (remove) {
+        if (removedCount > 0) {
+            reportStatus(`${removedCount} antenna(s) removed.`);
+        } else {
+            reportStatus('No antennas selected for removal.');
+        }
+    } else {
+        reportStatus('Antenna removal cancelled.');
+    }
 }
 
 window.addEventListener('keydown', (event) => {
@@ -463,6 +626,12 @@ window.addEventListener('keydown', (event) => {
 
     if (modal.style.display !== 'none' && event.key === 'Escape') {
         modal.style.display = 'none';
+        if (editingAntenna !== null) {
+            editingAntenna = null;
+            reportStatus('Antenna edit cancelled.');
+            return;
+        }
+        reportStatus('Antenna placement cancelled.');
         updateToolbar();
         return;
     }
@@ -474,6 +643,7 @@ window.addEventListener('keydown', (event) => {
             finishErase(false);
         }
     } else if (mode === 'add' && event.key === 'Escape') {
+        reportStatus('Antenna placement cancelled.');
         setMode(null);
     }
 });
@@ -544,8 +714,17 @@ function setResultMeshHighlighted(mesh, highlighted) {
 
 // Selecting the ellipsoid shows the general calculation results (the delay summary in the delay
 // based flow); selecting a ray shows the ray specific values; selecting a scattering polyline
-// shows its semi-transparent auxiliary polylines and the group specific values.
+// shows its semi-transparent auxiliary polylines and its data in the shared Selection card.
 function selectResultMesh(mesh) {
+    const communication = mesh.userData.communication;
+
+    if (communication.type === 'polyline') {
+        // The polyline data goes to the shared Selection card: drop any building entry first (the
+        // resulting 'gltf-selectionchanged' event also drops any antenna or previous polyline
+        // entry before the new one is shown below).
+        viewer.clearSelection();
+    }
+
     if (selectedResultMesh !== null) {
         setResultMeshHighlighted(selectedResultMesh, false);
     }
@@ -553,18 +732,68 @@ function selectResultMesh(mesh) {
     selectedResultMesh = mesh;
     setResultMeshHighlighted(mesh, true);
 
-    const communication = mesh.userData.communication;
     if (communication.type === 'ray') {
         showRayResults(communication.data, communication.frequencyResult);
     } else if (communication.type === 'polyline') {
         showAuxiliaryPolylines(communication);
-        showPolylineResults(communication.data, communication.delayResult);
+        showPolylineSelection(communication.data, communication.delayResult);
     } else if (communication.delayResult) {
+        deselectPolylineObject();
         removeAuxiliaryPolylines();
         showDelayResults(delayPayload, communication.delayResult);
     } else {
         showGeneralResults(activePayload, communication.frequencyResult);
     }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Polyline selection: the data of the selected scattering polyline is shown in the shared
+// "Selection" card (the #communication-selection block owned by this module;
+// building-details-panel.js listens to the custom event below and drives the card visibility and
+// its building/antenna buttons, which stay hidden while a polyline is shown).
+// ---------------------------------------------------------------------------------------------
+
+function notifyPolylineSelection(selected) {
+    container.dispatchEvent(new CustomEvent('communication-resultselectionchanged', { detail: { selected } }));
+}
+
+function showPolylineSelection(polyline, delayResult) {
+    selectionPanel.innerHTML = '';
+
+    const table = document.createElement('table');
+    appendResultRow(table, 'Selected', 'Scattering polyline');
+    appendResultRow(table, 'Reference', polyline.reference ?? '-');
+    appendResultRow(table, 'Delay', formatDelay(delayResult.delay));
+    appendResultRow(table, 'Points', String(polyline.points?.length ?? 0));
+    selectionPanel.appendChild(table);
+
+    const note = document.createElement('div');
+    note.className = 'gltf-muted';
+    note.style.marginTop = '6px';
+    note.textContent = 'The semi-transparent auxiliary polylines connect each scattering point with the profile locations. Click the ellipsoid to deselect the polyline.';
+    selectionPanel.appendChild(note);
+
+    selectionPanel.style.display = '';
+    polylineSelected = true;
+    notifyPolylineSelection(true);
+}
+
+function deselectPolylineObject() {
+    if (!polylineSelected) {
+        return;
+    }
+
+    polylineSelected = false;
+
+    if (selectedResultMesh !== null && selectedResultMesh.userData.communication?.type === 'polyline') {
+        setResultMeshHighlighted(selectedResultMesh, false);
+        selectedResultMesh = null;
+    }
+    removeAuxiliaryPolylines();
+
+    selectionPanel.innerHTML = '';
+    selectionPanel.style.display = 'none';
+    notifyPolylineSelection(false);
 }
 
 function showGeneralResults(payload, frequencyResult) {
@@ -709,11 +938,12 @@ function renderResults(payload) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Delay based (v1) results: the payload carries one entry per delay (ascending). The General
-// panel drives which delay is rendered — the propagation ellipsoid(s), the scattering polylines
-// (one per ScatteringPointGroup) and the angular power distribution vectors (scaled by the user
-// provided factor). Selecting a polyline shows its semi-transparent auxiliary polylines
-// (location 1 -> scattering point -> location 2, one per point).
+// Delay based (v1) results: the payload carries one entry per delay (ascending). The delay slider
+// in the Results panel drives which delay is rendered — the propagation ellipsoid(s), the
+// scattering polylines (one per ScatteringPointGroup) and the angular power distribution vectors
+// (scaled by the user provided factor). Selecting a polyline shows its semi-transparent auxiliary
+// polylines (location 1 -> scattering point -> location 2, one per point) and its data in the
+// shared Selection card.
 // ---------------------------------------------------------------------------------------------
 
 function vectorScale() {
@@ -735,12 +965,13 @@ function renderDelayResults(payload) {
     // no entry qualifies.
     const initialDelayIndex = Math.max(0, payload.results.findIndex(result => result.delay > 0));
     delaySlider.value = initialDelayIndex;
-    generalCard.style.display = '';
+    delayControls.style.display = '';
 
     renderDelayFrame(initialDelayIndex);
 }
 
 function clearDelayFrame() {
+    deselectPolylineObject();
     removeAuxiliaryPolylines();
     selectedResultMesh = null;
     resultPickCandidate = null;
@@ -770,16 +1001,37 @@ function renderDelayFrame(index) {
 
 function addDelayEllipsoids(delayResult) {
     for (const ellipsoid of delayResult.ellipsoids ?? []) {
-        // Unit sphere scaled to the semi axes, exactly like addEllipsoidObject: the local X axis
-        // carries the semi-major axis and is rotated onto the profile axis (the ellipsoid is
-        // rotationally symmetric around it).
-        const mesh = new THREE.Mesh(
-            new THREE.SphereGeometry(1, 48, 32),
-            new THREE.MeshBasicMaterial({ color: ELLIPSOID_COLOR, transparent: true, opacity: ELLIPSOID_OPACITY, side: THREE.DoubleSide, depthWrite: false }));
+        const material = new THREE.MeshBasicMaterial({ color: ELLIPSOID_COLOR, transparent: true, opacity: ELLIPSOID_OPACITY, side: THREE.DoubleSide, depthWrite: false });
 
-        mesh.position.copy(toScene(ellipsoid.center.x, ellipsoid.center.y, ellipsoid.center.z));
-        mesh.scale.set(ellipsoid.semiMajorAxis, ellipsoid.semiMinorAxis, ellipsoid.semiMinorAxis);
-        mesh.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), toSceneDirection(ellipsoid.axis));
+        let mesh;
+        if (ellipsoid.mesh?.vertices?.length && ellipsoid.mesh?.indices?.length) {
+            // Server-cut ellipsoid part (split by the ground plane): the payload carries the
+            // triangulated mesh in world coordinates, so each vertex only needs the DiGi (Z-up)
+            // -> three.js (Y-up) scene conversion — no position/scale/rotation is applied.
+            const vertices = ellipsoid.mesh.vertices;
+            const positions = new Float32Array(vertices.length);
+            for (let i = 0; i < vertices.length; i += 3) {
+                const scenePoint = toScene(vertices[i], vertices[i + 1], vertices[i + 2]);
+                positions[i] = scenePoint.x;
+                positions[i + 1] = scenePoint.y;
+                positions[i + 2] = scenePoint.z;
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setIndex(ellipsoid.mesh.indices);
+
+            mesh = new THREE.Mesh(geometry, material);
+        } else {
+            // Fallback (no mesh in the payload): unit sphere scaled to the semi axes, exactly like
+            // addEllipsoidObject: the local X axis carries the semi-major axis and is rotated onto
+            // the profile axis (the ellipsoid is rotationally symmetric around it).
+            mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 32), material);
+            mesh.position.copy(toScene(ellipsoid.center.x, ellipsoid.center.y, ellipsoid.center.z));
+            mesh.scale.set(ellipsoid.semiMajorAxis, ellipsoid.semiMinorAxis, ellipsoid.semiMinorAxis);
+            mesh.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), toSceneDirection(ellipsoid.axis));
+        }
+
         mesh.userData.communication = { type: 'ellipsoid', data: ellipsoid, delayResult };
 
         viewer.scene.add(mesh);
@@ -925,32 +1177,14 @@ function showDelayResults(payload, delayResult) {
     const note = document.createElement('div');
     note.className = 'gltf-muted';
     note.style.marginTop = '6px';
-    note.textContent = 'Move the delay slider in the General panel to change the displayed delay. Click a scattering polyline for its auxiliary polylines.';
-    resultsPanel.appendChild(note);
-
-    resultsCard.style.display = '';
-}
-
-function showPolylineResults(polyline, delayResult) {
-    resultsPanel.innerHTML = '';
-
-    const table = document.createElement('table');
-    appendResultRow(table, 'Selected', 'Scattering polyline');
-    appendResultRow(table, 'Reference', polyline.reference ?? '-');
-    appendResultRow(table, 'Delay', formatDelay(delayResult.delay));
-    appendResultRow(table, 'Points', String(polyline.points?.length ?? 0));
-    resultsPanel.appendChild(table);
-
-    const note = document.createElement('div');
-    note.className = 'gltf-muted';
-    note.style.marginTop = '6px';
-    note.textContent = 'The semi-transparent auxiliary polylines connect each scattering point with the profile locations. Click the ellipsoid to return to the delay summary.';
+    note.textContent = 'Move the delay slider above to change the displayed delay. Click a scattering polyline for its auxiliary polylines and data (Selection panel).';
     resultsPanel.appendChild(note);
 
     resultsCard.style.display = '';
 }
 
 function clearResults() {
+    deselectPolylineObject();
     removeAuxiliaryPolylines();
     for (const object of delayObjects) {
         viewer.scene.remove(object);
@@ -959,7 +1193,7 @@ function clearResults() {
     }
     delayObjects.length = 0;
     delayPayload = null;
-    generalCard.style.display = 'none';
+    delayControls.style.display = 'none';
 
     for (const object of resultObjects) {
         viewer.scene.remove(object);
@@ -983,8 +1217,10 @@ async function calculate(calculationParameters) {
 
     calculating = true;
     updateToolbar();
-    setHint('Calculating…');
     reportStatus('Calculating propagation…');
+    if (calculationLoader) {
+        calculationLoader.style.display = 'flex';
+    }
 
     try {
         const body = {
@@ -1019,14 +1255,12 @@ async function calculate(calculationParameters) {
         });
 
         if (!response.ok || response.status === 204) {
-            setHint(`Calculation failed (${response.status}).`);
             reportStatus(`Calculation failed (${response.status}).`);
             return;
         }
 
         const payload = await response.json();
         if (!payload || !Array.isArray(payload.results) || payload.results.length === 0) {
-            setHint('Calculation failed (empty results).');
             reportStatus('Calculation failed (empty results).');
             return;
         }
@@ -1038,15 +1272,16 @@ async function calculate(calculationParameters) {
         } else {
             renderResults(payload);
         }
-        setHint('');
         reportStatus('Calculation completed');
     } catch (error) {
         console.error('Calculate error:', error);
-        setHint('Calculation failed (network).');
         reportStatus('Calculation failed (network).');
     } finally {
         calculating = false;
         updateToolbar();
+        if (calculationLoader) {
+            calculationLoader.style.display = 'none';
+        }
     }
 }
 
@@ -1120,8 +1355,8 @@ calculationCancelButton.addEventListener('click', () => {
     calculationModal.style.display = 'none';
 });
 
-// General panel wiring: the delay slider walks payload.results (ascending delays); the vector
-// scale re-renders the current frame so the vectors stretch immediately.
+// Delay controls wiring (Results panel): the delay slider walks payload.results (ascending
+// delays); the vector scale re-renders the current frame so the vectors stretch immediately.
 delaySlider.addEventListener('input', () => {
     if (delayPayload !== null) {
         renderDelayFrame(parseInt(delaySlider.value, 10));
@@ -1135,6 +1370,7 @@ vectorScaleInput.addEventListener('input', () => {
 });
 
 function clearAntennas() {
+    deselectAntennaObject();
     for (const antenna of antennas) {
         removeAntennaObject(antenna);
     }
@@ -1146,6 +1382,7 @@ clearButton.addEventListener('click', () => {
         clearResults();
         clearAntennas();
         setMode(null); // exits any active edit/erase mode and refreshes the toolbar state
+        reportStatus('Antennas and results cleared.');
     }
 });
 
@@ -1155,5 +1392,13 @@ if (container) {
         referencePoint = event.detail.referencePoint ?? { X: 0, Y: 0, Z: 0 };
         sceneRadius = viewer?.radius ?? 10;
         updateToolbar();
+    });
+
+    // Any building selection change (click, marquee, context menu clear) replaces the antenna or
+    // polyline entry of the shared Selection card. Registered before building-details-panel.js
+    // listens, so those entries are dropped before the card is rebuilt for the buildings.
+    container.addEventListener('gltf-selectionchanged', () => {
+        deselectAntennaObject();
+        deselectPolylineObject();
     });
 }

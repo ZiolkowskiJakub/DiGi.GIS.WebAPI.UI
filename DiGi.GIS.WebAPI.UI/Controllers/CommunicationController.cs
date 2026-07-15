@@ -3,6 +3,7 @@ using DiGi.Communication.Classes;
 using DiGi.Communication.Enums;
 using DiGi.Communication.Interfaces;
 using DiGi.Core.Constants;
+using DiGi.Geometry.Spatial;
 using DiGi.Geometry.Spatial.Classes;
 using DiGi.GIS.WebAPI.UI.Classes;
 using DiGi.GIS.WebAPI.UI.ViewModels;
@@ -610,12 +611,23 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             geometricalPropagationModel.Assign(simpleMultipathPowerDelayProfile, antennas[0], antennas[1]);
 
+            double minElevation = double.MaxValue;
             if (scatteringObjects is not null)
             {
                 foreach (ScatteringObject scatteringObject in scatteringObjects)
                 {
                     geometricalPropagationModel.Update(scatteringObject);
+
+                    if(scatteringObject?.Mesh3D?.GetBoundingBox()?.Min.Z is double elevation && minElevation > elevation)
+                    {
+                        minElevation = elevation;
+                    }
                 }
+            }
+
+            if(minElevation == double.MaxValue)
+            {
+                minElevation = 0;
             }
 
             #endregion GeometricalPropagationModel
@@ -722,18 +734,68 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
                         delays.Add(delay);
 
-                        // The propagation ellipsoid for the given delay: rotationally symmetric
-                        // around the axis between the profile locations, so the semi-major axis
-                        // direction and the two semi-axis lengths fully describe it.
+                        // The propagation ellipsoid for the given delay, meshed and cut by the
+                        // horizontal plane at the lowest scattering object elevation: only the part
+                        // above the ground plane is rendered by the 3D view, so the payload carries
+                        // the triangulated world coordinate mesh (flat vertex/index arrays) instead
+                        // of the analytic ellipsoid parameters.
                         Ellipsoid? ellipsoid = Communication.Create.Ellipsoid(location_1, location_2, delay);
+
                         if (ellipsoid?.Center is Point3D point3D_Center && ellipsoid.DirectionA is Vector3D vector3D_Axis)
                         {
+                            Mesh3D? mesh3D = ellipsoid.Mesh3D(Communication.Constants.Factor.Angle);
+
+                            List<Mesh3D> mesh3Ds = [];
+                            if (Geometry.Spatial.Query.TrySplit(Geometry.Spatial.Create.Plane(minElevation), mesh3D, out List<Mesh3D>? mesh3Ds_Above, out List<Mesh3D>? _) && mesh3Ds_Above is not null && mesh3Ds_Above.Count > 0)
+                            {
+                                mesh3Ds.AddRange(mesh3Ds_Above);
+                            }
+                            else if (mesh3D is not null)
+                            {
+                                // No split available (e.g. the ellipsoid does not cross the plane):
+                                // fall back to the full ellipsoid mesh.
+                                mesh3Ds.Add(mesh3D);
+                            }
+
+                            List<double> vertices = [];
+                            List<int> indices = [];
+                            foreach (Mesh3D mesh3D_Temp in mesh3Ds)
+                            {
+                                List<Point3D>? point3Ds = mesh3D_Temp?.GetPoints();
+                                List<int[]>? indexes = mesh3D_Temp?.GetIndexes();
+                                if (point3Ds is null || indexes is null)
+                                {
+                                    continue;
+                                }
+
+                                int indexOffset = vertices.Count / 3;
+                                foreach (Point3D point3D in point3Ds)
+                                {
+                                    vertices.Add(point3D.X);
+                                    vertices.Add(point3D.Y);
+                                    vertices.Add(point3D.Z);
+                                }
+
+                                foreach (int[] triangle in indexes)
+                                {
+                                    if (triangle is null || triangle.Length < 3)
+                                    {
+                                        continue;
+                                    }
+
+                                    indices.Add(triangle[0] + indexOffset);
+                                    indices.Add(triangle[1] + indexOffset);
+                                    indices.Add(triangle[2] + indexOffset);
+                                }
+                            }
+
                             Add(ellipsoidPayloads, delay, new
                             {
                                 center = PointPayload(point3D_Center),
                                 axis = VectorPayload(vector3D_Axis),
                                 semiMajorAxis = ellipsoid.A,
-                                semiMinorAxis = ellipsoid.B
+                                semiMinorAxis = ellipsoid.B,
+                                mesh = vertices.Count == 0 || indices.Count == 0 ? null : new { vertices, indices }
                             });
                         }
 

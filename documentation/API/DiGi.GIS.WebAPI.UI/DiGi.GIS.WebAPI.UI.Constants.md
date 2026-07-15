@@ -35,8 +35,10 @@ public const string CommunicationWebAPIUri = "https://api.digiproject.uk";
 
 Base URI of the DiGi\.Communication\.WebAPI extension \(hosted by the generic DiGi\.WebAPI\.WindowsService\) used during local development\.
 
+Points at the production service: no DiGi.WebAPI.WindowsService host runs locally by default, and a dead localhost URI made every V2 calculation fail with HTTP 500 (connection refused). Restore a localhost URI (matching the local host port) only when debugging the Communication extension locally.
+
 ```csharp
-public const string CommunicationWebAPIUri_Development = "http://localhost:5010";
+public const string CommunicationWebAPIUri_Development = "https://api.digiproject.uk";
 ```
 
 #### Field Value
