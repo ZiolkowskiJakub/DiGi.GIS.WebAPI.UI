@@ -549,7 +549,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             {
                 HttpClient httpClient = httpClientFactory.CreateClient();
 
-                #region Building2Ds -> ScatteringObjects
+                #region BuildingModels
 
                 // The buildings are fetched on the fly for the analyzed area (no database storage on the
                 // communication side) and reduced to plain triangulated geometry so no GIS type ever
@@ -573,9 +573,40 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
                 List<BuildingModel>? buildingModels = Core.Convert.ToDiGi<BuildingModel>(json);
 
-                List<ScatteringObject>? scatteringObjects = buildingModels.ToCommunication();
+                if(buildingModels is null || buildingModels.Count == 0)
+                {
+                    return NoContent();
+                }
 
-                #endregion Building2Ds -> ScatteringObjects
+                #endregion BuildingModels
+
+                GeometricalPropagationModel geometricalPropagationModel = new();
+
+                double minElevation = double.MaxValue;
+
+                #region ScatteringObjects
+
+                foreach (BuildingModel buildingModel in buildingModels)
+                {
+                    List<ScatteringObject>? scatteringObjects = buildingModel?.ToCommunication();
+                    if(scatteringObjects is null || scatteringObjects.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    ScatteringGroup? scatteringGroup = geometricalPropagationModel.Group(buildingModel!.Guid.ToString(), scatteringObjects);
+                    if(scatteringGroup is not null && scatteringGroup?.BoundingBox3D?.Min.Z is double elevation && minElevation > elevation)
+                    {
+                        minElevation = elevation;
+                    }
+                }
+
+                #endregion ScatteringObjects
+
+                if (minElevation == double.MaxValue)
+                {
+                    minElevation = 0;
+                }
 
                 #region Antennas
 
@@ -599,9 +630,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
                 #endregion Antennas
 
-                #region GeometricalPropagationModel
-
-                GeometricalPropagationModel geometricalPropagationModel = new();
+                #region SimpleMultipathPowerDelayProfile
 
                 DefaultSimpleMultipathPowerDelayProfile profile = DefaultSimpleMultipathPowerDelayProfile.TypicalUrban;
                 if (!string.IsNullOrWhiteSpace(communicationCalculationParameter.DefaultSimpleMultipathPowerDelayProfile))
@@ -613,26 +642,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
                 geometricalPropagationModel.Assign(simpleMultipathPowerDelayProfile, antennas[0], antennas[1]);
 
-                double minElevation = double.MaxValue;
-                if (scatteringObjects is not null)
-                {
-                    foreach (ScatteringObject scatteringObject in scatteringObjects)
-                    {
-                        geometricalPropagationModel.Update(scatteringObject);
-
-                        if(scatteringObject?.Mesh3D?.GetBoundingBox()?.Min.Z is double elevation && minElevation > elevation)
-                        {
-                            minElevation = elevation;
-                        }
-                    }
-                }
-
-                if(minElevation == double.MaxValue)
-                {
-                    minElevation = 0;
-                }
-
-                #endregion GeometricalPropagationModel
+                #endregion SimpleMultipathPowerDelayProfile
 
                 #region Transmitter/receiver selection
 
