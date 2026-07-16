@@ -2,28 +2,23 @@
 // DiGi.GLTF.WebAPI viewer engine (gltf-viewer.js owns the base panels; this module owns the
 // antenna toolbar, the antenna edit/erase modes, the antenna Selection card pick (clicking an
 // antenna shows it in the shared Selection card with "Edit" + "Export"; see
-// building-details-panel.js), the calculation modal/request and the results
-// rendering: the propagation ellipsoid, the arrival rays and the results panel).
+// building-details-panel.js), the calculation modal/request and the delay based results
+// rendering: the propagation ellipsoids, the scattering polylines and the angular power
+// distribution vectors).
 //
-// Calculation flow: the "Calculate" button opens a modal collecting the propagation inputs that
-// are not part of the geometrical model (frequency, polarization, material properties). The
-// request goes to ~/communication/calculate; the server rebuilds the analyzed area on the fly
-// (Building -> Mesh3D -> ScatteringObject), packages everything into a GeometricalPropagationModel
-// and runs the multi-ellipsoidal propagation cascade through DiGi.Communication.WebAPI. The
-// response carries world coordinates only: the dominant propagation ellipsoid, the arrival rays
-// with their corrected powers and the per delay component summary (see renderResults).
+// Calculation flow: the "Calculate" button opens a modal collecting the multipath power delay
+// profile. The request goes to ~/communication/calculate; the server fetches the analyzed area
+// buildings, packages everything into a GeometricalPropagationModel and solves the propagation in
+// process (ScatteringSolver + AngularPowerDistributionSolver). The response carries world
+// coordinates only, grouped by delay (ascending): one entry per delay holding the propagation
+// ellipsoid(s), the scattering polylines (one per ScatteringPointGroup) and the angular power
+// distribution vectors. The Results panel drives which delay is rendered and the vector scale
+// factor; a selected polyline shows its semi-transparent auxiliary polylines and its data in the
+// shared Selection card (see renderDelayResults).
 //
-// [TEMPORARY A/B TESTING] The v1 calculate endpoint returns a delay grouped payload instead
-// (discriminated by its delays array): one entry per delay carrying the propagation ellipsoid(s),
-// the scattering polylines (one per ScatteringPointGroup) and the angular power distribution
-// vectors. The Results panel drives which delay is rendered and the vector scale factor; a
-// selected polyline shows its semi-transparent auxiliary polylines and its data in the shared
-// Selection card (see renderDelayResults).
-//
-// AI-NOTE (mocked remaining inputs): the multipath power delay profile (TypicalUrban preset) and
-// the antenna radiation characteristics are hardcoded server side, mirroring the reference xUnit
-// fact ToPropagation_PropagationModel_TypicalUrban; extend the calculation modal once they become
-// user configurable.
+// AI-NOTE (mocked remaining inputs): the antenna radiation characteristics are hardcoded server
+// side, mirroring the reference xUnit fact ToPropagation_PropagationModel_TypicalUrban; extend the
+// calculation modal once they become user configurable.
 
 import * as THREE from 'three';
 import { reportStatus, updateLastStatus, formatElapsed } from 'gltf-viewer-core';
@@ -67,10 +62,6 @@ const modalCancelButton = document.getElementById('communication-antenna-cancel-
 const antennaEditButton = document.getElementById('communication-antenna-edit-button');
 
 const calculationModal = document.getElementById('communication-calculation-modal');
-const calculationFrequencyInput = document.getElementById('communication-calculation-frequency');
-const calculationPolarizationSelect = document.getElementById('communication-calculation-polarization');
-const calculationPermittivityInput = document.getElementById('communication-calculation-permittivity');
-const calculationConductivityInput = document.getElementById('communication-calculation-conductivity');
 const calculationProfileSelect = document.getElementById('communication-calculation-profile');
 const calculationOkButton = document.getElementById('communication-calculation-ok-button');
 const calculationCancelButton = document.getElementById('communication-calculation-cancel-button');
@@ -93,8 +84,7 @@ let pointerDownPosition = null;
 
 const antennas = [];               // { group, meshes, selected, data: { x, y, z, functions } }
 const resultObjects = [];          // three.js objects added by "Calculate"
-const resultMeshes = [];           // selectable subset of resultObjects (ellipsoid + ray cylinders)
-let activePayload = null;          // last successful calculation payload (world coordinates)
+const resultMeshes = [];           // selectable subset of resultObjects (ellipsoid + polyline + vector meshes)
 let selectedResultMesh = null;     // currently highlighted result mesh
 let resultPickCandidate = null;    // result mesh hit on pointerdown, resolved on pointerup
 let antennaPickCandidate = null;   // antenna hit on pointerdown, resolved on pointerup
@@ -712,9 +702,8 @@ function setResultMeshHighlighted(mesh, highlighted) {
     }
 }
 
-// Selecting the ellipsoid shows the general calculation results (the delay summary in the delay
-// based flow); selecting a ray shows the ray specific values; selecting a scattering polyline
-// shows its semi-transparent auxiliary polylines and its data in the shared Selection card.
+// Selecting the ellipsoid shows the delay summary; selecting a scattering polyline shows its
+// semi-transparent auxiliary polylines and its data in the shared Selection card.
 function selectResultMesh(mesh) {
     const communication = mesh.userData.communication;
 
@@ -732,17 +721,13 @@ function selectResultMesh(mesh) {
     selectedResultMesh = mesh;
     setResultMeshHighlighted(mesh, true);
 
-    if (communication.type === 'ray') {
-        showRayResults(communication.data, communication.frequencyResult);
-    } else if (communication.type === 'polyline') {
+    if (communication.type === 'polyline') {
         showAuxiliaryPolylines(communication);
         showPolylineSelection(communication.data, communication.delayResult);
     } else if (communication.delayResult) {
         deselectPolylineObject();
         removeAuxiliaryPolylines();
         showDelayResults(delayPayload, communication.delayResult);
-    } else {
-        showGeneralResults(activePayload, communication.frequencyResult);
     }
 }
 
@@ -796,146 +781,6 @@ function deselectPolylineObject() {
     notifyPolylineSelection(false);
 }
 
-function showGeneralResults(payload, frequencyResult) {
-    resultsPanel.innerHTML = '';
-
-    const table = document.createElement('table');
-    appendResultRow(table, 'Frequency', `${frequencyResult.frequency} MHz`);
-    appendResultRow(table, 'Polarization', frequencyResult.polarization);
-    appendResultRow(table, 'Distance', `${payload.distance.toFixed(2)} m`);
-    appendResultRow(table, 'Total power P', formatPower(frequencyResult.totalPower));
-    appendResultRow(table, 'Directional power P₀', formatPower(frequencyResult.directionalPower));
-    appendResultRow(table, 'Rays', String(frequencyResult.rays?.length ?? 0));
-    if (frequencyResult.ellipsoid) {
-        appendResultRow(table, 'Dominant delay', formatDelay(frequencyResult.ellipsoid.delay));
-    }
-    resultsPanel.appendChild(table);
-
-    // Per delay ellipsoid components P_n, collapsed by default.
-    const components = frequencyResult.ellipsoidComponents ?? [];
-    if (components.length > 0) {
-        const details = document.createElement('details');
-        const summary = document.createElement('summary');
-        summary.textContent = `Ellipsoid components [${components.length}]`;
-        details.appendChild(summary);
-
-        const componentsTable = document.createElement('table');
-        for (const component of components) {
-            appendResultRow(componentsTable, formatDelay(component.delay), `p'ₙ = ${formatPower(component.measuredFractionalPower)}`);
-        }
-        details.appendChild(componentsTable);
-        resultsPanel.appendChild(details);
-    }
-
-    const note = document.createElement('div');
-    note.className = 'gltf-muted';
-    note.style.marginTop = '6px';
-    note.textContent = 'Click a green ray in the 3D view for the ray specific values; click the ellipsoid to return to this summary.';
-    resultsPanel.appendChild(note);
-
-    resultsCard.style.display = '';
-}
-
-function showRayResults(ray, frequencyResult) {
-    resultsPanel.innerHTML = '';
-
-    const table = document.createElement('table');
-    appendResultRow(table, 'Selected', 'Ray');
-    appendResultRow(table, 'Frequency', `${frequencyResult.frequency} MHz`);
-    appendResultRow(table, 'Delay', formatDelay(ray.delay));
-    appendResultRow(table, 'Theta', formatAngle(ray.theta));
-    appendResultRow(table, 'Phi', formatAngle(ray.phi));
-    appendResultRow(table, 'Power pₙₖₗ', formatPower(ray.power));
-    appendResultRow(table, 'Relative power', `${(10 * Math.log10(ray.power)).toFixed(1)} dB`);
-    resultsPanel.appendChild(table);
-
-    const note = document.createElement('div');
-    note.className = 'gltf-muted';
-    note.style.marginTop = '6px';
-    note.textContent = 'Click the ellipsoid to return to the general results.';
-    resultsPanel.appendChild(note);
-
-    resultsCard.style.display = '';
-}
-
-function addEllipsoidObject(payload, frequencyResult) {
-    const ellipsoid = frequencyResult.ellipsoid;
-    if (!ellipsoid) {
-        return;
-    }
-
-    // Unit sphere scaled to the semi axes: the local X axis carries the semi-major axis and is
-    // rotated onto the transmitter-receiver direction (the ellipsoid is rotationally symmetric
-    // around it, so no further orientation is needed).
-    const mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(1, 48, 32),
-        new THREE.MeshBasicMaterial({ color: ELLIPSOID_COLOR, transparent: true, opacity: ELLIPSOID_OPACITY, side: THREE.DoubleSide, depthWrite: false }));
-
-    mesh.position.copy(toScene(ellipsoid.center.x, ellipsoid.center.y, ellipsoid.center.z));
-    mesh.scale.set(ellipsoid.semiMajorAxis, ellipsoid.semiMinorAxis, ellipsoid.semiMinorAxis);
-    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), toSceneDirection(ellipsoid.axis));
-    mesh.userData.communication = { type: 'ellipsoid', data: ellipsoid, frequencyResult };
-
-    viewer.scene.add(mesh);
-    resultObjects.push(mesh);
-    resultMeshes.push(mesh);
-}
-
-function addRayObjects(payload, frequencyResult) {
-    const rays = frequencyResult.rays ?? [];
-
-    let maximumPower = 0;
-    for (const ray of rays) {
-        maximumPower = Math.max(maximumPower, ray.power);
-    }
-    if (maximumPower <= 0) {
-        return;
-    }
-
-    const origin = toScene(payload.receiver.x, payload.receiver.y, payload.receiver.z);
-    const radius = Math.max(0.15, antennaDotRadius() * 0.3);
-
-    for (const ray of rays) {
-        if (ray.power <= 0) {
-            continue;
-        }
-
-        // Ray lengths follow a dB scale relative to the strongest ray: the corrected powers span
-        // several orders of magnitude, so linear scaling would hide all but the dominant ray.
-        const attenuation = 10 * Math.log10(ray.power / maximumPower); // <= 0
-        const factor = Math.max(0, 1 + (attenuation / RAY_DECIBEL_WINDOW));
-        const length = payload.distance * (0.08 + (0.32 * factor));
-
-        const direction = toSceneDirection(ray.direction);
-
-        // Thin cylinders instead of THREE.Line so the rays raycast (select) reliably.
-        const mesh = new THREE.Mesh(
-            new THREE.CylinderGeometry(radius, radius, length, 8),
-            new THREE.MeshBasicMaterial({ color: RAY_COLOR }));
-        mesh.position.copy(origin.clone().add(direction.clone().multiplyScalar(length / 2)));
-        mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
-        mesh.userData.communication = { type: 'ray', data: ray, frequencyResult };
-
-        viewer.scene.add(mesh);
-        resultObjects.push(mesh);
-        resultMeshes.push(mesh);
-    }
-}
-
-function renderResults(payload) {
-    clearResults();
-    activePayload = payload;
-
-    // AI-NOTE (multi-frequency rendering): payload.results holds one entry per calculated
-    // frequency; only the first entry is rendered today. To expose the remaining entries, iterate
-    // the array here, keep the created meshes grouped per frequency and bind per frequency
-    // visibility toggles in the results panel.
-    const frequencyResult = payload.results[0];
-
-    addEllipsoidObject(payload, frequencyResult);
-    addRayObjects(payload, frequencyResult);
-    showGeneralResults(payload, frequencyResult);
-}
 
 // ---------------------------------------------------------------------------------------------
 // Delay based (v1) results: the payload carries one entry per delay (ascending). The delay slider
@@ -953,7 +798,6 @@ function vectorScale() {
 
 function renderDelayResults(payload) {
     clearResults();
-    activePayload = payload;
     delayPayload = payload;
 
     delaySlider.min = 0;
@@ -1023,9 +867,9 @@ function addDelayEllipsoids(delayResult) {
 
             mesh = new THREE.Mesh(geometry, material);
         } else {
-            // Fallback (no mesh in the payload): unit sphere scaled to the semi axes, exactly like
-            // addEllipsoidObject: the local X axis carries the semi-major axis and is rotated onto
-            // the profile axis (the ellipsoid is rotationally symmetric around it).
+            // Fallback (no mesh in the payload): unit sphere scaled to the semi axes — the local X
+            // axis carries the semi-major axis and is rotated onto the profile axis (the ellipsoid
+            // is rotationally symmetric around it).
             mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 32), material);
             mesh.position.copy(toScene(ellipsoid.center.x, ellipsoid.center.y, ellipsoid.center.z));
             mesh.scale.set(ellipsoid.semiMajorAxis, ellipsoid.semiMinorAxis, ellipsoid.semiMinorAxis);
@@ -1204,7 +1048,6 @@ function clearResults() {
     resultMeshes.length = 0;
     selectedResultMesh = null;
     resultPickCandidate = null;
-    activePayload = null;
 
     resultsPanel.innerHTML = '';
     resultsCard.style.display = 'none';
@@ -1239,14 +1082,7 @@ async function calculate(calculationParameters) {
             }))
         };
 
-        if (calculationParameters.defaultSimpleMultipathPowerDelayProfile !== undefined) {
-            body.defaultSimpleMultipathPowerDelayProfile = calculationParameters.defaultSimpleMultipathPowerDelayProfile;
-        } else {
-            body.frequencies = calculationParameters.frequencies;
-            body.polarization = calculationParameters.polarization;
-            body.relativePermittivity = calculationParameters.relativePermittivity;
-            body.conductivity = calculationParameters.conductivity;
-        }
+        body.defaultSimpleMultipathPowerDelayProfile = calculationParameters.defaultSimpleMultipathPowerDelayProfile;
 
         console.log('Calculate URL:', container.dataset.calculateUrl);
         console.log('Calculate body:', body);
@@ -1274,13 +1110,7 @@ async function calculate(calculationParameters) {
             return;
         }
 
-        // [TEMPORARY A/B TESTING] The v1 endpoint returns the delay grouped payload
-        // (discriminated by its delays array); the v2 endpoint the frequency result payload.
-        if (Array.isArray(payload.delays)) {
-            renderDelayResults(payload);
-        } else {
-            renderResults(payload);
-        }
+        renderDelayResults(payload);
         reportStatus(`Calculation completed in ${formatElapsed(calculationStart)}`);
     } catch (error) {
         console.error('Calculate error:', error);
@@ -1319,45 +1149,16 @@ calculateButton.addEventListener('click', () => {
     }
 
     calculationModal.style.display = 'flex';
-    const isV1 = container.dataset.calculateUrl?.includes('/v1/');
-    if (isV1 && calculationProfileSelect) {
+    if (calculationProfileSelect) {
         calculationProfileSelect.focus();
-    } else if (calculationFrequencyInput) {
-        calculationFrequencyInput.focus();
     }
 });
 
 calculationOkButton.addEventListener('click', () => {
     calculationModal.style.display = 'none';
 
-    const isV1 = container.dataset.calculateUrl?.includes('/v1/');
-    if (isV1) {
-        calculate({
-            defaultSimpleMultipathPowerDelayProfile: calculationProfileSelect?.value ?? 'TypicalUrban'
-        });
-        return;
-    }
-
-    // AI-NOTE (multi-frequency input): the frequency field accepts a comma separated list; every
-    // valid value is sent, the backend calculates all of them and the response carries one result
-    // entry per frequency (see renderResults for the rendering extensibility point).
-    const frequencies = calculationFrequencyInput.value
-        .split(',')
-        .map((value) => parseFloat(value.trim()))
-        .filter((value) => isFinite(value) && value > 0);
-
-    const relativePermittivity = parseFloat(calculationPermittivityInput.value);
-    const conductivity = parseFloat(calculationConductivityInput.value);
-
-    if (frequencies.length === 0 || !isFinite(relativePermittivity) || relativePermittivity < 1 || !isFinite(conductivity) || conductivity < 0) {
-        return;
-    }
-
     calculate({
-        frequencies,
-        polarization: calculationPolarizationSelect.value,
-        relativePermittivity,
-        conductivity
+        defaultSimpleMultipathPowerDelayProfile: calculationProfileSelect?.value ?? 'TypicalUrban'
     });
 });
 

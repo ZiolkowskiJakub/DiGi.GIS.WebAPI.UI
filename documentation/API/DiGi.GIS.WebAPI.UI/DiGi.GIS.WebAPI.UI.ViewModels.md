@@ -394,19 +394,6 @@ The radius of the analyzed circular area in meters\.
 The storey height in meters used for the building extrusions\.
 ### Properties
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CalculateUrl'></a>
-
-## CommunicationSceneViewModel\.CalculateUrl Property
-
-Gets or sets the application relative URL of the communication calculation endpoint used by the 3D scene\.
-
-```csharp
-public string? CalculateUrl { get; set; }
-```
-
-#### Property Value
-[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
-
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CenterX'></a>
 
 ## CommunicationSceneViewModel\.CenterX Property

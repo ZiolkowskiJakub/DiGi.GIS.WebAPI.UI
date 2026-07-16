@@ -758,7 +758,7 @@ An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us
 
 ## CommunicationController Class
 
-Provides the communication analysis feature: an input page for the analyzed circular area, the 3D scene view with the antenna toolbar and the calculation endpoint bridging the 3D view with the GIS agnostic DiGi\.Communication\.WebAPI service\.
+Provides the communication analysis feature: an input page for the analyzed circular area, the 3D scene view with the antenna toolbar and the calculation endpoint that fetches the analyzed area buildings and solves the radio propagation between the placed antennas in process\.
 
 ```csharp
 public class CommunicationController : Microsoft.AspNetCore.Mvc.Controller
@@ -767,28 +767,22 @@ public class CommunicationController : Microsoft.AspNetCore.Mvc.Controller
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [Microsoft\.AspNetCore\.Mvc\.ControllerBase](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controllerbase 'Microsoft\.AspNetCore\.Mvc\.ControllerBase') → [Microsoft\.AspNetCore\.Mvc\.Controller](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controller 'Microsoft\.AspNetCore\.Mvc\.Controller') → CommunicationController
 ### Constructors
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CommunicationController(System.Net.Http.IHttpClientFactory,Microsoft.AspNetCore.Hosting.IWebHostEnvironment)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CommunicationController(System.Net.Http.IHttpClientFactory)'></a>
 
-## CommunicationController\(IHttpClientFactory, IWebHostEnvironment\) Constructor
+## CommunicationController\(IHttpClientFactory\) Constructor
 
 Initializes a new instance of the [CommunicationController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.CommunicationController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.CommunicationController') class\.
 
 ```csharp
-public CommunicationController(System.Net.Http.IHttpClientFactory httpClientFactory, Microsoft.AspNetCore.Hosting.IWebHostEnvironment webHostEnvironment);
+public CommunicationController(System.Net.Http.IHttpClientFactory httpClientFactory);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CommunicationController(System.Net.Http.IHttpClientFactory,Microsoft.AspNetCore.Hosting.IWebHostEnvironment).httpClientFactory'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CommunicationController(System.Net.Http.IHttpClientFactory).httpClientFactory'></a>
 
 `httpClientFactory` [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory')
 
 The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') used to create [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') instances\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CommunicationController(System.Net.Http.IHttpClientFactory,Microsoft.AspNetCore.Hosting.IWebHostEnvironment).webHostEnvironment'></a>
-
-`webHostEnvironment` [Microsoft\.AspNetCore\.Hosting\.IWebHostEnvironment](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.hosting.iwebhostenvironment 'Microsoft\.AspNetCore\.Hosting\.IWebHostEnvironment')
-
-The [Microsoft\.AspNetCore\.Hosting\.IWebHostEnvironment](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.hosting.iwebhostenvironment 'Microsoft\.AspNetCore\.Hosting\.IWebHostEnvironment') used to select the DiGi\.Communication\.WebAPI base URI\.
 ### Methods
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CalculateAsync(DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter,System.Threading.CancellationToken)'></a>
@@ -797,7 +791,7 @@ The [Microsoft\.AspNetCore\.Hosting\.IWebHostEnvironment](https://learn.microsof
 
 Executes the communication calculation for the antennas placed in the 3D view\.
 
-The buildings of the analyzed area are fetched and converted on the fly (Building -> Mesh3D -> ScatteringObject), packaged together with the antennas into a [DiGi\.Communication\.Classes\.GeometricalPropagationModel](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.geometricalpropagationmodel 'DiGi\.Communication\.Classes\.GeometricalPropagationModel') and sent to the GIS agnostic DiGi.Communication.WebAPI service; nothing is persisted.
+The buildings of the analyzed area are fetched as [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') instances and converted to [DiGi\.Communication\.Classes\.ScatteringObject](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.scatteringobject 'DiGi\.Communication\.Classes\.ScatteringObject') instances, packaged together with the antennas into a [DiGi\.Communication\.Classes\.GeometricalPropagationModel](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.geometricalpropagationmodel 'DiGi\.Communication\.Classes\.GeometricalPropagationModel') and solved in process ([DiGi\.Communication\.Classes\.ScatteringSolver](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.scatteringsolver 'DiGi\.Communication\.Classes\.ScatteringSolver') + [DiGi\.Communication\.Classes\.AngularPowerDistributionSolver](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.angularpowerdistributionsolver 'DiGi\.Communication\.Classes\.AngularPowerDistributionSolver')); nothing is persisted.
 
 ```csharp
 public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> CalculateAsync(DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter? communicationCalculationParameter, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
@@ -818,63 +812,7 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the calculation result JSON \(currently the connecting [DiGi\.Geometry\.Spatial\.Classes\.Segment3D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.spatial.classes.segment3d 'DiGi\.Geometry\.Spatial\.Classes\.Segment3D') and its length\)\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CalculateAsyncV1(DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter,System.Threading.CancellationToken)'></a>
-
-## CommunicationController\.CalculateAsyncV1\(CommunicationCalculationParameter, CancellationToken\) Method
-
-\[TEMPORARY A/B TESTING\] Version 1 \(current implementation\) of the communication calculation\.
-
-The buildings of the analyzed area are fetched as [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') instances and converted to [DiGi\.Communication\.Classes\.ScatteringObject](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.scatteringobject 'DiGi\.Communication\.Classes\.ScatteringObject') instances, packaged together with the antennas into a [DiGi\.Communication\.Classes\.GeometricalPropagationModel](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.geometricalpropagationmodel 'DiGi\.Communication\.Classes\.GeometricalPropagationModel') and solved in process ([DiGi\.Communication\.Classes\.ScatteringSolver](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.scatteringsolver 'DiGi\.Communication\.Classes\.ScatteringSolver') + [DiGi\.Communication\.Classes\.AngularPowerDistributionSolver](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.angularpowerdistributionsolver 'DiGi\.Communication\.Classes\.AngularPowerDistributionSolver')); nothing is persisted.
-
-```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> CalculateAsyncV1(DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter? communicationCalculationParameter, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
-```
-#### Parameters
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CalculateAsyncV1(DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter,System.Threading.CancellationToken).communicationCalculationParameter'></a>
-
-`communicationCalculationParameter` [CommunicationCalculationParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.CommunicationCalculationParameter')
-
-The analyzed circular area and the antennas placed by the user\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CalculateAsyncV1(DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter,System.Threading.CancellationToken).cancellationToken'></a>
-
-`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
-
-A cancellation token that can be used by the caller to cancel the asynchronous operation\.
-
-#### Returns
-[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the calculation result JSON grouped by delay \(ascending\): the propagation ellipsoids, the scattering polylines \(one per [DiGi\.Communication\.Classes\.ScatteringPointGroup](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.scatteringpointgroup 'DiGi\.Communication\.Classes\.ScatteringPointGroup')\) and the angular power distribution vectors, all in world coordinates\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CalculateAsyncV2(DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter,System.Threading.CancellationToken)'></a>
-
-## CommunicationController\.CalculateAsyncV2\(CommunicationCalculationParameter, CancellationToken\) Method
-
-\[TEMPORARY A/B TESTING\] Version 2 \(new implementation\) of the communication calculation\. Starts as a full self\-contained copy of [CalculateAsync\(CommunicationCalculationParameter, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CalculateAsync(DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.CommunicationController\.CalculateAsync\(DiGi\.GIS\.WebAPI\.UI\.Classes\.CommunicationCalculationParameter, System\.Threading\.CancellationToken\)'); replace the body below with the new V2 algorithm\.
-
-```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> CalculateAsyncV2(DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter? communicationCalculationParameter, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
-```
-#### Parameters
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CalculateAsyncV2(DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter,System.Threading.CancellationToken).communicationCalculationParameter'></a>
-
-`communicationCalculationParameter` [CommunicationCalculationParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.CommunicationCalculationParameter')
-
-The analyzed circular area and the antennas placed by the user\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.CalculateAsyncV2(DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter,System.Threading.CancellationToken).cancellationToken'></a>
-
-`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
-
-A cancellation token that can be used by the caller to cancel the asynchronous operation\.
-
-#### Returns
-[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the calculation result JSON\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.GetBuildingsByRadius(double,double,double,System.Nullable_double_)'></a>
 
@@ -914,84 +852,6 @@ The optional storey height in meters used for the building extrusions\.
 #### Returns
 [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
 An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') rendering the communication scene view\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.GetBuildingsByRadiusV1(double,double,double,System.Nullable_double_)'></a>
-
-## CommunicationController\.GetBuildingsByRadiusV1\(double, double, double, Nullable\<double\>\) Method
-
-\[TEMPORARY A/B TESTING\] Renders the communication 3D scene view \(version 1\) wired to the v1 calculation endpoint\.
-
-```csharp
-public Microsoft.AspNetCore.Mvc.IActionResult GetBuildingsByRadiusV1(double centerX, double centerY, double radius, System.Nullable<double> storeyHeight=null);
-```
-#### Parameters
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.GetBuildingsByRadiusV1(double,double,double,System.Nullable_double_).centerX'></a>
-
-`centerX` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-The X coordinate of the center of the analyzed circular area\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.GetBuildingsByRadiusV1(double,double,double,System.Nullable_double_).centerY'></a>
-
-`centerY` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-The Y coordinate of the center of the analyzed circular area\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.GetBuildingsByRadiusV1(double,double,double,System.Nullable_double_).radius'></a>
-
-`radius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-The radius of the analyzed circular area in meters\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.GetBuildingsByRadiusV1(double,double,double,System.Nullable_double_).storeyHeight'></a>
-
-`storeyHeight` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
-
-The optional storey height in meters used for the building extrusions\.
-
-#### Returns
-[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
-An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') rendering the communication scene view for version 1\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.GetBuildingsByRadiusV2(double,double,double,System.Nullable_double_)'></a>
-
-## CommunicationController\.GetBuildingsByRadiusV2\(double, double, double, Nullable\<double\>\) Method
-
-\[TEMPORARY A/B TESTING\] Renders the communication 3D scene view \(version 2\) wired to the v2 calculation endpoint\.
-
-```csharp
-public Microsoft.AspNetCore.Mvc.IActionResult GetBuildingsByRadiusV2(double centerX, double centerY, double radius, System.Nullable<double> storeyHeight=null);
-```
-#### Parameters
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.GetBuildingsByRadiusV2(double,double,double,System.Nullable_double_).centerX'></a>
-
-`centerX` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-The X coordinate of the center of the analyzed circular area\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.GetBuildingsByRadiusV2(double,double,double,System.Nullable_double_).centerY'></a>
-
-`centerY` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-The Y coordinate of the center of the analyzed circular area\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.GetBuildingsByRadiusV2(double,double,double,System.Nullable_double_).radius'></a>
-
-`radius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-The radius of the analyzed circular area in meters\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.GetBuildingsByRadiusV2(double,double,double,System.Nullable_double_).storeyHeight'></a>
-
-`storeyHeight` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
-
-The optional storey height in meters used for the building extrusions\.
-
-#### Returns
-[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
-An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') rendering the communication scene view for version 2\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController.Start()'></a>
 
