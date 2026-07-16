@@ -22,7 +22,7 @@ The files in the `skills/` directory hold the full details for specific tasks an
 - **coding-api-documentation:** Use when looking up a type's public API — consult the generated `documentation/API/` markdown before opening `.cs` source.
 - **coding-automatic-tests:** Use when writing or adding xUnit tests — `Facts` structure, naming, shared fixtures, serialization, tolerance boundary, and performance benchmarks.
 - **coding-templates:** Use when creating a new project/solution from a template, or managing templates in the workspace's default `templates/` folder.
-- **coding-webapi-gltf:** Use when building or extending an ASP.NET Core Web API on the `DiGi.GLTF` 3D framework.
+- **coding-webapi-gltf:** Use when building or extending an ASP.NET Core Web API on the `DiGi.GLTF` 3D framework. ALSO use before touching any JS in `wwwroot/js/` — `gltf-viewer-core.js` is copied from `DiGi.GLTF.WebAPI` at build time and MUST be edited in the source repo, never in a consuming project.
 
 ### XML Documentation
 - **xml-documentation-create:** Use when adding missing `<summary>` docs to public members.

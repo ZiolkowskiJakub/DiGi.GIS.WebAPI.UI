@@ -4,7 +4,7 @@
 // the properties panel (filled from the domain data attached to glTF extras when
 // exactly one object is selected) and the scene information panel.
 
-import { GltfViewer, GltfStatusTerminal, readSceneData, readGlbBytes, fetchGlbBytes, reportStatus } from 'gltf-viewer-core';
+import { GltfViewer, GltfStatusTerminal, readSceneData, readGlbBytes, fetchGlbBytes, reportStatus, updateLastStatus, formatElapsed } from 'gltf-viewer-core';
 
 const DEFAULT_PROPERTIES_HINT = 'Click an object or drag a selection rectangle in the 3D view. Properties are displayed when exactly one object is selected.';
 
@@ -392,6 +392,10 @@ if (container) {
         GltfStatusTerminal.attach(container);
         reportStatus('Loading...');
 
+        const loadingStart = performance.now();
+        const loadingTimer = setInterval(() => updateLastStatus(`Loading... (${formatElapsed(loadingStart)})`), 200);
+        const stopLoadingTimer = () => { clearInterval(loadingTimer); };
+
         try {
             const sceneData = readSceneData('gltf-scene-data');
 
@@ -406,6 +410,7 @@ if (container) {
                     loader.style.display = 'none';
                 }
 
+                stopLoadingTimer();
                 const panel = document.getElementById('gltf-properties');
                 if (panel) {
                     panel.innerHTML = '<span class="gltf-muted">No objects were found for this request.</span>';
@@ -424,7 +429,8 @@ if (container) {
                     loader.style.display = 'none';
                 }
 
-                reportStatus('Loaded');
+                stopLoadingTimer();
+                reportStatus(`Loaded in ${formatElapsed(loadingStart)}`);
 
                 initLightingPanel(viewer);
                 initSunClock(viewer, event.detail.referencePoint);
@@ -450,6 +456,7 @@ if (container) {
                 loader.style.display = 'none';
             }
 
+            stopLoadingTimer();
             const panel = document.getElementById('gltf-properties');
             if (panel) {
                 panel.innerHTML = '<span class="gltf-muted">Failed to load the 3D scene.</span>';

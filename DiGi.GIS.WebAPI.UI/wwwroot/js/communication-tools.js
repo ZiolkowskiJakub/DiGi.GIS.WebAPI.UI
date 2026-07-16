@@ -26,7 +26,7 @@
 // user configurable.
 
 import * as THREE from 'three';
-import { reportStatus } from 'gltf-viewer-core';
+import { reportStatus, updateLastStatus, formatElapsed } from 'gltf-viewer-core';
 
 const MAX_ANTENNAS = 2;
 const ANTENNA_COLOR = 0xd13438;          // red mast + dot
@@ -1222,6 +1222,9 @@ async function calculate(calculationParameters) {
         calculationLoader.style.display = 'flex';
     }
 
+    const calculationStart = performance.now();
+    const calculationTimer = setInterval(() => updateLastStatus(`Calculating propagation… (${formatElapsed(calculationStart)})`), 200);
+
     try {
         const body = {
             centerX: parseFloat(container.dataset.centerX),
@@ -1278,11 +1281,12 @@ async function calculate(calculationParameters) {
         } else {
             renderResults(payload);
         }
-        reportStatus('Calculation completed');
+        reportStatus(`Calculation completed in ${formatElapsed(calculationStart)}`);
     } catch (error) {
         console.error('Calculate error:', error);
         reportStatus('Calculation failed (network).');
     } finally {
+        clearInterval(calculationTimer);
         calculating = false;
         updateToolbar();
         if (calculationLoader) {
