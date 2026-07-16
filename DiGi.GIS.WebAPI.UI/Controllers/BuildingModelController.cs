@@ -3,7 +3,7 @@ using DiGi.Geometry.Spatial.Classes;
 using DiGi.GIS.WebAPI.UI.ViewModels;
 using DiGi.GLTF;
 using DiGi.GLTF.Analytical;
-using DiGi.GLTF.Analytical.Enums;
+using DiGi.Analytical.Building.Enums;
 using DiGi.GLTF.Classes;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
@@ -231,7 +231,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             List<GLTFNode> gLTFNodes = [];
             foreach (BuildingModel buildingModel in buildingModels)
             {
-                List<GLTFNode>? gLTFNodes_Temp = buildingModel.ToGLTF_GLTFNodes(Core.Constants.Tolerance.Distance, BuildingDisplayMode.Envelope);
+                List<GLTFNode>? gLTFNodes_Temp = buildingModel.ToGLTF_GLTFNodes(Core.Constants.Tolerance.Distance, BuildingModelDetailLevel.Envelope);
                 if (gLTFNodes_Temp is not null)
                 {
                     gLTFNodes.AddRange(gLTFNodes_Temp);

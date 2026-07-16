@@ -53,14 +53,16 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         {
             if (communicationCalculationParameter is null || communicationCalculationParameter.Antennas is null || communicationCalculationParameter.Antennas.Count != 2)
             {
-                return BadRequest();
+                return BadRequest("Two antennas (transmitter and receiver) are required.");
             }
 
             if (double.IsNaN(communicationCalculationParameter.CenterX) || double.IsNaN(communicationCalculationParameter.CenterY) || double.IsNaN(communicationCalculationParameter.Radius) || communicationCalculationParameter.Radius <= 0)
             {
-                return BadRequest();
+                return BadRequest("The analyzed area center coordinates and radius must be valid positive numbers.");
             }
 
+            try
+            {
             HttpClient httpClient = httpClientFactory.CreateClient();
 
             #region Building2Ds -> ScatteringObjects
@@ -76,7 +78,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString(), cancellationToken);
             if (!httpResponseMessage.IsSuccessStatusCode)
             {
-                return BadRequest();
+                return BadRequest($"Failed to fetch buildings from the GIS service (HTTP {(int)httpResponseMessage.StatusCode}).");
             }
 
             string json = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
@@ -148,13 +150,13 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             Point3D? location_Receiver = antenna_Receiver?.Location;
             if (location_Transmitter is null || location_Receiver is null)
             {
-                return BadRequest();
+                return BadRequest("Transmitter and receiver antennas with valid locations are required.");
             }
 
             double distance = location_Transmitter.Distance(location_Receiver);
             if (distance <= 0)
             {
-                return BadRequest();
+                return BadRequest("Transmitter and receiver antennas must be at different locations.");
             }
 
             // Orthonormal basis of the model coordinate system in world coordinates (must stay in
@@ -163,7 +165,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             Vector3D? vector3D_AxisX = (location_Receiver - location_Transmitter)?.Unit;
             if (vector3D_AxisX is null)
             {
-                return BadRequest();
+                return BadRequest("Cannot compute the axis direction between transmitter and receiver.");
             }
 
             Vector3D vector3D_Up = new(0, 0, 1);
@@ -171,7 +173,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             Vector3D? vector3D_AxisZ = vector3D_Up - (vector3D_AxisX * vector3D_Up.DotProduct(vector3D_AxisX));
             if (vector3D_AxisZ is null || vector3D_AxisZ.Length == 0)
             {
-                return BadRequest();
+                return BadRequest("Cannot compute the orthonormal basis — the transmitter–receiver axis is parallel to the world up vector.");
             }
 
             vector3D_AxisZ = vector3D_AxisZ.Unit;
@@ -179,7 +181,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             Vector3D? vector3D_AxisY = vector3D_AxisZ?.CrossProduct(vector3D_AxisX);
             if (vector3D_AxisZ is null || vector3D_AxisY is null)
             {
-                return BadRequest();
+                return BadRequest("Cannot compute the orthonormal basis.");
             }
 
             #endregion Transmitter/receiver selection and model coordinate system
@@ -231,7 +233,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             httpResponseMessage = await httpClient.PostAsync(stringBuilder.ToString(), stringContent, cancellationToken);
             if (!httpResponseMessage.IsSuccessStatusCode)
             {
-                return BadRequest();
+                return BadRequest($"Communication calculation service returned an error (HTTP {(int)httpResponseMessage.StatusCode}).");
             }
 
             json = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
@@ -389,6 +391,19 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 receiver = new { x = location_Receiver.X, y = location_Receiver.Y, z = location_Receiver.Z },
                 results
             });
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return StatusCode(499, "Calculation cancelled by the client.");
+            }
+            catch (TaskCanceledException exception)
+            {
+                return StatusCode(504, $"GIS data request timed out: {exception.Message}");
+            }
+            catch (Exception exception)
+            {
+                return StatusCode(500, $"Internal server error: {exception.GetType().Name}: {exception.Message}");
+            }
         }
 
         /// <summary>
@@ -408,7 +423,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         {
             if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0)
             {
-                return BadRequest();
+                return BadRequest("The analyzed area center coordinates and radius must be valid positive numbers.");
             }
 
             string gLBUrl = $"~/buildingmodel/glb/buildingsbyradius?centerX={centerX.ToString(CultureInfo.InvariantCulture)}&centerY={centerY.ToString(CultureInfo.InvariantCulture)}&radius={radius.ToString(CultureInfo.InvariantCulture)}";
@@ -469,7 +484,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         {
             if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0)
             {
-                return BadRequest();
+                return BadRequest("The analyzed area center coordinates and radius must be valid positive numbers.");
             }
 
             string gLBUrl = $"~/buildingmodel/glb/buildingsbyradius?centerX={centerX.ToString(CultureInfo.InvariantCulture)}&centerY={centerY.ToString(CultureInfo.InvariantCulture)}&radius={radius.ToString(CultureInfo.InvariantCulture)}";
@@ -505,7 +520,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         {
             if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0)
             {
-                return BadRequest();
+                return BadRequest("The analyzed area center coordinates and radius must be valid positive numbers.");
             }
 
             string gLBUrl = $"~/buildingmodel/glb/buildingsbyradius?centerX={centerX.ToString(CultureInfo.InvariantCulture)}&centerY={centerY.ToString(CultureInfo.InvariantCulture)}&radius={radius.ToString(CultureInfo.InvariantCulture)}";
@@ -536,12 +551,12 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         {
             if (communicationCalculationParameter is null || communicationCalculationParameter.Antennas is null || communicationCalculationParameter.Antennas.Count != 2)
             {
-                return BadRequest();
+                return BadRequest("Two antennas (transmitter and receiver) are required.");
             }
 
             if (double.IsNaN(communicationCalculationParameter.CenterX) || double.IsNaN(communicationCalculationParameter.CenterY) || double.IsNaN(communicationCalculationParameter.Radius) || communicationCalculationParameter.Radius <= 0)
             {
-                return BadRequest();
+                return BadRequest("The analyzed area center coordinates and radius must be valid positive numbers.");
             }
 
             try
@@ -559,10 +574,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 urlBuilder = urlBuilder.AddParameter("radius", communicationCalculationParameter.Radius);
 
                 HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString(), cancellationToken);
-                if (!httpResponseMessage.IsSuccessStatusCode)
-                {
-                    return BadRequest();
-                }
+            if (!httpResponseMessage.IsSuccessStatusCode)
+            {
+                return BadRequest($"Failed to fetch buildings from the GIS service (HTTP {(int)httpResponseMessage.StatusCode}).");
+            }
 
                 string json = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
                 if (string.IsNullOrWhiteSpace(json))
@@ -656,13 +671,13 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 Point3D? location_Receiver = antenna_Receiver?.Location;
                 if (location_Transmitter is null || location_Receiver is null)
                 {
-                    return BadRequest();
+                    return BadRequest("Transmitter and receiver antennas with valid locations are required.");
                 }
 
                 double distance = location_Transmitter.Distance(location_Receiver);
                 if (distance <= 0)
                 {
-                    return BadRequest();
+                    return BadRequest("Transmitter and receiver antennas must be at different locations.");
                 }
 
                 #endregion Transmitter/receiver selection
@@ -931,14 +946,16 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             // [TEMPORARY A/B TESTING] Replace the body below with the new V2 implementation. It is currently an exact clone of CalculateAsyncV1 so the two versions return identical results until the new code is dropped in.
             if (communicationCalculationParameter is null || communicationCalculationParameter.Antennas is null || communicationCalculationParameter.Antennas.Count != 2)
             {
-                return BadRequest();
+                return BadRequest("Two antennas (transmitter and receiver) are required.");
             }
 
             if (double.IsNaN(communicationCalculationParameter.CenterX) || double.IsNaN(communicationCalculationParameter.CenterY) || double.IsNaN(communicationCalculationParameter.Radius) || communicationCalculationParameter.Radius <= 0)
             {
-                return BadRequest();
+                return BadRequest("The analyzed area center coordinates and radius must be valid positive numbers.");
             }
 
+            try
+            {
             HttpClient httpClient = httpClientFactory.CreateClient();
 
             #region Building2Ds -> ScatteringObjects
@@ -954,7 +971,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString(), cancellationToken);
             if (!httpResponseMessage.IsSuccessStatusCode)
             {
-                return BadRequest();
+                return BadRequest($"Failed to fetch buildings from the GIS service (HTTP {(int)httpResponseMessage.StatusCode}).");
             }
 
             string json = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
@@ -1026,13 +1043,13 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             Point3D? location_Receiver = antenna_Receiver?.Location;
             if (location_Transmitter is null || location_Receiver is null)
             {
-                return BadRequest();
+                return BadRequest("Transmitter and receiver antennas with valid locations are required.");
             }
 
             double distance = location_Transmitter.Distance(location_Receiver);
             if (distance <= 0)
             {
-                return BadRequest();
+                return BadRequest("Transmitter and receiver antennas must be at different locations.");
             }
 
             // Orthonormal basis of the model coordinate system in world coordinates (must stay in
@@ -1041,7 +1058,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             Vector3D? vector3D_AxisX = (location_Receiver - location_Transmitter)?.Unit;
             if (vector3D_AxisX is null)
             {
-                return BadRequest();
+                return BadRequest("Cannot compute the axis direction between transmitter and receiver.");
             }
 
             Vector3D vector3D_Up = new(0, 0, 1);
@@ -1049,7 +1066,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             Vector3D? vector3D_AxisZ = vector3D_Up - (vector3D_AxisX * vector3D_Up.DotProduct(vector3D_AxisX));
             if (vector3D_AxisZ is null || vector3D_AxisZ.Length == 0)
             {
-                return BadRequest();
+                return BadRequest("Cannot compute the orthonormal basis — the transmitter–receiver axis is parallel to the world up vector.");
             }
 
             vector3D_AxisZ = vector3D_AxisZ.Unit;
@@ -1057,7 +1074,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             Vector3D? vector3D_AxisY = vector3D_AxisZ?.CrossProduct(vector3D_AxisX);
             if (vector3D_AxisZ is null || vector3D_AxisY is null)
             {
-                return BadRequest();
+                return BadRequest("Cannot compute the orthonormal basis.");
             }
 
             #endregion Transmitter/receiver selection and model coordinate system
@@ -1109,7 +1126,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             httpResponseMessage = await httpClient.PostAsync(stringBuilder.ToString(), stringContent, cancellationToken);
             if (!httpResponseMessage.IsSuccessStatusCode)
             {
-                return BadRequest();
+                return BadRequest($"Communication calculation service returned an error (HTTP {(int)httpResponseMessage.StatusCode}).");
             }
 
             json = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
@@ -1267,6 +1284,19 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 receiver = new { x = location_Receiver.X, y = location_Receiver.Y, z = location_Receiver.Z },
                 results
             });
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return StatusCode(499, "Calculation cancelled by the client.");
+            }
+            catch (TaskCanceledException exception)
+            {
+                return StatusCode(504, $"GIS data request timed out: {exception.Message}");
+            }
+            catch (Exception exception)
+            {
+                return StatusCode(500, $"Internal server error: {exception.GetType().Name}: {exception.Message}");
+            }
         }
 
         #endregion [TEMPORARY A/B TESTING]
