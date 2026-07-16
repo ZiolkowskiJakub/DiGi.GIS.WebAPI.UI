@@ -502,7 +502,7 @@ function handleAddClick(event) {
     for (const checkbox of modal.querySelectorAll('.communication-antenna-function')) {
         checkbox.checked = antennas.length === 0 ? checkbox.value === 'Transmitter'
             : antennas.length === 1 ? checkbox.value === 'Receiver'
-            : false;
+                : false;
     }
 
     setMode(null);

@@ -318,7 +318,7 @@ function initSunClock(viewer, referencePoint) {
         toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
         toggle.setAttribute('aria-label', label);
         toggle.title = label;
-        
+
         window.dispatchEvent(new Event('resize'));
     });
 })();
@@ -332,52 +332,52 @@ function initSunClock(viewer, referencePoint) {
     panels.forEach((panel) => {
         const cards = panel.querySelectorAll('.gltf-card');
         cards.forEach((card) => {
-        const title = card.querySelector('.gltf-card-title');
-        if (!title) {
-            return;
-        }
+            const title = card.querySelector('.gltf-card-title');
+            if (!title) {
+                return;
+            }
 
-        const label = title.textContent.trim();
+            const label = title.textContent.trim();
 
-        // Move everything after the title into a collapsible content wrapper.
-        const content = document.createElement('div');
-        content.className = 'gltf-card-content';
-        let node = title.nextSibling;
-        while (node) {
-            const next = node.nextSibling;
-            content.appendChild(node);
-            node = next;
-        }
-        card.appendChild(content);
+            // Move everything after the title into a collapsible content wrapper.
+            const content = document.createElement('div');
+            content.className = 'gltf-card-content';
+            let node = title.nextSibling;
+            while (node) {
+                const next = node.nextSibling;
+                content.appendChild(node);
+                node = next;
+            }
+            card.appendChild(content);
 
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'gltf-card-toggle';
-        button.setAttribute('aria-label', 'Expand ' + label);
-        button.setAttribute('aria-expanded', 'false');
-        button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>';
-        title.appendChild(button);
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'gltf-card-toggle';
+            button.setAttribute('aria-label', 'Expand ' + label);
+            button.setAttribute('aria-expanded', 'false');
+            button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>';
+            title.appendChild(button);
 
-        // Folded by default unless explicitly expanded.
-        if (card.dataset.expanded !== 'true') {
-            card.classList.add('gltf-card-collapsed');
-        } else {
-            button.setAttribute('aria-expanded', 'true');
-            button.setAttribute('aria-label', 'Collapse ' + label);
-        }
+            // Folded by default unless explicitly expanded.
+            if (card.dataset.expanded !== 'true') {
+                card.classList.add('gltf-card-collapsed');
+            } else {
+                button.setAttribute('aria-expanded', 'true');
+                button.setAttribute('aria-label', 'Collapse ' + label);
+            }
 
-        function toggle() {
-            const collapsed = card.classList.toggle('gltf-card-collapsed');
-            button.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-            button.setAttribute('aria-label', (collapsed ? 'Expand ' : 'Collapse ') + label);
-        }
+            function toggle() {
+                const collapsed = card.classList.toggle('gltf-card-collapsed');
+                button.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+                button.setAttribute('aria-label', (collapsed ? 'Expand ' : 'Collapse ') + label);
+            }
 
-        // The whole title acts as the click target; the button stops propagation to avoid toggling twice.
-        title.addEventListener('click', toggle);
-        button.addEventListener('click', (event) => {
-            event.stopPropagation();
-            toggle();
-        });
+            // The whole title acts as the click target; the button stops propagation to avoid toggling twice.
+            title.addEventListener('click', toggle);
+            button.addEventListener('click', (event) => {
+                event.stopPropagation();
+                toggle();
+            });
         });
     });
 })();
@@ -443,14 +443,14 @@ if (container) {
                 }
             });
 
-        container.addEventListener('gltf-selectionchanged', (event) => {
-            fillProperties(viewer, event.detail.references);
+            container.addEventListener('gltf-selectionchanged', (event) => {
+                fillProperties(viewer, event.detail.references);
 
-            const references = (event.detail.references ?? []).filter((reference) => reference);
-            reportStatus(references.length === 0
-                ? 'Selection cleared'
-                : `Selected (${references.length}): ${references.join(', ')}`);
-        });
+                const references = (event.detail.references ?? []).filter((reference) => reference);
+                reportStatus(references.length === 0
+                    ? 'Selection cleared'
+                    : `Selected (${references.length}): ${references.join(', ')}`);
+            });
         } catch {
             if (loader) {
                 loader.style.display = 'none';
@@ -471,11 +471,11 @@ if (container) {
     const resizer = document.getElementById('gltf-resizer');
     const sidePanel = document.getElementById('gltf-side-panel');
     const layout = document.querySelector('.gltf-layout');
-    
+
     if (!resizer || !sidePanel || !layout) {
         return;
     }
-    
+
     // Load saved width on start
     const savedWidth = localStorage.getItem('gltf-side-panel-width');
     if (savedWidth) {
@@ -484,38 +484,38 @@ if (container) {
             sidePanel.style.flex = `0 0 ${widthVal}px`;
         }
     }
-    
+
     resizer.addEventListener('mousedown', function (mouseDownEvent) {
         mouseDownEvent.preventDefault();
         resizer.classList.add('is-dragging');
-        
+
         const startX = mouseDownEvent.clientX;
         const startWidth = sidePanel.getBoundingClientRect().width;
-        
+
         function onMouseMove(mouseMoveEvent) {
             const deltaX = mouseMoveEvent.clientX - startX;
             // The side panel is on the right, so dragging left (negative deltaX) increases its width.
             const newWidth = Math.max(200, Math.min(600, startWidth - deltaX));
-            
+
             sidePanel.style.flex = `0 0 ${newWidth}px`;
-            
+
             // Dispatch resize event so Three.js canvas adjusts instantly
             window.dispatchEvent(new Event('resize'));
         }
-        
+
         function onMouseUp() {
             resizer.classList.remove('is-dragging');
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
-            
+
             // Save width preference
             const finalWidth = sidePanel.getBoundingClientRect().width;
             localStorage.setItem('gltf-side-panel-width', finalWidth);
-            
+
             // Final resize dispatch
             window.dispatchEvent(new Event('resize'));
         }
-        
+
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
     });
@@ -526,11 +526,11 @@ if (container) {
     const resizer = document.getElementById('gltf-left-resizer');
     const leftPanel = document.getElementById('gltf-left-panel');
     const layout = document.querySelector('.gltf-layout');
-    
+
     if (!resizer || !leftPanel || !layout) {
         return;
     }
-    
+
     // Load saved width on start
     const savedWidth = localStorage.getItem('gltf-left-panel-width');
     if (savedWidth) {
@@ -539,38 +539,38 @@ if (container) {
             leftPanel.style.flex = `0 0 ${widthVal}px`;
         }
     }
-    
+
     resizer.addEventListener('mousedown', function (mouseDownEvent) {
         mouseDownEvent.preventDefault();
         resizer.classList.add('is-dragging');
-        
+
         const startX = mouseDownEvent.clientX;
         const startWidth = leftPanel.getBClientRect().width;
-        
+
         function onMouseMove(mouseMoveEvent) {
             const deltaX = mouseMoveEvent.clientX - startX;
             // The left panel is on the left, so dragging right (positive deltaX) increases its width.
             const newWidth = Math.max(150, Math.min(500, startWidth + deltaX));
-            
+
             leftPanel.style.flex = `0 0 ${newWidth}px`;
-            
+
             // Dispatch resize event so Three.js canvas adjusts instantly
             window.dispatchEvent(new Event('resize'));
         }
-        
+
         function onMouseUp() {
             resizer.classList.remove('is-dragging');
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
-            
+
             // Save width preference
             const finalWidth = leftPanel.getBClientRect().width;
             localStorage.setItem('gltf-left-panel-width', finalWidth);
-            
+
             // Final resize dispatch
             window.dispatchEvent(new Event('resize'));
         }
-        
+
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
     });
@@ -610,4 +610,3 @@ if (container) {
         });
     }
 })();
-

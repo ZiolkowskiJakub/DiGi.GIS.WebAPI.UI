@@ -170,6 +170,5 @@ namespace DiGi.GIS.WebAPI.UI
             }
             return result;
         }
-
     }
 }

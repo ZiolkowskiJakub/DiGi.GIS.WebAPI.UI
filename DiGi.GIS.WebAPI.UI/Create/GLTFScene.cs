@@ -1,4 +1,3 @@
-using DiGi.Core.Interfaces;
 using DiGi.GIS.Classes;
 using DiGi.GLTF.Classes;
 using System.Collections.Generic;

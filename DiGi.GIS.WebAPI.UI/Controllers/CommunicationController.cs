@@ -1,7 +1,6 @@
 using DiGi.Analytical.Building.Classes;
 using DiGi.Communication.Classes;
 using DiGi.Communication.Enums;
-using DiGi.Communication.Interfaces;
 using DiGi.Core.Constants;
 using DiGi.Geometry.Spatial;
 using DiGi.Geometry.Spatial.Classes;
@@ -573,7 +572,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
                 List<BuildingModel>? buildingModels = Core.Convert.ToDiGi<BuildingModel>(json);
 
-                if(buildingModels is null || buildingModels.Count == 0)
+                if (buildingModels is null || buildingModels.Count == 0)
                 {
                     return NoContent();
                 }
@@ -589,13 +588,13 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 foreach (BuildingModel buildingModel in buildingModels)
                 {
                     List<ScatteringObject>? scatteringObjects = buildingModel?.ToCommunication();
-                    if(scatteringObjects is null || scatteringObjects.Count == 0)
+                    if (scatteringObjects is null || scatteringObjects.Count == 0)
                     {
                         continue;
                     }
 
                     ScatteringGroup? scatteringGroup = geometricalPropagationModel.Group(buildingModel!.Guid.ToString(), scatteringObjects);
-                    if(scatteringGroup is not null && scatteringGroup?.BoundingBox3D?.Min.Z is double elevation && minElevation > elevation)
+                    if (scatteringGroup is not null && scatteringGroup?.BoundingBox3D?.Min.Z is double elevation && minElevation > elevation)
                     {
                         minElevation = elevation;
                     }
