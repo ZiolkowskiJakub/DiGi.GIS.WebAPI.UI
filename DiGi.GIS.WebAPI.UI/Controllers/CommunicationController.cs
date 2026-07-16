@@ -943,7 +943,6 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         [HttpPost("v2/calculate")]
         public async Task<IActionResult> CalculateAsyncV2([FromBody] CommunicationCalculationParameter? communicationCalculationParameter, CancellationToken cancellationToken = default)
         {
-            // [TEMPORARY A/B TESTING] Replace the body below with the new V2 implementation. It is currently an exact clone of CalculateAsyncV1 so the two versions return identical results until the new code is dropped in.
             if (communicationCalculationParameter is null || communicationCalculationParameter.Antennas is null || communicationCalculationParameter.Antennas.Count != 2)
             {
                 return BadRequest("Two antennas (transmitter and receiver) are required.");
