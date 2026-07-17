@@ -114,10 +114,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 urlBuilder = urlBuilder.AddParameter("radius", communicationCalculationParameter.Radius);
 
                 HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString(), cancellationToken);
-            if (!httpResponseMessage.IsSuccessStatusCode)
-            {
-                return BadRequest($"Failed to fetch buildings from the GIS service (HTTP {(int)httpResponseMessage.StatusCode}).");
-            }
+                if (!httpResponseMessage.IsSuccessStatusCode)
+                {
+                    return BadRequest($"Failed to fetch buildings from the GIS service (HTTP {(int)httpResponseMessage.StatusCode}).");
+                }
 
                 string json = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
                 if (string.IsNullOrWhiteSpace(json))

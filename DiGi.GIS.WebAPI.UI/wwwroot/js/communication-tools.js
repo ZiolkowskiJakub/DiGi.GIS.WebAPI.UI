@@ -37,10 +37,10 @@ const AUXILIARY_OPACITY = 0.35;          // auxiliary polylines of the selected 
 const VECTOR_COLOR = 0x2ecc40;           // angular power distribution vectors (green like the rays)
 const SCATTERING_RADIUS_FACTOR = 0.15;   // scattering polyline tube radius vs the antenna dot
 const VECTOR_RADIUS_FACTOR = 0.1;        // angular power vector tube radius vs the antenna dot
-const DEFAULT_VECTOR_SCALE = 1000;       // default stretch applied to the angular power vectors
+const DEFAULT_VECTOR_SCALE = 100;       // default stretch applied to the angular power vectors
 const RAY_DECIBEL_WINDOW = 30;           // dB range mapped onto the ray length scale
 const CLICK_THRESHOLD = 5;               // pixels of pointer travel before a click becomes a drag
-const DEFAULT_ANTENNA_HEIGHT = 30;       // default Z coordinate for the antenna modal and live preview
+const DEFAULT_ANTENNA_HEIGHT = 15;       // default Z coordinate for the antenna modal and live preview
 const ANTENNA_PREVIEW_OPACITY = 0.5;     // semi-transparent live preview during add mode
 
 const container = document.getElementById('gltf-viewer-container');
@@ -155,7 +155,7 @@ function updateToolbar() {
 // ---------------------------------------------------------------------------------------------
 
 function antennaDotRadius() {
-    return Math.max(0.6, sceneRadius * 0.006);
+    return Math.max(0.6, sceneRadius * 0.006) * 0.5;
 }
 
 function buildAntennaVisual(data) {
@@ -780,7 +780,6 @@ function deselectPolylineObject() {
     selectionPanel.style.display = 'none';
     notifyPolylineSelection(false);
 }
-
 
 // ---------------------------------------------------------------------------------------------
 // Delay based (v1) results: the payload carries one entry per delay (ascending). The delay slider

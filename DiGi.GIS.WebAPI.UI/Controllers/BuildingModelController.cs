@@ -1,9 +1,9 @@
 using DiGi.Analytical.Building.Classes;
+using DiGi.Analytical.Building.Enums;
 using DiGi.Geometry.Spatial.Classes;
 using DiGi.GIS.WebAPI.UI.ViewModels;
 using DiGi.GLTF;
 using DiGi.GLTF.Analytical;
-using DiGi.Analytical.Building.Enums;
 using DiGi.GLTF.Classes;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
@@ -162,7 +162,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// <param name="radius">The radius of the search circle in meters.</param>
         /// <param name="storeyHeight">The optional storey height in meters used for the extrusions.</param>
         /// <returns>An <see cref="IActionResult"/> rendering the glTF scene view.</returns>
-        [HttpGet("/buildingmodel/itemsbyradius")]
+        [HttpGet("itemsbyradius")]
         public IActionResult GetItemsByRadius([FromQuery(Name = "centerX")] double centerX, [FromQuery(Name = "centerY")] double centerY, [FromQuery(Name = "radius")] double radius, [FromQuery(Name = "storeyheight")] double? storeyHeight = null)
         {
             if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0)
@@ -193,7 +193,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// <param name="storeyHeight">The optional storey height in meters used for the extrusions.</param>
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
         /// <returns>A <see cref="Task{IActionResult}"/> holding the .glb file.</returns>
-        [HttpGet("/buildingmodel/glb/buildingsbyradius")]
+        [HttpGet("glb/buildingsbyradius")]
         public async Task<IActionResult> GetBuildingsGLBByRadiusAsync([FromQuery(Name = "centerX")] double centerX, [FromQuery(Name = "centerY")] double centerY, [FromQuery(Name = "radius")] double radius, [FromQuery(Name = "storeyheight")] double? storeyHeight = null, CancellationToken cancellationToken = default)
         {
             if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0)
