@@ -38,9 +38,8 @@ webApplicationBuilder.Services.AddControllersWithViews();
 
 // Register all IGLTFNodeConverter implementations with the generic DiGi.GLTF engine (plugin
 // pattern): the shared DiGi.GLTF.Analytical assembly owns the DiGi.Analytical converters
-// (BuildingModel, UrbanModel, IComponent), this assembly owns the GIS converters (Building2D).
-// Adding support for a new domain type only requires adding a new converter class - no other
-// code changes.
+// (BuildingModel, UrbanModel, IComponent). Adding support for a new domain type only requires
+// adding a new converter class - no other code changes.
 DiGi.GLTF.Analytical.Modify.Register();
 DiGi.GLTF.Modify.Register(typeof(Program).Assembly);
 

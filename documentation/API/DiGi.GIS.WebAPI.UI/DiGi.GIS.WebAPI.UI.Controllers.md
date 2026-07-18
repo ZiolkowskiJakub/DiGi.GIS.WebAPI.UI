@@ -341,33 +341,6 @@ The optional unique identifier of the county associated with the item\.
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation, containing the [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') result\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetPointsByReferencesAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_)'></a>
-
-## Building2DController\.GetPointsByReferencesAsync\(IEnumerable\<string\>, Nullable\<int\>\) Method
-
-Asynchronously retrieves 2D points based on a collection of references and an optional county identifier\.
-
-```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetPointsByReferencesAsync(System.Collections.Generic.IEnumerable<string> references, System.Nullable<int> countyId);
-```
-#### Parameters
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetPointsByReferencesAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_).references'></a>
-
-`references` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
-
-The collection of string references used to identify the building points\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetPointsByReferencesAsync(System.Collections.Generic.IEnumerable_string_,System.Nullable_int_).countyId'></a>
-
-`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
-
-The optional integer identifier of the county associated with the buildings\.
-
-#### Returns
-[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-A task that represents the asynchronous operation\. The task result contains an [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')\.
-
 <a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetPolygonByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_)'></a>
 
 ## Building2DController\.GetPolygonByIdAsync\(long, Nullable\<int\>, Nullable\<double\>, Nullable\<int\>\) Method
@@ -638,33 +611,6 @@ The optional storey height in meters used for the extrusion\.
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the \.glb file\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByIdAsync(long,System.Nullable_int_)'></a>
-
-## BuildingModelController\.GetItemByIdAsync\(long, Nullable\<int\>\) Method
-
-Asynchronously creates a [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') for the building with the specified unique identifier \(see [BuildingModelAsync\(this HttpClient, long, Nullable&lt;int&gt;, double, double\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double) 'DiGi\.GIS\.WebAPI\.UI\.Create\.BuildingModelAsync\(this System\.Net\.Http\.HttpClient, long, System\.Nullable\<int\>, double, double\)')\) and returns it as JSON\.
-
-```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetItemByIdAsync(long id, System.Nullable<int> countyId);
-```
-#### Parameters
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByIdAsync(long,System.Nullable_int_).id'></a>
-
-`id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
-
-The unique identifier of the building\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByIdAsync(long,System.Nullable_int_).countyId'></a>
-
-`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
-
-The optional unique identifier of the county associated with the building\.
-
-#### Returns
-[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the serialized [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double)'></a>
 
@@ -994,33 +940,6 @@ The unique reference string of the building\.
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional identifier for the county associated with the building\.
-
-#### Returns
-[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') containing a partial view with the coefficient data, or an error result if the request fails\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.HeatTransferCoefficientController.GetRegulatedHeatTransferCoefficientsByYearAsync(short,System.Threading.CancellationToken)'></a>
-
-## HeatTransferCoefficientController\.GetRegulatedHeatTransferCoefficientsByYearAsync\(short, CancellationToken\) Method
-
-Retrieves regulated heat transfer coefficients for a specific year and returns them via a partial view\.
-
-```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetRegulatedHeatTransferCoefficientsByYearAsync(short year, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
-```
-#### Parameters
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.HeatTransferCoefficientController.GetRegulatedHeatTransferCoefficientsByYearAsync(short,System.Threading.CancellationToken).year'></a>
-
-`year` [System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')
-
-The calendar year used to filter the regulated heat transfer coefficients\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.HeatTransferCoefficientController.GetRegulatedHeatTransferCoefficientsByYearAsync(short,System.Threading.CancellationToken).cancellationToken'></a>
-
-`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
-
-A token to monitor for cancellation requests\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  

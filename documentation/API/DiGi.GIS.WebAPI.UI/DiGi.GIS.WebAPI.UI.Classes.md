@@ -68,48 +68,6 @@ public double Z { get; set; }
 #### Property Value
 [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.Building2DGLTFNodeConverter'></a>
-
-## Building2DGLTFNodeConverter Class
-
-Converts a [DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D') into [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode') instances by extruding its 2D footprint by the number of storeys \(see [ToGLTF\_GLTFNodes\(this Building2D, double, double\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Convert.ToGLTF_GLTFNodes(thisDiGi.GIS.Classes.Building2D,double,double) 'DiGi\.GIS\.WebAPI\.UI\.Convert\.ToGLTF\_GLTFNodes\(this DiGi\.GIS\.Classes\.Building2D, double, double\)')\)\.
-
-Registered automatically at startup by assembly scanning (see Program.cs); the generic DiGi.GLTF engine consults it when converting [DiGi\.Core\.Interfaces\.ISerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iserializableobject 'DiGi\.Core\.Interfaces\.ISerializableObject') instances.
-
-```csharp
-public class Building2DGLTFNodeConverter : DiGi.GLTF.Classes.GLTFNodeConverter<DiGi.GIS.Classes.Building2D>
-```
-
-Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.GLTF\.Classes\.GLTFNodeConverter&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnodeconverter-1 'DiGi\.GLTF\.Classes\.GLTFNodeConverter\`1')[DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnodeconverter-1 'DiGi\.GLTF\.Classes\.GLTFNodeConverter\`1') → Building2DGLTFNodeConverter
-### Methods
-
-<a name='DiGi.GIS.WebAPI.UI.Classes.Building2DGLTFNodeConverter.Convert(DiGi.GIS.Classes.Building2D,double)'></a>
-
-## Building2DGLTFNodeConverter\.Convert\(Building2D, double\) Method
-
-Converts the specified [DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D') into [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode') instances holding geometry in world coordinates\.
-
-```csharp
-public override System.Collections.Generic.List<DiGi.GLTF.Classes.GLTFNode>? Convert(DiGi.GIS.Classes.Building2D serializableObject, double tolerance);
-```
-#### Parameters
-
-<a name='DiGi.GIS.WebAPI.UI.Classes.Building2DGLTFNodeConverter.Convert(DiGi.GIS.Classes.Building2D,double).serializableObject'></a>
-
-`serializableObject` [DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D')
-
-The [DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D') to be converted\.
-
-<a name='DiGi.GIS.WebAPI.UI.Classes.Building2DGLTFNodeConverter.Convert(DiGi.GIS.Classes.Building2D,double).tolerance'></a>
-
-`tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-The distance tolerance used during triangulation\.
-
-#### Returns
-[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
-A list of [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode') instances, or null if the building has no geometry\.
-
 <a name='DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter'></a>
 
 ## CommunicationCalculationParameter Class

@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Controllers
@@ -29,52 +28,6 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         public HeatTransferCoefficientController(IHttpClientFactory httpClientFactory)
         {
             this.httpClientFactory = httpClientFactory;
-        }
-
-        /// <summary>
-        /// Retrieves regulated heat transfer coefficients for a specific year and returns them via a partial view.
-        /// </summary>
-        /// <param name="year">The calendar year used to filter the regulated heat transfer coefficients.</param>
-        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-        /// <returns>An <see cref="IActionResult"/> containing a partial view with the coefficient data, or an error result if the request fails.</returns>
-        [HttpGet("regulatedheattransfercoefficientsbyyear")]
-        public async Task<IActionResult> GetRegulatedHeatTransferCoefficientsByYearAsync([FromQuery(Name = "year")] short year, CancellationToken cancellationToken = default)
-        {
-            HttpClient httpClient = httpClientFactory.CreateClient();
-
-            UrlBuilder urlBuilder;
-            HttpResponseMessage httpResponseMessage;
-            string json;
-
-            #region RegulatedHeatTransferCoefficients
-
-            urlBuilder = new("https://api.digiproject.uk/gis/heattransfercoefficient/regulatedheattransfercoefficientsbyyear");
-            urlBuilder = urlBuilder.AddParameter("year", year);
-
-            httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
-            if (!httpResponseMessage.IsSuccessStatusCode)
-            {
-                return BadRequest();
-            }
-
-            json = await httpResponseMessage.Content.ReadAsStringAsync();
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return NoContent();
-            }
-
-            List<IRegulatedHeatTransferCoefficients>? regulatedHeatTransferCoefficients = Core.Convert.ToDiGi<IRegulatedHeatTransferCoefficients>(json);
-            if (regulatedHeatTransferCoefficients is null)
-            {
-                return NoContent();
-            }
-
-            #endregion RegulatedHeatTransferCoefficients
-
-            RegulatedHeatTransferCoefficientsViewModel regulatedHeatTransferCoefficientsViewModel = new(year, regulatedHeatTransferCoefficients?.FirstOrDefault(), null);
-
-            // We pass the objects to a Partial View
-            return PartialView("_RegulatedHeatTransferCoefficientsView", regulatedHeatTransferCoefficientsViewModel);
         }
 
         /// <summary>

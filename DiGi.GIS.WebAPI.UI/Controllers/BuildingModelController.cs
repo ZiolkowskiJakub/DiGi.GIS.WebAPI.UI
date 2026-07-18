@@ -1,5 +1,6 @@
 using DiGi.Analytical.Building.Classes;
 using DiGi.Analytical.Building.Enums;
+using DiGi.Core.Interfaces;
 using DiGi.Geometry.Spatial.Classes;
 using DiGi.GIS.WebAPI.UI.ViewModels;
 using DiGi.GLTF;
@@ -31,32 +32,6 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         public BuildingModelController(IHttpClientFactory httpClientFactory)
         {
             this.httpClientFactory = httpClientFactory;
-        }
-
-        /// <summary>
-        /// Asynchronously creates a <see cref="BuildingModel"/> for the building with the specified unique identifier (see <see cref="Create.BuildingModelAsync(HttpClient?, long, int?, double, double)"/>) and returns it as JSON.
-        /// </summary>
-        /// <param name="id">The unique identifier of the building.</param>
-        /// <param name="countyId">The optional unique identifier of the county associated with the building.</param>
-        /// <returns>A <see cref="Task{IActionResult}"/> holding the serialized <see cref="BuildingModel"/>.</returns>
-        [HttpGet("itembyid")]
-        public async Task<IActionResult> GetItemByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId)
-        {
-            HttpClient httpClient = httpClientFactory.CreateClient();
-
-            BuildingModel? buildingModel = await httpClient.BuildingModelAsync(id, countyId);
-            if (buildingModel is null)
-            {
-                return NoContent();
-            }
-
-            string json = Core.Convert.ToSystem_String(buildingModel) ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return NotFound();
-            }
-
-            return Content(json, "application/json");
         }
 
         /// <summary>
@@ -130,7 +105,15 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NotFound();
             }
 
-            List<GLTFNode>? gLTFNodes = buildingModel.ToGLTF_GLTFNodes();
+            // Reuse the building's own stored reference so the rebuilt component nodes carry a fully-qualified
+            // reference (building + county + component guid) rather than a bare component identifier.
+            IReference? reference_BuildingModel = null;
+            if (buildingModel.TryGetValue<string>(Analytical.Enums.BuildingModelParameter.Reference, out string? referenceText) && Core.Query.TryParse(referenceText, out IReference? reference_Temp))
+            {
+                reference_BuildingModel = reference_Temp;
+            }
+
+            List<GLTFNode>? gLTFNodes = buildingModel.ToGLTF_GLTFNodes(reference_BuildingModel);
             if (gLTFNodes is null || gLTFNodes.Count == 0)
             {
                 return NotFound();
@@ -231,7 +214,13 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             List<GLTFNode> gLTFNodes = [];
             foreach (BuildingModel buildingModel in buildingModels)
             {
-                List<GLTFNode>? gLTFNodes_Temp = buildingModel.ToGLTF_GLTFNodes(Core.Constants.Tolerance.Distance, BuildingModelDetailLevel.Envelope);
+                IReference? reference = null;
+                if(buildingModel.TryGetValue<string>(Analytical.Enums.BuildingModelParameter.Reference, out string? referenceText) && Core.Query.TryParse(referenceText, out IReference? reference_Temp))
+                {
+                    reference = reference_Temp;
+                }
+
+                List<GLTFNode>? gLTFNodes_Temp = buildingModel.ToGLTF_GLTFNodes(reference, Core.Constants.Tolerance.Distance, BuildingModelDetailLevel.Envelope);
                 if (gLTFNodes_Temp is not null)
                 {
                     gLTFNodes.AddRange(gLTFNodes_Temp);
@@ -332,7 +321,11 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NoContent();
             }
 
-            List<GLTFNode>? gLTFNodes = buildingModel.ToGLTF_GLTFNodes();
+            // Give every component node a fully-qualified reference (building + county + component guid) so a
+            // selected element can be traced back to its building; ToGLTF_GLTFNodes flattens the component step in.
+            IReference? reference = PostgreSQL.Create.Reference(buildingModel, null, countyId);
+
+            List<GLTFNode>? gLTFNodes = buildingModel.ToGLTF_GLTFNodes(reference);
             if (gLTFNodes is null || gLTFNodes.Count == 0)
             {
                 return NoContent();

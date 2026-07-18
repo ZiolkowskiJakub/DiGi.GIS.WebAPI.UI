@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Json;
 using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Controllers
@@ -79,6 +78,22 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             if (string.IsNullOrWhiteSpace(reference))
             {
                 return BadRequest();
+            }
+
+            // A viewer node reference may be a ComplexReference that carries the building reference together with
+            // its county (see PostgreSQL.Create.Reference). Unwrap it so the by-reference lookup and county
+            // partition use the plain building reference; a plain reference is returned unchanged.
+            if (PostgreSQL.Query.TryParse(reference, out string buildingModelReference, out int? countyId_Reference, out _))
+            {
+                if (!string.IsNullOrWhiteSpace(buildingModelReference))
+                {
+                    reference = buildingModelReference;
+                }
+
+                if (countyId is null && countyId_Reference is not null)
+                {
+                    countyId = countyId_Reference;
+                }
             }
 
             HttpClient httpClient = httpClientFactory.CreateClient();
@@ -313,59 +328,6 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             List<Point2D>? point2Ds = building2D.PolygonalFace2D?.ExternalEdge?.GetPoints();
             Modify.Reduce(point2Ds, reductionFactor, minCount ?? 100);
-
-            #endregion Point2Ds
-
-            string result = point2Ds is null ? string.Empty : string.Join(" ", point2Ds.ConvertAll(p => $"{p.X} {p.Y}"));
-
-            return Content(result, "text/plain");
-        }
-
-        /// <summary>
-        /// Asynchronously retrieves 2D points based on a collection of references and an optional county identifier.
-        /// </summary>
-        /// <param name="references">The collection of string references used to identify the building points.</param>
-        /// <param name="countyId">The optional integer identifier of the county associated with the buildings.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IActionResult"/>.</returns>
-        [HttpGet("svg/pointsbyreferences")]
-        public async Task<IActionResult> GetPointsByReferencesAsync([FromBody] IEnumerable<string> references, [FromQuery(Name = "countyid")] int? countyId)
-        {
-            HttpClient httpClient = httpClientFactory.CreateClient();
-
-            UrlBuilder urlBuilder;
-            HttpResponseMessage httpResponseMessage;
-            string json;
-
-            #region Point2Ds
-
-            urlBuilder = new("https://api.digiproject.uk/gis/building2D/point2dsbyreferences");
-            if (countyId is not null && countyId.HasValue)
-            {
-                urlBuilder = urlBuilder.AddParameter("countyId", countyId.Value);
-            }
-
-            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, urlBuilder.ToString())
-            {
-                Content = JsonContent.Create(references)
-            };
-
-            httpResponseMessage = await httpClient.SendAsync(httpRequestMessage);
-            if (!httpResponseMessage.IsSuccessStatusCode)
-            {
-                return BadRequest();
-            }
-
-            json = await httpResponseMessage.Content.ReadAsStringAsync();
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return NoContent();
-            }
-
-            List<Point2D>? point2Ds = Core.Convert.ToDiGi<Point2D>(json);
-            if (point2Ds is null)
-            {
-                return NotFound();
-            }
 
             #endregion Point2Ds
 
