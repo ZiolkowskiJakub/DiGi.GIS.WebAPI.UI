@@ -3,11 +3,8 @@ using DiGi.Analytical.Building.Classes;
 using DiGi.Analytical.Building.Interfaces;
 using DiGi.Communication.Classes;
 using DiGi.Core.Interfaces;
-using DiGi.Geometry.Planar.Classes;
-using DiGi.Geometry.Spatial;
 using DiGi.Geometry.Spatial.Classes;
 using DiGi.Geometry.Spatial.Interfaces;
-using DiGi.GIS.Classes;
 using System.Collections.Generic;
 
 namespace DiGi.GIS.WebAPI.UI

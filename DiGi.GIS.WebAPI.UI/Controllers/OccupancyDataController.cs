@@ -68,7 +68,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NoContent();
             }
 
-            List<Interfaces.IOccupancyData>? occupancyDatas = Core.Convert.ToDiGi<Interfaces.IOccupancyData>(json);
+            List<DiGi.GIS.Interfaces.IOccupancyData>? occupancyDatas = Core.Convert.ToDiGi<DiGi.GIS.Interfaces.IOccupancyData>(json);
             if (occupancyDatas is null)
             {
                 return NoContent();

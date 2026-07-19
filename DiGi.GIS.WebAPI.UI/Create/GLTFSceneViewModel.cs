@@ -7,9 +7,9 @@ namespace DiGi.GIS.WebAPI.UI
     public static partial class Create
     {
         /// <summary>
-        /// Creates a <see cref="ViewModels.GLTFSceneViewModel"/> for the 3D viewer from the specified <see cref="GLTF.Classes.GLTFScene"/> by serializing the scene to JSON and exporting it as a base64 encoded binary glTF (.glb) payload.
+        /// Creates a <see cref="ViewModels.GLTFSceneViewModel"/> for the 3D viewer from the specified <see cref="GLTFScene"/> by serializing the scene to JSON and exporting it as a base64 encoded binary glTF (.glb) payload.
         /// </summary>
-        /// <param name="gLTFScene">The <see cref="GLTF.Classes.GLTFScene"/> to be rendered. This value can be null.</param>
+        /// <param name="gLTFScene">The <see cref="GLTFScene"/> to be rendered. This value can be null.</param>
         /// <param name="title">The title displayed above the viewer. If this value is null, the scene name is used.</param>
         /// <returns>A <see cref="ViewModels.GLTFSceneViewModel"/> ready to be passed to the glTF scene view, or null if the scene is null or could not be exported.</returns>
         public static ViewModels.GLTFSceneViewModel? GLTFSceneViewModel(this GLTFScene? gLTFScene, string? title = null)

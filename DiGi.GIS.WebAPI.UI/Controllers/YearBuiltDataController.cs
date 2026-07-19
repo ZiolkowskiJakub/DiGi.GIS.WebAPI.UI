@@ -68,7 +68,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NoContent();
             }
 
-            List<Interfaces.IYearBuiltData>? yearBuiltDatas = Core.Convert.ToDiGi<Interfaces.IYearBuiltData>(json);
+            List<DiGi.GIS.Interfaces.IYearBuiltData>? yearBuiltDatas = Core.Convert.ToDiGi<DiGi.GIS.Interfaces.IYearBuiltData>(json);
             if (yearBuiltDatas is null)
             {
                 return NoContent();

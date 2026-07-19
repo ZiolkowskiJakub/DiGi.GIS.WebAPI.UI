@@ -20,10 +20,12 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
         /// </summary>
         /// <param name="title">The title displayed above the viewer.</param>
         /// <param name="gLBUrl">The application relative URL of the binary glTF (.glb) endpoint.</param>
-        public GLTFSceneViewModel(string? title, string? gLBUrl)
+        /// <param name="scopeBoxSize">The default scope box preset in the form "halfX;halfY;zMin;zMax" (DiGi coordinates) passed to the viewer, or null for the bounds-fit default. This value can be null.</param>
+        public GLTFSceneViewModel(string? title, string? gLBUrl, string? scopeBoxSize = null)
         {
             Title = title;
             GLBUrl = gLBUrl;
+            ScopeBoxSize = scopeBoxSize;
         }
 
         /// <summary>
@@ -52,6 +54,9 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
 
         /// <summary> Gets the JSON representation of the scene used by the viewer for lights, camera and reference point configuration (embedded delivery only). </summary>
         public string? GLTFSceneJson { get; }
+
+        /// <summary> Gets the default scope box preset in the form "halfX;halfY;zMin;zMax" (DiGi coordinates) passed to the viewer, or null for the bounds-fit default. </summary>
+        public string? ScopeBoxSize { get; }
 
         /// <summary> Gets the title displayed above the viewer. </summary>
         public string? Title { get; }

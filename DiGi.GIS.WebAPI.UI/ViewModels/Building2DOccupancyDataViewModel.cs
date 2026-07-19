@@ -3,7 +3,7 @@ using DiGi.GIS.PostgreSQL.Classes;
 namespace DiGi.GIS.WebAPI.UI.ViewModels
 {
     /// <summary>
-    /// Represents a view model that provides combined access to <see cref="Building2DReference"/> and <see cref="Interfaces.IOccupancyData"/>.
+    /// Represents a view model that provides combined access to <see cref="Building2DReference"/> and <see cref="DiGi.GIS.Interfaces.IOccupancyData"/>.
     /// </summary>
     public class Building2DOccupancyDataViewModel
     {
@@ -19,7 +19,7 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
         /// </summary>
         /// <param name="building2DReference">The <see cref="DiGi.GIS.PostgreSQL.Classes.Building2DReference"/> reference to the 2D building, or <c>null</c>.</param>
         /// <param name="occupancyData">The <see cref="DiGi.GIS.Interfaces.IOccupancyData"/> containing occupancy data, or <c>null</c>.</param>
-        public Building2DOccupancyDataViewModel(Building2DReference? building2DReference, Interfaces.IOccupancyData? occupancyData)
+        public Building2DOccupancyDataViewModel(Building2DReference? building2DReference, DiGi.GIS.Interfaces.IOccupancyData? occupancyData)
         {
             Building2DReference = building2DReference;
             OccupancyData = occupancyData;
@@ -27,7 +27,7 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
 
         /// <summary> Gets the occupancy data associated with this building 2D occupancy data view. </summary>
 
-        public Interfaces.IOccupancyData? OccupancyData { get; }
+        public DiGi.GIS.Interfaces.IOccupancyData? OccupancyData { get; }
 
         /// <summary> Gets the reference to the 2D building associated with this occupancy data view. </summary>
 

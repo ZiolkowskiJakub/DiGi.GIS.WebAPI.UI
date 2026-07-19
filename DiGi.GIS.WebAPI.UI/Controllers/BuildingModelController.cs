@@ -161,7 +161,8 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             string title = $"Buildings ({centerX}, {centerY}) r = {radius} m";
 
-            GLTFSceneViewModel gLTFSceneViewModel = new(title, gLBUrl);
+            // Multi-building default scope box: +-50 m in X/Y around the scene center, Z from -1 to 49.
+            GLTFSceneViewModel gLTFSceneViewModel = new(title, gLBUrl, "50;50;-1;49");
 
             return View("~/Views/GLTF/GLTFSceneView.cshtml", gLTFSceneViewModel);
         }

@@ -37,6 +37,14 @@
                         <span class="gltf-control-key">Right click</span>
                         <span class="gltf-control-val">Context menu</span>
                     </div>
+                    <div class="gltf-control-row">
+                        <span class="gltf-control-key">Drag box edge</span>
+                        <span class="gltf-control-val">Move scope box</span>
+                    </div>
+                    <div class="gltf-control-row">
+                        <span class="gltf-control-key">Click box edge</span>
+                        <span class="gltf-control-val">Resize/rotate handles</span>
+                    </div>
                 </div>
             </div>
 
@@ -63,9 +71,11 @@
            attributes carry the scene input parameters so the calculation request can rebuild the
            analyzed area on the server without any client side storage.
            data-status-terminal: boolean flag of the task status terminal docked to the bottom edge
-           of the 3D view — "false" removes the text area and its splitter entirely. *@
+           of the 3D view — "false" removes the text area and its splitter entirely.
+           data-scope-box-size: default scope box preset "halfX;halfY;zMin;zMax" (DiGi coordinates). *@
         <div id="gltf-viewer-container"
              data-status-terminal="true"
+             data-scope-box-size="50;50;-1;49"
              data-glb-url="@(string.IsNullOrEmpty(Model.GLBUrl) ? string.Empty : Url.Content(Model.GLBUrl))"
              data-building-details-url="@Url.Content("~/building2D/detailsbyreference")"
              data-buildingmodel-details-url="@Url.Content("~/buildingmodel/itembyreference")"

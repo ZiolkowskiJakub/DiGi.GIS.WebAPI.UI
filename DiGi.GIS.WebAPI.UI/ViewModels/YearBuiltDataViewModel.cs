@@ -19,7 +19,7 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
         /// </summary>
         /// <param name="building2DReference">The reference to the 2D building.</param>
         /// <param name="yearBuiltData">The year built data associated with the building.</param>
-        public YearBuiltDataViewModel(Building2DReference? building2DReference, Interfaces.IYearBuiltData? yearBuiltData)
+        public YearBuiltDataViewModel(Building2DReference? building2DReference, DiGi.GIS.Interfaces.IYearBuiltData? yearBuiltData)
         {
             Building2DReference = building2DReference;
             YearBuiltData = yearBuiltData;
@@ -28,7 +28,7 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
         /// <summary>
         /// Gets the year built data associated with the building.
         /// </summary>
-        public Interfaces.IYearBuiltData? YearBuiltData { get; }
+        public DiGi.GIS.Interfaces.IYearBuiltData? YearBuiltData { get; }
 
         /// <summary>
         /// Gets the reference to the 2D building.

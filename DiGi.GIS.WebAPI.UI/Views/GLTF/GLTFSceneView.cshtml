@@ -36,6 +36,14 @@
                         <span class="gltf-control-key">Right click</span>
                         <span class="gltf-control-val">Context menu</span>
                     </div>
+                    <div class="gltf-control-row">
+                        <span class="gltf-control-key">Drag box edge</span>
+                        <span class="gltf-control-val">Move scope box</span>
+                    </div>
+                    <div class="gltf-control-row">
+                        <span class="gltf-control-key">Click box edge</span>
+                        <span class="gltf-control-val">Resize/rotate handles</span>
+                    </div>
                 </div>
             </div>
 
@@ -53,9 +61,12 @@
         @* Streamed delivery: the viewer fetches the binary glTF payload from data-glb-url; when the
            attribute is empty, the embedded base64 payload below is used instead.
            data-status-terminal: boolean flag of the task status terminal docked to the bottom edge
-           of the 3D view — "false" removes the text area and its splitter entirely. *@
+           of the 3D view — "false" removes the text area and its splitter entirely.
+           data-scope-box-size: default scope box preset "halfX;halfY;zMin;zMax" (DiGi coordinates);
+           empty falls back to the engine's bounds-fit default. *@
         <div id="gltf-viewer-container"
              data-status-terminal="true"
+             data-scope-box-size="@Model.ScopeBoxSize"
              data-glb-url="@(string.IsNullOrEmpty(Model.GLBUrl) ? string.Empty : Url.Content(Model.GLBUrl))"
              data-building-details-url="@Url.Content("~/building2D/detailsbyreference")"
              data-buildingmodel-details-url="@Url.Content("~/buildingmodel/itembyreference")"
