@@ -1,6 +1,6 @@
 ---
 name: coding-webapi-gltf
-description: Use when building or extending an ASP.NET Core Web API on the DiGi.GLTF 3D framework - the decoupled pipeline, onboarding a new consuming project, adding a 3D object type via IGLTFNodeConverter, and batching/streaming performance rules. ALSO use before touching any JavaScript in wwwroot/js/ — gltf-viewer-core.js is copied from DiGi.GLTF.WebAPI at build time and must be edited THERE, not in the consuming repo.
+description: Use when building or extending an ASP.NET Core Web API on the DiGi.GLTF 3D framework - the decoupled pipeline, onboarding a new consuming project, adding a 3D object type via IGLTFNodeConverter, and batching/streaming performance rules.
 ---
 
 # Coding — WebAPI glTF
@@ -351,21 +351,7 @@ GPU). This keeps selection O(range), independent of scene size.
 All meshes are marked `frustumCulled = true` with computed bounding boxes/spheres, so geometry
 outside the viewport is skipped by the renderer.
 
-### 4.5 Reusable viewer engine delivery — COPY MECHANISM (CRITICAL)
-
-> [!CAUTION]
-> **`gltf-viewer-core.js` in consuming projects is a BUILD ARTIFACT, not source code.**
->
-> The engine JS is **owned by `DiGi.GLTF.WebAPI`** (source repo at
-> `DiGi.GLTF.WebAPI\wwwroot\js\gltf-viewer-core.js`). Every consuming project copies it into its own
-> `wwwroot` at build time via an MSBuild `<Copy>` target — the static-asset analogue of the `HintPath`
-> DLL references.
->
-> **When you need to add or change functionality in `gltf-viewer-core.js`, you MUST edit the source
-> file in the `DiGi.GLTF.WebAPI` repository.** The copy in the consuming repo (`DiGi.GIS.WebAPI.UI`,
-> or any other consumer) is overwritten on every build and must never be hand-edited.
->
-> The consuming project then imports the engine through a versioned import map:
+### 4.5 Reusable viewer engine delivery
 
 The engine JS (`gltf-viewer-core.js`) is owned by `DiGi.GLTF.WebAPI/wwwroot/js/`. A consuming UI syncs
 it into its own `wwwroot` at build time (the static-asset analogue of the `HintPath` DLL references)
@@ -386,20 +372,6 @@ domain panels** (properties, lighting) and reacts to these events; it never fork
 > **Import map + tag helpers gotcha.** With MVC tag helpers active, the `<script type="importmap">`
 > element is rewritten and the `type` attribute is stripped, breaking module resolution. Opt that one
 > element out with the Razor `!` prefix: `<!script type="importmap"> ... </!script>`.
-
-### 4.6 WindowsService plugin deployment (PowerShell binary sync)
-
-The `DiGi.Maintenance` repo contains `Scripts/SyncDirectories.ps1` which copies compiled `bin/`
-directories from WebAPI repos into `DiGi.WebAPI.WindowsService\bin\extensions\` as plugins:
-
-| Source repo | Destination (under WindowsService\bin\extensions\) |
-|---|---|
-| `DiGi.User.WebAPI\bin` | `extensions\user` |
-| `DiGi.GIS.WebAPI\bin` | `extensions\gis` |
-| `DiGi.GLTF.WebAPI\bin` | `extensions\gltf` |
-
-This is a deployment/packaging mechanism, not a build-time source sync like the MSBuild copy above.
-It does not affect editing workflow.
 
 ---
 
@@ -425,4 +397,3 @@ Detailed installation, usage scenarios, and command guidelines for this template
       `user files/`, never the committed `files/` — see the `files/` vs `user files/` rule in
       `Coding - General.md`.
 - [ ] No `var`; explicit types; English only.
-
