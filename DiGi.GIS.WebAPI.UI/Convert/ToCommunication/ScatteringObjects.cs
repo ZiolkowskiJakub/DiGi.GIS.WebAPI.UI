@@ -55,7 +55,7 @@ namespace DiGi.GIS.WebAPI.UI
                     continue;
                 }
 
-                string? reference = null;
+                string? reference;
 
                 IReference? reference_Temp = PostgreSQL.Create.Reference(buidlingModel, component);
                 if(reference_Temp is null)
@@ -73,7 +73,7 @@ namespace DiGi.GIS.WebAPI.UI
                     reference = reference_Temp?.ToString();
                 }
 
-                result.Add(new ScatteringObject(reference, mesh3DComponent));
+                result.Add(new ScatteringObject(reference, mesh3DComponent, Communication.Constants.ElectricalProperties.Concrete));
             }
 
             return result;

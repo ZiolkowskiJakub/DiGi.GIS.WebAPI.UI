@@ -415,8 +415,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
                             // The vectors visualized at the location; their length carries the power,
                             // so they are sent unnormalized and scaled client side only.
-                            List<Vector3D>? vector3Ds = angularPowerDistribution.Vectors;
-                            if (vector3Ds is null || vector3Ds.Count == 0)
+                            if (angularPowerDistribution.Vectors is not IEnumerable<Vector3D> vector3Ds || !vector3Ds.Any())
                             {
                                 continue;
                             }
@@ -424,7 +423,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                             Add(vectorGroupPayloads, delay, new
                             {
                                 location = payload_Location,
-                                vectors = vector3Ds.ConvertAll(VectorPayload)
+                                vectors = vector3Ds.ToList().ConvertAll(VectorPayload)
                             });
                         }
                     }
