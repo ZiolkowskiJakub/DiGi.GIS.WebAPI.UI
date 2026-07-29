@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -34,7 +35,19 @@ webApplicationBuilder.Services.AddResponseCompression(responseCompressionOptions
 });
 
 // We use AddControllersWithViews because you want to display HTML pages (.cshtml)
-webApplicationBuilder.Services.AddControllersWithViews();
+// DiGi.Communication.WebAPI is referenced for its GIS agnostic propagation calculation result types
+// only. It is an extension assembly hosted by api.digiproject.uk, so MVC discovering it as an
+// application part would publish its controllers here too (verified: without the removal below,
+// communication/GeometricalPropagationModel/segment3d answers on this application). Its endpoints
+// belong to the deployed Web API, not to this UI, so the part is dropped.
+webApplicationBuilder.Services.AddControllersWithViews().ConfigureApplicationPartManager(applicationPartManager =>
+{
+    ApplicationPart? applicationPart = applicationPartManager.ApplicationParts.FirstOrDefault(x => x.Name == "DiGi.Communication.WebAPI");
+    if (applicationPart is not null)
+    {
+        applicationPartManager.ApplicationParts.Remove(applicationPart);
+    }
+});
 
 // Register all IGLTFNodeConverter implementations with the generic DiGi.GLTF engine (plugin
 // pattern): the shared DiGi.GLTF.Analytical assembly owns the DiGi.Analytical converters
