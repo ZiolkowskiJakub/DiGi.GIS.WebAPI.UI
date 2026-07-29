@@ -37,7 +37,7 @@ const AUXILIARY_OPACITY = 0.35;          // auxiliary polylines of the selected 
 const VECTOR_COLOR = 0x2ecc40;           // angular power distribution vectors (green like the rays)
 const SCATTERING_RADIUS_FACTOR = 0.15;   // scattering polyline tube radius vs the antenna dot
 const VECTOR_RADIUS_FACTOR = 0.1;        // angular power vector tube radius vs the antenna dot
-const DEFAULT_VECTOR_SCALE = 100;       // default stretch applied to the angular power vectors
+const DEFAULT_VECTOR_SCALE = 10;         // default stretch applied to the angular power vectors (matches the input value in the Results panel)
 const RAY_DECIBEL_WINDOW = 30;           // dB range mapped onto the ray length scale
 const CLICK_THRESHOLD = 5;               // pixels of pointer travel before a click becomes a drag
 const DEFAULT_ANTENNA_HEIGHT = 15;       // default Z coordinate for the antenna modal and live preview
@@ -74,6 +74,18 @@ const delayControls = document.getElementById('communication-delay-controls');
 const delaySlider = document.getElementById('communication-delay-slider');
 const delayValueLabel = document.getElementById('communication-delay-value');
 const vectorScaleInput = document.getElementById('communication-vector-scale');
+
+const resultsDetailsButton = document.getElementById('communication-results-details-button');
+
+const matrixModal = document.getElementById('communication-scattering-matrix-modal');
+const matrixTitle = document.getElementById('communication-scattering-matrix-title');
+const matrixPanel = document.getElementById('communication-scattering-matrix');
+const matrixCloseButton = document.getElementById('communication-scattering-matrix-close-button');
+
+const hitsModal = document.getElementById('communication-scattering-hits-modal');
+const hitsTitle = document.getElementById('communication-scattering-hits-title');
+const hitsPanel = document.getElementById('communication-scattering-hits');
+const hitsCloseButton = document.getElementById('communication-scattering-hits-close-button');
 
 let viewer = null;                 // GltfViewer instance exposed by gltf-viewer.js
 let referencePoint = { X: 0, Y: 0, Z: 0 };
@@ -609,6 +621,18 @@ function finishErase(remove) {
 }
 
 window.addEventListener('keydown', (event) => {
+    // The scattering popups are checked first so Escape peels them off one at a time: the hits table
+    // sits on top of the matrix, which in turn sits on top of the page.
+    if (hitsModal.style.display !== 'none' && event.key === 'Escape') {
+        hitsModal.style.display = 'none';
+        return;
+    }
+
+    if (matrixModal.style.display !== 'none' && event.key === 'Escape') {
+        matrixModal.style.display = 'none';
+        return;
+    }
+
     if (calculationModal.style.display !== 'none' && event.key === 'Escape') {
         calculationModal.style.display = 'none';
         return;
@@ -833,6 +857,10 @@ function clearDelayFrame() {
 function renderDelayFrame(index) {
     clearDelayFrame();
 
+    // The scattering matrix belongs to one delay; a delay change closes it rather than leaving a
+    // matrix of the previous delay on screen. It is reopened from the Details button.
+    closeScatteringModals();
+
     const delayResult = delayPayload.results[index];
     delayValueLabel.textContent = formatDelay(delayResult.delay);
 
@@ -1017,16 +1045,226 @@ function showDelayResults(payload, delayResult) {
     appendResultRow(table, 'Vectors', String(vectorCount));
     resultsPanel.appendChild(table);
 
-    const note = document.createElement('div');
-    note.className = 'gltf-muted';
-    note.style.marginTop = '6px';
-    note.textContent = 'Move the delay slider above to change the displayed delay. Click a scattering polyline for its auxiliary polylines and data (Selection panel).';
-    resultsPanel.appendChild(note);
+    resultsDetailsButton.style.display = hasScatteringHits(delayResult) ? '' : 'none';
 
     resultsCard.style.display = '';
 }
 
+// ---------------------------------------------------------------------------------------------
+// Scattering hits: "Details" opens the azimuth/elevation matrix of the selected delay, a matrix cell
+// opens the individual hits of that bin together with the electrical properties of the scattering
+// object each one hit (payload.scatteringObjects, keyed by the reference carried by every hit).
+// ---------------------------------------------------------------------------------------------
+
+function hasScatteringHits(delayResult) {
+    return (delayResult?.angularDistributions ?? []).some(angularDistribution => (angularDistribution.cells ?? []).length > 0);
+}
+
+// The collection bins at half a degree, which is finer than the matrix needs and splits a whole
+// degree across two columns. The matrix therefore merges each pair of half degree bins into the
+// whole degree bucket that contains them: 41.5°–42.0° and 42.0°–42.5° both become 42°, and 0°
+// spans 359.5°–0.5° by pairing the last bin of the circle with the first.
+// A bin mid always lands on .25 or .75 of a degree, so rounding it picks out the owning degree
+// without any half way ambiguity; 359.75° rounds to 360 and wraps back to 0.
+function bucketDegree(range) {
+    return Math.round((range.min + range.max) / 2 * 180 / Math.PI) % 360;
+}
+
+function formatBucketDegree(degree) {
+    return `${degree}°`;
+}
+
+function formatBucketSpan(degree) {
+    return `${((degree + 359.5) % 360).toFixed(1)}° – ${((degree + 0.5) % 360).toFixed(1)}°`;
+}
+
+// Groups half degree ranges into whole degree buckets, keeping the position of each source range so
+// the sparse cells can be folded onto the merged grid.
+function toBuckets(ranges) {
+    const bucketsByDegree = new Map();
+    ranges.forEach((range, index) => {
+        const degree = bucketDegree(range);
+        let bucket = bucketsByDegree.get(degree);
+        if (!bucket) {
+            bucket = { degree, indices: [] };
+            bucketsByDegree.set(degree, bucket);
+        }
+        bucket.indices.push(index);
+    });
+
+    // Sorted by degree rather than by source order: the 359.5° bin arrives last but belongs to 0°.
+    const buckets = [...bucketsByDegree.values()].sort((bucket_1, bucket_2) => bucket_1.degree - bucket_2.degree);
+
+    const positionByIndex = new Map();
+    buckets.forEach((bucket, position) => {
+        for (const index of bucket.indices) {
+            positionByIndex.set(index, position);
+        }
+    });
+
+    return { buckets, positionByIndex };
+}
+
+function openScatteringMatrix() {
+    if (delayPayload === null) {
+        return;
+    }
+
+    const delayResult = delayPayload.results[parseInt(delaySlider.value, 10)];
+    if (!hasScatteringHits(delayResult)) {
+        return;
+    }
+
+    matrixTitle.textContent = `Scattering hits – delay ${formatDelay(delayResult.delay)}`;
+    renderScatteringMatrix(delayResult);
+    matrixModal.style.display = 'flex';
+}
+
+function renderScatteringMatrix(delayResult) {
+    matrixPanel.innerHTML = '';
+
+    // One distribution per angular power distribution profile (one per receiving antenna).
+    const angularDistributions = (delayResult.angularDistributions ?? []).filter(angularDistribution => (angularDistribution.cells ?? []).length > 0);
+
+    for (const angularDistribution of angularDistributions) {
+        if (angularDistributions.length > 1) {
+            const caption = document.createElement('div');
+            caption.className = 'communication-matrix-caption';
+            caption.textContent = `Location ${angularDistribution.location.x.toFixed(2)}, ${angularDistribution.location.y.toFixed(2)}, ${angularDistribution.location.z.toFixed(2)}`;
+            matrixPanel.appendChild(caption);
+        }
+
+        // The half degree bins of the payload are merged into whole degree buckets, so both axes are
+        // bucketed first and every sparse cell is folded onto the bucket pair that contains it. Two
+        // azimuth bins by two elevation bins can land on the same bucket cell, hence the concatenation.
+        const azimuth = toBuckets(angularDistribution.azimuthRanges ?? []);
+        const elevation = toBuckets(angularDistribution.elevationRanges ?? []);
+
+        const hitsByBucket = new Map();
+        for (const cell of angularDistribution.cells) {
+            const key = `${azimuth.positionByIndex.get(cell.azimuthIndex)}:${elevation.positionByIndex.get(cell.elevationIndex)}`;
+            const hits = hitsByBucket.get(key);
+            if (hits) {
+                hits.push(...cell.hits);
+            } else {
+                hitsByBucket.set(key, [...cell.hits]);
+            }
+        }
+
+        const table = document.createElement('table');
+        table.className = 'gis-data-table communication-matrix-table';
+
+        const headerRow = table.createTHead().insertRow();
+        const cornerCell = document.createElement('th');
+        cornerCell.textContent = 'Elevation \\ Azimuth';
+        headerRow.appendChild(cornerCell);
+        for (const azimuthBucket of azimuth.buckets) {
+            const headerCell = document.createElement('th');
+            headerCell.textContent = formatBucketDegree(azimuthBucket.degree);
+            headerCell.title = formatBucketSpan(azimuthBucket.degree);
+            headerRow.appendChild(headerCell);
+        }
+
+        const body = table.createTBody();
+        for (let elevationPosition = 0; elevationPosition < elevation.buckets.length; elevationPosition++) {
+            const elevationBucket = elevation.buckets[elevationPosition];
+
+            const row = body.insertRow();
+            const labelCell = document.createElement('th');
+            labelCell.textContent = formatBucketDegree(elevationBucket.degree);
+            labelCell.title = formatBucketSpan(elevationBucket.degree);
+            row.appendChild(labelCell);
+
+            for (let azimuthPosition = 0; azimuthPosition < azimuth.buckets.length; azimuthPosition++) {
+                const cell = row.insertCell();
+                const hits = hitsByBucket.get(`${azimuthPosition}:${elevationPosition}`);
+                if (!hits) {
+                    continue;
+                }
+
+                const azimuthBucket = azimuth.buckets[azimuthPosition];
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'gis-button communication-matrix-cell';
+                button.textContent = String(hits.length);
+                button.addEventListener('click', () => openScatteringHits(hits, azimuthBucket.degree, elevationBucket.degree));
+                cell.appendChild(button);
+            }
+        }
+
+        const scrollBox = document.createElement('div');
+        scrollBox.className = 'gis-scroll-box';
+        scrollBox.appendChild(table);
+        matrixPanel.appendChild(scrollBox);
+    }
+}
+
+function openScatteringHits(hits, azimuthDegree, elevationDegree) {
+    hitsTitle.textContent = `Scattering hits – azimuth ${formatBucketDegree(azimuthDegree)} (${formatBucketSpan(azimuthDegree)}), elevation ${formatBucketDegree(elevationDegree)} (${formatBucketSpan(elevationDegree)})`;
+    renderScatteringHits(hits);
+    hitsModal.style.display = 'flex';
+}
+
+function renderScatteringHits(hits) {
+    hitsPanel.innerHTML = '';
+
+    const scatteringObjects = delayPayload?.scatteringObjects ?? {};
+
+    const table = document.createElement('table');
+    table.className = 'gis-data-table communication-hits-table';
+
+    const headerRow = table.createTHead().insertRow();
+    for (const columnName of ['X', 'Y', 'Z', 'Reference', 'A', 'B', 'C', 'D', 'Name']) {
+        const headerCell = document.createElement('th');
+        headerCell.textContent = columnName;
+        headerRow.appendChild(headerCell);
+    }
+
+    const body = table.createTBody();
+    for (const hit of hits) {
+        // X/Y/Z are the hit ray direction: IScatteringHit carries no location, and the direction is
+        // the per hit quantity the azimuth/elevation binning is derived from.
+        const row = body.insertRow();
+        appendHitCell(row, hit.x.toFixed(4), 'num nowrap');
+        appendHitCell(row, hit.y.toFixed(4), 'num nowrap');
+        appendHitCell(row, hit.z.toFixed(4), 'num nowrap');
+        // A scattering object reference runs to a few hundred characters, so it wraps rather than
+        // stretching the table into a horizontal scroll that buries the electrical properties.
+        appendHitCell(row, hit.reference ?? '—', 'communication-hit-reference');
+
+        // The electrical properties of the scattering object the hit reference points at.
+        const electricalProperties = scatteringObjects[hit.reference];
+        appendHitCell(row, electricalProperties ? String(electricalProperties.a) : '—', 'num nowrap');
+        appendHitCell(row, electricalProperties ? String(electricalProperties.b) : '—', 'num nowrap');
+        appendHitCell(row, electricalProperties ? String(electricalProperties.c) : '—', 'num nowrap');
+        appendHitCell(row, electricalProperties ? String(electricalProperties.d) : '—', 'num nowrap');
+        appendHitCell(row, electricalProperties?.name ?? '—', 'nowrap');
+    }
+
+    const scrollBox = document.createElement('div');
+    scrollBox.className = 'gis-scroll-box';
+    scrollBox.appendChild(table);
+    hitsPanel.appendChild(scrollBox);
+}
+
+function appendHitCell(row, value, className) {
+    const cell = row.insertCell();
+    cell.textContent = value;
+    cell.className = className;
+}
+
+function closeScatteringModals() {
+    hitsModal.style.display = 'none';
+    matrixModal.style.display = 'none';
+    hitsPanel.innerHTML = '';
+    matrixPanel.innerHTML = '';
+}
+
 function clearResults() {
+    // Closed first: both popups read delayPayload, which is dropped below.
+    closeScatteringModals();
+    resultsDetailsButton.style.display = 'none';
+
     deselectPolylineObject();
     removeAuxiliaryPolylines();
     for (const object of delayObjects) {
@@ -1177,6 +1415,17 @@ vectorScaleInput.addEventListener('input', () => {
     if (delayPayload !== null) {
         renderDelayFrame(parseInt(delaySlider.value, 10));
     }
+});
+
+// Scattering hit drill-down wiring: Details -> matrix of the selected delay -> hits of one bin.
+resultsDetailsButton.addEventListener('click', openScatteringMatrix);
+
+matrixCloseButton.addEventListener('click', () => {
+    matrixModal.style.display = 'none';
+});
+
+hitsCloseButton.addEventListener('click', () => {
+    hitsModal.style.display = 'none';
 });
 
 function clearAntennas() {

@@ -1,6 +1,8 @@
 using DiGi.Analytical.Building.Classes;
 using DiGi.Communication.Classes;
 using DiGi.Communication.Enums;
+using DiGi.Communication.Interfaces;
+using DiGi.Core.Classes;
 using DiGi.Core.Constants;
 using DiGi.Geometry.Spatial;
 using DiGi.Geometry.Spatial.Classes;
@@ -253,6 +255,13 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 static object PointPayload(Point3D point3D) => new { x = point3D.X, y = point3D.Y, z = point3D.Z };
                 static object VectorPayload(Vector3D vector3D) => new { x = vector3D.X, y = vector3D.Y, z = vector3D.Z };
 
+                // Angular bins are sent as radians (as everything else in this payload); the matrix
+                // form converts them to degrees for display. The mid value addresses the bin itself:
+                // GetScatteringHits maps a single angle to one bin, whereas passing the bin bounds to
+                // GetValues(Range, Range) can spill into the neighbouring bin.
+                static object RangePayload(Range<double> range) => new { min = range.Min, max = range.Max };
+                static double RangeMid(Range<double> range) => (range.Min + range.Max) / 2.0;
+
                 static void Add(Dictionary<double, List<object>> payloads, double delay, object payload)
                 {
                     if (!payloads.TryGetValue(delay, out List<object>? values))
@@ -271,6 +280,13 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 Dictionary<double, List<object>> ellipsoidPayloads = [];
                 Dictionary<double, List<object>> polylinePayloads = [];
                 Dictionary<double, List<object>> vectorGroupPayloads = [];
+                Dictionary<double, List<object>> angularDistributionPayloads = [];
+
+                // References of the scattering objects actually hit. Only these are described at the top
+                // level: a district holds thousands of scattering objects but the scattering hits touch a
+                // handful of them, and a reference string is long enough that sending the whole lookup
+                // would dominate the payload.
+                HashSet<string> scatteringHitReferences = [];
 
                 IEnumerable<ScatteringProfile>? scatteringProfiles = geometricalPropagationModel.GetScatteringProfiles<ScatteringProfile>();
                 if (scatteringProfiles is not null)
@@ -413,6 +429,67 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
                             delays.Add(delay);
 
+                            // The scattering hits behind the vectors, kept in their azimuth/elevation
+                            // bins so the Details form of the Results panel can render them as a matrix
+                            // and drill down into a single bin. Built before the Vectors guard below so
+                            // a distribution without renderable vectors still contributes its matrix.
+                            // Only populated bins are described, and only non-empty intersections are
+                            // emitted: the two range lists are filtered independently, so their cross
+                            // product is overwhelmingly empty.
+                            if (angularPowerDistribution.GetAzimuthRanges(true) is IReadOnlyList<Range<double>> azimuthRanges && azimuthRanges.Count != 0
+                                && angularPowerDistribution.GetElevationRanges(true) is IReadOnlyList<Range<double>> elevationRanges && elevationRanges.Count != 0)
+                            {
+                                List<object> cells = [];
+                                for (int i = 0; i < azimuthRanges.Count; i++)
+                                {
+                                    double azimuth = RangeMid(azimuthRanges[i]);
+                                    for (int j = 0; j < elevationRanges.Count; j++)
+                                    {
+                                        if (angularPowerDistribution.GetScatteringHits(azimuth, RangeMid(elevationRanges[j])) is not IReadOnlyList<IScatteringHit> scatteringHits || scatteringHits.Count == 0)
+                                        {
+                                            continue;
+                                        }
+
+                                        List<object> hits = [];
+                                        foreach (IScatteringHit scatteringHit in scatteringHits)
+                                        {
+                                            // IScatteringHit carries no location; the direction is the
+                                            // per hit quantity the azimuth/elevation binning is derived
+                                            // from, and it is unnormalized (its length carries the power).
+                                            if (scatteringHit?.Ray3D?.Direction is not Vector3D vector3D_Direction)
+                                            {
+                                                continue;
+                                            }
+
+                                            if (scatteringHit.Reference is string reference && !string.IsNullOrWhiteSpace(reference))
+                                            {
+                                                scatteringHitReferences.Add(reference);
+                                            }
+
+                                            hits.Add(new { x = vector3D_Direction.X, y = vector3D_Direction.Y, z = vector3D_Direction.Z, reference = scatteringHit.Reference });
+                                        }
+
+                                        if (hits.Count == 0)
+                                        {
+                                            continue;
+                                        }
+
+                                        cells.Add(new { azimuthIndex = i, elevationIndex = j, hits });
+                                    }
+                                }
+
+                                if (cells.Count != 0)
+                                {
+                                    Add(angularDistributionPayloads, delay, new
+                                    {
+                                        location = payload_Location,
+                                        azimuthRanges = new List<Range<double>>(azimuthRanges).ConvertAll(RangePayload),
+                                        elevationRanges = new List<Range<double>>(elevationRanges).ConvertAll(RangePayload),
+                                        cells
+                                    });
+                                }
+                            }
+
                             // The vectors visualized at the location; their length carries the power,
                             // so they are sent unnormalized and scaled client side only.
                             if (angularPowerDistribution.Vectors is not IEnumerable<Vector3D> vector3Ds || !vector3Ds.Any())
@@ -429,6 +506,23 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                     }
                 }
 
+                // Electrical properties of the scattering objects the hits above point at, keyed by that
+                // reference. Resolved in one bulk lookup rather than per hit, and restricted to the hit
+                // references so an unhit district does not travel to the client.
+                Dictionary<string, object> scatteringObjectPayloads = [];
+                if (scatteringHitReferences.Count != 0 && Communication.Query.ElectricalPropertiesByReference(geometricalPropagationModel) is Dictionary<string, ElectricalProperties> electricalPropertiesByReference)
+                {
+                    foreach (string reference in scatteringHitReferences)
+                    {
+                        if (!electricalPropertiesByReference.TryGetValue(reference, out ElectricalProperties? electricalProperties))
+                        {
+                            continue;
+                        }
+
+                        scatteringObjectPayloads[reference] = new { name = electricalProperties.Name, a = electricalProperties.A, b = electricalProperties.B, c = electricalProperties.C, d = electricalProperties.D };
+                    }
+                }
+
                 List<object> results = [];
                 foreach (double delay in delays)
                 {
@@ -437,7 +531,8 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                         delay,
                         ellipsoids = ellipsoidPayloads.GetValueOrDefault(delay) ?? [],
                         polylines = polylinePayloads.GetValueOrDefault(delay) ?? [],
-                        vectorGroups = vectorGroupPayloads.GetValueOrDefault(delay) ?? []
+                        vectorGroups = vectorGroupPayloads.GetValueOrDefault(delay) ?? [],
+                        angularDistributions = angularDistributionPayloads.GetValueOrDefault(delay) ?? []
                     });
                 }
 
@@ -456,6 +551,9 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                     // The delays array (ascending, one entry per results entry) discriminates this V1
                     // payload from the V2 one in communication-tools.js and feeds the delay slider.
                     delays = delays.ToList(),
+                    // Electrical properties keyed by scattering object reference; the scattering hits
+                    // of results[].angularDistributions[].cells[] carry that reference only.
+                    scatteringObjects = scatteringObjectPayloads,
                     results
                 });
             }
