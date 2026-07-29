@@ -44,11 +44,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// <param name="storeyHeight">The optional storey height in meters used for the building extrusions.</param>
         /// <returns>An <see cref="IActionResult"/> rendering the communication scene view.</returns>
         [HttpGet("buildingsbyradius")]
-        public IActionResult GetBuildingsByRadius(
-            [FromQuery(Name = "centerX")] double centerX,
-            [FromQuery(Name = "centerY")] double centerY,
-            [FromQuery(Name = "radius")] double radius,
-            [FromQuery(Name = "storeyheight")] double? storeyHeight = null)
+        public IActionResult GetBuildingsByRadius([FromQuery(Name = "centerX")] double centerX, [FromQuery(Name = "centerY")] double centerY, [FromQuery(Name = "radius")] double radius, [FromQuery(Name = "storeyheight")] double? storeyHeight = null)
         {
             if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0)
             {
@@ -242,7 +238,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
                 #endregion Solvers
 
-                #region Render payload
+                #region GeometricalPropagationResult creation
 
                 // The payload is projected by DiGi.Communication.WebAPI: it is GIS agnostic and it is
                 // where the propagation calculation itself is heading, so the result contract lives
@@ -255,7 +251,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                     return NoContent();
                 }
 
-                #endregion Render payload
+                #endregion GeometricalPropagationResult creation
 
                 return Json(geometricalPropagationResult);
             }
