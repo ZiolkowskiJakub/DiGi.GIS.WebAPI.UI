@@ -245,10 +245,9 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 #region Render payload
 
                 // The payload is projected by DiGi.Communication.WebAPI: it is GIS agnostic and it is
-                // where the propagation calculation itself is heading (see the AI-NOTE on
-                // GeometricalPropagationModelController), so the result contract lives next to the
-                // calculation rather than in this application. Everything it holds is expressed in
-                // world coordinates and grouped by delay; see renderDelayResults in
+                // where the propagation calculation itself is heading, so the result contract lives
+                // next to the calculation rather than in this application. Everything it holds is
+                // expressed in world coordinates and grouped by delay; see renderDelayResults in
                 // communication-tools.js for how the 3D view consumes it.
                 GeometricalPropagationResult? geometricalPropagationResult = geometricalPropagationModel.GeometricalPropagationResult(location_Transmitter, location_Receiver, minElevation);
                 if (geometricalPropagationResult is null)

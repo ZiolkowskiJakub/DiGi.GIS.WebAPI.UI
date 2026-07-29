@@ -37,9 +37,10 @@ webApplicationBuilder.Services.AddResponseCompression(responseCompressionOptions
 // We use AddControllersWithViews because you want to display HTML pages (.cshtml)
 // DiGi.Communication.WebAPI is referenced for its GIS agnostic propagation calculation result types
 // only. It is an extension assembly hosted by api.digiproject.uk, so MVC discovering it as an
-// application part would publish its controllers here too (verified: without the removal below,
-// communication/GeometricalPropagationModel/segment3d answers on this application). Its endpoints
-// belong to the deployed Web API, not to this UI, so the part is dropped.
+// application part would publish its controllers here too (verified against the placeholder endpoint
+// it used to carry). It holds no controller today, which makes the removal below a no-op - it is kept
+// deliberately: any endpoint that assembly gains belongs to the deployed Web API, not to this UI, and
+// without the removal it would silently start answering here as well.
 webApplicationBuilder.Services.AddControllersWithViews().ConfigureApplicationPartManager(applicationPartManager =>
 {
     ApplicationPart? applicationPart = applicationPartManager.ApplicationParts.FirstOrDefault(x => x.Name == "DiGi.Communication.WebAPI");
