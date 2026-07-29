@@ -1671,20 +1671,20 @@ h1.gis-title-large {
         z-index: 2;
     }
 
-/* The hit columns are narrow numbers next to one very long reference, so they are sized to content
-   rather than by the .gis-data-table fixed layout (which would also ignore the reference max-width). */
-.communication-hits-table {
+/* The hit and group columns are a handful of narrow values, so they are sized to content rather than
+   by the .gis-data-table fixed layout, which would spread them across the full modal width. */
+.communication-hits-table,
+.communication-groups-table {
     table-layout: auto;
 }
 
-/* Scattering object reference in the hits table: a few hundred characters with no natural break
-   points, so it wraps inside a capped column instead of stretching the table sideways. */
+/* Scattering object reference in the hits table: only the last step of the reference chain is shown,
+   which is a single identifier, so it sits on one line. The full reference is the cell title. */
 .communication-hit-reference {
-    max-width: 360px;
-    white-space: normal;
-    word-break: break-all;
+    white-space: nowrap;
     font-family: var(--font-mono);
     font-size: 0.75rem;
+    cursor: help;
 }
 
 /* Compact .gis-button variant filling a matrix cell. */
