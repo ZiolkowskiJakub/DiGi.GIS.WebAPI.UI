@@ -346,52 +346,46 @@ public class CommunicationSceneViewModel
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → CommunicationSceneViewModel
 ### Constructors
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double,double)'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double)'></a>
 
-## CommunicationSceneViewModel\(string, string, double, double, double, double\) Constructor
+## CommunicationSceneViewModel\(string, string, double, double, double\) Constructor
 
 Initializes a new instance of the [CommunicationSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.CommunicationSceneViewModel') class\.
 
 ```csharp
-public CommunicationSceneViewModel(string? title, string? gLBUrl, double centerX, double centerY, double radius, double storeyHeight);
+public CommunicationSceneViewModel(string? title, string? gLBUrl, double centerX, double centerY, double radius);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double,double).title'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double).title'></a>
 
 `title` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The title displayed above the viewer\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double,double).gLBUrl'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double).gLBUrl'></a>
 
 `gLBUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The application relative URL of the binary glTF \(\.glb\) endpoint\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double,double).centerX'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double).centerX'></a>
 
 `centerX` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 The X coordinate of the center of the analyzed circular area\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double,double).centerY'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double).centerY'></a>
 
 `centerY` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 The Y coordinate of the center of the analyzed circular area\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double,double).radius'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double).radius'></a>
 
 `radius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 The radius of the analyzed circular area in meters\.
-
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double,double).storeyHeight'></a>
-
-`storeyHeight` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-The storey height in meters used for the building extrusions\.
 ### Properties
 
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CenterX'></a>
@@ -441,19 +435,6 @@ Gets the radius of the analyzed circular area in meters\.
 
 ```csharp
 public double Radius { get; }
-```
-
-#### Property Value
-[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.StoreyHeight'></a>
-
-## CommunicationSceneViewModel\.StoreyHeight Property
-
-Gets the storey height in meters used for the building extrusions\.
-
-```csharp
-public double StoreyHeight { get; }
 ```
 
 #### Property Value

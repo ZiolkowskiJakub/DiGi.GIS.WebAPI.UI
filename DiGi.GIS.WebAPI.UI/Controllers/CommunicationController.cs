@@ -41,10 +41,9 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// <param name="centerX">The X coordinate of the center of the analyzed circular area.</param>
         /// <param name="centerY">The Y coordinate of the center of the analyzed circular area.</param>
         /// <param name="radius">The radius of the analyzed circular area in meters.</param>
-        /// <param name="storeyHeight">The optional storey height in meters used for the building extrusions.</param>
         /// <returns>An <see cref="IActionResult"/> rendering the communication scene view.</returns>
         [HttpGet("buildingsbyradius")]
-        public IActionResult GetBuildingsByRadius([FromQuery(Name = "centerX")] double centerX, [FromQuery(Name = "centerY")] double centerY, [FromQuery(Name = "radius")] double radius, [FromQuery(Name = "storeyheight")] double? storeyHeight = null)
+        public IActionResult GetBuildingsByRadius([FromQuery(Name = "centerX")] double centerX, [FromQuery(Name = "centerY")] double centerY, [FromQuery(Name = "radius")] double radius)
         {
             if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0)
             {
@@ -52,14 +51,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             }
 
             string gLBUrl = $"~/buildingmodel/glb/buildingsbyradius?centerX={centerX.ToString(CultureInfo.InvariantCulture)}&centerY={centerY.ToString(CultureInfo.InvariantCulture)}&radius={radius.ToString(CultureInfo.InvariantCulture)}";
-            if (storeyHeight is not null && storeyHeight.HasValue)
-            {
-                gLBUrl += $"&storeyheight={storeyHeight.Value.ToString(CultureInfo.InvariantCulture)}";
-            }
 
             string title = $"Buildings ({centerX}, {centerY}) r = {radius} m";
 
-            CommunicationSceneViewModel communicationSceneViewModel = new(title, gLBUrl, centerX, centerY, radius, storeyHeight ?? Constants.Default.StoreyHeight);
+            CommunicationSceneViewModel communicationSceneViewModel = new(title, gLBUrl, centerX, centerY, radius);
 
             return View("CommunicationSceneView", communicationSceneViewModel);
         }

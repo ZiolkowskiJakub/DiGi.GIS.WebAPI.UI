@@ -143,10 +143,9 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// <param name="centerX">The X coordinate of the center of the search circle.</param>
         /// <param name="centerY">The Y coordinate of the center of the search circle.</param>
         /// <param name="radius">The radius of the search circle in meters.</param>
-        /// <param name="storeyHeight">The optional storey height in meters used for the extrusions.</param>
         /// <returns>An <see cref="IActionResult"/> rendering the glTF scene view.</returns>
         [HttpGet("itemsbyradius")]
-        public IActionResult GetItemsByRadius([FromQuery(Name = "centerX")] double centerX, [FromQuery(Name = "centerY")] double centerY, [FromQuery(Name = "radius")] double radius, [FromQuery(Name = "storeyheight")] double? storeyHeight = null)
+        public IActionResult GetItemsByRadius([FromQuery(Name = "centerX")] double centerX, [FromQuery(Name = "centerY")] double centerY, [FromQuery(Name = "radius")] double radius)
         {
             if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0)
             {
@@ -154,10 +153,6 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             }
 
             string gLBUrl = $"~/buildingmodel/glb/buildingsbyradius?centerX={centerX.ToString(CultureInfo.InvariantCulture)}&centerY={centerY.ToString(CultureInfo.InvariantCulture)}&radius={radius.ToString(CultureInfo.InvariantCulture)}";
-            if (storeyHeight is not null && storeyHeight.HasValue)
-            {
-                gLBUrl += $"&storeyheight={storeyHeight.Value.ToString(CultureInfo.InvariantCulture)}";
-            }
 
             string title = $"Buildings ({centerX}, {centerY}) r = {radius} m";
 
@@ -174,11 +169,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// <param name="centerX">The X coordinate of the center of the search circle.</param>
         /// <param name="centerY">The Y coordinate of the center of the search circle.</param>
         /// <param name="radius">The radius of the search circle in meters.</param>
-        /// <param name="storeyHeight">The optional storey height in meters used for the extrusions.</param>
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
         /// <returns>A <see cref="Task{IActionResult}"/> holding the .glb file.</returns>
         [HttpGet("glb/buildingsbyradius")]
-        public async Task<IActionResult> GetBuildingsGLBByRadiusAsync([FromQuery(Name = "centerX")] double centerX, [FromQuery(Name = "centerY")] double centerY, [FromQuery(Name = "radius")] double radius, [FromQuery(Name = "storeyheight")] double? storeyHeight = null, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetBuildingsGLBByRadiusAsync([FromQuery(Name = "centerX")] double centerX, [FromQuery(Name = "centerY")] double centerY, [FromQuery(Name = "radius")] double radius, CancellationToken cancellationToken = default)
         {
             if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0)
             {
@@ -253,10 +247,9 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// </summary>
         /// <param name="id">The unique identifier of the building.</param>
         /// <param name="countyId">The optional unique identifier of the county associated with the building.</param>
-        /// <param name="storeyHeight">The optional storey height in meters used for the extrusion.</param>
         /// <returns>An <see cref="IActionResult"/> rendering the glTF scene view.</returns>
         [HttpGet("buildingmodelbyid")]
-        public async Task<IActionResult> GetBuildingModelByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "storeyheight")] double? storeyHeight = null)
+        public async Task<IActionResult> GetBuildingModelByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId)
         {
             HttpClient httpClient = httpClientFactory.CreateClient();
 
@@ -293,11 +286,6 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 gLBUrl += $"&countyid={countyId.Value.ToString(CultureInfo.InvariantCulture)}";
             }
 
-            if (storeyHeight is not null && storeyHeight.HasValue)
-            {
-                gLBUrl += $"&storeyheight={storeyHeight.Value.ToString(CultureInfo.InvariantCulture)}";
-            }
-
             GLTFSceneViewModel gLTFSceneViewModel = new($"BuildingModel {id}", gLBUrl);
 
             return View("~/Views/GLTF/GLTFSceneView.cshtml", gLTFSceneViewModel);
@@ -309,14 +297,14 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// </summary>
         /// <param name="id">The unique identifier of the building.</param>
         /// <param name="countyId">The optional unique identifier of the county associated with the building.</param>
-        /// <param name="storeyHeight">The optional storey height in meters used for the extrusion.</param>
         /// <returns>A <see cref="Task{IActionResult}"/> holding the .glb file.</returns>
         [HttpGet("glb/buildingmodelbyid")]
-        public async Task<IActionResult> GetGLBBuildingModelByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "storeyheight")] double? storeyHeight = null)
+        public async Task<IActionResult> GetGLBBuildingModelByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId)
         {
             HttpClient httpClient = httpClientFactory.CreateClient();
 
-            BuildingModel? buildingModel = await httpClient.BuildingModelAsync(id, countyId, storeyHeight ?? Constants.Default.StoreyHeight);
+            // The storey height is a server side concern: it is always the application default, never a client input.
+            BuildingModel? buildingModel = await httpClient.BuildingModelAsync(id, countyId, Constants.Default.StoreyHeight);
             if (buildingModel is null)
             {
                 return NoContent();

@@ -96,7 +96,6 @@ function fillSceneInfo(referencePoint, objectCount) {
             document.getElementById('scene-change-x').value = container.dataset.centerX || '';
             document.getElementById('scene-change-y').value = container.dataset.centerY || '';
             document.getElementById('scene-change-radius').value = container.dataset.radius || '';
-            document.getElementById('scene-change-storey-height').value = container.dataset.storeyHeight || '';
             changeModal.style.display = 'flex';
         });
         panel.appendChild(changeButton);
@@ -596,17 +595,12 @@ if (container) {
             const x = document.getElementById('scene-change-x')?.value;
             const y = document.getElementById('scene-change-y')?.value;
             const radius = document.getElementById('scene-change-radius')?.value;
-            const storeyHeight = document.getElementById('scene-change-storey-height')?.value;
 
             if (!x || !y || !radius) {
                 return;
             }
 
-            let url = `/communication/buildingsbyradius?centerX=${encodeURIComponent(x)}&centerY=${encodeURIComponent(y)}&radius=${encodeURIComponent(radius)}`;
-            if (storeyHeight) {
-                url += `&storeyheight=${encodeURIComponent(storeyHeight)}`;
-            }
-            window.location.href = url;
+            window.location.href = `/communication/buildingsbyradius?centerX=${encodeURIComponent(x)}&centerY=${encodeURIComponent(y)}&radius=${encodeURIComponent(radius)}`;
         });
     }
 })();

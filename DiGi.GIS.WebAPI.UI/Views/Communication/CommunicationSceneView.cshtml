@@ -83,8 +83,7 @@
              data-calculate-url="@Url.Content("~/communication/calculate")"
              data-center-x="@Model.CenterX.ToString(System.Globalization.CultureInfo.InvariantCulture)"
              data-center-y="@Model.CenterY.ToString(System.Globalization.CultureInfo.InvariantCulture)"
-             data-radius="@Model.Radius.ToString(System.Globalization.CultureInfo.InvariantCulture)"
-             data-storey-height="@Model.StoreyHeight.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+             data-radius="@Model.Radius.ToString(System.Globalization.CultureInfo.InvariantCulture)">
             <div id="gltf-loader" class="gltf-loader">
                 <div class="gis-loader"></div>
                 <p class="gis-loader-text">Loading 3D scene…</p>
@@ -253,7 +252,7 @@
 </div>
 
 @* Scene change modal: opened by the "Change" button in the Scene panel; collects the
-   analyzed circular area parameters (center X/Y, radius, storey height) so the user
+   analyzed circular area parameters (center X/Y, radius) so the user
    can reload the 3D view for a different area without going back to the start page. *@
 <div id="scene-change-modal" class="gis-modal-overlay" style="display: none;">
     <div class="gis-card gis-modal">
@@ -266,9 +265,6 @@
         </label>
         <label class="communication-modal-label">Radius [m]
             <input type="number" id="scene-change-radius" step="any" min="1" required />
-        </label>
-        <label class="communication-modal-label">Storey height [m]
-            <input type="number" id="scene-change-storey-height" step="0.1" min="1" />
         </label>
         <div class="gis-modal-buttons">
             <button type="button" id="scene-change-ok-button" class="gis-button">OK</button>

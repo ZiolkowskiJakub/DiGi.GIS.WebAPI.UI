@@ -1387,7 +1387,6 @@ async function calculate(calculationParameters) {
             centerX: parseFloat(container.dataset.centerX),
             centerY: parseFloat(container.dataset.centerY),
             radius: parseFloat(container.dataset.radius),
-            storeyHeight: parseFloat(container.dataset.storeyHeight),
             antennas: antennas.map((antenna) => ({
                 x: antenna.data.x,
                 y: antenna.data.y,
