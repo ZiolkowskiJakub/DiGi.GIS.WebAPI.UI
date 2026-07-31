@@ -273,10 +273,10 @@
     </div>
 </div>
 
-@* Scattering matrix modal: step 1 of 3, opened by the "Details" button of the Results panel. It shows
+@* Scattering matrix modal: step 1 of 2, opened by the "Details" button of the Results panel. It shows
    the scattering hits of the selected delay as a matrix of the populated azimuth ranges (columns)
    against the populated elevation ranges (rows); every populated intersection renders a button with
-   the number of electrical property groups of that bin, which opens the groups modal below. *@
+   the number of scattering hits of that bin, which opens the hits modal below. *@
 <div id="communication-scattering-matrix-modal" class="gis-modal-overlay" style="display: none;">
     <div class="gis-card gis-modal gis-modal-wide">
         <h3 class="gltf-card-title" id="communication-scattering-matrix-title">Scattering hits</h3>
@@ -287,25 +287,12 @@
     </div>
 </div>
 
-@* Scattering groups modal: step 2 of 3, opened by a cell of the scattering matrix; lists the
-   electrical properties the hits of that azimuth/elevation bin are grouped by, each row carrying a
-   button with the hit count of its group which opens the scattering hits modal below. The three
-   overlays share the same z-index, so each is declared after the one it paints above. *@
-<div id="communication-scattering-groups-modal" class="gis-modal-overlay" style="display: none;">
-    <div class="gis-card gis-modal gis-modal-wide">
-        <h3 class="gltf-card-title" id="communication-scattering-groups-title">Electrical properties</h3>
-        <div id="communication-scattering-groups"></div>
-        <div class="gis-modal-buttons">
-            <button type="button" id="communication-scattering-groups-close-button" class="gis-button">Close</button>
-        </div>
-    </div>
-</div>
-
-@* Scattering hits modal: step 3 of 3, opened by a row of the groups modal; lists the individual hits
-   of one electrical property group of one azimuth/elevation bin. Declared after the groups modal so it
-   paints above it - all three overlays share the same z-index. *@
+@* Scattering hits modal: step 2 of 2, opened by a cell of the scattering matrix; lists the individual
+   hits of one azimuth/elevation bin with their location, material and derived angles. Declared after
+   the matrix modal so it paints above it - both overlays share the same z-index. It is wider than the
+   matrix modal because the hit table carries a column per hit value. *@
 <div id="communication-scattering-hits-modal" class="gis-modal-overlay" style="display: none;">
-    <div class="gis-card gis-modal gis-modal-wide">
+    <div class="gis-card gis-modal gis-modal-wider">
         <h3 class="gltf-card-title" id="communication-scattering-hits-title">Scattering hits</h3>
         <div id="communication-scattering-hits"></div>
         <div class="gis-modal-buttons">

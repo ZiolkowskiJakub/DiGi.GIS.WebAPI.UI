@@ -82,11 +82,6 @@ const matrixTitle = document.getElementById('communication-scattering-matrix-tit
 const matrixPanel = document.getElementById('communication-scattering-matrix');
 const matrixCloseButton = document.getElementById('communication-scattering-matrix-close-button');
 
-const groupsModal = document.getElementById('communication-scattering-groups-modal');
-const groupsTitle = document.getElementById('communication-scattering-groups-title');
-const groupsPanel = document.getElementById('communication-scattering-groups');
-const groupsCloseButton = document.getElementById('communication-scattering-groups-close-button');
-
 const hitsModal = document.getElementById('communication-scattering-hits-modal');
 const hitsTitle = document.getElementById('communication-scattering-hits-title');
 const hitsPanel = document.getElementById('communication-scattering-hits');
@@ -627,15 +622,9 @@ function finishErase(remove) {
 
 window.addEventListener('keydown', (event) => {
     // The scattering popups are checked first so Escape peels them off one at a time: the hits table
-    // sits on top of the groups table, which sits on top of the matrix, which in turn sits on top of
-    // the page.
+    // sits on top of the matrix, which in turn sits on top of the page.
     if (hitsModal.style.display !== 'none' && event.key === 'Escape') {
         hitsModal.style.display = 'none';
-        return;
-    }
-
-    if (groupsModal.style.display !== 'none' && event.key === 'Escape') {
-        groupsModal.style.display = 'none';
         return;
     }
 
@@ -687,7 +676,22 @@ function formatDelay(delay) {
 }
 
 function formatAngle(radians) {
-    return `${(radians * 180 / Math.PI).toFixed(1)}°`;
+    return radians === null || radians === undefined ? '—' : `${(radians * 180 / Math.PI).toFixed(1)}°`;
+}
+
+// Strict "(X;Y;Z)" form of a payload coordinate (a Point3DResult or a Vector3DResult).
+function formatCoordinate(coordinate, digits) {
+    if (!coordinate) {
+        return '—';
+    }
+
+    return `(${coordinate.x.toFixed(digits)};${coordinate.y.toFixed(digits)};${coordinate.z.toFixed(digits)})`;
+}
+
+// Payload numbers the server sends as null in place of a double.NaN it could not derive: NaN is not
+// valid JSON, so the absent value arrives as null rather than as a number.
+function formatValue(value, digits) {
+    return value === null || value === undefined ? '—' : value.toFixed(digits);
 }
 
 function appendResultRow(table, key, value) {
@@ -1062,9 +1066,9 @@ function showDelayResults(payload, delayResult) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Scattering hits, a three step drill-down mirroring the nesting of the payload: "Details" opens the
-// azimuth/elevation matrix of the selected delay, a matrix cell opens the electrical property groups
-// of that bin (cell.groups), and a group opens its individual hits (group.hits).
+// Scattering hits, a two step drill-down mirroring the nesting of the payload: "Details" opens the
+// azimuth/elevation matrix of the selected delay, and a matrix cell opens the individual hits of that
+// bin (cell.hits).
 // ---------------------------------------------------------------------------------------------
 
 function hasScatteringHits(delayResult) {
@@ -1148,28 +1152,20 @@ function renderScatteringMatrix(delayResult) {
         // The half degree bins of the payload are merged into whole degree buckets, so both axes are
         // bucketed first and every sparse cell is folded onto the bucket pair that contains it. Two
         // azimuth bins by two elevation bins can land on the same bucket cell, so the merged cell holds
-        // the union of their groups: groups of the same electrical properties are matched on the
-        // payload wide group.key and their hits concatenated, rather than listed twice.
+        // the concatenated hits of all of them.
         const azimuth = toBuckets(angularDistribution.azimuthRanges ?? []);
         const elevation = toBuckets(angularDistribution.elevationRanges ?? []);
 
-        const groupsByBucket = new Map();
+        const hitsByBucket = new Map();
         for (const cell of angularDistribution.cells) {
             const bucketKey = `${azimuth.positionByIndex.get(cell.azimuthIndex)}:${elevation.positionByIndex.get(cell.elevationIndex)}`;
-            let groups = groupsByBucket.get(bucketKey);
-            if (!groups) {
-                groups = new Map();
-                groupsByBucket.set(bucketKey, groups);
+            let hits = hitsByBucket.get(bucketKey);
+            if (!hits) {
+                hits = [];
+                hitsByBucket.set(bucketKey, hits);
             }
 
-            for (const group of cell.groups ?? []) {
-                const merged = groups.get(group.key);
-                if (merged) {
-                    merged.hits.push(...group.hits);
-                } else {
-                    groups.set(group.key, { electricalProperties: group.electricalProperties, hits: [...group.hits] });
-                }
-            }
+            hits.push(...(cell.hits ?? []));
         }
 
         const table = document.createElement('table');
@@ -1198,20 +1194,18 @@ function renderScatteringMatrix(delayResult) {
 
             for (let azimuthPosition = 0; azimuthPosition < azimuth.buckets.length; azimuthPosition++) {
                 const cell = row.insertCell();
-                const groups = groupsByBucket.get(`${azimuthPosition}:${elevationPosition}`);
-                if (!groups || groups.size === 0) {
+                const hits = hitsByBucket.get(`${azimuthPosition}:${elevationPosition}`);
+                if (!hits || hits.length === 0) {
                     continue;
                 }
 
-                // The cell counts the electrical property groups of the bin, not its hits: a populated
-                // bin holds hundreds of hits but only a handful of materials, and the groups are what
-                // the next step lists.
+                // The cell counts the scattering hits of the bin, which is what the next step lists.
                 const azimuthBucket = azimuth.buckets[azimuthPosition];
                 const button = document.createElement('button');
                 button.type = 'button';
                 button.className = 'gis-button communication-matrix-cell';
-                button.textContent = String(groups.size);
-                button.addEventListener('click', () => openScatteringGroups(groups, azimuthBucket.degree, elevationBucket.degree));
+                button.textContent = String(hits.length);
+                button.addEventListener('click', () => openScatteringHits(hits, azimuthBucket.degree, elevationBucket.degree));
                 cell.appendChild(button);
             }
         }
@@ -1227,54 +1221,8 @@ function formatBinTitle(azimuthDegree, elevationDegree) {
     return `azimuth ${formatBucketDegree(azimuthDegree)} (${formatBucketSpan(azimuthDegree)}), elevation ${formatBucketDegree(elevationDegree)} (${formatBucketSpan(elevationDegree)})`;
 }
 
-function openScatteringGroups(groups, azimuthDegree, elevationDegree) {
-    groupsTitle.textContent = `Electrical properties – ${formatBinTitle(azimuthDegree, elevationDegree)}`;
-    renderScatteringGroups(groups, azimuthDegree, elevationDegree);
-    groupsModal.style.display = 'flex';
-}
-
-function renderScatteringGroups(groups, azimuthDegree, elevationDegree) {
-    groupsPanel.innerHTML = '';
-
-    const table = document.createElement('table');
-    table.className = 'gis-data-table communication-groups-table';
-
-    const headerRow = table.createTHead().insertRow();
-    for (const columnName of ['Name', 'A', 'B', 'C', 'D', 'Hits']) {
-        const headerCell = document.createElement('th');
-        headerCell.textContent = columnName;
-        headerRow.appendChild(headerCell);
-    }
-
-    // Insertion order of the map, which is the order the payload sent the groups in: the server orders
-    // them by material so the rows do not move between calculations.
-    const body = table.createTBody();
-    for (const group of groups.values()) {
-        const electricalProperties = group.electricalProperties;
-
-        const row = body.insertRow();
-        appendHitCell(row, electricalProperties?.name ?? '—', 'nowrap');
-        appendHitCell(row, electricalProperties ? String(electricalProperties.a) : '—', 'num nowrap');
-        appendHitCell(row, electricalProperties ? String(electricalProperties.b) : '—', 'num nowrap');
-        appendHitCell(row, electricalProperties ? String(electricalProperties.c) : '—', 'num nowrap');
-        appendHitCell(row, electricalProperties ? String(electricalProperties.d) : '—', 'num nowrap');
-
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'gis-button communication-matrix-cell';
-        button.textContent = String(group.hits.length);
-        button.addEventListener('click', () => openScatteringHits(group.hits, electricalProperties?.name, azimuthDegree, elevationDegree));
-        row.insertCell().appendChild(button);
-    }
-
-    const scrollBox = document.createElement('div');
-    scrollBox.className = 'gis-scroll-box';
-    scrollBox.appendChild(table);
-    groupsPanel.appendChild(scrollBox);
-}
-
-function openScatteringHits(hits, name, azimuthDegree, elevationDegree) {
-    hitsTitle.textContent = `Scattering hits – ${name ?? 'unnamed material'}, ${formatBinTitle(azimuthDegree, elevationDegree)}`;
+function openScatteringHits(hits, azimuthDegree, elevationDegree) {
+    hitsTitle.textContent = `Scattering hits – ${formatBinTitle(azimuthDegree, elevationDegree)}`;
     renderScatteringHits(hits);
     hitsModal.style.display = 'flex';
 }
@@ -1286,18 +1234,20 @@ function renderScatteringHits(hits) {
     table.className = 'gis-data-table communication-hits-table';
 
     const headerRow = table.createTHead().insertRow();
-    for (const columnName of ['Reference', 'X', 'Y', 'Z']) {
+    for (const columnName of ['Location', 'Reference', 'Name', 'A', 'B', 'C', 'D', 'Conductivity', 'Relative permittivity', 'Reflection angle', 'Grazing angle', 'Receiver vector', 'Transmitter vector', 'Normal']) {
         const headerCell = document.createElement('th');
         headerCell.textContent = columnName;
         headerRow.appendChild(headerCell);
     }
 
-    // The electrical properties are no longer a column here: every hit of this table belongs to the
-    // one group selected in the previous step, so they are the same for all of them and are already
-    // shown by the row that opened it.
+    // Every value of a row is read off the hit itself, electrical properties included: a hit carries
+    // its own material, so the table no longer depends on the bin it was opened from.
     const body = table.createTBody();
     for (const hit of hits) {
+        const electricalProperties = hit.electricalProperties;
+
         const row = body.insertRow();
+        appendHitCell(row, formatCoordinate(hit.location, 2), 'nowrap');
 
         // A scattering object reference runs to a few hundred characters, so the cell shows the last
         // step of the chain (payload displayReference, falling back to the full string when the
@@ -1308,11 +1258,22 @@ function renderScatteringHits(hits) {
         referenceCell.textContent = hit.displayReference ?? hit.reference ?? '—';
         referenceCell.title = hit.reference ?? '';
 
-        // X/Y/Z are the hit ray direction: IScatteringHit carries no location, and the direction is
-        // the per hit quantity the azimuth/elevation binning is derived from.
-        appendHitCell(row, hit.x.toFixed(4), 'num nowrap');
-        appendHitCell(row, hit.y.toFixed(4), 'num nowrap');
-        appendHitCell(row, hit.z.toFixed(4), 'num nowrap');
+        appendHitCell(row, electricalProperties?.name ?? '—', 'nowrap');
+        appendHitCell(row, electricalProperties ? String(electricalProperties.a) : '—', 'num nowrap');
+        appendHitCell(row, electricalProperties ? String(electricalProperties.b) : '—', 'num nowrap');
+        appendHitCell(row, electricalProperties ? String(electricalProperties.c) : '—', 'num nowrap');
+        appendHitCell(row, electricalProperties ? String(electricalProperties.d) : '—', 'num nowrap');
+
+        appendHitCell(row, formatValue(hit.conductivity, 2), 'num nowrap');
+        appendHitCell(row, formatValue(hit.relativePermittivity, 2), 'num nowrap');
+
+        // The angles travel in radians like every other angle of the payload.
+        appendHitCell(row, formatAngle(hit.reflectionAngle), 'num nowrap');
+        appendHitCell(row, formatAngle(hit.grazingAngle), 'num nowrap');
+
+        appendHitCell(row, formatCoordinate(hit.vectorReceiver, 4), 'nowrap');
+        appendHitCell(row, formatCoordinate(hit.vectorTransmitter, 4), 'nowrap');
+        appendHitCell(row, formatCoordinate(hit.normal, 4), 'nowrap');
     }
 
     const scrollBox = document.createElement('div');
@@ -1329,10 +1290,8 @@ function appendHitCell(row, value, className) {
 
 function closeScatteringModals() {
     hitsModal.style.display = 'none';
-    groupsModal.style.display = 'none';
     matrixModal.style.display = 'none';
     hitsPanel.innerHTML = '';
-    groupsPanel.innerHTML = '';
     matrixPanel.innerHTML = '';
 }
 
@@ -1493,16 +1452,11 @@ vectorScaleInput.addEventListener('input', () => {
     }
 });
 
-// Scattering hit drill-down wiring: Details -> matrix of the selected delay -> electrical property
-// groups of one bin -> hits of one group.
+// Scattering hit drill-down wiring: Details -> matrix of the selected delay -> hits of one bin.
 resultsDetailsButton.addEventListener('click', openScatteringMatrix);
 
 matrixCloseButton.addEventListener('click', () => {
     matrixModal.style.display = 'none';
-});
-
-groupsCloseButton.addEventListener('click', () => {
-    groupsModal.style.display = 'none';
 });
 
 hitsCloseButton.addEventListener('click', () => {

@@ -1581,6 +1581,13 @@ h1.gis-title-large {
         width: 800px;
     }
 
+    /* Wider still, for the scattering hit table: a column per hit value does not fit 800px. The
+       max-width overrides the 90vw of .gis-modal, which would otherwise cap it first. */
+    .gis-modal.gis-modal-wider {
+        width: 1400px;
+        max-width: 95vw;
+    }
+
 /* Preformatted payload block inside a modal (selection export JSON). */
 .gis-modal-pre {
     max-height: 60vh;
@@ -1671,11 +1678,12 @@ h1.gis-title-large {
         z-index: 2;
     }
 
-/* The hit and group columns are a handful of narrow values, so they are sized to content rather than
-   by the .gis-data-table fixed layout, which would spread them across the full modal width. */
-.communication-hits-table,
-.communication-groups-table {
+/* The hit columns are sized to content rather than by the .gis-data-table fixed layout, which would
+   squeeze thirteen columns into illegible slivers. Overflow scrolls inside .gis-scroll-box. */
+.communication-hits-table {
     table-layout: auto;
+    width: auto;
+    min-width: 100%;
 }
 
 /* Scattering object reference in the hits table: only the last step of the reference chain is shown,
