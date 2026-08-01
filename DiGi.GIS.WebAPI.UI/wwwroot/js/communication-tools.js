@@ -694,6 +694,52 @@ function formatValue(value, digits) {
     return value === null || value === undefined ? '—' : value.toFixed(digits);
 }
 
+// The tolerance the server renders a reflection coefficient with, mirrored here so a coefficient this
+// side derives reads exactly like one the payload carries already rendered.
+const REFLECTION_TOLERANCE = 0.001;
+
+// Twin of DiGi.Core.Convert.ToSystem_String(Complex, tolerance, tolerance): each component is rounded
+// to a multiple of the tolerance away from zero and the pair is rendered as "{real}{+|-}j{|imaginary|}".
+// Needed because an averaged coefficient never passes through the server - the payload bins are finer
+// than the buckets the matrix displays, so the averaging happens here.
+function formatComplex(real, imaginary) {
+    const roundedReal = roundToTolerance(real);
+    const roundedImaginary = roundToTolerance(imaginary);
+
+    return `${roundedReal}${roundedImaginary < 0 ? '-' : '+'}j${Math.abs(roundedImaginary)}`;
+}
+
+// Math.round breaks a .5 tie upwards rather than away from zero, which would round a negative
+// component the opposite way to the server, so the magnitude is rounded and the sign reapplied. The
+// toFixed pass drops the floating point noise the division and multiplication leave behind, which the
+// server avoids by rounding in decimal.
+function roundToTolerance(value) {
+    const rounded = Math.sign(value) * Math.round(Math.abs(value) / REFLECTION_TOLERANCE) * REFLECTION_TOLERANCE;
+
+    return parseFloat(rounded.toFixed(3));
+}
+
+// Mean reflection coefficient of a group of hits, rendered. Hits whose coefficient could not be
+// derived carry null and are left out rather than poisoning the mean; null when none of them has one.
+function formatAverageVerticalPolarizationReflection(hits) {
+    let real = 0;
+    let imaginary = 0;
+    let count = 0;
+
+    for (const hit of hits) {
+        const value = hit.verticalPolarizationReflectionValue;
+        if (!value) {
+            continue;
+        }
+
+        real += value.real;
+        imaginary += value.imaginary;
+        count++;
+    }
+
+    return count === 0 ? null : formatComplex(real / count, imaginary / count);
+}
+
 function appendResultRow(table, key, value) {
     const row = table.insertRow();
     row.insertCell().textContent = key;
@@ -1199,12 +1245,14 @@ function renderScatteringMatrix(delayResult) {
                     continue;
                 }
 
-                // The cell counts the scattering hits of the bin, which is what the next step lists.
+                // The cell carries the mean reflection coefficient of the bin, which is what the next
+                // step lists one hit at a time; the hit count it used to carry is the hover text.
                 const azimuthBucket = azimuth.buckets[azimuthPosition];
                 const button = document.createElement('button');
                 button.type = 'button';
                 button.className = 'gis-button communication-matrix-cell';
-                button.textContent = String(hits.length);
+                button.textContent = formatAverageVerticalPolarizationReflection(hits) ?? '—';
+                button.title = `${hits.length} ${hits.length === 1 ? 'hit' : 'hits'}`;
                 button.addEventListener('click', () => openScatteringHits(hits, azimuthBucket.degree, elevationBucket.degree));
                 cell.appendChild(button);
             }
