@@ -1679,7 +1679,7 @@ h1.gis-title-large {
     }
 
 /* The hit columns are sized to content rather than by the .gis-data-table fixed layout, which would
-   squeeze thirteen columns into illegible slivers. Overflow scrolls inside .gis-scroll-box. */
+   squeeze a column per hit value into illegible slivers. Overflow scrolls inside .gis-scroll-box. */
 .communication-hits-table {
     table-layout: auto;
     width: auto;

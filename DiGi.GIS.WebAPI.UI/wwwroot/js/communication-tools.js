@@ -1234,7 +1234,7 @@ function renderScatteringHits(hits) {
     table.className = 'gis-data-table communication-hits-table';
 
     const headerRow = table.createTHead().insertRow();
-    for (const columnName of ['Location', 'Reference', 'Name', 'A', 'B', 'C', 'D', 'Conductivity', 'Relative permittivity', 'Reflection angle', 'Grazing angle', 'Receiver vector', 'Transmitter vector', 'Normal']) {
+    for (const columnName of ['Location', 'Reference', 'Name', 'A', 'B', 'C', 'D', 'Conductivity', 'Relative permittivity', 'Reflection angle', 'Grazing angle', 'Receiver vector', 'Transmitter vector', 'Normal', 'Vertical polarization reflection']) {
         const headerCell = document.createElement('th');
         headerCell.textContent = columnName;
         headerRow.appendChild(headerCell);
@@ -1274,6 +1274,9 @@ function renderScatteringHits(hits) {
         appendHitCell(row, formatCoordinate(hit.vectorReceiver, 4), 'nowrap');
         appendHitCell(row, formatCoordinate(hit.vectorTransmitter, 4), 'nowrap');
         appendHitCell(row, formatCoordinate(hit.normal, 4), 'nowrap');
+
+        // Complex, so the payload carries it already rendered rather than as a number to format here.
+        appendHitCell(row, hit.verticalPolarizationReflection ?? '—', 'num nowrap');
     }
 
     const scrollBox = document.createElement('div');
