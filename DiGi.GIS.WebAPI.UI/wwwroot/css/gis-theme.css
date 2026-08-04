@@ -1577,8 +1577,17 @@ h1.gis-title-large {
     margin: 0;
 }
 
+    /* The scattering matrix modal. Sized to the viewport rather than to its content: one delay is a
+       handful of bins and the combined entry is tens of rows by hundreds of columns, so a content
+       sized modal resizes on every change of the delay selector. A fixed width and height keep it
+       still, and the matrix area below scrolls inside it. */
     .gis-modal.gis-modal-wide {
-        width: 800px;
+        width: 1800px;
+        max-width: 95vw;
+        height: 68vh;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
     }
 
     /* Wider still, for the scattering hit table: a column per hit value does not fit 800px. The
@@ -1657,6 +1666,24 @@ h1.gis-title-large {
     color: var(--text-muted);
     white-space: nowrap;
 }
+
+/* The matrix area fills whatever the title, the delay selector row and the buttons leave, so the
+   modal keeps its size while the matrix inside it changes. min-height: 0 lets it shrink below the
+   intrinsic width of the table it holds, which a flex item does not do on its own. */
+#communication-scattering-matrix {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+    /* One box per angular power distribution profile, sharing the height between them. The max-height
+       of .gis-scroll-box is dropped: here the height comes from the modal, not from the content. */
+    #communication-scattering-matrix .gis-scroll-box {
+        flex: 1;
+        min-height: 0;
+        max-height: none;
+    }
 
 /* Scattering hit matrix (azimuth ranges across, elevation ranges down). */
 .communication-matrix-caption {

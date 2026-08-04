@@ -1116,7 +1116,9 @@ function showDelayResults(payload, delayResult) {
     appendResultRow(table, 'Vectors', String(vectorCount));
     resultsPanel.appendChild(table);
 
-    resultsDetailsButton.style.display = hasScatteringHits(delayResult) ? '' : 'none';
+    // Shown for a delay without hits of its own as well, as long as the payload carries a combined
+    // distribution: the modal then opens on Combined, which is otherwise unreachable from that delay.
+    resultsDetailsButton.style.display = hasScatteringHits(delayResult) || hasCombinedScatteringHits(payload) ? '' : 'none';
 
     resultsCard.style.display = '';
 }
@@ -1124,11 +1126,22 @@ function showDelayResults(payload, delayResult) {
 // ---------------------------------------------------------------------------------------------
 // Scattering hits, a two step drill-down mirroring the nesting of the payload: "Details" opens the
 // azimuth/elevation matrix of the selected delay, and a matrix cell opens the individual hits of that
-// bin (cell.hits).
+// bin (cell.hits). The delay selector of the matrix closes with a Combined entry, which loads the same
+// matrix built from the hits of all delays at once (payload.combined).
 // ---------------------------------------------------------------------------------------------
+
+// Value of the Combined entry of the delay selector. Every other option carries an index into
+// payload.results, so the sentinel is deliberately not a number: parseInt would otherwise swallow it.
+const COMBINED_MATRIX_OPTION = 'combined';
 
 function hasScatteringHits(delayResult) {
     return (delayResult?.angularDistributions ?? []).some(angularDistribution => (angularDistribution.cells ?? []).length > 0);
+}
+
+// The combined distributions carry the hits of all delays at once, one per angular power distribution
+// profile, so they are shaped exactly like the angularDistributions of a delay and render unchanged.
+function hasCombinedScatteringHits(payload) {
+    return (payload?.combined ?? []).some(angularDistribution => (angularDistribution.cells ?? []).length > 0);
 }
 
 // The collection bins at half a degree, which is finer than the matrix needs and splits a whole
@@ -1177,9 +1190,10 @@ function toBuckets(ranges) {
 }
 
 // The delay selector of the modal offers every delay of the payload, so its options are indices into
-// payload.results — the delay value itself never has to be matched back on change. Built into a
-// fragment and swapped in as a whole, which drops the options of the previous open in one go.
-function populateMatrixDelaySelect(selectedIndex) {
+// payload.results — the delay value itself never has to be matched back on change. Combined closes the
+// list, after the delays it aggregates. Built into a fragment and swapped in as a whole, which drops
+// the options of the previous open in one go.
+function populateMatrixDelaySelect(selectedValue) {
     const fragment = document.createDocumentFragment();
     delayPayload.results.forEach((delayResult, index) => {
         const option = document.createElement('option');
@@ -1188,8 +1202,15 @@ function populateMatrixDelaySelect(selectedIndex) {
         fragment.appendChild(option);
     });
 
+    if (hasCombinedScatteringHits(delayPayload)) {
+        const option = document.createElement('option');
+        option.value = COMBINED_MATRIX_OPTION;
+        option.textContent = 'Combined';
+        fragment.appendChild(option);
+    }
+
     matrixDelaySelect.replaceChildren(fragment);
-    matrixDelaySelect.value = String(selectedIndex);
+    matrixDelaySelect.value = selectedValue;
 }
 
 function openScatteringMatrix() {
@@ -1197,21 +1218,32 @@ function openScatteringMatrix() {
         return;
     }
 
+    // Opens on the delay the Results panel is showing, falling back to Combined for a delay that
+    // carries no hits of its own — which is the only reason the Details button is visible there.
     const index = parseInt(delaySlider.value, 10);
-    if (!hasScatteringHits(delayPayload.results[index])) {
+    const selectedValue = hasScatteringHits(delayPayload.results[index]) ? String(index) : COMBINED_MATRIX_OPTION;
+    if (selectedValue === COMBINED_MATRIX_OPTION && !hasCombinedScatteringHits(delayPayload)) {
         return;
     }
 
-    // Every delay of the payload is offered, defaulting to the one the Results panel is showing.
-    populateMatrixDelaySelect(index);
-    showScatteringMatrixDelay(index);
+    populateMatrixDelaySelect(selectedValue);
+    showScatteringMatrixSelection(selectedValue);
     matrixModal.style.display = 'flex';
 }
 
-// Loads one delay into the open modal: the title and the matrix below the delay selector. The Results
-// panel, the delay slider and the 3D frame are untouched — the selector drives this modal only.
-function showScatteringMatrixDelay(index) {
-    const delayResult = delayPayload.results[index];
+// Loads one selection into the open modal: the title and the matrix below the delay selector. The
+// Results panel, the delay slider and the 3D frame are untouched — the selector drives this modal only.
+function showScatteringMatrixSelection(selectedValue) {
+    if (selectedValue === COMBINED_MATRIX_OPTION) {
+        // Shaped as a delay result, which is all renderScatteringMatrix reads of one: the combined
+        // distributions are the same per profile matrices, aggregated over the delays instead of
+        // belonging to one.
+        matrixTitle.textContent = 'Scattering hits – all delays combined';
+        renderScatteringMatrix({ angularDistributions: delayPayload.combined });
+        return;
+    }
+
+    const delayResult = delayPayload.results[parseInt(selectedValue, 10)];
     matrixTitle.textContent = `Scattering hits – delay ${formatDelay(delayResult.delay)}`;
     renderScatteringMatrix(delayResult);
 }
@@ -1570,7 +1602,7 @@ resultsDetailsButton.addEventListener('click', openScatteringMatrix);
 
 // The delay selector at the top of the matrix modal reloads the matrix in place.
 matrixDelaySelect.addEventListener('change', () => {
-    showScatteringMatrixDelay(parseInt(matrixDelaySelect.value, 10));
+    showScatteringMatrixSelection(matrixDelaySelect.value);
 });
 
 matrixCloseButton.addEventListener('click', () => {
