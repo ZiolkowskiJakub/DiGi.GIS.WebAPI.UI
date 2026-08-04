@@ -16,10 +16,10 @@ namespace DiGi.GIS.WebAPI.UI.Classes
         public double? Conductivity { get; set; }
 
         /// <summary>
-        /// Gets or sets the frequencies of the propagating electromagnetic wave [MHz].
-        /// <para>AI-NOTE (multi-frequency extensibility): the payload is a list so the calculation can be executed for multiple frequencies in one request. The 3D view currently sends a single frequency; once the per frequency toggling UI is implemented, the additional values flow through this property without any backend change.</para>
+        /// Gets or sets the frequency of the propagating electromagnetic wave [Hz].
+        /// <para>The 3D view collects the value in MHz and converts it before sending; when omitted the <see cref="Communication.Classes.AngularPowerDistributionSolverOptions"/> default is used.</para>
         /// </summary>
-        public List<double>? Frequencies { get; set; }
+        public double? Frequency { get; set; }
 
         /// <summary>
         /// Gets or sets the polarization type of the propagating electromagnetic wave (Vertical or Horizontal).

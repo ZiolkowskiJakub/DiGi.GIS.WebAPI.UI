@@ -146,20 +146,20 @@ public string? DefaultSimpleMultipathPowerDelayProfile { get; set; }
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter.Frequencies'></a>
+<a name='DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter.Frequency'></a>
 
-## CommunicationCalculationParameter\.Frequencies Property
+## CommunicationCalculationParameter\.Frequency Property
 
-Gets or sets the frequencies of the propagating electromagnetic wave \[MHz\]\.
+Gets or sets the frequency of the propagating electromagnetic wave \[Hz\]\.
 
-AI-NOTE (multi-frequency extensibility): the payload is a list so the calculation can be executed for multiple frequencies in one request. The 3D view currently sends a single frequency; once the per frequency toggling UI is implemented, the additional values flow through this property without any backend change.
+The 3D view collects the value in MHz and converts it before sending; when omitted the [DiGi\.Communication\.Classes\.AngularPowerDistributionSolverOptions](https://learn.microsoft.com/en-us/dotnet/api/digi.communication.classes.angularpowerdistributionsolveroptions 'DiGi\.Communication\.Classes\.AngularPowerDistributionSolverOptions') default is used.
 
 ```csharp
-public System.Collections.Generic.List<double>? Frequencies { get; set; }
+public System.Nullable<double> Frequency { get; set; }
 ```
 
 #### Property Value
-[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 <a name='DiGi.GIS.WebAPI.UI.Classes.CommunicationCalculationParameter.Polarization'></a>
 

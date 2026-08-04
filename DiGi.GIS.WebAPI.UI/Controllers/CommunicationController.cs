@@ -223,10 +223,19 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
                 scatteringSolver.Solve();
 
+                // The frequency [Hz] is collected by the calculation modal (in MHz, converted before it is
+                // sent); an omitted or invalid value falls back to the AngularPowerDistributionSolverOptions
+                // default rather than failing the request.
+                AngularPowerDistributionSolverOptions angularPowerDistributionSolverOptions = new();
+                if (communicationCalculationParameter.Frequency is double frequency && !double.IsNaN(frequency) && frequency > 0)
+                {
+                    angularPowerDistributionSolverOptions.Frequency = frequency;
+                }
+
                 AngularPowerDistributionSolver angularPowerDistributionSolver = new()
                 {
                     GeometricalPropagationModel = geometricalPropagationModel,
-                    AngularPowerDistributionSolverOptions = new AngularPowerDistributionSolverOptions()
+                    AngularPowerDistributionSolverOptions = angularPowerDistributionSolverOptions
                 };
 
                 angularPowerDistributionSolver.Solve();

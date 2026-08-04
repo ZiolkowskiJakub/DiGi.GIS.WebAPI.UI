@@ -1642,6 +1642,22 @@ h1.gis-title-large {
     justify-content: flex-end;
 }
 
+/* Delay selector row at the top of the scattering matrix modal, directly above the matrix table.
+   .communication-modal-label is not reused here: it forces display: block + width: 100% onto its
+   select, which would stretch the combobox across the whole 800px modal. */
+.communication-matrix-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px 0;
+}
+
+.communication-matrix-controls-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
 /* Scattering hit matrix (azimuth ranges across, elevation ranges down). */
 .communication-matrix-caption {
     font-size: 0.85rem;

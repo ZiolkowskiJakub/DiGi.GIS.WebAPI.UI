@@ -41,6 +41,7 @@ const DEFAULT_VECTOR_SCALE = 10;         // default stretch applied to the angul
 const RAY_DECIBEL_WINDOW = 30;           // dB range mapped onto the ray length scale
 const CLICK_THRESHOLD = 5;               // pixels of pointer travel before a click becomes a drag
 const DEFAULT_ANTENNA_HEIGHT = 15;       // default Z coordinate for the antenna modal and live preview
+const DEFAULT_FREQUENCY_MHZ = 5000;      // default frequency of the calculation modal in MHz (matches the input value)
 const ANTENNA_PREVIEW_OPACITY = 0.5;     // semi-transparent live preview during add mode
 
 const container = document.getElementById('gltf-viewer-container');
@@ -63,6 +64,7 @@ const antennaEditButton = document.getElementById('communication-antenna-edit-bu
 
 const calculationModal = document.getElementById('communication-calculation-modal');
 const calculationProfileSelect = document.getElementById('communication-calculation-profile');
+const calculationFrequencyInput = document.getElementById('communication-calculation-frequency');
 const calculationOkButton = document.getElementById('communication-calculation-ok-button');
 const calculationCancelButton = document.getElementById('communication-calculation-cancel-button');
 
@@ -79,6 +81,7 @@ const resultsDetailsButton = document.getElementById('communication-results-deta
 
 const matrixModal = document.getElementById('communication-scattering-matrix-modal');
 const matrixTitle = document.getElementById('communication-scattering-matrix-title');
+const matrixDelaySelect = document.getElementById('communication-scattering-matrix-delay');
 const matrixPanel = document.getElementById('communication-scattering-matrix');
 const matrixCloseButton = document.getElementById('communication-scattering-matrix-close-button');
 
@@ -671,8 +674,15 @@ function formatPower(value) {
     return value >= 0.001 ? value.toFixed(4) : value.toExponential(3);
 }
 
+// Seconds -> microseconds, the unit every delay is presented in. Kept separate from formatDelay so a
+// caller whose label already carries the unit (the delay selector of the scattering matrix modal) can
+// render the bare number.
+function formatDelayValue(delay) {
+    return (delay * 1e6).toFixed(2);
+}
+
 function formatDelay(delay) {
-    return `${(delay * 1e6).toFixed(2)} µs`;
+    return `${formatDelayValue(delay)} µs`;
 }
 
 function formatAngle(radians) {
@@ -1166,26 +1176,66 @@ function toBuckets(ranges) {
     return { buckets, positionByIndex };
 }
 
+// The delay selector of the modal offers every delay of the payload, so its options are indices into
+// payload.results — the delay value itself never has to be matched back on change. Built into a
+// fragment and swapped in as a whole, which drops the options of the previous open in one go.
+function populateMatrixDelaySelect(selectedIndex) {
+    const fragment = document.createDocumentFragment();
+    delayPayload.results.forEach((delayResult, index) => {
+        const option = document.createElement('option');
+        option.value = String(index);
+        option.textContent = formatDelayValue(delayResult.delay);
+        fragment.appendChild(option);
+    });
+
+    matrixDelaySelect.replaceChildren(fragment);
+    matrixDelaySelect.value = String(selectedIndex);
+}
+
 function openScatteringMatrix() {
     if (delayPayload === null) {
         return;
     }
 
-    const delayResult = delayPayload.results[parseInt(delaySlider.value, 10)];
-    if (!hasScatteringHits(delayResult)) {
+    const index = parseInt(delaySlider.value, 10);
+    if (!hasScatteringHits(delayPayload.results[index])) {
         return;
     }
 
+    // Every delay of the payload is offered, defaulting to the one the Results panel is showing.
+    populateMatrixDelaySelect(index);
+    showScatteringMatrixDelay(index);
+    matrixModal.style.display = 'flex';
+}
+
+// Loads one delay into the open modal: the title and the matrix below the delay selector. The Results
+// panel, the delay slider and the 3D frame are untouched — the selector drives this modal only.
+function showScatteringMatrixDelay(index) {
+    const delayResult = delayPayload.results[index];
     matrixTitle.textContent = `Scattering hits – delay ${formatDelay(delayResult.delay)}`;
     renderScatteringMatrix(delayResult);
-    matrixModal.style.display = 'flex';
 }
 
 function renderScatteringMatrix(delayResult) {
     matrixPanel.innerHTML = '';
 
+    // The hits belong to the delay that was on screen, so a reload closes the drill-down rather than
+    // leaving the hits of the previous delay open on top of the new matrix.
+    hitsModal.style.display = 'none';
+    hitsPanel.innerHTML = '';
+
     // One distribution per angular power distribution profile (one per receiving antenna).
     const angularDistributions = (delayResult.angularDistributions ?? []).filter(angularDistribution => (angularDistribution.cells ?? []).length > 0);
+
+    // The delay selector lists every delay, including the ones the Details button stays hidden for, so
+    // an empty matrix is a normal selection rather than the unreachable state it used to be.
+    if (angularDistributions.length === 0) {
+        const note = document.createElement('div');
+        note.className = 'gltf-muted';
+        note.textContent = 'No scattering hits for this delay.';
+        matrixPanel.appendChild(note);
+        return;
+    }
 
     for (const angularDistribution of angularDistributions) {
         if (angularDistributions.length > 1) {
@@ -1344,6 +1394,9 @@ function closeScatteringModals() {
     matrixModal.style.display = 'none';
     hitsPanel.innerHTML = '';
     matrixPanel.innerHTML = '';
+
+    // The options are rebuilt from the payload on every open, so they are released with the matrix DOM.
+    matrixDelaySelect.replaceChildren();
 }
 
 function clearResults() {
@@ -1406,6 +1459,7 @@ async function calculate(calculationParameters) {
         };
 
         body.defaultSimpleMultipathPowerDelayProfile = calculationParameters.defaultSimpleMultipathPowerDelayProfile;
+        body.frequency = calculationParameters.frequency;
 
         console.log('Calculate URL:', container.dataset.calculateUrl);
         console.log('Calculate body:', body);
@@ -1472,6 +1526,10 @@ calculateButton.addEventListener('click', () => {
     }
 
     calculationModal.style.display = 'flex';
+    if (calculationFrequencyInput) {
+        calculationFrequencyInput.value = String(DEFAULT_FREQUENCY_MHZ);
+    }
+
     if (calculationProfileSelect) {
         calculationProfileSelect.focus();
     }
@@ -1480,8 +1538,12 @@ calculateButton.addEventListener('click', () => {
 calculationOkButton.addEventListener('click', () => {
     calculationModal.style.display = 'none';
 
+    // The modal collects MHz; everything downstream (request body, solver options) is in Hz.
+    const frequencyMHz = parseFloat(calculationFrequencyInput?.value);
+
     calculate({
-        defaultSimpleMultipathPowerDelayProfile: calculationProfileSelect?.value ?? 'TypicalUrban'
+        defaultSimpleMultipathPowerDelayProfile: calculationProfileSelect?.value ?? 'TypicalUrban',
+        frequency: (isFinite(frequencyMHz) && frequencyMHz > 0 ? frequencyMHz : DEFAULT_FREQUENCY_MHZ) * 1e6
     });
 });
 
@@ -1505,6 +1567,11 @@ vectorScaleInput.addEventListener('input', () => {
 
 // Scattering hit drill-down wiring: Details -> matrix of the selected delay -> hits of one bin.
 resultsDetailsButton.addEventListener('click', openScatteringMatrix);
+
+// The delay selector at the top of the matrix modal reloads the matrix in place.
+matrixDelaySelect.addEventListener('change', () => {
+    showScatteringMatrixDelay(parseInt(matrixDelaySelect.value, 10));
+});
 
 matrixCloseButton.addEventListener('click', () => {
     matrixModal.style.display = 'none';
