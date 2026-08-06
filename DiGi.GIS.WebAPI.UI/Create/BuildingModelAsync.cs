@@ -49,7 +49,8 @@ namespace DiGi.GIS.WebAPI.UI
                 return null;
             }
 
-            return Analytical.Create.BuildingModel(building2D, storeyHeight, tolerance);
+            // Bound by name - the extruded overload takes the base elevation ahead of the storey height and the tolerance, so passing them positionally would place the model at the storey height and extrude it by the tolerance.
+            return Analytical.Create.BuildingModel(building2D, storeyHeight: storeyHeight, tolerance: tolerance);
         }
     }
 }
