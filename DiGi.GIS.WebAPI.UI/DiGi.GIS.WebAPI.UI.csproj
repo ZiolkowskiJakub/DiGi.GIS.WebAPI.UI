@@ -12,11 +12,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<!-- MathNet.Numerics is a NuGet dependency of DiGi.Math, reached through the DiGi.Geometry HintPath below.
+		     Matrix.GetInversed (transform inversion, polynomial fitting) throws FileNotFoundException without it. -->
+		<PackageReference Include="MathNet.Numerics" Version="5.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
 		<PackageReference Include="NetTopologySuite" Version="2.6.0" />
 		<!-- Npgsql and ProjNET4GeoAPI are NuGet dependencies of DiGi.GIS.PostgreSQL (referenced via HintPath), so they must be re-added here to reach the application output. -->
 		<PackageReference Include="Npgsql" Version="10.0.2" />
 		<PackageReference Include="ProjNET4GeoAPI" Version="1.4.1" />
+		<!-- QuikGraph is a NuGet dependency of DiGi.Geometry (referenced via HintPath), so it must be re-added here to reach the application output. -->
+		<PackageReference Include="QuikGraph" Version="2.5.0" />
 		<!-- SharpGLTF is a NuGet dependency of DiGi.GLTF (referenced via HintPath), so it must be re-added here to reach the application output. -->
 		<PackageReference Include="SharpGLTF.Toolkit" Version="1.0.6" />
 		<!-- SolarCalculator is a NuGet dependency of DiGi.Solar (referenced via HintPath), so it must be re-added here to reach the application output. -->
