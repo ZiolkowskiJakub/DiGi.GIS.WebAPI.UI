@@ -1,6 +1,7 @@
 using DiGi.Analytical.Building.Classes;
 using DiGi.Analytical.Building.Enums;
 using DiGi.Core.Interfaces;
+using DiGi.Geometry.Planar.Classes;
 using DiGi.Geometry.Spatial.Classes;
 using DiGi.GIS.WebAPI.UI.ViewModels;
 using DiGi.GLTF;
@@ -119,6 +120,8 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NotFound();
             }
 
+            await AddTerrainAsync(gLTFNodes, httpClient, new Point2D(x, y), HttpContext.RequestAborted);
+
             string name = $"BuildingModel {buildingModel.UniqueId}";
 
             GLTFScene? gLTFScene = GLTF.Create.GLTFScene(gLTFNodes, name);
@@ -181,6 +184,13 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             HttpClient httpClient = httpClientFactory.CreateClient();
 
+            // TERRAIN. Started before the buildings response is awaited, so the terrain round trip runs
+            // alongside it instead of adding to the time the page waits. Gated by
+            // Constants.Default.TerrainEnabled, whose summary says what has to be true before it is on.
+            // The task never faults - it answers null for every failure - so an early return below can
+            // abandon it safely.
+            Task<GLTFNode?>? task_Terrain = Constants.Default.TerrainEnabled ? httpClient.TerrainGLTFNodeAsync(new Circle2D(new Point2D(centerX, centerY), radius), cancellationToken: cancellationToken) : null;
+
             UrlBuilder urlBuilder = new("https://api.digiproject.uk/gis/buildingmodel/itemsbycircle");
             urlBuilder = urlBuilder.AddParameter("x", centerX);
             urlBuilder = urlBuilder.AddParameter("y", centerY);
@@ -225,6 +235,12 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             if (gLTFNodes is null || gLTFNodes.Count == 0)
             {
                 return NoContent();
+            }
+
+            GLTFNode? gLTFNode_Terrain = task_Terrain is null ? null : await task_Terrain;
+            if (gLTFNode_Terrain is not null)
+            {
+                gLTFNodes.Add(gLTFNode_Terrain);
             }
 
             GLTFScene? gLTFScene = GLTF.Create.GLTFScene(gLTFNodes, name, referencePointOverride: new Point3D(centerX, centerY, 0));
@@ -320,6 +336,12 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NoContent();
             }
 
+            // A building fetched by identifier carries no requested area to borrow, so the ground it is
+            // given is centred on the building itself.
+            Point3D? centroid = buildingModel.GetBoundingBox()?.GetCentroid();
+
+            await AddTerrainAsync(gLTFNodes, httpClient, centroid is null ? null : new Point2D(centroid.X, centroid.Y), HttpContext.RequestAborted);
+
             string name = $"BuildingModel {id.ToString(CultureInfo.InvariantCulture)}";
 
             GLTFScene? gLTFScene = GLTF.Create.GLTFScene(gLTFNodes, name);
@@ -345,6 +367,30 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         public IActionResult Start()
         {
             return View("~/Views/GLTF/Start.cshtml");
+        }
+
+        /// <summary>
+        /// TERRAIN. Adds the ground surface around the given point to the nodes of a scene.
+        /// <para>Does nothing unless <see cref="Constants.Default.TerrainEnabled"/> is on; that constant's summary says what has to be true before it is, and every site that reads it carries this note so the feature can be found in one sweep.</para>
+        /// <para>The surface is optional: no stored elevation points, an undeployed or unreachable terrain service and a timeout all leave the scene exactly as it was, so a building scene never depends on terrain being there.</para>
+        /// </summary>
+        /// <param name="gLTFNodes">The nodes of the scene being built.</param>
+        /// <param name="httpClient">The HTTP client used for the request.</param>
+        /// <param name="center">The centre of the ground to show, in PL-1992 (EPSG:2180) metres. This value can be null.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        private static async Task AddTerrainAsync(List<GLTFNode> gLTFNodes, HttpClient httpClient, Point2D? center, CancellationToken cancellationToken)
+        {
+            if (!Constants.Default.TerrainEnabled || center is null)
+            {
+                return;
+            }
+
+            GLTFNode? gLTFNode = await httpClient.TerrainGLTFNodeAsync(new Circle2D(center, Constants.Default.TerrainRadius), cancellationToken: cancellationToken);
+            if (gLTFNode is not null)
+            {
+                gLTFNodes.Add(gLTFNode);
+            }
         }
     }
 }

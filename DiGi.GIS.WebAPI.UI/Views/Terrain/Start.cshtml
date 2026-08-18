@@ -1,0 +1,64 @@
+@{
+    ViewData["Title"] = "Terrain";
+    ViewData["Description"] = "Reconstruct the ground surface of an area from stored elevation points and explore it in 3D.";
+}
+
+<div class="gis-panel">
+    <div class="gis-card gis-hero-card">
+        @* Circular-area line icon (consistent line-icon set shared with the 3D viewer and communication start pages). *@
+        <div class="gis-hero-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" role="img" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 12h7" />
+                <path d="M12 12h.01" />
+                <path d="m3 16 4-3 3 2 4-4 4 3" />
+            </svg>
+        </div>
+        <h2 class="gis-title gis-title-hero">Terrain by Circle</h2>
+        <p class="gis-hero-text">
+            Enter a central point and a radius to reconstruct the ground surface of that circular area. The surface is a height field built from the elevation points stored for the counties the area covers, so it models ground only - no vertical faces, overhangs or canopies.
+        </p>
+        <form method="get" action="~/terrain/terrainbycircle" class="gis-inline-form">
+            <label>Point X
+                <input type="number" name="centerX" value="629671.3" step="any" required />
+            </label>
+            <label>Point Y
+                <input type="number" name="centerY" value="489136.8" step="any" required />
+            </label>
+            <label>Radius [m]
+                <input type="number" name="radius" value="500" step="any" min="1" required class="gis-input-sm" />
+            </label>
+            <button type="submit" class="gis-button">Open</button>
+        </form>
+    </div>
+
+    <div class="gis-card gis-hero-card">
+        @* Rectangular-area line icon (consistent line-icon set shared with the 3D viewer and communication start pages). *@
+        <div class="gis-hero-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" role="img" aria-hidden="true">
+                <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                <path d="m3 16 4-3 3 2 4-4 4 3" />
+                <path d="M7 8h.01" />
+            </svg>
+        </div>
+        <h2 class="gis-title gis-title-hero">Terrain by Bounding Box</h2>
+        <p class="gis-hero-text">
+            Enter two opposite corners to reconstruct the ground surface of that rectangular area. Corner order does not matter.
+        </p>
+        <form method="get" action="~/terrain/terrainbyboundingbox" class="gis-inline-form">
+            <label>Corner 1 X
+                <input type="number" name="x_1" value="629171.3" step="any" required />
+            </label>
+            <label>Corner 1 Y
+                <input type="number" name="y_1" value="488636.8" step="any" required />
+            </label>
+            <label>Corner 2 X
+                <input type="number" name="x_2" value="630171.3" step="any" required />
+            </label>
+            <label>Corner 2 Y
+                <input type="number" name="y_2" value="489636.8" step="any" required />
+            </label>
+            <button type="submit" class="gis-button">Open</button>
+        </form>
+    </div>
+</div>

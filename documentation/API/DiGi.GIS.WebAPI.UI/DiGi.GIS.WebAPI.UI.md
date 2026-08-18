@@ -124,6 +124,94 @@ The title displayed above the viewer\. If this value is null, the scene name is 
 [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel')  
 A [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel') ready to be passed to the glTF scene view, or null if the scene is null or could not be exported\.
 
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Circle2D,string,System.Nullable_double_,System.Threading.CancellationToken)'></a>
+
+## Create\.TerrainGLTFNodeAsync\(this HttpClient, Circle2D, string, Nullable\<double\>, CancellationToken\) Method
+
+Asynchronously creates the [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode') holding the ground surface of a circular area, read from the GIS Web API terrain service\.
+
+```csharp
+public static System.Threading.Tasks.Task<DiGi.GLTF.Classes.GLTFNode?> TerrainGLTFNodeAsync(this System.Net.Http.HttpClient? httpClient, DiGi.Geometry.Planar.Classes.Circle2D? circle2D, string? name=null, System.Nullable<double> tolerance=null, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Circle2D,string,System.Nullable_double_,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Circle2D,string,System.Nullable_double_,System.Threading.CancellationToken).circle2D'></a>
+
+`circle2D` [DiGi\.Geometry\.Planar\.Classes\.Circle2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.circle2d 'DiGi\.Geometry\.Planar\.Classes\.Circle2D')
+
+The area to show the terrain surface of, in PL\-1992 \(EPSG:2180\) metres\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Circle2D,string,System.Nullable_double_,System.Threading.CancellationToken).name'></a>
+
+`name` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The name given to the node\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Circle2D,string,System.Nullable_double_,System.Threading.CancellationToken).tolerance'></a>
+
+`tolerance` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+An optional tolerance for the spatial query, in metres\. When omitted the terrain service applies its own default\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Circle2D,string,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The terrain node, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the area has no surface to show\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,string,string,System.Threading.CancellationToken)'></a>
+
+## Create\.TerrainGLTFNodeAsync\(this HttpClient, string, string, CancellationToken\) Method
+
+Asynchronously creates the [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode') holding the ground surface of an area, read from the GIS Web API terrain service\.
+
+The surface keeps the elevations it is stored with. Nothing is shifted onto another datum here, so a scene mixing terrain with other geometry only lines up when that geometry carries real elevations too - see the TERRAIN note on [TerrainEnabled](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.TerrainEnabled 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.TerrainEnabled').
+
+[null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') is returned whenever there is no surface to show, for any reason (see [TerrainJsonAsync\(this HttpClient, string, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TerrainJsonAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.TerrainJsonAsync\(this System\.Net\.Http\.HttpClient, string, System\.Threading\.CancellationToken\)')). A caller adds the node when it gets one and carries on unchanged when it does not.
+
+```csharp
+public static System.Threading.Tasks.Task<DiGi.GLTF.Classes.GLTFNode?> TerrainGLTFNodeAsync(this System.Net.Http.HttpClient? httpClient, string? requestUri, string? name=null, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,string,string,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,string,string,System.Threading.CancellationToken).requestUri'></a>
+
+`requestUri` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The terrain service URL to read the surface from, as built by [TerrainRequestUri\(this Circle2D, Nullable&lt;double&gt;\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TerrainRequestUri(thisDiGi.Geometry.Planar.Classes.Circle2D,System.Nullable_double_) 'DiGi\.GIS\.WebAPI\.UI\.Query\.TerrainRequestUri\(this DiGi\.Geometry\.Planar\.Classes\.Circle2D, System\.Nullable\<double\>\)')\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,string,string,System.Threading.CancellationToken).name'></a>
+
+`name` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The name given to the node\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,string,string,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The terrain node, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the area has no surface to show\.
+
 <a name='DiGi.GIS.WebAPI.UI.Modify'></a>
 
 ## Modify Class
@@ -163,3 +251,113 @@ The reduction factor used to determine the target number of points\. A value bet
 `minCount` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The minimum number of points that should remain in the list after reduction\. Defaults to 100\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query'></a>
+
+## Query Class
+
+```csharp
+public static class Query
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → Query
+### Methods
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainJsonAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken)'></a>
+
+## Query\.TerrainJsonAsync\(this HttpClient, string, CancellationToken\) Method
+
+Asynchronously reads a GIS Web API terrain service response body\.
+
+Terrain is optional by contract, so every way of not getting a body collapses into [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null'): the area holds no stored elevation points (404), the terrain store cannot be queried (500 - the elevation table does not exist in every environment yet), the service is unreachable, or the request timed out. A caller that only wants terrain when it exists cannot be broken by any of them, and no scene loading terrain alongside other objects loses those objects because of it. The price is that "no terrain here" and "terrain service down" are indistinguishable to the caller; the terrain service logs which one it was.
+
+The wait is bounded by [TerrainRequestTimeout](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.TerrainRequestTimeout 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.TerrainRequestTimeout') rather than by the 100 second [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') default, so a stalled terrain query cannot hold a page request open.
+
+```csharp
+public static System.Threading.Tasks.Task<string?> TerrainJsonAsync(this System.Net.Http.HttpClient? httpClient, string? requestUri, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainJsonAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainJsonAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken).requestUri'></a>
+
+`requestUri` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The terrain service URL to read, as built by [TerrainRequestUri\(this Circle2D, Nullable&lt;double&gt;\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TerrainRequestUri(thisDiGi.Geometry.Planar.Classes.Circle2D,System.Nullable_double_) 'DiGi\.GIS\.WebAPI\.UI\.Query\.TerrainRequestUri\(this DiGi\.Geometry\.Planar\.Classes\.Circle2D, System\.Nullable\<double\>\)')\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainJsonAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The response body, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there is none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainRequestUri(thisDiGi.Geometry.Planar.Classes.BoundingBox2D,System.Nullable_double_)'></a>
+
+## Query\.TerrainRequestUri\(this BoundingBox2D, Nullable\<double\>\) Method
+
+Builds the GIS Web API terrain service URL for an axis aligned rectangular area\.
+
+The corners are checked only for being usable numbers: the ceiling on how large an area may be asked for belongs to the terrain service, which rejects an oversized request itself.
+
+An omitted tolerance is left out of the URL entirely rather than sent as a value of this application's choosing, so the terrain service applies its own default.
+
+```csharp
+public static string? TerrainRequestUri(this DiGi.Geometry.Planar.Classes.BoundingBox2D? boundingBox2D, System.Nullable<double> tolerance=null);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainRequestUri(thisDiGi.Geometry.Planar.Classes.BoundingBox2D,System.Nullable_double_).boundingBox2D'></a>
+
+`boundingBox2D` [DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')
+
+The area to request the terrain surface for, in PL\-1992 \(EPSG:2180\) metres\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainRequestUri(thisDiGi.Geometry.Planar.Classes.BoundingBox2D,System.Nullable_double_).tolerance'></a>
+
+`tolerance` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+An optional tolerance for the spatial query, in metres\.
+
+#### Returns
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
+The terrain service URL, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the area cannot be requested\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainRequestUri(thisDiGi.Geometry.Planar.Classes.Circle2D,System.Nullable_double_)'></a>
+
+## Query\.TerrainRequestUri\(this Circle2D, Nullable\<double\>\) Method
+
+Builds the GIS Web API terrain service URL for a circular area\.
+
+The radius is checked only for being a usable number: the ceiling on how large an area may be asked for belongs to the terrain service, which rejects an oversized request itself.
+
+An omitted tolerance is left out of the URL entirely rather than sent as a value of this application's choosing, so the terrain service applies its own default.
+
+```csharp
+public static string? TerrainRequestUri(this DiGi.Geometry.Planar.Classes.Circle2D? circle2D, System.Nullable<double> tolerance=null);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainRequestUri(thisDiGi.Geometry.Planar.Classes.Circle2D,System.Nullable_double_).circle2D'></a>
+
+`circle2D` [DiGi\.Geometry\.Planar\.Classes\.Circle2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.circle2d 'DiGi\.Geometry\.Planar\.Classes\.Circle2D')
+
+The area to request the terrain surface for, in PL\-1992 \(EPSG:2180\) metres\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainRequestUri(thisDiGi.Geometry.Planar.Classes.Circle2D,System.Nullable_double_).tolerance'></a>
+
+`tolerance` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+An optional tolerance for the spatial query, in metres\.
+
+#### Returns
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
+The terrain service URL, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the area cannot be requested\.

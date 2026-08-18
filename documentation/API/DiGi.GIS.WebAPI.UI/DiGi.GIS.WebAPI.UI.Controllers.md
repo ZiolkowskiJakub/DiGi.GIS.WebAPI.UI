@@ -497,6 +497,49 @@ public BuildingModelController(System.Net.Http.IHttpClientFactory httpClientFact
 The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') used to create and manage [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') instances for making API requests\.
 ### Methods
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.AddTerrainAsync(System.Collections.Generic.List_DiGi.GLTF.Classes.GLTFNode_,System.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Point2D,System.Threading.CancellationToken)'></a>
+
+## BuildingModelController\.AddTerrainAsync\(List\<GLTFNode\>, HttpClient, Point2D, CancellationToken\) Method
+
+TERRAIN\. Adds the ground surface around the given point to the nodes of a scene\.
+
+Does nothing unless [TerrainEnabled](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.TerrainEnabled 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.TerrainEnabled') is on; that constant's summary says what has to be true before it is, and every site that reads it carries this note so the feature can be found in one sweep.
+
+The surface is optional: no stored elevation points, an undeployed or unreachable terrain service and a timeout all leave the scene exactly as it was, so a building scene never depends on terrain being there.
+
+```csharp
+private static System.Threading.Tasks.Task AddTerrainAsync(System.Collections.Generic.List<DiGi.GLTF.Classes.GLTFNode> gLTFNodes, System.Net.Http.HttpClient httpClient, DiGi.Geometry.Planar.Classes.Point2D? center, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.AddTerrainAsync(System.Collections.Generic.List_DiGi.GLTF.Classes.GLTFNode_,System.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Point2D,System.Threading.CancellationToken).gLTFNodes'></a>
+
+`gLTFNodes` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+The nodes of the scene being built\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.AddTerrainAsync(System.Collections.Generic.List_DiGi.GLTF.Classes.GLTFNode_,System.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Point2D,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.AddTerrainAsync(System.Collections.Generic.List_DiGi.GLTF.Classes.GLTFNode_,System.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Point2D,System.Threading.CancellationToken).center'></a>
+
+`center` [DiGi\.Geometry\.Planar\.Classes\.Point2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.point2d 'DiGi\.Geometry\.Planar\.Classes\.Point2D')
+
+The centre of the ground to show, in PL\-1992 \(EPSG:2180\) metres\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.AddTerrainAsync(System.Collections.Generic.List_DiGi.GLTF.Classes.GLTFNode_,System.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Point2D,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task 'System\.Threading\.Tasks\.Task')  
+A [System\.Threading\.Tasks\.Task](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task 'System\.Threading\.Tasks\.Task') representing the asynchronous operation\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetBuildingModelByIdAsync(long,System.Nullable_int_)'></a>
 
 ## BuildingModelController\.GetBuildingModelByIdAsync\(long, Nullable\<int\>\) Method
@@ -1186,6 +1229,499 @@ The local time of day as a decimal hour in the 0\-24 range\.
 #### Returns
 [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
 JSON with the true solar angles: azimuth \[deg\] \(0 = north, clockwise\) and altitude \[deg\] above the horizon \(negative at night\)\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController'></a>
+
+## TerrainController Class
+
+Provides the terrain feature: the ground surface of an area as a [DiGi\.Geometry\.Spatial\.Classes\.Mesh3D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.spatial.classes.mesh3d 'DiGi\.Geometry\.Spatial\.Classes\.Mesh3D'), as a binary glTF payload and as a 3D viewer page\.
+
+The surface itself is reconstructed by the GIS Web API terrain endpoints (gis/terrain) from the elevation points stored per county; this controller only relays them, so the query limits (maximum radius, mesh edge length, tolerance defaults) stay owned by that service and cannot drift here.
+
+Every surface returned here is a two-and-a-half dimensional height field: exactly one elevation per plan position. It models ground, and cannot express a vertical face, an overhang or a canopy.
+
+```csharp
+public class TerrainController : Microsoft.AspNetCore.Mvc.Controller
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [Microsoft\.AspNetCore\.Mvc\.ControllerBase](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controllerbase 'Microsoft\.AspNetCore\.Mvc\.ControllerBase') → [Microsoft\.AspNetCore\.Mvc\.Controller](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controller 'Microsoft\.AspNetCore\.Mvc\.Controller') → TerrainController
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.TerrainController(System.Net.Http.IHttpClientFactory)'></a>
+
+## TerrainController\(IHttpClientFactory\) Constructor
+
+Initializes a new instance of the [TerrainController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TerrainController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TerrainController') class\.
+
+```csharp
+public TerrainController(System.Net.Http.IHttpClientFactory httpClientFactory);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.TerrainController(System.Net.Http.IHttpClientFactory).httpClientFactory'></a>
+
+`httpClientFactory` [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory')
+
+The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') used to create [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') instances\.
+### Methods
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.BoundingBoxName(double,double,double,double)'></a>
+
+## TerrainController\.BoundingBoxName\(double, double, double, double\) Method
+
+Builds the name of a rectangular terrain area, used as the scene name and as the viewer page title\.
+
+```csharp
+private static string BoundingBoxName(double x_1, double y_1, double x_2, double y_2);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.BoundingBoxName(double,double,double,double).x_1'></a>
+
+`x_1` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The X coordinate of the first corner, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.BoundingBoxName(double,double,double,double).y_1'></a>
+
+`y_1` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The Y coordinate of the first corner, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.BoundingBoxName(double,double,double,double).x_2'></a>
+
+`x_2` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The X coordinate of the second corner, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.BoundingBoxName(double,double,double,double).y_2'></a>
+
+`y_2` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The Y coordinate of the second corner, in PL\-1992 \(EPSG:2180\) metres\.
+
+#### Returns
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
+The name of the area\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.Circle2D(double,double,System.Nullable_double_,System.Nullable_double_)'></a>
+
+## TerrainController\.Circle2D\(double, double, Nullable\<double\>, Nullable\<double\>\) Method
+
+Builds the circular area a request asked for, resolving the radius from either the radius or the diameter\.
+
+An area that cannot be served (a coordinate or a radius that is not a usable number) is built all the same and rejected afterwards by [TerrainRequestUri\(this Circle2D, Nullable&lt;double&gt;\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TerrainRequestUri(thisDiGi.Geometry.Planar.Classes.Circle2D,System.Nullable_double_) 'DiGi\.GIS\.WebAPI\.UI\.Query\.TerrainRequestUri\(this DiGi\.Geometry\.Planar\.Classes\.Circle2D, System\.Nullable\<double\>\)'), so what a terrain request may ask for is decided in one place.
+
+```csharp
+private static DiGi.Geometry.Planar.Classes.Circle2D Circle2D(double x, double y, System.Nullable<double> radius, System.Nullable<double> diameter);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.Circle2D(double,double,System.Nullable_double_,System.Nullable_double_).x'></a>
+
+`x` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The X coordinate of the centre, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.Circle2D(double,double,System.Nullable_double_,System.Nullable_double_).y'></a>
+
+`y` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The Y coordinate of the centre, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.Circle2D(double,double,System.Nullable_double_,System.Nullable_double_).radius'></a>
+
+`radius` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The search radius in metres\. Optional when [diameter](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TerrainController.Circle2D(double,double,System.Nullable_double_,System.Nullable_double_).diameter 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TerrainController\.Circle2D\(double, double, System\.Nullable\<double\>, System\.Nullable\<double\>\)\.diameter') is supplied\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.Circle2D(double,double,System.Nullable_double_,System.Nullable_double_).diameter'></a>
+
+`diameter` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The search diameter in metres, used only when [radius](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TerrainController.Circle2D(double,double,System.Nullable_double_,System.Nullable_double_).radius 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TerrainController\.Circle2D\(double, double, System\.Nullable\<double\>, System\.Nullable\<double\>\)\.radius') is absent\.
+
+#### Returns
+[DiGi\.Geometry\.Planar\.Classes\.Circle2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.circle2d 'DiGi\.Geometry\.Planar\.Classes\.Circle2D')  
+The requested area\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.CircleName(double,double,System.Nullable_double_,System.Nullable_double_)'></a>
+
+## TerrainController\.CircleName\(double, double, Nullable\<double\>, Nullable\<double\>\) Method
+
+Builds the name of a circular terrain area, used as the scene name and as the viewer page title\.
+
+```csharp
+private static string CircleName(double x, double y, System.Nullable<double> radius, System.Nullable<double> diameter);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.CircleName(double,double,System.Nullable_double_,System.Nullable_double_).x'></a>
+
+`x` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The X coordinate of the centre, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.CircleName(double,double,System.Nullable_double_,System.Nullable_double_).y'></a>
+
+`y` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The Y coordinate of the centre, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.CircleName(double,double,System.Nullable_double_,System.Nullable_double_).radius'></a>
+
+`radius` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The search radius in metres\. Optional when [diameter](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TerrainController.CircleName(double,double,System.Nullable_double_,System.Nullable_double_).diameter 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TerrainController\.CircleName\(double, double, System\.Nullable\<double\>, System\.Nullable\<double\>\)\.diameter') is supplied\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.CircleName(double,double,System.Nullable_double_,System.Nullable_double_).diameter'></a>
+
+`diameter` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The search diameter in metres, used only when [radius](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TerrainController.CircleName(double,double,System.Nullable_double_,System.Nullable_double_).radius 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TerrainController\.CircleName\(double, double, System\.Nullable\<double\>, System\.Nullable\<double\>\)\.radius') is absent\.
+
+#### Returns
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
+The name of the area\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetGLBMesh3DByBoundingBoxAsync(double,double,double,double,System.Nullable_double_,System.Threading.CancellationToken)'></a>
+
+## TerrainController\.GetGLBMesh3DByBoundingBoxAsync\(double, double, double, double, Nullable\<double\>, CancellationToken\) Method
+
+Asynchronously retrieves the terrain surface inside an axis aligned bounding box and streams it as a binary glTF \(\.glb\) payload for the 3D viewer\.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetGLBMesh3DByBoundingBoxAsync(double x_1, double y_1, double x_2, double y_2, System.Nullable<double> tolerance, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetGLBMesh3DByBoundingBoxAsync(double,double,double,double,System.Nullable_double_,System.Threading.CancellationToken).x_1'></a>
+
+`x_1` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The X coordinate of the first corner, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetGLBMesh3DByBoundingBoxAsync(double,double,double,double,System.Nullable_double_,System.Threading.CancellationToken).y_1'></a>
+
+`y_1` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The Y coordinate of the first corner, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetGLBMesh3DByBoundingBoxAsync(double,double,double,double,System.Nullable_double_,System.Threading.CancellationToken).x_2'></a>
+
+`x_2` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The X coordinate of the second corner, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetGLBMesh3DByBoundingBoxAsync(double,double,double,double,System.Nullable_double_,System.Threading.CancellationToken).y_2'></a>
+
+`y_2` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The Y coordinate of the second corner, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetGLBMesh3DByBoundingBoxAsync(double,double,double,double,System.Nullable_double_,System.Threading.CancellationToken).tolerance'></a>
+
+`tolerance` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+An optional tolerance for the spatial query, in metres\. When omitted the terrain service applies its own default\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetGLBMesh3DByBoundingBoxAsync(double,double,double,double,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the \.glb file\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetGLBMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
+
+## TerrainController\.GetGLBMesh3DByCircleAsync\(double, double, Nullable\<double\>, Nullable\<double\>, Nullable\<double\>, CancellationToken\) Method
+
+Asynchronously retrieves the terrain surface inside a circle and streams it as a binary glTF \(\.glb\) payload for the 3D viewer\.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetGLBMesh3DByCircleAsync(double x, double y, System.Nullable<double> radius, System.Nullable<double> diameter, System.Nullable<double> tolerance, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetGLBMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).x'></a>
+
+`x` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The X coordinate of the centre, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetGLBMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).y'></a>
+
+`y` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The Y coordinate of the centre, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetGLBMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).radius'></a>
+
+`radius` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The search radius in metres\. Optional when [diameter](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetGLBMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).diameter 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TerrainController\.GetGLBMesh3DByCircleAsync\(double, double, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)\.diameter') is supplied\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetGLBMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).diameter'></a>
+
+`diameter` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The search diameter in metres, used only when [radius](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetGLBMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).radius 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TerrainController\.GetGLBMesh3DByCircleAsync\(double, double, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)\.radius') is absent\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetGLBMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).tolerance'></a>
+
+`tolerance` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+An optional tolerance for the spatial query, in metres\. When omitted the terrain service applies its own default\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetGLBMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the \.glb file\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetMesh3DByBoundingBoxAsync(double,double,double,double,System.Nullable_double_,System.Threading.CancellationToken)'></a>
+
+## TerrainController\.GetMesh3DByBoundingBoxAsync\(double, double, double, double, Nullable\<double\>, CancellationToken\) Method
+
+Asynchronously retrieves the terrain surface inside an axis aligned bounding box given by two opposite corners\.
+
+Corner order does not matter.
+
+A terrain payload is optional by contract: when the area holds no stored elevation points, or the terrain service cannot answer, the response is 204 rather than an error - see [TerrainJsonAsync\(this HttpClient, string, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TerrainJsonAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.TerrainJsonAsync\(this System\.Net\.Http\.HttpClient, string, System\.Threading\.CancellationToken\)').
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetMesh3DByBoundingBoxAsync(double x_1, double y_1, double x_2, double y_2, System.Nullable<double> tolerance, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetMesh3DByBoundingBoxAsync(double,double,double,double,System.Nullable_double_,System.Threading.CancellationToken).x_1'></a>
+
+`x_1` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The X coordinate of the first corner, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetMesh3DByBoundingBoxAsync(double,double,double,double,System.Nullable_double_,System.Threading.CancellationToken).y_1'></a>
+
+`y_1` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The Y coordinate of the first corner, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetMesh3DByBoundingBoxAsync(double,double,double,double,System.Nullable_double_,System.Threading.CancellationToken).x_2'></a>
+
+`x_2` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The X coordinate of the second corner, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetMesh3DByBoundingBoxAsync(double,double,double,double,System.Nullable_double_,System.Threading.CancellationToken).y_2'></a>
+
+`y_2` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The Y coordinate of the second corner, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetMesh3DByBoundingBoxAsync(double,double,double,double,System.Nullable_double_,System.Threading.CancellationToken).tolerance'></a>
+
+`tolerance` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+An optional tolerance for the spatial query, in metres\. When omitted the terrain service applies its own default\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetMesh3DByBoundingBoxAsync(double,double,double,double,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') carrying the [DiGi\.Geometry\.Spatial\.Classes\.Mesh3D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.spatial.classes.mesh3d 'DiGi\.Geometry\.Spatial\.Classes\.Mesh3D') as JSON\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
+
+## TerrainController\.GetMesh3DByCircleAsync\(double, double, Nullable\<double\>, Nullable\<double\>, Nullable\<double\>, CancellationToken\) Method
+
+Asynchronously retrieves the terrain surface inside a circle centred on the given plan coordinate\.
+
+Either [radius](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).radius 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TerrainController\.GetMesh3DByCircleAsync\(double, double, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)\.radius') or [diameter](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).diameter 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TerrainController\.GetMesh3DByCircleAsync\(double, double, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)\.diameter') must be supplied; [radius](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).radius 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TerrainController\.GetMesh3DByCircleAsync\(double, double, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)\.radius') wins when both are.
+
+A terrain payload is optional by contract: when the area holds no stored elevation points, or the terrain service cannot answer, the response is 204 rather than an error - see [TerrainJsonAsync\(this HttpClient, string, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TerrainJsonAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.TerrainJsonAsync\(this System\.Net\.Http\.HttpClient, string, System\.Threading\.CancellationToken\)').
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetMesh3DByCircleAsync(double x, double y, System.Nullable<double> radius, System.Nullable<double> diameter, System.Nullable<double> tolerance, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).x'></a>
+
+`x` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The X coordinate of the centre, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).y'></a>
+
+`y` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The Y coordinate of the centre, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).radius'></a>
+
+`radius` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The search radius in metres\. Optional when [diameter](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).diameter 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TerrainController\.GetMesh3DByCircleAsync\(double, double, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)\.diameter') is supplied\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).diameter'></a>
+
+`diameter` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The search diameter in metres, used only when [radius](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).radius 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TerrainController\.GetMesh3DByCircleAsync\(double, double, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)\.radius') is absent\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).tolerance'></a>
+
+`tolerance` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+An optional tolerance for the spatial query, in metres\. When omitted the terrain service applies its own default\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetMesh3DByCircleAsync(double,double,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') carrying the [DiGi\.Geometry\.Spatial\.Classes\.Mesh3D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.spatial.classes.mesh3d 'DiGi\.Geometry\.Spatial\.Classes\.Mesh3D') as JSON\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetTerrainByBoundingBox(double,double,double,double)'></a>
+
+## TerrainController\.GetTerrainByBoundingBox\(double, double, double, double\) Method
+
+Renders the 3D viewer page for the terrain inside an axis aligned bounding box\. The page itself carries no geometry; the viewer streams the binary glTF payload from the glb endpoint\.
+
+```csharp
+public Microsoft.AspNetCore.Mvc.IActionResult GetTerrainByBoundingBox(double x_1, double y_1, double x_2, double y_2);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetTerrainByBoundingBox(double,double,double,double).x_1'></a>
+
+`x_1` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The X coordinate of the first corner, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetTerrainByBoundingBox(double,double,double,double).y_1'></a>
+
+`y_1` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The Y coordinate of the first corner, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetTerrainByBoundingBox(double,double,double,double).x_2'></a>
+
+`x_2` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The X coordinate of the second corner, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetTerrainByBoundingBox(double,double,double,double).y_2'></a>
+
+`y_2` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The Y coordinate of the second corner, in PL\-1992 \(EPSG:2180\) metres\.
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') rendering the glTF scene view\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetTerrainByCircle(double,double,double)'></a>
+
+## TerrainController\.GetTerrainByCircle\(double, double, double\) Method
+
+Renders the 3D viewer page for the terrain inside a circle\. The page itself carries no geometry; the viewer streams the binary glTF payload from the glb endpoint\.
+
+```csharp
+public Microsoft.AspNetCore.Mvc.IActionResult GetTerrainByCircle(double centerX, double centerY, double radius);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetTerrainByCircle(double,double,double).centerX'></a>
+
+`centerX` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The X coordinate of the centre of the requested area\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetTerrainByCircle(double,double,double).centerY'></a>
+
+`centerY` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The Y coordinate of the centre of the requested area\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GetTerrainByCircle(double,double,double).radius'></a>
+
+`radius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The radius of the requested area in metres\.
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') rendering the glTF scene view\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GLBResultAsync(string,string,DiGi.Geometry.Spatial.Classes.Point3D,System.Threading.CancellationToken)'></a>
+
+## TerrainController\.GLBResultAsync\(string, string, Point3D, CancellationToken\) Method
+
+Converts the terrain surface behind the given request into a batched [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene') and renders it as a binary glTF \(\.glb\) response body\.
+
+Missing terrain is answered with 204 at every step. The viewer treats an empty payload as "nothing to draw" and keeps the rest of the page working, so a request for an area the terrain store does not cover yet degrades instead of failing.
+
+```csharp
+private System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GLBResultAsync(string requestUri, string name, DiGi.Geometry.Spatial.Classes.Point3D referencePoint, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GLBResultAsync(string,string,DiGi.Geometry.Spatial.Classes.Point3D,System.Threading.CancellationToken).requestUri'></a>
+
+`requestUri` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The terrain service URL to read the surface from\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GLBResultAsync(string,string,DiGi.Geometry.Spatial.Classes.Point3D,System.Threading.CancellationToken).name'></a>
+
+`name` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The name given to the scene and to its single node\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GLBResultAsync(string,string,DiGi.Geometry.Spatial.Classes.Point3D,System.Threading.CancellationToken).referencePoint'></a>
+
+`referencePoint` [DiGi\.Geometry\.Spatial\.Classes\.Point3D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.spatial.classes.point3d 'DiGi\.Geometry\.Spatial\.Classes\.Point3D')
+
+The world point the scene is translated to a local origin around\. The centre of the requested area, matching what the building scenes use, so a terrain scene and a building scene of the same area share one local origin\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.GLBResultAsync(string,string,DiGi.Geometry.Spatial.Classes.Point3D,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the \.glb file, or a no content status\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController.Start()'></a>
+
+## TerrainController\.Start\(\) Method
+
+Initializes and returns the start view of the terrain feature\.
+
+```csharp
+public Microsoft.AspNetCore.Mvc.IActionResult Start();
+```
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') result that renders the starting view\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.YearBuiltDataController'></a>
 
