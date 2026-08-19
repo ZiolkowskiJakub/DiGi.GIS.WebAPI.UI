@@ -15,7 +15,7 @@
 @{
     List<AdministrativeAreal2DReference> administrativeAreal2DReferences_All = Model.AdministrativeAreal2DReferences ?? [];
 
-    DiGi.Core.Query.Filter(administrativeAreal2DReferences_All, x => x?.AdministrativeArealType == AdministrativeArealType.Subdivison, out List<AdministrativeAreal2DReference>? administrativeAreal2DReferences_Subdivision, out List<AdministrativeAreal2DReference>? administrativeAreal2DReferences);
+    DiGi.Core.Query.Filter(administrativeAreal2DReferences_All, x => x?.AdministrativeArealType == AdministrativeArealType.Subdivision, out List<AdministrativeAreal2DReference>? administrativeAreal2DReferences_Subdivision, out List<AdministrativeAreal2DReference>? administrativeAreal2DReferences);
     
     if (administrativeAreal2DReferences is not null)
     {

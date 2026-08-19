@@ -163,7 +163,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NotFound();
             }
 
-            if (administrativeAreal2DReference.AdministrativeArealType == PostgreSQL.Enums.AdministrativeArealType.Subdivison && administrativeAreal2DReference.AdministrativeArealType.ParentAdministrativeArealType() is PostgreSQL.Enums.AdministrativeArealType administrativeArealType_Parent)
+            if (administrativeAreal2DReference.AdministrativeArealType == PostgreSQL.Enums.AdministrativeArealType.Subdivision && administrativeAreal2DReference.AdministrativeArealType.ParentAdministrativeArealType() is PostgreSQL.Enums.AdministrativeArealType administrativeArealType_Parent)
             {
                 urlBuilder = urlBuilder.AddParameter("administrativearealtype", administrativeArealType_Parent.ToString());
 
@@ -242,7 +242,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NotFound();
             }
 
-            administrativeAreal2DReferencePath.Remove(PostgreSQL.Enums.AdministrativeArealType.Subdivison);
+            administrativeAreal2DReferencePath.Remove(PostgreSQL.Enums.AdministrativeArealType.Subdivision);
 
             #endregion AdministrativeAreal2DReferencePath
 
@@ -498,7 +498,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             List<AdministrativeAreal2D> administrativeAreal2Ds = [];
 
-            if (administrativeArealType == AdministrativeArealType.Subdivison || administrativeArealType == AdministrativeArealType.Municipality)
+            if (administrativeArealType == AdministrativeArealType.Subdivision || administrativeArealType == AdministrativeArealType.Municipality)
             {
                 #region AdministrativeAreal2D
 
