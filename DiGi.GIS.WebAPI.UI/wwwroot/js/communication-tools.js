@@ -112,6 +112,7 @@ let antennaPreview = null;         // semi-transparent antenna preview shown dur
 let delayPayload = null;           // last successful delay based (v1) calculation payload
 const delayObjects = [];           // three.js objects of the currently rendered delay frame
 let auxiliaryObject = null;        // auxiliary polylines of the selected scattering polyline
+let pendingGroundZ = 0;            // snapped ground Z for the pending antenna add
 
 const raycaster = new THREE.Raycaster();
 const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // DiGi Z = 0 plane in three.js Y-up world
@@ -175,16 +176,18 @@ function antennaDotRadius() {
 
 function buildAntennaVisual(data) {
     const dotRadius = antennaDotRadius();
-    const base = toScene(data.x, data.y, 0);
+    const baseZ = data.groundZ !== undefined ? data.groundZ : (data.z > DEFAULT_ANTENNA_HEIGHT ? data.z - DEFAULT_ANTENNA_HEIGHT : 0);
+    const base = toScene(data.x, data.y, baseZ);
     const top = toScene(data.x, data.y, data.z);
 
     const group = new THREE.Group();
     const meshes = [];
 
-    if (data.z > 0) {
-        const mastGeometry = new THREE.CylinderGeometry(dotRadius * 0.12, dotRadius * 0.12, data.z, 8);
+    const mastHeight = Math.max(0, top.y - base.y);
+    if (mastHeight > 0) {
+        const mastGeometry = new THREE.CylinderGeometry(dotRadius * 0.12, dotRadius * 0.12, mastHeight, 8);
         const mast = new THREE.Mesh(mastGeometry, new THREE.MeshBasicMaterial({ color: ANTENNA_COLOR }));
-        mast.position.set(base.x, base.y + data.z / 2, base.z);
+        mast.position.set(base.x, base.y + mastHeight / 2, base.z);
         group.add(mast);
         meshes.push(mast);
     }
@@ -469,15 +472,37 @@ container.addEventListener('pointerdown', onPointerDown, true);
 container.addEventListener('pointerup', onPointerUp, true);
 container.addEventListener('click', onClickCapture, true);
 
+function raycastGroundPoint(event) {
+    if (!viewer) {
+        return null;
+    }
+
+    raycaster.setFromCamera(pointerNdc(event), viewer.camera);
+
+    const pickables = viewer.batchMeshes?.length > 0 ? viewer.batchMeshes : (viewer.objects?.map((o) => o.mesh).filter(Boolean) ?? []);
+    if (pickables.length > 0) {
+        const intersections = raycaster.intersectObjects(pickables, false);
+        if (intersections.length > 0) {
+            return intersections[0].point;
+        }
+    }
+
+    const intersection = new THREE.Vector3();
+    if (raycaster.ray.intersectPlane(groundPlane, intersection)) {
+        return intersection;
+    }
+
+    return null;
+}
+
 function onPointerMove(event) {
     if (mode !== 'add' || !viewer) {
         return;
     }
 
-    raycaster.setFromCamera(pointerNdc(event), viewer.camera);
-    const intersection = new THREE.Vector3();
-    if (raycaster.ray.intersectPlane(groundPlane, intersection)) {
-        updateAntennaPreview(intersection);
+    const point = raycastGroundPoint(event);
+    if (point) {
+        updateAntennaPreview(point);
     } else {
         hideAntennaPreview();
     }
@@ -486,24 +511,23 @@ function onPointerMove(event) {
 container.addEventListener('pointermove', onPointerMove);
 
 // ---------------------------------------------------------------------------------------------
-// Add antenna: click on the ground plane (restricted to Z = 0) -> modal with editable values.
+// Add antenna: click on the terrain / ground plane -> modal with editable values.
 // ---------------------------------------------------------------------------------------------
 
 function handleAddClick(event) {
-    raycaster.setFromCamera(pointerNdc(event), viewer.camera);
-
-    const intersection = new THREE.Vector3();
-    if (!raycaster.ray.intersectPlane(groundPlane, intersection)) {
+    const point = raycastGroundPoint(event);
+    if (!point) {
         return;
     }
 
-    const world = toWorld(intersection);
+    const world = toWorld(point);
+    pendingGroundZ = world.z;
 
     editingAntenna = null;
     modalTitle.textContent = 'Add antenna';
     modalX.value = world.x.toFixed(2);
     modalY.value = world.y.toFixed(2);
-    modalZ.value = String(DEFAULT_ANTENNA_HEIGHT);
+    modalZ.value = (world.z + DEFAULT_ANTENNA_HEIGHT).toFixed(2);
     for (const checkbox of modal.querySelectorAll('.communication-antenna-function')) {
         checkbox.checked = antennas.length === 0 ? checkbox.value === 'Transmitter'
             : antennas.length === 1 ? checkbox.value === 'Receiver'
@@ -562,12 +586,12 @@ modalOkButton.addEventListener('click', () => {
             return;
         }
 
-        updateAntennaObject(antenna, { x, y, z, functions });
+        updateAntennaObject(antenna, { x, y, z, groundZ: data.groundZ, functions });
         reportStatus('Antenna updated.');
         return;
     }
 
-    addAntennaObject({ x, y, z, functions });
+    addAntennaObject({ x, y, z, groundZ: pendingGroundZ, functions });
     reportStatus('Antenna added.');
 });
 

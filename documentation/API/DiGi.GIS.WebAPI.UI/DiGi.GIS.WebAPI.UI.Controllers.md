@@ -648,9 +648,7 @@ The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/do
 
 ## BuildingModelController\.AddTerrainAsync\(List\<GLTFNode\>, HttpClient, Point2D, CancellationToken\) Method
 
-TERRAIN\. Adds the ground surface around the given point to the nodes of a scene\.
-
-Does nothing unless [TerrainEnabled](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.TerrainEnabled 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.TerrainEnabled') is on; that constant's summary says what has to be true before it is, and every site that reads it carries this note so the feature can be found in one sweep.
+Adds the ground surface around the given point to the nodes of a scene\.
 
 The surface is optional: no stored elevation points, an undeployed or unreachable terrain service and a timeout all leave the scene exactly as it was, so a building scene never depends on terrain being there.
 

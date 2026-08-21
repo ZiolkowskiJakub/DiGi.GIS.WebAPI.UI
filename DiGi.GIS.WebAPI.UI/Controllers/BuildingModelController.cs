@@ -163,9 +163,8 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             HttpClient httpClient = httpClientFactory.CreateClient();
 
-            // TERRAIN. Started before the buildings response is awaited, so the terrain round trip runs
-            // alongside it instead of adding to the time the page waits. Gated by
-            // Constants.Default.TerrainEnabled, whose summary says what has to be true before it is on.
+            // Started before the buildings response is awaited, so the terrain round trip runs
+            // alongside it instead of adding to the time the page waits.
             // The task never faults - it answers null for every failure - so an early return below can
             // abandon it safely.
             Task<GLTFNode?>? task_Terrain = Constants.Default.TerrainEnabled ? httpClient.TerrainGLTFNodeAsync(new Circle2D(new Point2D(centerX, centerY), radius), cancellationToken: cancellationToken) : null;
@@ -328,8 +327,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
 
         /// <summary>
-        /// TERRAIN. Adds the ground surface around the given point to the nodes of a scene.
-        /// <para>Does nothing unless <see cref="Constants.Default.TerrainEnabled"/> is on; that constant's summary says what has to be true before it is, and every site that reads it carries this note so the feature can be found in one sweep.</para>
+        /// Adds the ground surface around the given point to the nodes of a scene.
         /// <para>The surface is optional: no stored elevation points, an undeployed or unreachable terrain service and a timeout all leave the scene exactly as it was, so a building scene never depends on terrain being there.</para>
         /// </summary>
         /// <param name="gLTFNodes">The nodes of the scene being built.</param>

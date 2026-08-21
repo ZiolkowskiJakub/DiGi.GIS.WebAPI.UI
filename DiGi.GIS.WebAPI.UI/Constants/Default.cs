@@ -81,12 +81,11 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const double StoreyHeight = 3.0;
 
         /// <summary>
-        /// TERRAIN. Whether the ground surface is added to the scenes that display <see cref="DiGi.Analytical.Building.Classes.BuildingModel"/> geometry (the 3D viewer and the communication view).
-        /// <para>Off, because the two would not meet. The terrain surface carries its true height - the deployed GIS Web API answers with elevations of 111 to 112 m over central Warsaw, verified 2026-08-21 - while the building models those scenes show are extruded from Building2D footprints at elevation 0, so the buildings would float above the ground or sink into it. Real stored building models are tracked by DiGi.GIS.PostgreSQL issue 2, and this turns on once those scenes show models carrying real elevations.</para>
-        /// <para>Everything the feature adds to those scenes is behind a TERRAIN note naming this constant, so it can be found in one sweep and promoted or removed. The standalone terrain feature (the Terrain controller and its own pages) is not gated by this - it shows the surface on its own, where the elevation is correct as stored.</para>
+        /// Whether the ground surface is added to the scenes that display <see cref="DiGi.Analytical.Building.Classes.BuildingModel"/> geometry (the 3D viewer and the communication view).
+        /// <para>The standalone terrain feature (the Terrain controller and its own pages) shows the surface on its own, where the elevation is correct as stored.</para>
         /// <para>Note that an area smaller than the sampling lattice legitimately holds no points: the counties are sampled at 10 m to 100 m, so a request with a radius below the lattice step answers 404 without meaning that nothing was ever stored there.</para>
         /// </summary>
-        public const bool TerrainEnabled = false;
+        public const bool TerrainEnabled = true;
 
         /// <summary>
         /// The name given to the terrain node of a scene.
