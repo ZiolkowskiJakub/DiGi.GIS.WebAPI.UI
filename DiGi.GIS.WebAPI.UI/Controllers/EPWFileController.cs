@@ -54,15 +54,5 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             return View("EPWFileView", new EPWFileViewModel(epwFile));
         }
-
-        /// <summary>
-        /// Returns the starting view.
-        /// </summary>
-        /// <returns>An <see cref="IActionResult"/> representing the start view.</returns>
-        [HttpGet("")]
-        public IActionResult Start()
-        {
-            return View();
-        }
     }
 }

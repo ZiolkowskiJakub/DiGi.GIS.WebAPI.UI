@@ -64,15 +64,5 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             return View("TableView", new TableViewModel(table));
         }
-
-        /// <summary>
-        /// Handles the HTTP GET request to the root endpoint and returns the starting view for building data operations.
-        /// </summary>
-        /// <returns>An <see cref="IActionResult"/> representing the start view.</returns>
-        [HttpGet("")]
-        public IActionResult Start()
-        {
-            return View();
-        }
     }
 }
