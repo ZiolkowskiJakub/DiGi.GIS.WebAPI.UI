@@ -16,6 +16,34 @@ public static class Default
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → Default
 ### Fields
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingSearchRadius'></a>
+
+## Default\.BuildingSearchRadius Field
+
+The radius, in metres, searched around a plan position to find the building standing there\.
+
+The 3D viewer knows a picked building by its centroid rather than by its identifier, so the building is recovered by asking for everything within this distance of that point. Small on purpose: it has to be forgiving of the difference between a footprint centroid and a model centroid without reaching a neighbouring building.
+
+```csharp
+public const double BuildingSearchRadius = 5;
+```
+
+#### Field Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingSearchTolerance'></a>
+
+## Default\.BuildingSearchTolerance Field
+
+The tolerance, in metres, applied to the spatial query behind [BuildingSearchRadius](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.BuildingSearchRadius 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.BuildingSearchRadius')\.
+
+```csharp
+public const double BuildingSearchTolerance = 5;
+```
+
+#### Field Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.CommunicationWebAPIUri'></a>
 
 ## Default\.CommunicationWebAPIUri Field
@@ -44,6 +72,129 @@ public const string CommunicationWebAPIUri_Development = "https://api.digiprojec
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.GISWebAPIUri'></a>
+
+## Default\.GISWebAPIUri Field
+
+Base URI of the GIS Web API \(DiGi\.GIS\.WebAPI, hosted by the generic DiGi\.WebAPI\.WindowsService\) this application proxies\.
+
+Every outbound request this application makes is built on this value, so the whole application can be pointed at another host by changing it here. The service is deployed on a separate machine and is versioned independently of this application - query `GET /information/controllers` on it to learn which build is actually answering before relying on a recently added endpoint.
+
+```csharp
+public const string GISWebAPIUri = "https://api.digiproject.uk";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.GISWebAPIUri_Development'></a>
+
+## Default\.GISWebAPIUri\_Development Field
+
+Base URI of the GIS Web API used during local development\.
+
+Points at the production service for the same reason [CommunicationWebAPIUri\_Development](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.CommunicationWebAPIUri_Development 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.CommunicationWebAPIUri\_Development') does: no host runs locally by default, and a dead localhost URI turns every page of this application into an error. Restore a localhost URI (matching the local host port) only when debugging the GIS Web API locally.
+
+```csharp
+public const string GISWebAPIUri_Development = "https://api.digiproject.uk";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.PolygonMinimumPointCount'></a>
+
+## Default\.PolygonMinimumPointCount Field
+
+The fewest points a reduced outline is allowed to keep, for an administrative area with no rule of its own and for a building footprint\.
+
+```csharp
+public const int PolygonMinimumPointCount = 100;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.PolygonMinimumPointCount_Country'></a>
+
+## Default\.PolygonMinimumPointCount\_Country Field
+
+The fewest points a reduced country outline is allowed to keep\.
+
+```csharp
+public const int PolygonMinimumPointCount_Country = 30;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.PolygonMinimumPointCount_Voivodeship'></a>
+
+## Default\.PolygonMinimumPointCount\_Voivodeship Field
+
+The fewest points a reduced voivodeship outline is allowed to keep\.
+
+```csharp
+public const int PolygonMinimumPointCount_Voivodeship = 50;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.PolygonReductionFactor'></a>
+
+## Default\.PolygonReductionFactor Field
+
+The reduction factor applied to an outline of an administrative area that has no rule of its own\.
+
+These outlines are drawn as an overview map a few hundred pixels across, so they are simplified before they are sent rather than after. The factor falls as the area grows: a country outline carries far more points than the map can show, a subdivision barely more.
+
+```csharp
+public const double PolygonReductionFactor = 0.01;
+```
+
+#### Field Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.PolygonReductionFactor_Country'></a>
+
+## Default\.PolygonReductionFactor\_Country Field
+
+The reduction factor applied to a country outline\. See [PolygonReductionFactor](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.PolygonReductionFactor 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.PolygonReductionFactor')\.
+
+```csharp
+public const double PolygonReductionFactor_Country = 1E-05;
+```
+
+#### Field Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.PolygonReductionFactor_County'></a>
+
+## Default\.PolygonReductionFactor\_County Field
+
+The reduction factor applied to a county outline\. See [PolygonReductionFactor](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.PolygonReductionFactor 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.PolygonReductionFactor')\.
+
+```csharp
+public const double PolygonReductionFactor_County = 0.001;
+```
+
+#### Field Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.PolygonReductionFactor_Voivodeship'></a>
+
+## Default\.PolygonReductionFactor\_Voivodeship Field
+
+The reduction factor applied to a voivodeship outline\. See [PolygonReductionFactor](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.PolygonReductionFactor 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.PolygonReductionFactor')\.
+
+```csharp
+public const double PolygonReductionFactor_Voivodeship = 0.001;
+```
+
+#### Field Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.StoreyHeight'></a>
 
 ## Default\.StoreyHeight Field
@@ -63,9 +214,11 @@ public const double StoreyHeight = 3;
 
 TERRAIN\. Whether the ground surface is added to the scenes that display [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') geometry \(the 3D viewer and the communication view\)\.
 
-Off, because neither half of the pairing is ready. The GIS Web API terrain endpoints are not deployed and the elevation table they read does not exist yet; and the building models those scenes show are extruded from Building2D footprints at elevation 0, while a terrain surface carries its true height (around 110 m over Warsaw), so the two would not meet. Real stored building models are tracked by DiGi.GIS.PostgreSQL issue 2.
+Off, because the two would not meet. The terrain surface carries its true height - the deployed GIS Web API answers with elevations of 111 to 112 m over central Warsaw, verified 2026-08-21 - while the building models those scenes show are extruded from Building2D footprints at elevation 0, so the buildings would float above the ground or sink into it. Real stored building models are tracked by DiGi.GIS.PostgreSQL issue 2, and this turns on once those scenes show models carrying real elevations.
 
-Turn on when both are true. Everything the feature adds to those scenes is behind a TERRAIN note naming this constant, so it can be found in one sweep and promoted or removed. The standalone terrain feature (the Terrain controller and its own pages) is not gated by this - it shows the surface on its own, where the elevation is correct as stored.
+Everything the feature adds to those scenes is behind a TERRAIN note naming this constant, so it can be found in one sweep and promoted or removed. The standalone terrain feature (the Terrain controller and its own pages) is not gated by this - it shows the surface on its own, where the elevation is correct as stored.
+
+Note that an area smaller than the sampling lattice legitimately holds no points: the counties are sampled at 10 m to 100 m, so a request with a radius below the lattice step answers 404 without meaning that nothing was ever stored there.
 
 ```csharp
 public const bool TerrainEnabled = False;

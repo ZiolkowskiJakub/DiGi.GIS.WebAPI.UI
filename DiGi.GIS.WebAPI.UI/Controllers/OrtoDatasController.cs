@@ -2,11 +2,11 @@ using DiGi.GIS.PostgreSQL.Classes;
 using DiGi.GIS.WebAPI.UI.ViewModels;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Json;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Controllers
@@ -33,9 +33,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// </summary>
         /// <param name="reference">The unique reference string for the item.</param>
         /// <param name="countyId">The optional identifier for the county.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IActionResult"/> representing the partial view or error response.</returns>
         [HttpGet("itembyreference")]
-        public async Task<IActionResult> GetItemByIdAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId)
+        public async Task<IActionResult> GetItemByReferenceAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(reference))
             {
@@ -44,141 +45,86 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             HttpClient httpClient = httpClientFactory.CreateClient();
 
-            UrlBuilder urlBuilder;
-            HttpResponseMessage httpResponseMessage;
-            string json;
-
-            #region OrtoDatas
-
-            urlBuilder = new("https://api.digiproject.uk/gis/ortodatas/itembyreference");
+            UrlBuilder urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/ortodatas/itembyreference");
             urlBuilder = urlBuilder.AddParameter("reference", reference);
-            if (countyId is not null && countyId.HasValue)
+            if (countyId.HasValue)
             {
-                urlBuilder = urlBuilder.AddParameter("countyId", countyId.Value);
+                urlBuilder = urlBuilder.AddParameter("countyid", countyId.Value);
             }
 
-            httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
-            if (!httpResponseMessage.IsSuccessStatusCode)
-            {
-                return BadRequest();
-            }
-
-            json = await httpResponseMessage.Content.ReadAsStringAsync();
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return NoContent();
-            }
-
-            GIS.Classes.OrtoDatas? ortoDatas = Core.Convert.ToDiGi<GIS.Classes.OrtoDatas>(json)?.FirstOrDefault();
+            GIS.Classes.OrtoDatas? ortoDatas = await httpClient.ItemAsync<GIS.Classes.OrtoDatas>(urlBuilder.ToString(), cancellationToken);
             if (ortoDatas is null)
             {
                 return NoContent();
             }
 
-            #endregion OrtoDatas
-
-            #region Building2DReference
-
-            urlBuilder = new("https://api.digiproject.uk/gis/building2D/building2Dreferencebyreference");
-            urlBuilder = urlBuilder.AddParameter("reference", reference);
-            if (countyId is not null && countyId.HasValue)
-            {
-                urlBuilder = urlBuilder.AddParameter("countyId", countyId.Value);
-            }
-
-            Building2DReference? building2DReference = null;
-
-            httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
-            if (httpResponseMessage.IsSuccessStatusCode)
-            {
-                json = await httpResponseMessage.Content.ReadAsStringAsync();
-                if (!string.IsNullOrWhiteSpace(json))
-                {
-                    building2DReference = Core.Convert.ToDiGi<Building2DReference>(json)?.FirstOrDefault();
-                }
-            }
-
-            #endregion Building2DReference
+            // The reference record is context for the panel rather than its subject, so a missing one
+            // renders the panel without it instead of failing the request.
+            Building2DReference? building2DReference = await httpClient.Building2DReferenceAsync(reference, countyId, cancellationToken);
 
             OrtoDatasViewModel ortoDatasViewModel = new(building2DReference, ortoDatas);
 
-            // We pass the objects to a Partial View
             return PartialView("_OrtoDatasView", ortoDatasViewModel);
         }
 
         /// <summary>
-        /// Retrieves the estimated coverage factor for a specific administrative area L2D identifier.
+        /// Retrieves the estimated orthophoto coverage factor of a single administrative area.
         /// </summary>
-        /// <param name="administrativeAreal2DId">The unique identifier of the administrative area L2D.</param>
+        /// <param name="administrativeAreal2DId">The unique identifier of the administrative area.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IActionResult"/> with the coverage factor or error status.</returns>
         [HttpGet("estimatedcoveragefactor")]
-        public async Task<IActionResult> GetEstimatedCoverageFactorAsync([FromQuery(Name = "administrativeareal2Did")] int administrativeAreal2DId)
+        public async Task<IActionResult> GetEstimatedCoverageFactorAsync([FromQuery(Name = "administrativeareal2Did")] int administrativeAreal2DId, CancellationToken cancellationToken = default)
         {
-            // Using HttpClient to call the external API from the server side
-            HttpClient httpClient = httpClientFactory.CreateClient();
-            try
+            if (administrativeAreal2DId <= 0)
             {
-                string url = $"https://api.digiproject.uk/gis/ortodatas/estimatedcoveragefactor?administrativeareal2Did={administrativeAreal2DId}";
-                HttpResponseMessage response = await httpClient.GetAsync(url);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string content = await response.Content.ReadAsStringAsync();
-                    return Ok(content);
-                }
                 return BadRequest();
             }
-            catch
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            UrlBuilder urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/ortodatas/estimatedcoveragefactor");
+            urlBuilder = urlBuilder.AddParameter("administrativeareal2Did", administrativeAreal2DId);
+
+            string? json = await httpClient.JsonAsync(urlBuilder.ToString(), cancellationToken);
+            if (string.IsNullOrWhiteSpace(json))
             {
-                // Log error and return N/A equivalent
-                return StatusCode(500, "Error");
+                return NoContent();
             }
+
+            return Content(json, "application/json");
         }
 
         /// <summary>
-        /// Retrieves estimated coverage factors for a collection of administrative area L2D identifiers.
+        /// Retrieves the estimated orthophoto coverage factors of several administrative areas at once.
+        /// <para>The values come back in the order the identifiers were given, which is what lets the page update one progress bar per row without matching anything up.</para>
         /// </summary>
-        /// <param name="administrativeAreal2DIds">An enumerable collection of administrative area L2D identifiers.</param>
+        /// <param name="administrativeAreal2DIds">The unique identifiers of the administrative areas.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IActionResult"/> with the list of coverage factor values or error status.</returns>
         [HttpPost("estimatedcoveragefactors")]
-        public async Task<IActionResult> GetEstimatedCoverageFactorsAsync([FromBody] IEnumerable<int> administrativeAreal2DIds)
+        public async Task<IActionResult> GetEstimatedCoverageFactorsAsync([FromBody] IEnumerable<int> administrativeAreal2DIds, CancellationToken cancellationToken = default)
         {
-            if (administrativeAreal2DIds == null || !administrativeAreal2DIds.Any())
+            if (administrativeAreal2DIds is null || !administrativeAreal2DIds.Any())
             {
-                return BadRequest("The list of IDs cannot be empty.");
+                return BadRequest();
             }
 
-            // Use IHttpClientFactory to prevent socket exhaustion
             HttpClient httpClient = httpClientFactory.CreateClient();
 
-            try
+            string? json = await httpClient.PostJsonAsync($"{Constants.Default.GISWebAPIUri}/gis/ortodatas/estimatedcoveragefactors", administrativeAreal2DIds, cancellationToken);
+            if (string.IsNullOrWhiteSpace(json))
             {
-                // Note: If calling the method you provided, it expects a Body.
-                // We change this to Post or send the list as a query string.
-                string url = "https://api.digiproject.uk/gis/ortodatas/estimatedcoveragefactors";
-
-                // Sending the collection in the body via POST (more reliable than GET with body)
-                HttpResponseMessage httpResponseMessage = await httpClient.PostAsJsonAsync(url, administrativeAreal2DIds);
-
-                if (httpResponseMessage.IsSuccessStatusCode)
-                {
-                    // Directly deserialize the response from the DLL-based logic
-                    List<double>? values = await httpResponseMessage.Content.ReadFromJsonAsync<List<double>>();
-                    if (values == null)
-                    {
-                        return NoContent();
-                    }
-
-                    return Ok(values);
-                }
-
-                return StatusCode((int)httpResponseMessage.StatusCode, "External API returned an error.");
+                return NoContent();
             }
-            catch (Exception exception)
+
+            List<double>? values = JsonSerializer.Deserialize<List<double>>(json);
+            if (values is null)
             {
-                // In a real scenario, log 'ex' using Serilog
-                return StatusCode(500, $"Internal server error: {exception.Message}");
+                return NoContent();
             }
+
+            return Ok(values);
         }
     }
 }

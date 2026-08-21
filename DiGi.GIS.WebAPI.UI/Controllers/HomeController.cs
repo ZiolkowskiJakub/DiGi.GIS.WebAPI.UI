@@ -8,9 +8,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
     [Route("")]
     public class HomeController : Controller
     {
-        // Constructor injection for the PostgreSQL data source
-        /// <summary> Handles the request for the start page and returns the corresponding view. </summary>
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HomeController"/> class.
+        /// <para>The landing pages carry no data of their own, so nothing is injected here.</para>
+        /// </summary>
         public HomeController()
         {
         }

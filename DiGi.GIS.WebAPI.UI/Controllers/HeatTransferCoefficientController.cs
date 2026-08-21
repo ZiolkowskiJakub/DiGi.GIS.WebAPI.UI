@@ -6,8 +6,8 @@ using DiGi.GIS.WebAPI.UI.ViewModels;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Controllers
@@ -36,9 +36,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// </summary>
         /// <param name="reference">The unique reference string of the building.</param>
         /// <param name="countyId">The optional identifier for the county associated with the building.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
         /// <returns>An <see cref="IActionResult"/> containing a partial view with the coefficient data, or an error result if the request fails.</returns>
         [HttpGet("regulatedheattransfercoefficientsbyreference")]
-        public async Task<IActionResult> GetRegulatedHeatTransferCoefficientsByReferenceAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId)
+        public async Task<IActionResult> GetRegulatedHeatTransferCoefficientsByReferenceAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(reference))
             {
@@ -48,31 +49,17 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             HttpClient httpClient = httpClientFactory.CreateClient();
 
             UrlBuilder urlBuilder;
-            HttpResponseMessage httpResponseMessage;
-            string json;
 
             #region YearBuiltDatas
 
-            urlBuilder = new("https://api.digiproject.uk/gis/yearbuiltdata/itemsbyreference");
+            urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/yearbuiltdata/itemsbyreference");
             urlBuilder = urlBuilder.AddParameter("reference", reference);
-            if (countyId is not null && countyId.HasValue)
+            if (countyId.HasValue)
             {
-                urlBuilder = urlBuilder.AddParameter("countyId", countyId.Value);
+                urlBuilder = urlBuilder.AddParameter("countyid", countyId.Value);
             }
 
-            httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
-            if (!httpResponseMessage.IsSuccessStatusCode)
-            {
-                return BadRequest();
-            }
-
-            json = await httpResponseMessage.Content.ReadAsStringAsync();
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return NoContent();
-            }
-
-            List<IYearBuiltData>? yearBuiltDatas = Core.Convert.ToDiGi<IYearBuiltData>(json);
+            List<IYearBuiltData>? yearBuiltDatas = await httpClient.ItemsAsync<IYearBuiltData>(urlBuilder.ToString(), cancellationToken);
             if (yearBuiltDatas is null)
             {
                 return NoContent();
@@ -89,10 +76,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             }
 
             IYearBuilt? yearBuilt = yearBuiltData.GetUserYearBuilt();
-            if (yearBuilt is null)
-            {
-                yearBuilt = yearBuiltData.GetLatestPredictedYearBuilt();
-            }
+            yearBuilt ??= yearBuiltData.GetLatestPredictedYearBuilt();
 
             if (yearBuilt is null)
             {
@@ -101,67 +85,47 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             short year = yearBuilt.Year;
 
-            # endregion Year
+            #endregion Year
 
             #region RegulatedHeatTransferCoefficients
 
-            urlBuilder = new("https://api.digiproject.uk/gis/heattransfercoefficient/regulatedheattransfercoefficientsbyyear");
+            urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/heattransfercoefficient/regulatedheattransfercoefficientsbyyear");
             urlBuilder = urlBuilder.AddParameter("year", year);
 
-            httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
-            if (!httpResponseMessage.IsSuccessStatusCode)
-            {
-                return BadRequest();
-            }
-
-            json = await httpResponseMessage.Content.ReadAsStringAsync();
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return NoContent();
-            }
-
-            List<IRegulatedHeatTransferCoefficients>? regulatedHeatTransferCoefficientsList = Core.Convert.ToDiGi<IRegulatedHeatTransferCoefficients>(json);
-            if (regulatedHeatTransferCoefficientsList is null)
+            IRegulatedHeatTransferCoefficients? regulatedHeatTransferCoefficients = await httpClient.ItemAsync<IRegulatedHeatTransferCoefficients>(urlBuilder.ToString(), cancellationToken);
+            if (regulatedHeatTransferCoefficients is null)
             {
                 return NoContent();
             }
 
             #endregion RegulatedHeatTransferCoefficients
 
+            #region IsResidential
+
+            // The 2002 regulation is the only one that sets different limits for a residential building,
+            // so the footprint is only read when that is the regulation in force.
             bool? isResidential = null;
 
-            IRegulatedHeatTransferCoefficients? regulatedHeatTransferCoefficients = regulatedHeatTransferCoefficientsList?.FirstOrDefault();
             if (regulatedHeatTransferCoefficients is RegulatedHeatTransferCoefficients_2002)
             {
-                #region Building2D
-
-                urlBuilder = new("https://api.digiproject.uk/gis/building2d/itembyreference");
+                urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/building2d/itembyreference");
                 urlBuilder = urlBuilder.AddParameter("reference", reference);
-                if (countyId is not null && countyId.HasValue)
+                if (countyId.HasValue)
                 {
-                    urlBuilder = urlBuilder.AddParameter("countyId", countyId.Value);
+                    urlBuilder = urlBuilder.AddParameter("countyid", countyId.Value);
                 }
 
-                httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
-                if (httpResponseMessage.IsSuccessStatusCode)
+                Building2D? building2D = await httpClient.ItemAsync<Building2D>(urlBuilder.ToString(), cancellationToken);
+                if (building2D is not null)
                 {
-                    json = await httpResponseMessage.Content.ReadAsStringAsync();
-                    if (!string.IsNullOrWhiteSpace(json))
-                    {
-                        Building2D? building2D = Core.Convert.ToDiGi<Building2D>(json)?.FirstOrDefault();
-                        if (building2D is not null)
-                        {
-                            isResidential = GIS.Query.IsResidential(building2D);
-                        }
-                    }
+                    isResidential = GIS.Query.IsResidential(building2D);
                 }
-
-                #endregion Building2D
             }
+
+            #endregion IsResidential
 
             RegulatedHeatTransferCoefficientsViewModel regulatedHeatTransferCoefficientsViewModel = new(year, regulatedHeatTransferCoefficients, isResidential);
 
-            // We pass the objects to a Partial View
             return PartialView("_RegulatedHeatTransferCoefficientsView", regulatedHeatTransferCoefficientsViewModel);
         }
     }

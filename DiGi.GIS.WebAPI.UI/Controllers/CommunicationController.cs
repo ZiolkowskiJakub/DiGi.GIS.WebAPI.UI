@@ -99,25 +99,12 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 // The buildings are fetched on the fly for the analyzed area (no database storage on the
                 // communication side) and reduced to plain triangulated geometry so no GIS type ever
                 // crosses the DiGi.Communication.WebAPI boundary.
-                UrlBuilder urlBuilder = new("https://api.digiproject.uk/gis/buildingmodel/itemsbycircle");
+                UrlBuilder urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/buildingmodel/itemsbycircle");
                 urlBuilder = urlBuilder.AddParameter("x", communicationCalculationParameter.CenterX);
                 urlBuilder = urlBuilder.AddParameter("y", communicationCalculationParameter.CenterY);
                 urlBuilder = urlBuilder.AddParameter("radius", communicationCalculationParameter.Radius);
 
-                HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString(), cancellationToken);
-                if (!httpResponseMessage.IsSuccessStatusCode)
-                {
-                    return BadRequest($"Failed to fetch buildings from the GIS service (HTTP {(int)httpResponseMessage.StatusCode}).");
-                }
-
-                string json = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
-                if (string.IsNullOrWhiteSpace(json))
-                {
-                    return NoContent();
-                }
-
-                List<BuildingModel>? buildingModels = Core.Convert.ToDiGi<BuildingModel>(json);
-
+                List<BuildingModel>? buildingModels = await httpClient.ItemsAsync<BuildingModel>(urlBuilder.ToString(), cancellationToken);
                 if (buildingModels is null || buildingModels.Count == 0)
                 {
                     return NoContent();

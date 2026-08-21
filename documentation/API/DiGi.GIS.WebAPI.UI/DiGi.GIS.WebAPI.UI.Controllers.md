@@ -7,7 +7,9 @@
 
 ## AdministrativeAreal2DController Class
 
-Provides API endpoints for managing and retrieving 2D administrative areal data\.
+Provides the pages and partial views of the administrative area feature\.
+
+The data itself is owned by the GIS Web API (gis/administrativeareal2D); this controller only reads it and renders it, so the query rules stay owned by that service and cannot drift here.
 
 ```csharp
 public class AdministrativeAreal2DController : Microsoft.AspNetCore.Mvc.Controller
@@ -34,176 +36,262 @@ public AdministrativeAreal2DController(System.Net.Http.IHttpClientFactory httpCl
 The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') used to create HTTP clients\.
 ### Methods
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencePathsByNameAsync(string)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencePathsByNameAsync(string,System.Threading.CancellationToken)'></a>
 
-## AdministrativeAreal2DController\.GetAdministrativeAreal2DReferencePathsByNameAsync\(string\) Method
+## AdministrativeAreal2DController\.GetAdministrativeAreal2DReferencePathsByNameAsync\(string, CancellationToken\) Method
 
 Searches for administrative area reference paths by name\.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetAdministrativeAreal2DReferencePathsByNameAsync(string text);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetAdministrativeAreal2DReferencePathsByNameAsync(string text, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencePathsByNameAsync(string).text'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencePathsByNameAsync(string,System.Threading.CancellationToken).text'></a>
 
 `text` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The text to search for within the name column\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencePathsByNameAsync(string,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') representing the asynchronous operation, containing the result of the search\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencesByAdministrativeArealTypeAsync(string,System.Nullable_int_,System.Nullable_bool_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencesByAdministrativeArealTypeAsync(System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Nullable_int_,System.Nullable_bool_,System.Threading.CancellationToken)'></a>
 
-## AdministrativeAreal2DController\.GetAdministrativeAreal2DReferencesByAdministrativeArealTypeAsync\(string, Nullable\<int\>, Nullable\<bool\>\) Method
+## AdministrativeAreal2DController\.GetAdministrativeAreal2DReferencesByAdministrativeArealTypeAsync\(Nullable\<AdministrativeArealType\>, Nullable\<int\>, Nullable\<bool\>, CancellationToken\) Method
 
 Retrieves administrative 2D area references based on the specified administrative areal type, parent identifier, and unique code filter\.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetAdministrativeAreal2DReferencesByAdministrativeArealTypeAsync(string administrativeArealType, System.Nullable<int> parentId, System.Nullable<bool> uniqueCode);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetAdministrativeAreal2DReferencesByAdministrativeArealTypeAsync(System.Nullable<DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType> administrativeArealType, System.Nullable<int> parentId, System.Nullable<bool> uniqueCode, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencesByAdministrativeArealTypeAsync(string,System.Nullable_int_,System.Nullable_bool_).administrativeArealType'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencesByAdministrativeArealTypeAsync(System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Nullable_int_,System.Nullable_bool_,System.Threading.CancellationToken).administrativeArealType'></a>
 
-`administrativeArealType` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+`administrativeArealType` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.enums.administrativearealtype 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The type of the administrative area\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencesByAdministrativeArealTypeAsync(string,System.Nullable_int_,System.Nullable_bool_).parentId'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencesByAdministrativeArealTypeAsync(System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Nullable_int_,System.Nullable_bool_,System.Threading.CancellationToken).parentId'></a>
 
 `parentId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional identifier of the parent administrative area\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencesByAdministrativeArealTypeAsync(string,System.Nullable_int_,System.Nullable_bool_).uniqueCode'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencesByAdministrativeArealTypeAsync(System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Nullable_int_,System.Nullable_bool_,System.Threading.CancellationToken).uniqueCode'></a>
 
 `uniqueCode` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 An optional flag indicating whether to filter by unique code\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencesByAdministrativeArealTypeAsync(System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Nullable_int_,System.Nullable_bool_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') representing the asynchronous operation result\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencesByCodeAsync(string)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencesByCodeAsync(string,System.Threading.CancellationToken)'></a>
 
-## AdministrativeAreal2DController\.GetAdministrativeAreal2DReferencesByCodeAsync\(string\) Method
+## AdministrativeAreal2DController\.GetAdministrativeAreal2DReferencesByCodeAsync\(string, CancellationToken\) Method
 
 Retrieves administrative areal 2D references by the specified code asynchronously\.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetAdministrativeAreal2DReferencesByCodeAsync(string code);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetAdministrativeAreal2DReferencesByCodeAsync(string code, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencesByCodeAsync(string).code'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencesByCodeAsync(string,System.Threading.CancellationToken).code'></a>
 
 `code` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The code used to retrieve the administrative areal 2D references\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencesByCodeAsync(string,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') representing the asynchronous operation result\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencesByIdAsync(int)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencesByIdAsync(int,System.Threading.CancellationToken)'></a>
 
-## AdministrativeAreal2DController\.GetAdministrativeAreal2DReferencesByIdAsync\(int\) Method
+## AdministrativeAreal2DController\.GetAdministrativeAreal2DReferencesByIdAsync\(int, CancellationToken\) Method
 
 Retrieves the administrative areal 2D references by their identifier\.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetAdministrativeAreal2DReferencesByIdAsync(int id);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetAdministrativeAreal2DReferencesByIdAsync(int id, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencesByIdAsync(int).id'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencesByIdAsync(int,System.Threading.CancellationToken).id'></a>
 
 `id` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The unique identifier of the administrative areal 2D reference\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencesByIdAsync(int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains an [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetItemByCodeAsync(string)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetItemByCodeAsync(string,System.Threading.CancellationToken)'></a>
 
-## AdministrativeAreal2DController\.GetItemByCodeAsync\(string\) Method
+## AdministrativeAreal2DController\.GetItemByCodeAsync\(string, CancellationToken\) Method
 
 Retrieves an administrative areal 2D item by its specified code\.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetItemByCodeAsync(string code);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetItemByCodeAsync(string code, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetItemByCodeAsync(string).code'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetItemByCodeAsync(string,System.Threading.CancellationToken).code'></a>
 
 `code` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The code of the item to retrieve\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetItemByCodeAsync(string,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains an [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetItemsByAdministrativeArealTypeAsync(string)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetItemsByAdministrativeArealTypeAsync(System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken)'></a>
 
-## AdministrativeAreal2DController\.GetItemsByAdministrativeArealTypeAsync\(string\) Method
+## AdministrativeAreal2DController\.GetItemsByAdministrativeArealTypeAsync\(Nullable\<AdministrativeArealType\>, CancellationToken\) Method
 
 Retrieves items filtered by the specified administrative area type\.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetItemsByAdministrativeArealTypeAsync(string administrativeArealType);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetItemsByAdministrativeArealTypeAsync(System.Nullable<DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType> administrativeArealType, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetItemsByAdministrativeArealTypeAsync(string).administrativeArealType'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetItemsByAdministrativeArealTypeAsync(System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken).administrativeArealType'></a>
 
-`administrativeArealType` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+`administrativeArealType` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.enums.administrativearealtype 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The administrative area type \(e\.g\., country, voivodeship, county, municipality\) to filter by\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetItemsByAdministrativeArealTypeAsync(System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') representing the asynchronous operation result containing the items or an error response\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetPolygonsByIdAsync(int,System.Nullable_double_,System.Nullable_int_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetPolygonsByIdAsync(int,System.Nullable_double_,System.Nullable_int_,System.Threading.CancellationToken)'></a>
 
-## AdministrativeAreal2DController\.GetPolygonsByIdAsync\(int, Nullable\<double\>, Nullable\<int\>\) Method
+## AdministrativeAreal2DController\.GetPolygonsByIdAsync\(int, Nullable\<double\>, Nullable\<int\>, CancellationToken\) Method
 
-Retrieves polygons associated with a specific administrative areal identifier\.
+Retrieves the outlines of an administrative area, reduced for drawing as an overview map\.
+
+An area whose territory is disconnected is stored as one row per polygon part, so an area identified by a code is drawn from every row sharing that code. An area addressed directly (a municipality or a subdivision) is drawn from its own row alone.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetPolygonsByIdAsync(int id, System.Nullable<double> reductionFactor=null, System.Nullable<int> minCount=null);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetPolygonsByIdAsync(int id, System.Nullable<double> reductionFactor=null, System.Nullable<int> minCount=null, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetPolygonsByIdAsync(int,System.Nullable_double_,System.Nullable_int_).id'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetPolygonsByIdAsync(int,System.Nullable_double_,System.Nullable_int_,System.Threading.CancellationToken).id'></a>
 
 `id` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
-The unique identifier of the administrative areal\.
+The unique identifier of the administrative area\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetPolygonsByIdAsync(int,System.Nullable_double_,System.Nullable_int_).reductionFactor'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetPolygonsByIdAsync(int,System.Nullable_double_,System.Nullable_int_,System.Threading.CancellationToken).reductionFactor'></a>
 
 `reductionFactor` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
-The optional reduction factor used to simplify the geometry of the retrieved polygons\.
+The optional reduction factor used to simplify the geometry of the retrieved polygons\. When omitted, a factor matching the size of the area is applied\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetPolygonsByIdAsync(int,System.Nullable_double_,System.Nullable_int_).minCount'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetPolygonsByIdAsync(int,System.Nullable_double_,System.Nullable_int_,System.Threading.CancellationToken).minCount'></a>
 
 `minCount` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
-The optional minimum count for filtering the results\.
+The optional fewest points a reduced outline may keep\. When omitted, a count matching the size of the area is applied\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetPolygonsByIdAsync(int,System.Nullable_double_,System.Nullable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-A [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') representing the result of the request\.
+A [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') carrying one flat coordinate list per outline\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.MinimumPointCount(DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType)'></a>
+
+## AdministrativeAreal2DController\.MinimumPointCount\(AdministrativeArealType\) Method
+
+Gives the fewest points an outline of the given kind of area is allowed to keep\.
+
+```csharp
+private static int MinimumPointCount(DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType administrativeArealType);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.MinimumPointCount(DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType).administrativeArealType'></a>
+
+`administrativeArealType` [DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.enums.administrativearealtype 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType')
+
+The kind of administrative area\.
+
+#### Returns
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')  
+The fewest points to keep\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.ReductionFactor(DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType)'></a>
+
+## AdministrativeAreal2DController\.ReductionFactor\(AdministrativeArealType\) Method
+
+Gives the reduction factor an outline of the given kind of area is simplified with\.
+
+```csharp
+private static double ReductionFactor(DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType administrativeArealType);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.ReductionFactor(DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType).administrativeArealType'></a>
+
+`administrativeArealType` [DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.enums.administrativearealtype 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType')
+
+The kind of administrative area\.
+
+#### Returns
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')  
+The reduction factor\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.Start()'></a>
 
@@ -223,7 +311,9 @@ An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us
 
 ## Building2DController Class
 
-Provides API endpoints for managing and retrieving building 2D information\.
+Provides the pages and partial views of the building feature\.
+
+The data itself is owned by the GIS Web API (gis/building2D); this controller only reads it and renders it.
 
 ```csharp
 public class Building2DController : Microsoft.AspNetCore.Mvc.Controller
@@ -250,135 +340,200 @@ public Building2DController(System.Net.Http.IHttpClientFactory httpClientFactory
 The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') used to create [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') instances\.
 ### Methods
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetBuilding2DReferencesByAdministrativeAreal2DIdAsync(int)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.CountyIdAsync(System.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
 
-## Building2DController\.GetBuilding2DReferencesByAdministrativeAreal2DIdAsync\(int\) Method
+## Building2DController\.CountyIdAsync\(HttpClient, Nullable\<double\>, Nullable\<double\>, CancellationToken\) Method
+
+Asynchronously resolves which county a plan position falls in\.
+
+Used only as a fallback: the 3D viewer knows a building by its reference and its centroid, and the reference alone does not say which county partition holds it.
+
+```csharp
+private static System.Threading.Tasks.Task<System.Nullable<int>> CountyIdAsync(System.Net.Http.HttpClient httpClient, System.Nullable<double> x, System.Nullable<double> y, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.CountyIdAsync(System.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the requests\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.CountyIdAsync(System.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).x'></a>
+
+`x` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The X coordinate, in PL\-1992 \(EPSG:2180\) metres\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.CountyIdAsync(System.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).y'></a>
+
+`y` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The Y coordinate, in PL\-1992 \(EPSG:2180\) metres\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.CountyIdAsync(System.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The identifier of the county, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when it cannot be resolved\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetBuilding2DReferencesByAdministrativeAreal2DIdAsync(int,System.Threading.CancellationToken)'></a>
+
+## Building2DController\.GetBuilding2DReferencesByAdministrativeAreal2DIdAsync\(int, CancellationToken\) Method
 
 Asynchronously retrieves building 2D references associated with the specified administrative areal 2D identifier\.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetBuilding2DReferencesByAdministrativeAreal2DIdAsync(int administrativeAreal2DId);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetBuilding2DReferencesByAdministrativeAreal2DIdAsync(int administrativeAreal2DId, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetBuilding2DReferencesByAdministrativeAreal2DIdAsync(int).administrativeAreal2DId'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetBuilding2DReferencesByAdministrativeAreal2DIdAsync(int,System.Threading.CancellationToken).administrativeAreal2DId'></a>
 
 `administrativeAreal2DId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The administrative areal 2D identifier to filter by\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetBuilding2DReferencesByAdministrativeAreal2DIdAsync(int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') representing the asynchronous operation\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
 
-## Building2DController\.GetDetailsByReferenceAsync\(string, Nullable\<int\>, Nullable\<double\>, Nullable\<double\>\) Method
+## Building2DController\.GetDetailsByReferenceAsync\(string, Nullable\<int\>, Nullable\<double\>, Nullable\<double\>, CancellationToken\) Method
 
 Renders the standalone building details page for the specified building reference \(used e\.g\. by the "Show" button of the 3D viewer "Details" panel\)\.
 
 The partial view _Building2DView cannot be rendered on its own: it depends on the scripts, styles and AJAX loading logic of the references master-detail layout. The building context is therefore injected into `Building2DDetailsView`, which renders only the details side and loads the partial through the same AJAX pipeline.
 
-The building data is partitioned per county, so the by-reference lookup requires a county identifier. When it is not provided, it is resolved from the optional [x](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_).x 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.Building2DController\.GetDetailsByReferenceAsync\(string, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Nullable\<double\>\)\.x')/[y](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_).y 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.Building2DController\.GetDetailsByReferenceAsync\(string, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Nullable\<double\>\)\.y') point (e.g. the building centroid known to the 3D viewer).
+The building data is partitioned per county, so the by-reference lookup requires a county identifier. When it is not provided, it is resolved from the optional [x](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).x 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.Building2DController\.GetDetailsByReferenceAsync\(string, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)\.x')/[y](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).y 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.Building2DController\.GetDetailsByReferenceAsync\(string, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)\.y') point (e.g. the building centroid known to the 3D viewer).
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetDetailsByReferenceAsync(string? reference, System.Nullable<int> countyId=null, System.Nullable<double> x=null, System.Nullable<double> y=null);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetDetailsByReferenceAsync(string? reference, System.Nullable<int> countyId=null, System.Nullable<double> x=null, System.Nullable<double> y=null, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_).reference'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).reference'></a>
 
 `reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The unique reference string of the building\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_).countyId'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).countyId'></a>
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional unique identifier of the county associated with the building\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_).x'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).x'></a>
 
 `x` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
-The optional X coordinate of a point inside the building used to resolve the county when [countyId](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_).countyId 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.Building2DController\.GetDetailsByReferenceAsync\(string, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Nullable\<double\>\)\.countyId') is not provided\.
+The optional X coordinate of a point inside the building used to resolve the county when [countyId](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).countyId 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.Building2DController\.GetDetailsByReferenceAsync\(string, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)\.countyId') is not provided\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_).y'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).y'></a>
 
 `y` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
-The optional Y coordinate of a point inside the building used to resolve the county when [countyId](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_).countyId 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.Building2DController\.GetDetailsByReferenceAsync\(string, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Nullable\<double\>\)\.countyId') is not provided\.
+The optional Y coordinate of a point inside the building used to resolve the county when [countyId](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).countyId 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.Building2DController\.GetDetailsByReferenceAsync\(string, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)\.countyId') is not provided\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetDetailsByReferenceAsync(string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') rendering the building details page\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetItemByIdAsync(long,System.Nullable_int_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetItemByIdAsync(long,System.Nullable_int_,System.Threading.CancellationToken)'></a>
 
-## Building2DController\.GetItemByIdAsync\(long, Nullable\<int\>\) Method
+## Building2DController\.GetItemByIdAsync\(long, Nullable\<int\>, CancellationToken\) Method
 
 Asynchronously retrieves a building 2D item by its unique identifier\.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetItemByIdAsync(long id, System.Nullable<int> countyId);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetItemByIdAsync(long id, System.Nullable<int> countyId, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetItemByIdAsync(long,System.Nullable_int_).id'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetItemByIdAsync(long,System.Nullable_int_,System.Threading.CancellationToken).id'></a>
 
 `id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 The unique identifier of the item to retrieve\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetItemByIdAsync(long,System.Nullable_int_).countyId'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetItemByIdAsync(long,System.Nullable_int_,System.Threading.CancellationToken).countyId'></a>
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional unique identifier of the county associated with the item\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetItemByIdAsync(long,System.Nullable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation, containing the [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') result\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetPolygonByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetPolygonByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_,System.Threading.CancellationToken)'></a>
 
-## Building2DController\.GetPolygonByIdAsync\(long, Nullable\<int\>, Nullable\<double\>, Nullable\<int\>\) Method
+## Building2DController\.GetPolygonByIdAsync\(long, Nullable\<int\>, Nullable\<double\>, Nullable\<int\>, CancellationToken\) Method
 
-Retrieves a polygon by its unique identifier asynchronously\.
+Retrieves the outline of a building footprint, reduced for drawing\.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetPolygonByIdAsync(long id, System.Nullable<int> countyId, System.Nullable<double> reductionFactor=null, System.Nullable<int> minCount=null);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetPolygonByIdAsync(long id, System.Nullable<int> countyId, System.Nullable<double> reductionFactor=null, System.Nullable<int> minCount=null, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetPolygonByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_).id'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetPolygonByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_,System.Threading.CancellationToken).id'></a>
 
 `id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
-The unique identifier of the polygon\.
+The unique identifier of the building\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetPolygonByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_).countyId'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetPolygonByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_,System.Threading.CancellationToken).countyId'></a>
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional county identifier used to filter the request\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetPolygonByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_).reductionFactor'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetPolygonByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_,System.Threading.CancellationToken).reductionFactor'></a>
 
 `reductionFactor` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional reduction factor for simplifying the polygon geometry\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetPolygonByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_).minCount'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetPolygonByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_,System.Threading.CancellationToken).minCount'></a>
 
 `minCount` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
-The optional minimum count threshold for the data retrieval\.
+The optional fewest points the reduced outline may keep\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetPolygonByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') representing the asynchronous operation result containing the requested polygon data\.
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') carrying the outline as a space separated coordinate list\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.Start()'></a>
 
@@ -425,28 +580,34 @@ public BuildingDataController(System.Net.Http.IHttpClientFactory httpClientFacto
 The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') used to create and manage [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') instances for making API requests\.
 ### Methods
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingDataController.GetTableByReferenceAsync(string,System.Nullable_int_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingDataController.GetTableByReferenceAsync(string,System.Nullable_int_,System.Threading.CancellationToken)'></a>
 
-## BuildingDataController\.GetTableByReferenceAsync\(string, Nullable\<int\>\) Method
+## BuildingDataController\.GetTableByReferenceAsync\(string, Nullable\<int\>, CancellationToken\) Method
 
 Asynchronously retrieves a building data table based on the specified reference and an optional county identifier\.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetTableByReferenceAsync(string reference, System.Nullable<int> countyId=null);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetTableByReferenceAsync(string reference, System.Nullable<int> countyId=null, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingDataController.GetTableByReferenceAsync(string,System.Nullable_int_).reference'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingDataController.GetTableByReferenceAsync(string,System.Nullable_int_,System.Threading.CancellationToken).reference'></a>
 
 `reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The unique reference string used to look up the table\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingDataController.GetTableByReferenceAsync(string,System.Nullable_int_).countyId'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingDataController.GetTableByReferenceAsync(string,System.Nullable_int_,System.Threading.CancellationToken).countyId'></a>
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional ID of the county associated with the request\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingDataController.GetTableByReferenceAsync(string,System.Nullable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
@@ -540,28 +701,34 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task 'System\.Threading\.Tasks\.Task')  
 A [System\.Threading\.Tasks\.Task](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task 'System\.Threading\.Tasks\.Task') representing the asynchronous operation\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetBuildingModelByIdAsync(long,System.Nullable_int_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Threading.CancellationToken)'></a>
 
-## BuildingModelController\.GetBuildingModelByIdAsync\(long, Nullable\<int\>\) Method
+## BuildingModelController\.GetBuildingModelByIdAsync\(long, Nullable\<int\>, CancellationToken\) Method
 
 Renders the 3D viewer page for a single building\. The page itself carries no geometry; the viewer streams the binary glTF payload from the glb endpoint\.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetBuildingModelByIdAsync(long id, System.Nullable<int> countyId);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetBuildingModelByIdAsync(long id, System.Nullable<int> countyId, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetBuildingModelByIdAsync(long,System.Nullable_int_).id'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Threading.CancellationToken).id'></a>
 
 `id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 The unique identifier of the building\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetBuildingModelByIdAsync(long,System.Nullable_int_).countyId'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Threading.CancellationToken).countyId'></a>
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional unique identifier of the county associated with the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
@@ -608,63 +775,75 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the \.glb file\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Threading.CancellationToken)'></a>
 
-## BuildingModelController\.GetGLBBuildingModelByIdAsync\(long, Nullable\<int\>\) Method
+## BuildingModelController\.GetGLBBuildingModelByIdAsync\(long, Nullable\<int\>, CancellationToken\) Method
 
-Asynchronously creates a [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') for the building with the specified unique identifier \(see [BuildingModelAsync\(this HttpClient, long, Nullable&lt;int&gt;, double, double\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double) 'DiGi\.GIS\.WebAPI\.UI\.Create\.BuildingModelAsync\(this System\.Net\.Http\.HttpClient, long, System\.Nullable\<int\>, double, double\)')\), converts each of its components \(walls, floors and roofs\) into a separate node of a batched [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene') \(translated to a local origin\) and streams it as a binary glTF \(\.glb\) payload\.
+Asynchronously creates a [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') for the building with the specified unique identifier \(see [BuildingModelAsync\(this HttpClient, long, Nullable&lt;int&gt;, double, double, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Create\.BuildingModelAsync\(this System\.Net\.Http\.HttpClient, long, System\.Nullable\<int\>, double, double, System\.Threading\.CancellationToken\)')\), converts each of its components \(walls, floors and roofs\) into a separate node of a batched [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene') \(translated to a local origin\) and streams it as a binary glTF \(\.glb\) payload\.
 
 Each component carries its own identity in the scene object map, so the 3D viewer can hit-test and select individual components instead of the building as a whole.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetGLBBuildingModelByIdAsync(long id, System.Nullable<int> countyId);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetGLBBuildingModelByIdAsync(long id, System.Nullable<int> countyId, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_).id'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Threading.CancellationToken).id'></a>
 
 `id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 The unique identifier of the building\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_).countyId'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Threading.CancellationToken).countyId'></a>
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional unique identifier of the county associated with the building\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the \.glb file\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double,System.Threading.CancellationToken)'></a>
 
-## BuildingModelController\.GetItemByReferenceAsync\(string, double, double\) Method
+## BuildingModelController\.GetItemByReferenceAsync\(string, double, double, CancellationToken\) Method
 
 Asynchronously loads a [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') from the GIS Web API by searching for the building at the specified coordinates, converts its components into separate selectable [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode') instances and renders the 3D viewer page\.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetItemByReferenceAsync(string reference, double x, double y);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetItemByReferenceAsync(string reference, double x, double y, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double).reference'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double,System.Threading.CancellationToken).reference'></a>
 
 `reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The reference of the building model\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double).x'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double,System.Threading.CancellationToken).x'></a>
 
 `x` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 The X coordinate of the building centroid\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double).y'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double,System.Threading.CancellationToken).y'></a>
 
 `y` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 The Y coordinate of the building centroid\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
@@ -857,28 +1036,34 @@ public EPWFileController(System.Net.Http.IHttpClientFactory httpClientFactory);
 The HTTP client factory\.
 ### Methods
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.EPWFileController.GetEPWFileAsync(double,double)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.EPWFileController.GetEPWFileAsync(double,double,System.Threading.CancellationToken)'></a>
 
-## EPWFileController\.GetEPWFileAsync\(double, double\) Method
+## EPWFileController\.GetEPWFileAsync\(double, double, CancellationToken\) Method
 
 Asynchronously retrieves an EPW file based on the specified coordinates\.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetEPWFileAsync(double x, double y);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetEPWFileAsync(double x, double y, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.EPWFileController.GetEPWFileAsync(double,double).x'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.EPWFileController.GetEPWFileAsync(double,double,System.Threading.CancellationToken).x'></a>
 
 `x` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
-The X coordinate \(longitude\)\.
+The X coordinate, in PL\-1992 \(EPSG:2180\) metres\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.EPWFileController.GetEPWFileAsync(double,double).y'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.EPWFileController.GetEPWFileAsync(double,double,System.Threading.CancellationToken).y'></a>
 
 `y` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
-The Y coordinate \(latitude\)\.
+The Y coordinate, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.EPWFileController.GetEPWFileAsync(double,double,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
@@ -930,29 +1115,35 @@ public HeatTransferCoefficientController(System.Net.Http.IHttpClientFactory http
 The HTTP client factory used to create clients for external API communication\.
 ### Methods
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.HeatTransferCoefficientController.GetRegulatedHeatTransferCoefficientsByReferenceAsync(string,System.Nullable_int_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.HeatTransferCoefficientController.GetRegulatedHeatTransferCoefficientsByReferenceAsync(string,System.Nullable_int_,System.Threading.CancellationToken)'></a>
 
-## HeatTransferCoefficientController\.GetRegulatedHeatTransferCoefficientsByReferenceAsync\(string, Nullable\<int\>\) Method
+## HeatTransferCoefficientController\.GetRegulatedHeatTransferCoefficientsByReferenceAsync\(string, Nullable\<int\>, CancellationToken\) Method
 
 Retrieves regulated heat transfer coefficients for a building identified by its reference,
 determining the applicable year based on the building's construction data\.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetRegulatedHeatTransferCoefficientsByReferenceAsync(string reference, System.Nullable<int> countyId);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetRegulatedHeatTransferCoefficientsByReferenceAsync(string reference, System.Nullable<int> countyId, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.HeatTransferCoefficientController.GetRegulatedHeatTransferCoefficientsByReferenceAsync(string,System.Nullable_int_).reference'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.HeatTransferCoefficientController.GetRegulatedHeatTransferCoefficientsByReferenceAsync(string,System.Nullable_int_,System.Threading.CancellationToken).reference'></a>
 
 `reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The unique reference string of the building\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.HeatTransferCoefficientController.GetRegulatedHeatTransferCoefficientsByReferenceAsync(string,System.Nullable_int_).countyId'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.HeatTransferCoefficientController.GetRegulatedHeatTransferCoefficientsByReferenceAsync(string,System.Nullable_int_,System.Threading.CancellationToken).countyId'></a>
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional identifier for the county associated with the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.HeatTransferCoefficientController.GetRegulatedHeatTransferCoefficientsByReferenceAsync(string,System.Nullable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
@@ -975,7 +1166,9 @@ Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system
 
 ## HomeController\(\) Constructor
 
-Handles the request for the start page and returns the corresponding view\.
+Initializes a new instance of the [HomeController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.HomeController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.HomeController') class\.
+
+The landing pages carry no data of their own, so nothing is injected here.
 
 ```csharp
 public HomeController();
@@ -1041,34 +1234,34 @@ public OccupancyDataController(System.Net.Http.IHttpClientFactory httpClientFact
 The HTTP client factory used to create clients for external API communication\.
 ### Methods
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.OccupancyDataController.GetBuilding2DItemByIdAsync(string,System.Nullable_int_,System.Nullable_bool_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OccupancyDataController.GetBuilding2DItemByReferenceAsync(string,System.Nullable_int_,System.Threading.CancellationToken)'></a>
 
-## OccupancyDataController\.GetBuilding2DItemByIdAsync\(string, Nullable\<int\>, Nullable\<bool\>\) Method
+## OccupancyDataController\.GetBuilding2DItemByReferenceAsync\(string, Nullable\<int\>, CancellationToken\) Method
 
-Retrieves the occupancy data and building reference for a specific 2D building item by its reference identifier\.
+Retrieves the occupancy data and building reference for a specific 2D building item by its reference\.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetBuilding2DItemByIdAsync(string reference, System.Nullable<int> countyId, System.Nullable<bool> isResidential);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetBuilding2DItemByReferenceAsync(string reference, System.Nullable<int> countyId, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.OccupancyDataController.GetBuilding2DItemByIdAsync(string,System.Nullable_int_,System.Nullable_bool_).reference'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OccupancyDataController.GetBuilding2DItemByReferenceAsync(string,System.Nullable_int_,System.Threading.CancellationToken).reference'></a>
 
 `reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The unique reference string of the building\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.OccupancyDataController.GetBuilding2DItemByIdAsync(string,System.Nullable_int_,System.Nullable_bool_).countyId'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OccupancyDataController.GetBuilding2DItemByReferenceAsync(string,System.Nullable_int_,System.Threading.CancellationToken).countyId'></a>
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional ID of the county associated with the building\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.OccupancyDataController.GetBuilding2DItemByIdAsync(string,System.Nullable_int_,System.Nullable_bool_).isResidential'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OccupancyDataController.GetBuilding2DItemByReferenceAsync(string,System.Nullable_int_,System.Threading.CancellationToken).cancellationToken'></a>
 
-`isResidential` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
 
-An optional flag indicating whether the building is residential\.
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
@@ -1105,70 +1298,90 @@ public OrtoDatasController(System.Net.Http.IHttpClientFactory httpClientFactory)
 The HTTP client factory used to create [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') instances\.
 ### Methods
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDatasController.GetEstimatedCoverageFactorAsync(int)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDatasController.GetEstimatedCoverageFactorAsync(int,System.Threading.CancellationToken)'></a>
 
-## OrtoDatasController\.GetEstimatedCoverageFactorAsync\(int\) Method
+## OrtoDatasController\.GetEstimatedCoverageFactorAsync\(int, CancellationToken\) Method
 
-Retrieves the estimated coverage factor for a specific administrative area L2D identifier\.
+Retrieves the estimated orthophoto coverage factor of a single administrative area\.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetEstimatedCoverageFactorAsync(int administrativeAreal2DId);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetEstimatedCoverageFactorAsync(int administrativeAreal2DId, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDatasController.GetEstimatedCoverageFactorAsync(int).administrativeAreal2DId'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDatasController.GetEstimatedCoverageFactorAsync(int,System.Threading.CancellationToken).administrativeAreal2DId'></a>
 
 `administrativeAreal2DId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
-The unique identifier of the administrative area L2D\.
+The unique identifier of the administrative area\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDatasController.GetEstimatedCoverageFactorAsync(int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains an [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') with the coverage factor or error status\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDatasController.GetEstimatedCoverageFactorsAsync(System.Collections.Generic.IEnumerable_int_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDatasController.GetEstimatedCoverageFactorsAsync(System.Collections.Generic.IEnumerable_int_,System.Threading.CancellationToken)'></a>
 
-## OrtoDatasController\.GetEstimatedCoverageFactorsAsync\(IEnumerable\<int\>\) Method
+## OrtoDatasController\.GetEstimatedCoverageFactorsAsync\(IEnumerable\<int\>, CancellationToken\) Method
 
-Retrieves estimated coverage factors for a collection of administrative area L2D identifiers\.
+Retrieves the estimated orthophoto coverage factors of several administrative areas at once\.
+
+The values come back in the order the identifiers were given, which is what lets the page update one progress bar per row without matching anything up.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetEstimatedCoverageFactorsAsync(System.Collections.Generic.IEnumerable<int> administrativeAreal2DIds);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetEstimatedCoverageFactorsAsync(System.Collections.Generic.IEnumerable<int> administrativeAreal2DIds, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDatasController.GetEstimatedCoverageFactorsAsync(System.Collections.Generic.IEnumerable_int_).administrativeAreal2DIds'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDatasController.GetEstimatedCoverageFactorsAsync(System.Collections.Generic.IEnumerable_int_,System.Threading.CancellationToken).administrativeAreal2DIds'></a>
 
 `administrativeAreal2DIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
 
-An enumerable collection of administrative area L2D identifiers\.
+The unique identifiers of the administrative areas\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDatasController.GetEstimatedCoverageFactorsAsync(System.Collections.Generic.IEnumerable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains an [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') with the list of coverage factor values or error status\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDatasController.GetItemByIdAsync(string,System.Nullable_int_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDatasController.GetItemByReferenceAsync(string,System.Nullable_int_,System.Threading.CancellationToken)'></a>
 
-## OrtoDatasController\.GetItemByIdAsync\(string, Nullable\<int\>\) Method
+## OrtoDatasController\.GetItemByReferenceAsync\(string, Nullable\<int\>, CancellationToken\) Method
 
 Retrieves orthodata and building 2D reference information based on a provided reference and optional county ID\.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetItemByIdAsync(string reference, System.Nullable<int> countyId);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetItemByReferenceAsync(string reference, System.Nullable<int> countyId, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDatasController.GetItemByIdAsync(string,System.Nullable_int_).reference'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDatasController.GetItemByReferenceAsync(string,System.Nullable_int_,System.Threading.CancellationToken).reference'></a>
 
 `reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The unique reference string for the item\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDatasController.GetItemByIdAsync(string,System.Nullable_int_).countyId'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDatasController.GetItemByReferenceAsync(string,System.Nullable_int_,System.Threading.CancellationToken).countyId'></a>
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional identifier for the county\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDatasController.GetItemByReferenceAsync(string,System.Nullable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
@@ -1754,28 +1967,34 @@ public YearBuiltDataController(System.Net.Http.IHttpClientFactory httpClientFact
 The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') used to create HTTP clients\.
 ### Methods
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.YearBuiltDataController.GetItemByReferenceAsync(string,System.Nullable_int_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.YearBuiltDataController.GetItemByReferenceAsync(string,System.Nullable_int_,System.Threading.CancellationToken)'></a>
 
-## YearBuiltDataController\.GetItemByReferenceAsync\(string, Nullable\<int\>\) Method
+## YearBuiltDataController\.GetItemByReferenceAsync\(string, Nullable\<int\>, CancellationToken\) Method
 
 Retrieves a year built data item based on the specified reference and optional county identifier\.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetItemByReferenceAsync(string reference, System.Nullable<int> countyId);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetItemByReferenceAsync(string reference, System.Nullable<int> countyId, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.YearBuiltDataController.GetItemByReferenceAsync(string,System.Nullable_int_).reference'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.YearBuiltDataController.GetItemByReferenceAsync(string,System.Nullable_int_,System.Threading.CancellationToken).reference'></a>
 
 `reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The unique reference of the item to retrieve\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.YearBuiltDataController.GetItemByReferenceAsync(string,System.Nullable_int_).countyId'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.YearBuiltDataController.GetItemByReferenceAsync(string,System.Nullable_int_,System.Threading.CancellationToken).countyId'></a>
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional identifier of the county associated with the item\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.YearBuiltDataController.GetItemByReferenceAsync(string,System.Nullable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  

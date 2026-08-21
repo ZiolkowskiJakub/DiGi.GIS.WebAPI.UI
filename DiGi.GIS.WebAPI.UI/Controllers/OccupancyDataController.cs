@@ -1,3 +1,4 @@
+using DiGi.GIS.Interfaces;
 using DiGi.GIS.PostgreSQL.Classes;
 using DiGi.GIS.WebAPI.UI.ViewModels;
 using DiGi.WebAPI.Classes;
@@ -5,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Controllers
@@ -27,14 +29,14 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
 
         /// <summary>
-        /// Retrieves the occupancy data and building reference for a specific 2D building item by its reference identifier.
+        /// Retrieves the occupancy data and building reference for a specific 2D building item by its reference.
         /// </summary>
         /// <param name="reference">The unique reference string of the building.</param>
         /// <param name="countyId">The optional ID of the county associated with the building.</param>
-        /// <param name="isResidential">An optional flag indicating whether the building is residential.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IActionResult"/>, which returns a partial view containing the occupancy data if successful; otherwise, a bad request or no content response.</returns>
         [HttpGet("building2d/itembyreference")]
-        public async Task<IActionResult> GetBuilding2DItemByIdAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "isresidential")] bool? isResidential)
+        public async Task<IActionResult> GetBuilding2DItemByReferenceAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(reference))
             {
@@ -43,65 +45,25 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             HttpClient httpClient = httpClientFactory.CreateClient();
 
-            UrlBuilder urlBuilder;
-            HttpResponseMessage httpResponseMessage;
-            string json;
-
-            #region OccupancyDatas
-
-            urlBuilder = new("https://api.digiproject.uk/gis/occupancydata/building2d/itemsbyreference");
+            UrlBuilder urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/occupancydata/building2d/itemsbyreference");
             urlBuilder = urlBuilder.AddParameter("reference", reference);
-            if (countyId is not null && countyId.HasValue)
+            if (countyId.HasValue)
             {
-                urlBuilder = urlBuilder.AddParameter("countyId", countyId.Value);
+                urlBuilder = urlBuilder.AddParameter("countyid", countyId.Value);
             }
 
-            httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
-            if (!httpResponseMessage.IsSuccessStatusCode)
-            {
-                return BadRequest();
-            }
-
-            json = await httpResponseMessage.Content.ReadAsStringAsync();
-            if (string.IsNullOrWhiteSpace(json))
+            List<IOccupancyData>? occupancyDatas = await httpClient.ItemsAsync<IOccupancyData>(urlBuilder.ToString(), cancellationToken);
+            if (occupancyDatas is null || occupancyDatas.Count == 0)
             {
                 return NoContent();
             }
 
-            List<DiGi.GIS.Interfaces.IOccupancyData>? occupancyDatas = Core.Convert.ToDiGi<DiGi.GIS.Interfaces.IOccupancyData>(json);
-            if (occupancyDatas is null)
-            {
-                return NoContent();
-            }
+            // The reference record is context for the panel rather than its subject, so a missing one
+            // renders the panel without it instead of failing the request.
+            Building2DReference? building2DReference = await httpClient.Building2DReferenceAsync(reference, countyId, cancellationToken);
 
-            #endregion OccupancyDatas
+            Building2DOccupancyDataViewModel building2DOccupancyDataViewModel = new(building2DReference, occupancyDatas.FirstOrDefault());
 
-            #region Building2DReference
-
-            urlBuilder = new("https://api.digiproject.uk/gis/building2D/building2Dreferencebyreference");
-            urlBuilder = urlBuilder.AddParameter("reference", reference);
-            if (countyId is not null && countyId.HasValue)
-            {
-                urlBuilder = urlBuilder.AddParameter("countyId", countyId.Value);
-            }
-
-            Building2DReference? building2DReference = null;
-
-            httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
-            if (httpResponseMessage.IsSuccessStatusCode)
-            {
-                json = await httpResponseMessage.Content.ReadAsStringAsync();
-                if (!string.IsNullOrWhiteSpace(json))
-                {
-                    building2DReference = Core.Convert.ToDiGi<Building2DReference>(json)?.FirstOrDefault();
-                }
-            }
-
-            #endregion Building2DReference
-
-            Building2DOccupancyDataViewModel building2DOccupancyDataViewModel = new(building2DReference, occupancyDatas?.FirstOrDefault());
-
-            // We pass the objects to a Partial View
             return PartialView("_Building2DOccupancyDataView", building2DOccupancyDataViewModel);
         }
     }

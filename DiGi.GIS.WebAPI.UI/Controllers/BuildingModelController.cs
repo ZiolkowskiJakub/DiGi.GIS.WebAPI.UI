@@ -41,70 +41,49 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// <param name="reference">The reference of the building model.</param>
         /// <param name="x">The X coordinate of the building centroid.</param>
         /// <param name="y">The Y coordinate of the building centroid.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
         /// <returns>A <see cref="Task{IActionResult}"/> rendering the 3D glTF scene view or a not found response.</returns>
         [HttpGet("itembyreference")]
-        public async Task<IActionResult> GetItemByReferenceAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "x")] double x, [FromQuery(Name = "y")] double y)
+        public async Task<IActionResult> GetItemByReferenceAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "x")] double x, [FromQuery(Name = "y")] double y, CancellationToken cancellationToken = default)
         {
-            if (double.IsNaN(x) || double.IsNaN(y))
+            if (!double.IsFinite(x) || !double.IsFinite(y))
             {
                 return BadRequest();
             }
 
             HttpClient httpClient = httpClientFactory.CreateClient();
 
-            string? building2DReference = null;
-            try
-            {
-                UrlBuilder building2DUrlBuilder = new("https://api.digiproject.uk/gis/building2D/itemsbycircle");
-                building2DUrlBuilder = building2DUrlBuilder.AddParameter("x", x);
-                building2DUrlBuilder = building2DUrlBuilder.AddParameter("y", y);
-                building2DUrlBuilder = building2DUrlBuilder.AddParameter("radius", 5);
+            #region Building2DReference
 
-                HttpResponseMessage building2DResponse = await httpClient.GetAsync(building2DUrlBuilder.ToString());
-                if (building2DResponse.IsSuccessStatusCode)
-                {
-                    string building2DJson = await building2DResponse.Content.ReadAsStringAsync();
-                    if (!string.IsNullOrWhiteSpace(building2DJson))
-                    {
-                        List<GIS.Classes.Building2D>? building2Ds = Core.Convert.ToDiGi<GIS.Classes.Building2D>(building2DJson);
-                        if (building2Ds is not null && building2Ds.Count > 0)
-                        {
-                            building2DReference = building2Ds[0].Reference;
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                // Fallback to reference parameter
-            }
-
-            ViewData["Building2DReference"] = building2DReference ?? reference;
-
-            UrlBuilder urlBuilder = new("https://api.digiproject.uk/gis/buildingmodel/itemsbycircle");
+            // The footprint standing at the same point carries the cadastral reference the details panel
+            // needs, which the reference of the model is not. The reference given by the caller is kept as
+            // the fallback, so a building with no footprint stored still names something.
+            UrlBuilder urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/building2D/itemsbycircle");
             urlBuilder = urlBuilder.AddParameter("x", x);
             urlBuilder = urlBuilder.AddParameter("y", y);
-            urlBuilder = urlBuilder.AddParameter("radius", 5);
-            urlBuilder = urlBuilder.AddParameter("tolerance", 5);
+            urlBuilder = urlBuilder.AddParameter("radius", Constants.Default.BuildingSearchRadius);
 
-            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
-            if (!httpResponseMessage.IsSuccessStatusCode)
-            {
-                return NotFound();
-            }
+            GIS.Classes.Building2D? building2D = await httpClient.ItemAsync<GIS.Classes.Building2D>(urlBuilder.ToString(), cancellationToken);
 
-            string json = await httpResponseMessage.Content.ReadAsStringAsync();
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return NotFound();
-            }
+            ViewData["Building2DReference"] = building2D?.Reference ?? reference;
 
-            List<BuildingModel>? buildingModels = Core.Convert.ToDiGi<BuildingModel>(json);
-            BuildingModel? buildingModel = buildingModels?.FirstOrDefault();
+            #endregion Building2DReference
+
+            #region BuildingModel
+
+            urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/buildingmodel/itemsbycircle");
+            urlBuilder = urlBuilder.AddParameter("x", x);
+            urlBuilder = urlBuilder.AddParameter("y", y);
+            urlBuilder = urlBuilder.AddParameter("radius", Constants.Default.BuildingSearchRadius);
+            urlBuilder = urlBuilder.AddParameter("tolerance", Constants.Default.BuildingSearchTolerance);
+
+            BuildingModel? buildingModel = await httpClient.ItemAsync<BuildingModel>(urlBuilder.ToString(), cancellationToken);
             if (buildingModel is null)
             {
                 return NotFound();
             }
+
+            #endregion BuildingModel
 
             // Reuse the building's own stored reference so the rebuilt component nodes carry a fully-qualified
             // reference (building + county + component guid) rather than a bare component identifier.
@@ -120,7 +99,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NotFound();
             }
 
-            await AddTerrainAsync(gLTFNodes, httpClient, new Point2D(x, y), HttpContext.RequestAborted);
+            await AddTerrainAsync(gLTFNodes, httpClient, new Point2D(x, y), cancellationToken);
 
             string name = $"BuildingModel {buildingModel.UniqueId}";
 
@@ -191,24 +170,12 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             // abandon it safely.
             Task<GLTFNode?>? task_Terrain = Constants.Default.TerrainEnabled ? httpClient.TerrainGLTFNodeAsync(new Circle2D(new Point2D(centerX, centerY), radius), cancellationToken: cancellationToken) : null;
 
-            UrlBuilder urlBuilder = new("https://api.digiproject.uk/gis/buildingmodel/itemsbycircle");
+            UrlBuilder urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/buildingmodel/itemsbycircle");
             urlBuilder = urlBuilder.AddParameter("x", centerX);
             urlBuilder = urlBuilder.AddParameter("y", centerY);
             urlBuilder = urlBuilder.AddParameter("radius", radius);
 
-            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString(), cancellationToken);
-            if (!httpResponseMessage.IsSuccessStatusCode)
-            {
-                return BadRequest();
-            }
-
-            string json = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return NoContent();
-            }
-
-            List<BuildingModel>? buildingModels = Core.Convert.ToDiGi<BuildingModel>(json);
+            List<BuildingModel>? buildingModels = await httpClient.ItemsAsync<BuildingModel>(urlBuilder.ToString(), cancellationToken);
             if (buildingModels is null || buildingModels.Count == 0)
             {
                 return NoContent();
@@ -263,41 +230,31 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// </summary>
         /// <param name="id">The unique identifier of the building.</param>
         /// <param name="countyId">The optional unique identifier of the county associated with the building.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
         /// <returns>An <see cref="IActionResult"/> rendering the glTF scene view.</returns>
         [HttpGet("buildingmodelbyid")]
-        public async Task<IActionResult> GetBuildingModelByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId)
+        public async Task<IActionResult> GetBuildingModelByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, CancellationToken cancellationToken = default)
         {
             HttpClient httpClient = httpClientFactory.CreateClient();
 
-            DiGi.WebAPI.Classes.UrlBuilder urlBuilder = new("https://api.digiproject.uk/gis/building2D/building2Dreferencebyid");
+            UrlBuilder urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/building2D/building2Dreferencebyid");
             urlBuilder = urlBuilder.AddParameter("id", id);
-            if (countyId is not null && countyId.HasValue)
+            if (countyId.HasValue)
             {
-                urlBuilder = urlBuilder.AddParameter("countyId", countyId.Value);
+                urlBuilder = urlBuilder.AddParameter("countyid", countyId.Value);
             }
 
-            string? referenceString = null;
-            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
-            if (httpResponseMessage.IsSuccessStatusCode)
-            {
-                string json = await httpResponseMessage.Content.ReadAsStringAsync();
-                if (!string.IsNullOrWhiteSpace(json))
-                {
-                    List<DiGi.GIS.PostgreSQL.Classes.Building2DReference>? building2DReferences = Core.Convert.ToDiGi<DiGi.GIS.PostgreSQL.Classes.Building2DReference>(json);
-                    if (building2DReferences is not null && building2DReferences.Count > 0)
-                    {
-                        referenceString = building2DReferences[0].Reference;
-                    }
-                }
-            }
+            // The cadastral reference is what the details panel of the viewer looks the building up by, so
+            // the page carries it when it is known and simply omits the panel when it is not.
+            PostgreSQL.Classes.Building2DReference? building2DReference = await httpClient.ItemAsync<PostgreSQL.Classes.Building2DReference>(urlBuilder.ToString(), cancellationToken);
 
-            if (!string.IsNullOrEmpty(referenceString))
+            if (!string.IsNullOrEmpty(building2DReference?.Reference))
             {
-                ViewData["Building2DReference"] = referenceString;
+                ViewData["Building2DReference"] = building2DReference.Reference;
             }
 
             string gLBUrl = $"~/buildingmodel/glb/buildingmodelbyid?id={id.ToString(CultureInfo.InvariantCulture)}";
-            if (countyId is not null && countyId.HasValue)
+            if (countyId.HasValue)
             {
                 gLBUrl += $"&countyid={countyId.Value.ToString(CultureInfo.InvariantCulture)}";
             }
@@ -308,19 +265,20 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
 
         /// <summary>
-        /// Asynchronously creates a <see cref="BuildingModel"/> for the building with the specified unique identifier (see <see cref="Create.BuildingModelAsync(HttpClient?, long, int?, double, double)"/>), converts each of its components (walls, floors and roofs) into a separate node of a batched <see cref="GLTFScene"/> (translated to a local origin) and streams it as a binary glTF (.glb) payload.
+        /// Asynchronously creates a <see cref="BuildingModel"/> for the building with the specified unique identifier (see <see cref="Create.BuildingModelAsync(HttpClient, long, int?, double, double, CancellationToken)"/>), converts each of its components (walls, floors and roofs) into a separate node of a batched <see cref="GLTFScene"/> (translated to a local origin) and streams it as a binary glTF (.glb) payload.
         /// <para>Each component carries its own identity in the scene object map, so the 3D viewer can hit-test and select individual components instead of the building as a whole.</para>
         /// </summary>
         /// <param name="id">The unique identifier of the building.</param>
         /// <param name="countyId">The optional unique identifier of the county associated with the building.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
         /// <returns>A <see cref="Task{IActionResult}"/> holding the .glb file.</returns>
         [HttpGet("glb/buildingmodelbyid")]
-        public async Task<IActionResult> GetGLBBuildingModelByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId)
+        public async Task<IActionResult> GetGLBBuildingModelByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, CancellationToken cancellationToken = default)
         {
             HttpClient httpClient = httpClientFactory.CreateClient();
 
             // The storey height is a server side concern: it is always the application default, never a client input.
-            BuildingModel? buildingModel = await httpClient.BuildingModelAsync(id, countyId, Constants.Default.StoreyHeight);
+            BuildingModel? buildingModel = await httpClient.BuildingModelAsync(id, countyId, Constants.Default.StoreyHeight, cancellationToken: cancellationToken);
             if (buildingModel is null)
             {
                 return NoContent();
@@ -340,7 +298,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             // given is centred on the building itself.
             Point3D? centroid = buildingModel.GetBoundingBox()?.GetCentroid();
 
-            await AddTerrainAsync(gLTFNodes, httpClient, centroid is null ? null : new Point2D(centroid.X, centroid.Y), HttpContext.RequestAborted);
+            await AddTerrainAsync(gLTFNodes, httpClient, centroid is null ? null : new Point2D(centroid.X, centroid.Y), cancellationToken);
 
             string name = $"BuildingModel {id.ToString(CultureInfo.InvariantCulture)}";
 

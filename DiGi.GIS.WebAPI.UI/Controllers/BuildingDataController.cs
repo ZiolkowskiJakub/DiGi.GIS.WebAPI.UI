@@ -3,12 +3,12 @@ using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Controllers
 {
     /// <summary> Provides controller endpoints for accessing and managing building data, acting as an interface between the client and the underlying GIS building data services. </summary>
-
     [Route("[controller]")]
     public class BuildingDataController : Controller
     {
@@ -28,42 +28,40 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// </summary>
         /// <param name="reference">The unique reference string used to look up the table.</param>
         /// <param name="countyId">The optional ID of the county associated with the request.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IActionResult"/> representing the HTTP response.</returns>
         [HttpGet("tablebyreference")]
-        public async Task<IActionResult> GetTableByReferenceAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId = null)
+        public async Task<IActionResult> GetTableByReferenceAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "countyid")] int? countyId = null, CancellationToken cancellationToken = default)
         {
-            HttpClient httpClient = httpClientFactory.CreateClient();
-
-            UrlBuilder urlBuilder = new("https://api.digiproject.uk/gis/buildingdata/tablebyreference");
-            urlBuilder = urlBuilder.AddParameter("reference", reference);
-
-            if (countyId is not null)
-            {
-                urlBuilder = urlBuilder.AddParameter("countyid", countyId.Value);
-            }
-
-            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
-            if (!httpResponseMessage.IsSuccessStatusCode)
+            if (string.IsNullOrWhiteSpace(reference))
             {
                 return BadRequest();
             }
 
-            string json = await httpResponseMessage.Content.ReadAsStringAsync();
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            UrlBuilder urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/buildingdata/tablebyreference");
+            urlBuilder = urlBuilder.AddParameter("reference", reference);
+            if (countyId.HasValue)
+            {
+                urlBuilder = urlBuilder.AddParameter("countyid", countyId.Value);
+            }
+
+            string? json = await httpClient.JsonAsync(urlBuilder.ToString(), cancellationToken);
             if (string.IsNullOrWhiteSpace(json))
             {
                 return NoContent();
             }
 
-            // Here we use your DLL to turn JSON back into real C# objects.
-            // Note: Since AdministrativeAreal2D is abstract,
-            // you might need a specific converter or a concrete type.
+            // Table is a plain data carrier rather than a DiGi serializable object, so it is deserialized
+            // directly instead of through Core.Convert.ToDiGi. The DiGi qualifier is required: from this
+            // namespace a bare PostgreSQL binds to DiGi.GIS.PostgreSQL, which holds no Table namespace.
             DiGi.PostgreSQL.Table.Classes.Table? table = JsonSerializer.Deserialize<DiGi.PostgreSQL.Table.Classes.Table>(json);
             if (table is null)
             {
-                return BadRequest();
+                return NoContent();
             }
 
-            // We pass the objects to a View
             return View("TableView", new TableViewModel(table));
         }
 

@@ -52,46 +52,52 @@ public static class Create
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → Create
 ### Methods
 
-<a name='DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double,System.Threading.CancellationToken)'></a>
 
-## Create\.BuildingModelAsync\(this HttpClient, long, Nullable\<int\>, double, double\) Method
+## Create\.BuildingModelAsync\(this HttpClient, long, Nullable\<int\>, double, double, CancellationToken\) Method
 
 Asynchronously creates a [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') for the building with the specified unique identifier by fetching the [DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D') from the GIS Web API and extruding its 2D footprint storey by storey into individual components \(walls, floors and roofs\)\.
 
 ```csharp
-public static System.Threading.Tasks.Task<DiGi.Analytical.Building.Classes.BuildingModel?> BuildingModelAsync(this System.Net.Http.HttpClient? httpClient, long id, System.Nullable<int> countyId=null, double storeyHeight=3.0, double tolerance=1E-06);
+public static System.Threading.Tasks.Task<DiGi.Analytical.Building.Classes.BuildingModel?> BuildingModelAsync(this System.Net.Http.HttpClient? httpClient, long id, System.Nullable<int> countyId=null, double storeyHeight=3.0, double tolerance=1E-06, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double).httpClient'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double,System.Threading.CancellationToken).httpClient'></a>
 
 `httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
 
 The [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') used to call the GIS Web API\.
 
-<a name='DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double).id'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double,System.Threading.CancellationToken).id'></a>
 
 `id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 The unique identifier of the building\.
 
-<a name='DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double).countyId'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double,System.Threading.CancellationToken).countyId'></a>
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional unique identifier of the county associated with the building\.
 
-<a name='DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double).storeyHeight'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double,System.Threading.CancellationToken).storeyHeight'></a>
 
 `storeyHeight` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 The height of a single storey in meters used for the extrusion\.
 
-<a name='DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double).tolerance'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double,System.Threading.CancellationToken).tolerance'></a>
 
 `tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 The distance tolerance used during component creation\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
@@ -262,6 +268,224 @@ public static class Query
 
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → Query
 ### Methods
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DReferenceAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Threading.CancellationToken)'></a>
+
+## Query\.Building2DReferenceAsync\(this HttpClient, string, Nullable\<int\>, CancellationToken\) Method
+
+Asynchronously reads the GIS Web API reference record of a building\.
+
+Several panels of the building details page each need this same record for the identifiers and the administrative context it carries, so the lookup lives here rather than being spelled out again in every one of them.
+
+Building data is partitioned per county, so [countyId](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Building2DReferenceAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Threading.CancellationToken).countyId 'DiGi\.GIS\.WebAPI\.UI\.Query\.Building2DReferenceAsync\(this System\.Net\.Http\.HttpClient, string, System\.Nullable\<int\>, System\.Threading\.CancellationToken\)\.countyId') addresses the data set the reference belongs to. Without it the GIS Web API resolves the reference to the lowest county part holding it, which is only unambiguous while no building is filed under two parts of the same county - pass it whenever it is known.
+
+```csharp
+public static System.Threading.Tasks.Task<DiGi.GIS.PostgreSQL.Classes.Building2DReference?> Building2DReferenceAsync(this System.Net.Http.HttpClient? httpClient, string? reference, System.Nullable<int> countyId, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DReferenceAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DReferenceAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Threading.CancellationToken).reference'></a>
+
+`reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The reference of the building\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DReferenceAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The identifier of the county part the building is filed under\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DReferenceAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReference](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.classes.building2dreference 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReference')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The reference record, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there is none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ItemAsync_T_(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken)'></a>
+
+## Query\.ItemAsync\<T\>\(this HttpClient, string, CancellationToken\) Method
+
+Asynchronously reads a GIS Web API response and deserializes the first DiGi object it carries\.
+
+The GIS Web API serializes a single object as a one element collection, so a by-identifier read and a by-criteria read are deserialized the same way and differ only in how many elements are worth looking at.
+
+An absent body, a body that cannot be deserialized and an empty collection are all answered with [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null'), for the reasons given on [JsonAsync\(this HttpClient, string, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.JsonAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.JsonAsync\(this System\.Net\.Http\.HttpClient, string, System\.Threading\.CancellationToken\)').
+
+```csharp
+public static System.Threading.Tasks.Task<T?> ItemAsync<T>(this System.Net.Http.HttpClient? httpClient, string? requestUri, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken))
+    where T : DiGi.Core.Interfaces.ISerializableObject;
+```
+#### Type parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ItemAsync_T_(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken).T'></a>
+
+`T`
+
+The type of the object carried by the response\.
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ItemAsync_T_(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ItemAsync_T_(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken).requestUri'></a>
+
+`requestUri` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The GIS Web API URL to read\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ItemAsync_T_(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[T](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.ItemAsync_T_(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken).T 'DiGi\.GIS\.WebAPI\.UI\.Query\.ItemAsync\<T\>\(this System\.Net\.Http\.HttpClient, string, System\.Threading\.CancellationToken\)\.T')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The first object carried by the response, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there is none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ItemsAsync_T_(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken)'></a>
+
+## Query\.ItemsAsync\<T\>\(this HttpClient, string, CancellationToken\) Method
+
+Asynchronously reads a GIS Web API response and deserializes it into DiGi objects\.
+
+An absent body and a body that cannot be deserialized are both answered with [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null'), for the reasons given on [JsonAsync\(this HttpClient, string, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.JsonAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.JsonAsync\(this System\.Net\.Http\.HttpClient, string, System\.Threading\.CancellationToken\)').
+
+```csharp
+public static System.Threading.Tasks.Task<System.Collections.Generic.List<T>?> ItemsAsync<T>(this System.Net.Http.HttpClient? httpClient, string? requestUri, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken))
+    where T : DiGi.Core.Interfaces.ISerializableObject;
+```
+#### Type parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ItemsAsync_T_(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken).T'></a>
+
+`T`
+
+The type of the objects carried by the response\.
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ItemsAsync_T_(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ItemsAsync_T_(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken).requestUri'></a>
+
+`requestUri` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The GIS Web API URL to read\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ItemsAsync_T_(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[T](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.ItemsAsync_T_(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken).T 'DiGi\.GIS\.WebAPI\.UI\.Query\.ItemsAsync\<T\>\(this System\.Net\.Http\.HttpClient, string, System\.Threading\.CancellationToken\)\.T')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The objects carried by the response, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there are none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.JsonAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken)'></a>
+
+## Query\.JsonAsync\(this HttpClient, string, CancellationToken\) Method
+
+Asynchronously reads the body of a GIS Web API response\.
+
+Every way of not getting a body collapses into [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null'): the service answered with a failure status, answered with nothing, was unreachable, or the request was cancelled. This application renders a page out of several independent requests, so one of them coming back empty has to leave the rest of the page standing rather than fail it, and what to do about the absence (an empty panel, a hidden section, a not found page) is left to the caller.
+
+The price is that "there is nothing here" and "the service is down" are indistinguishable to the caller; the GIS Web API logs which one it was.
+
+```csharp
+public static System.Threading.Tasks.Task<string?> JsonAsync(this System.Net.Http.HttpClient? httpClient, string? requestUri, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.JsonAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.JsonAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken).requestUri'></a>
+
+`requestUri` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The GIS Web API URL to read\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.JsonAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The response body, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there is none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.PostJsonAsync_T_(thisSystem.Net.Http.HttpClient,string,T,System.Threading.CancellationToken)'></a>
+
+## Query\.PostJsonAsync\<T\>\(this HttpClient, string, T, CancellationToken\) Method
+
+Asynchronously posts a request body to the GIS Web API and reads the response body\.
+
+The counterpart of [JsonAsync\(this HttpClient, string, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.JsonAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.JsonAsync\(this System\.Net\.Http\.HttpClient, string, System\.Threading\.CancellationToken\)') for the endpoints that take their criteria in the body rather than in the query string, and it answers absence the same way - see that method for why.
+
+The HTTP verb is kept in the name deliberately, matching `DiGi.WebAPI.Query.GetAsync`: the verb is the only thing separating this method from its sibling, so nothing else can name it.
+
+```csharp
+public static System.Threading.Tasks.Task<string?> PostJsonAsync<T>(this System.Net.Http.HttpClient? httpClient, string? requestUri, T value, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Type parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.PostJsonAsync_T_(thisSystem.Net.Http.HttpClient,string,T,System.Threading.CancellationToken).T'></a>
+
+`T`
+
+The type of the request body\.
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.PostJsonAsync_T_(thisSystem.Net.Http.HttpClient,string,T,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.PostJsonAsync_T_(thisSystem.Net.Http.HttpClient,string,T,System.Threading.CancellationToken).requestUri'></a>
+
+`requestUri` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The GIS Web API URL to post to\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.PostJsonAsync_T_(thisSystem.Net.Http.HttpClient,string,T,System.Threading.CancellationToken).value'></a>
+
+`value` [T](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.PostJsonAsync_T_(thisSystem.Net.Http.HttpClient,string,T,System.Threading.CancellationToken).T 'DiGi\.GIS\.WebAPI\.UI\.Query\.PostJsonAsync\<T\>\(this System\.Net\.Http\.HttpClient, string, T, System\.Threading\.CancellationToken\)\.T')
+
+The request body, serialized as JSON\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.PostJsonAsync_T_(thisSystem.Net.Http.HttpClient,string,T,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The response body, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there is none\.
 
 <a name='DiGi.GIS.WebAPI.UI.Query.TerrainJsonAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken)'></a>
 

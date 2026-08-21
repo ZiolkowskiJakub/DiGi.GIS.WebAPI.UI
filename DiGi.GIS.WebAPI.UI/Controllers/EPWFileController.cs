@@ -2,8 +2,8 @@ using DiGi.EPW.Classes;
 using DiGi.GIS.WebAPI.UI.ViewModels;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Controllers
@@ -28,34 +28,28 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// <summary>
         /// Asynchronously retrieves an EPW file based on the specified coordinates.
         /// </summary>
-        /// <param name="x">The X coordinate (longitude).</param>
-        /// <param name="y">The Y coordinate (latitude).</param>
+        /// <param name="x">The X coordinate, in PL-1992 (EPSG:2180) metres.</param>
+        /// <param name="y">The Y coordinate, in PL-1992 (EPSG:2180) metres.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IActionResult"/> representing the HTTP response.</returns>
         [HttpGet("item")]
-        public async Task<IActionResult> GetEPWFileAsync([FromQuery(Name = "x")] double x, [FromQuery(Name = "y")] double y)
+        public async Task<IActionResult> GetEPWFileAsync([FromQuery(Name = "x")] double x, [FromQuery(Name = "y")] double y, CancellationToken cancellationToken = default)
         {
+            if (!double.IsFinite(x) || !double.IsFinite(y))
+            {
+                return BadRequest();
+            }
+
             HttpClient httpClient = httpClientFactory.CreateClient();
 
-            UrlBuilder urlBuilder = new("https://api.digiproject.uk/gis/epwfile/item");
+            UrlBuilder urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/epwfile/item");
             urlBuilder = urlBuilder.AddParameter("x", x);
             urlBuilder = urlBuilder.AddParameter("y", y);
 
-            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(urlBuilder.ToString());
-            if (!httpResponseMessage.IsSuccessStatusCode)
-            {
-                return BadRequest();
-            }
-
-            string json = await httpResponseMessage.Content.ReadAsStringAsync();
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return NoContent();
-            }
-
-            EPWFile? epwFile = Core.Convert.ToDiGi<EPWFile>(json)?.FirstOrDefault();
+            EPWFile? epwFile = await httpClient.ItemAsync<EPWFile>(urlBuilder.ToString(), cancellationToken);
             if (epwFile is null)
             {
-                return BadRequest();
+                return NoContent();
             }
 
             return View("EPWFileView", new EPWFileViewModel(epwFile));
