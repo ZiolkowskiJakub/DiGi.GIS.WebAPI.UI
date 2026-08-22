@@ -1,6 +1,7 @@
 using DiGi.Analytical.Building.Classes;
 using DiGi.Analytical.Building.Enums;
 using DiGi.Core.Interfaces;
+using DiGi.Geometry.Planar;
 using DiGi.Geometry.Planar.Classes;
 using DiGi.Geometry.Spatial.Classes;
 using DiGi.GIS.WebAPI.UI.ViewModels;
@@ -99,7 +100,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NotFound();
             }
 
-            await AddTerrainAsync(gLTFNodes, httpClient, new Point2D(x, y), cancellationToken);
+            await AddTerrainAsync(gLTFNodes, httpClient, new Point2D(x, y), [buildingModel], cancellationToken);
 
             string name = $"BuildingModel {buildingModel.UniqueId}";
 
@@ -203,7 +204,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NoContent();
             }
 
+            // The ground is cut to the buildings that were actually fetched, so a building whose centre falls
+            // outside the requested circle keeps the ground beneath it - it is not in the scene to reveal it.
             GLTFNode? gLTFNode_Terrain = task_Terrain is null ? null : await task_Terrain;
+            gLTFNode_Terrain = gLTFNode_Terrain.TerrainGLTFNode(buildingModels);
             if (gLTFNode_Terrain is not null)
             {
                 gLTFNodes.Add(gLTFNode_Terrain);
@@ -264,7 +268,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
 
         /// <summary>
-        /// Asynchronously creates a <see cref="BuildingModel"/> for the building with the specified unique identifier (see <see cref="Create.BuildingModelAsync(HttpClient, long, int?, double, double, CancellationToken)"/>), converts each of its components (walls, floors and roofs) into a separate node of a batched <see cref="GLTFScene"/> (translated to a local origin) and streams it as a binary glTF (.glb) payload.
+        /// Asynchronously retrieves the 3D <see cref="BuildingModel"/> for the building with the specified unique identifier from the database (see <see cref="Query.BuildingModelAsync(HttpClient, long, int?, CancellationToken)"/>), converts each of its components (walls, floors and roofs) into a separate node of a batched <see cref="GLTFScene"/> (translated to a local origin) and streams it as a binary glTF (.glb) payload.
         /// <para>Each component carries its own identity in the scene object map, so the 3D viewer can hit-test and select individual components instead of the building as a whole.</para>
         /// </summary>
         /// <param name="id">The unique identifier of the building.</param>
@@ -276,8 +280,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         {
             HttpClient httpClient = httpClientFactory.CreateClient();
 
-            // The storey height is a server side concern: it is always the application default, never a client input.
-            BuildingModel? buildingModel = await httpClient.BuildingModelAsync(id, countyId, Constants.Default.StoreyHeight, cancellationToken: cancellationToken);
+            BuildingModel? buildingModel = await httpClient.BuildingModelAsync(id, countyId, cancellationToken);
             if (buildingModel is null)
             {
                 return NoContent();
@@ -297,7 +300,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             // given is centred on the building itself.
             Point3D? centroid = buildingModel.GetBoundingBox()?.GetCentroid();
 
-            await AddTerrainAsync(gLTFNodes, httpClient, centroid is null ? null : new Point2D(centroid.X, centroid.Y), cancellationToken);
+            await AddTerrainAsync(gLTFNodes, httpClient, centroid is null ? null : new Point2D(centroid.X, centroid.Y), [buildingModel], cancellationToken);
 
             string name = $"BuildingModel {id.ToString(CultureInfo.InvariantCulture)}";
 
@@ -327,15 +330,16 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
 
         /// <summary>
-        /// Adds the ground surface around the given point to the nodes of a scene.
+        /// Adds the ground surface around the given point to the nodes of a scene, with the outlines of the buildings of the scene cut out of it.
         /// <para>The surface is optional: no stored elevation points, an undeployed or unreachable terrain service and a timeout all leave the scene exactly as it was, so a building scene never depends on terrain being there.</para>
         /// </summary>
         /// <param name="gLTFNodes">The nodes of the scene being built.</param>
         /// <param name="httpClient">The HTTP client used for the request.</param>
         /// <param name="center">The centre of the ground to show, in PL-1992 (EPSG:2180) metres. This value can be null.</param>
+        /// <param name="buildingModels">The buildings of the scene, whose outlines are cut out of the ground so it does not run through their interiors (see <see cref="Create.TerrainGLTFNode(GLTFNode?, IEnumerable{BuildingModel}?, double, double)"/>). This value can be null.</param>
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        private static async Task AddTerrainAsync(List<GLTFNode> gLTFNodes, HttpClient httpClient, Point2D? center, CancellationToken cancellationToken)
+        private static async Task AddTerrainAsync(List<GLTFNode> gLTFNodes, HttpClient httpClient, Point2D? center, IEnumerable<BuildingModel>? buildingModels, CancellationToken cancellationToken)
         {
             if (!Constants.Default.TerrainEnabled || center is null)
             {
@@ -343,6 +347,8 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             }
 
             GLTFNode? gLTFNode = await httpClient.TerrainGLTFNodeAsync(new Circle2D(center, Constants.Default.TerrainRadius), cancellationToken: cancellationToken);
+
+            gLTFNode = gLTFNode.TerrainGLTFNode(buildingModels);
             if (gLTFNode is not null)
             {
                 gLTFNodes.Add(gLTFNode);

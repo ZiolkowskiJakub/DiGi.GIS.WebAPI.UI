@@ -644,38 +644,44 @@ public BuildingModelController(System.Net.Http.IHttpClientFactory httpClientFact
 The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') used to create and manage [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') instances for making API requests\.
 ### Methods
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.AddTerrainAsync(System.Collections.Generic.List_DiGi.GLTF.Classes.GLTFNode_,System.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Point2D,System.Threading.CancellationToken)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.AddTerrainAsync(System.Collections.Generic.List_DiGi.GLTF.Classes.GLTFNode_,System.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Point2D,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,System.Threading.CancellationToken)'></a>
 
-## BuildingModelController\.AddTerrainAsync\(List\<GLTFNode\>, HttpClient, Point2D, CancellationToken\) Method
+## BuildingModelController\.AddTerrainAsync\(List\<GLTFNode\>, HttpClient, Point2D, IEnumerable\<BuildingModel\>, CancellationToken\) Method
 
-Adds the ground surface around the given point to the nodes of a scene\.
+Adds the ground surface around the given point to the nodes of a scene, with the outlines of the buildings of the scene cut out of it\.
 
 The surface is optional: no stored elevation points, an undeployed or unreachable terrain service and a timeout all leave the scene exactly as it was, so a building scene never depends on terrain being there.
 
 ```csharp
-private static System.Threading.Tasks.Task AddTerrainAsync(System.Collections.Generic.List<DiGi.GLTF.Classes.GLTFNode> gLTFNodes, System.Net.Http.HttpClient httpClient, DiGi.Geometry.Planar.Classes.Point2D? center, System.Threading.CancellationToken cancellationToken);
+private static System.Threading.Tasks.Task AddTerrainAsync(System.Collections.Generic.List<DiGi.GLTF.Classes.GLTFNode> gLTFNodes, System.Net.Http.HttpClient httpClient, DiGi.Geometry.Planar.Classes.Point2D? center, System.Collections.Generic.IEnumerable<DiGi.Analytical.Building.Classes.BuildingModel>? buildingModels, System.Threading.CancellationToken cancellationToken);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.AddTerrainAsync(System.Collections.Generic.List_DiGi.GLTF.Classes.GLTFNode_,System.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Point2D,System.Threading.CancellationToken).gLTFNodes'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.AddTerrainAsync(System.Collections.Generic.List_DiGi.GLTF.Classes.GLTFNode_,System.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Point2D,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,System.Threading.CancellationToken).gLTFNodes'></a>
 
 `gLTFNodes` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
 
 The nodes of the scene being built\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.AddTerrainAsync(System.Collections.Generic.List_DiGi.GLTF.Classes.GLTFNode_,System.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Point2D,System.Threading.CancellationToken).httpClient'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.AddTerrainAsync(System.Collections.Generic.List_DiGi.GLTF.Classes.GLTFNode_,System.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Point2D,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,System.Threading.CancellationToken).httpClient'></a>
 
 `httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
 
 The HTTP client used for the request\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.AddTerrainAsync(System.Collections.Generic.List_DiGi.GLTF.Classes.GLTFNode_,System.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Point2D,System.Threading.CancellationToken).center'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.AddTerrainAsync(System.Collections.Generic.List_DiGi.GLTF.Classes.GLTFNode_,System.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Point2D,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,System.Threading.CancellationToken).center'></a>
 
 `center` [DiGi\.Geometry\.Planar\.Classes\.Point2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.point2d 'DiGi\.Geometry\.Planar\.Classes\.Point2D')
 
 The centre of the ground to show, in PL\-1992 \(EPSG:2180\) metres\. This value can be null\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.AddTerrainAsync(System.Collections.Generic.List_DiGi.GLTF.Classes.GLTFNode_,System.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Point2D,System.Threading.CancellationToken).cancellationToken'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.AddTerrainAsync(System.Collections.Generic.List_DiGi.GLTF.Classes.GLTFNode_,System.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Point2D,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,System.Threading.CancellationToken).buildingModels'></a>
+
+`buildingModels` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The buildings of the scene, whose outlines are cut out of the ground so it does not run through their interiors \(see [TerrainGLTFNode\(this GLTFNode, IEnumerable&lt;BuildingModel&gt;, double, double\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNode(thisDiGi.GLTF.Classes.GLTFNode,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,double,double) 'DiGi\.GIS\.WebAPI\.UI\.Create\.TerrainGLTFNode\(this DiGi\.GLTF\.Classes\.GLTFNode, System\.Collections\.Generic\.IEnumerable\<DiGi\.Analytical\.Building\.Classes\.BuildingModel\>, double, double\)')\)\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.AddTerrainAsync(System.Collections.Generic.List_DiGi.GLTF.Classes.GLTFNode_,System.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Point2D,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,System.Threading.CancellationToken).cancellationToken'></a>
 
 `cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
 
@@ -763,7 +769,7 @@ A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dot
 
 ## BuildingModelController\.GetGLBBuildingModelByIdAsync\(long, Nullable\<int\>, CancellationToken\) Method
 
-Asynchronously creates a [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') for the building with the specified unique identifier \(see [BuildingModelAsync\(this HttpClient, long, Nullable&lt;int&gt;, double, double, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,double,double,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Create\.BuildingModelAsync\(this System\.Net\.Http\.HttpClient, long, System\.Nullable\<int\>, double, double, System\.Threading\.CancellationToken\)')\), converts each of its components \(walls, floors and roofs\) into a separate node of a batched [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene') \(translated to a local origin\) and streams it as a binary glTF \(\.glb\) payload\.
+Asynchronously retrieves the 3D [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') for the building with the specified unique identifier from the database \(see [BuildingModelAsync\(this HttpClient, long, Nullable&lt;int&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.BuildingModelAsync\(this System\.Net\.Http\.HttpClient, long, System\.Nullable\<int\>, System\.Threading\.CancellationToken\)')\), converts each of its components \(walls, floors and roofs\) into a separate node of a batched [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene') \(translated to a local origin\) and streams it as a binary glTF \(\.glb\) payload\.
 
 Each component carries its own identity in the scene object map, so the 3D viewer can hit-test and select individual components instead of the building as a whole.
 
