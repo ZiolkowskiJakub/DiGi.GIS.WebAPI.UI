@@ -208,6 +208,32 @@ public const double StoreyHeight = 3;
 #### Field Value
 [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.TerrainBuffer'></a>
+
+## Default\.TerrainBuffer Field
+
+The buffer distance in meters added to spatial terrain queries to guarantee the retrieved elevation lattice spans the target geometric boundary before regular clipping\.
+
+```csharp
+public const double TerrainBuffer = 15;
+```
+
+#### Field Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.TerrainCircleSegmentCount'></a>
+
+## Default\.TerrainCircleSegmentCount Field
+
+The number of segments used to discretize a circular boundary into a regular 2D polygon during terrain clipping\.
+
+```csharp
+public const int TerrainCircleSegmentCount = 64;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.TerrainEnabled'></a>
 
 ## Default\.TerrainEnabled Field
@@ -238,13 +264,26 @@ public const string TerrainName = "Terrain";
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.TerrainPadding'></a>
+
+## Default\.TerrainPadding Field
+
+The margin in meters extending beyond building bounding envelopes when calculating dynamic terrain coverage\.
+
+```csharp
+public const double TerrainPadding = 50;
+```
+
+#### Field Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.TerrainRadius'></a>
 
 ## Default\.TerrainRadius Field
 
-The radius of the ground surface, in metres, shown around a scene that holds a single building\.
+The default minimum radius of the ground surface, in metres, shown around a scene that holds a building model\.
 
-A single building has no requested area of its own to borrow, so this is how much ground it is given for context.
+A building scene ensures at least this radius of ground is displayed for context even when building footprints are small.
 
 ```csharp
 public const double TerrainRadius = 100;

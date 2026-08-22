@@ -81,6 +81,16 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const double StoreyHeight = 3.0;
 
         /// <summary>
+        /// The buffer distance in meters added to spatial terrain queries to guarantee the retrieved elevation lattice spans the target geometric boundary before regular clipping.
+        /// </summary>
+        public const double TerrainBuffer = 15.0;
+
+        /// <summary>
+        /// The number of segments used to discretize a circular boundary into a regular 2D polygon during terrain clipping.
+        /// </summary>
+        public const int TerrainCircleSegmentCount = 64;
+
+        /// <summary>
         /// Whether the ground surface is added to the scenes that display <see cref="DiGi.Analytical.Building.Classes.BuildingModel"/> geometry (the 3D viewer and the communication view).
         /// <para>The standalone terrain feature (the Terrain controller and its own pages) shows the surface on its own, where the elevation is correct as stored.</para>
         /// <para>Note that an area smaller than the sampling lattice legitimately holds no points: the counties are sampled at 10 m to 100 m, so a request with a radius below the lattice step answers 404 without meaning that nothing was ever stored there.</para>
@@ -93,8 +103,13 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const string TerrainName = "Terrain";
 
         /// <summary>
-        /// The radius of the ground surface, in metres, shown around a scene that holds a single building.
-        /// <para>A single building has no requested area of its own to borrow, so this is how much ground it is given for context.</para>
+        /// The margin in meters extending beyond building bounding envelopes when calculating dynamic terrain coverage.
+        /// </summary>
+        public const double TerrainPadding = 50.0;
+
+        /// <summary>
+        /// The default minimum radius of the ground surface, in metres, shown around a scene that holds a building model.
+        /// <para>A building scene ensures at least this radius of ground is displayed for context even when building footprints are small.</para>
         /// </summary>
         public const double TerrainRadius = 100.0;
 

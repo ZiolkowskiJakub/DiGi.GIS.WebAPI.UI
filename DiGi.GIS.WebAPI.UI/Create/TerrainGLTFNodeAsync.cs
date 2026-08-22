@@ -38,17 +38,73 @@ namespace DiGi.GIS.WebAPI.UI
         }
 
         /// <summary>
-        /// Asynchronously creates the <see cref="GLTFNode"/> holding the ground surface of a circular area, read from the GIS Web API terrain service.
+        /// Asynchronously creates the <see cref="GLTFNode"/> holding the ground surface of a circular area, read from the GIS Web API terrain service and clipped to a regular circular boundary.
         /// </summary>
         /// <param name="httpClient">The HTTP client used for the request. This value can be null.</param>
         /// <param name="circle2D">The area to show the terrain surface of, in PL-1992 (EPSG:2180) metres. This value can be null.</param>
         /// <param name="name">The name given to the node. This value can be null.</param>
         /// <param name="tolerance">An optional tolerance for the spatial query, in metres. When omitted the terrain service applies its own default.</param>
+        /// <param name="buffer">The query buffer in meters added to the search area to ensure complete boundary coverage before regular geometric clipping.</param>
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
-        /// <returns>The terrain node, or <see langword="null"/> when the area has no surface to show.</returns>
-        public static async Task<GLTFNode?> TerrainGLTFNodeAsync(this HttpClient? httpClient, Circle2D? circle2D, string? name = null, double? tolerance = null, CancellationToken cancellationToken = default)
+        /// <returns>The terrain node with a regular circular boundary, or <see langword="null"/> when the area has no surface to show.</returns>
+        public static async Task<GLTFNode?> TerrainGLTFNodeAsync(this HttpClient? httpClient, Circle2D? circle2D, string? name = null, double? tolerance = null, double buffer = Constants.Default.TerrainBuffer, CancellationToken cancellationToken = default)
         {
-            return await httpClient.TerrainGLTFNodeAsync(circle2D.TerrainRequestUri(tolerance), name, cancellationToken);
+            if (circle2D is null || circle2D.Center is null || double.IsNaN(circle2D.Radius) || circle2D.Radius <= 0)
+            {
+                return null;
+            }
+
+            Circle2D circle2D_Query = buffer > 0 ? new Circle2D(circle2D.Center, circle2D.Radius + buffer) : circle2D;
+
+            GLTFNode? gLTFNode = await httpClient.TerrainGLTFNodeAsync(circle2D_Query.TerrainRequestUri(tolerance), name, cancellationToken);
+            if (gLTFNode is null)
+            {
+                return null;
+            }
+
+            Mesh3D? mesh3D_Clipped = Modify.Clip(gLTFNode.Mesh3D, circle2D);
+            if (mesh3D_Clipped is null)
+            {
+                return null;
+            }
+
+            return new GLTFNode(gLTFNode.Name, gLTFNode.Reference, mesh3D_Clipped, gLTFNode.Color, gLTFNode.Opacity, gLTFNode.Properties);
+        }
+
+        /// <summary>
+        /// Asynchronously creates the <see cref="GLTFNode"/> holding the ground surface of a rectangular bounding box, read from the GIS Web API terrain service and clipped to a regular rectangular boundary.
+        /// </summary>
+        /// <param name="httpClient">The HTTP client used for the request. This value can be null.</param>
+        /// <param name="boundingBox2D">The area to show the terrain surface of, in PL-1992 (EPSG:2180) metres. This value can be null.</param>
+        /// <param name="name">The name given to the node. This value can be null.</param>
+        /// <param name="tolerance">An optional tolerance for the spatial query, in metres. When omitted the terrain service applies its own default.</param>
+        /// <param name="buffer">The query buffer in meters added to the search area to ensure complete boundary coverage before regular geometric clipping.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>The terrain node with a regular rectangular boundary, or <see langword="null"/> when the area has no surface to show.</returns>
+        public static async Task<GLTFNode?> TerrainGLTFNodeAsync(this HttpClient? httpClient, BoundingBox2D? boundingBox2D, string? name = null, double? tolerance = null, double buffer = Constants.Default.TerrainBuffer, CancellationToken cancellationToken = default)
+        {
+            if (boundingBox2D is null)
+            {
+                return null;
+            }
+
+            BoundingBox2D boundingBox2D_Query = buffer > 0
+                ? new BoundingBox2D(new Point2D(boundingBox2D.Min.X - buffer, boundingBox2D.Min.Y - buffer), new Point2D(boundingBox2D.Max.X + buffer, boundingBox2D.Max.Y + buffer))
+                : boundingBox2D;
+
+            GLTFNode? gLTFNode = await httpClient.TerrainGLTFNodeAsync(boundingBox2D_Query.TerrainRequestUri(tolerance), name, cancellationToken);
+            if (gLTFNode is null)
+            {
+                return null;
+            }
+
+            Mesh3D? mesh3D_Clipped = Modify.Clip(gLTFNode.Mesh3D, boundingBox2D);
+            if (mesh3D_Clipped is null)
+            {
+                return null;
+            }
+
+            return new GLTFNode(gLTFNode.Name, gLTFNode.Reference, mesh3D_Clipped, gLTFNode.Color, gLTFNode.Opacity, gLTFNode.Properties);
         }
     }
 }

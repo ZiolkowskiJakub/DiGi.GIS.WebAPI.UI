@@ -79,6 +79,144 @@ The title displayed above the viewer\. If this value is null, the scene name is 
 [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel')  
 A [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel') ready to be passed to the glTF scene view, or null if the scene is null or could not be exported\.
 
+<a name='DiGi.GIS.WebAPI.UI.Create.Polygon2D(thisDiGi.Geometry.Planar.Classes.BoundingBox2D)'></a>
+
+## Create\.Polygon2D\(this BoundingBox2D\) Method
+
+Creates a 4\-corner rectangular [DiGi\.Geometry\.Planar\.Classes\.Polygon2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.polygon2d 'DiGi\.Geometry\.Planar\.Classes\.Polygon2D') from the specified [DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')\.
+
+```csharp
+public static DiGi.Geometry.Planar.Classes.Polygon2D? Polygon2D(this DiGi.Geometry.Planar.Classes.BoundingBox2D? boundingBox2D);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.Polygon2D(thisDiGi.Geometry.Planar.Classes.BoundingBox2D).boundingBox2D'></a>
+
+`boundingBox2D` [DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')
+
+The 2D bounding box to convert\. This value can be null\.
+
+#### Returns
+[DiGi\.Geometry\.Planar\.Classes\.Polygon2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.polygon2d 'DiGi\.Geometry\.Planar\.Classes\.Polygon2D')  
+A [DiGi\.Geometry\.Planar\.Classes\.Polygon2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.polygon2d 'DiGi\.Geometry\.Planar\.Classes\.Polygon2D') representing the bounding box rectangle, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') if the bounding box is null or invalid\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.Polygon2D(thisDiGi.Geometry.Planar.Classes.Circle2D,int)'></a>
+
+## Create\.Polygon2D\(this Circle2D, int\) Method
+
+Creates a closed [DiGi\.Geometry\.Planar\.Classes\.Polygon2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.polygon2d 'DiGi\.Geometry\.Planar\.Classes\.Polygon2D') approximating the specified [DiGi\.Geometry\.Planar\.Classes\.Circle2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.circle2d 'DiGi\.Geometry\.Planar\.Classes\.Circle2D') with the given number of segments\.
+
+```csharp
+public static DiGi.Geometry.Planar.Classes.Polygon2D? Polygon2D(this DiGi.Geometry.Planar.Classes.Circle2D? circle2D, int segmentCount=64);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.Polygon2D(thisDiGi.Geometry.Planar.Classes.Circle2D,int).circle2D'></a>
+
+`circle2D` [DiGi\.Geometry\.Planar\.Classes\.Circle2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.circle2d 'DiGi\.Geometry\.Planar\.Classes\.Circle2D')
+
+The circle to discretize\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.Polygon2D(thisDiGi.Geometry.Planar.Classes.Circle2D,int).segmentCount'></a>
+
+`segmentCount` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of segments to divide the circle perimeter into\. Defaults to [TerrainCircleSegmentCount](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.TerrainCircleSegmentCount 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.TerrainCircleSegmentCount')\.
+
+#### Returns
+[DiGi\.Geometry\.Planar\.Classes\.Polygon2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.polygon2d 'DiGi\.Geometry\.Planar\.Classes\.Polygon2D')  
+A [DiGi\.Geometry\.Planar\.Classes\.Polygon2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.polygon2d 'DiGi\.Geometry\.Planar\.Classes\.Polygon2D') representing the discretized circle, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') if the circle is null or invalid\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNode(thisDiGi.GLTF.Classes.GLTFNode,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.Geometry.Planar.Classes.BoundingBox2D,double,double)'></a>
+
+## Create\.TerrainGLTFNode\(this GLTFNode, IEnumerable\<BuildingModel\>, BoundingBox2D, double, double\) Method
+
+Creates the [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode') holding the ground surface of a scene with a regular rectangular boundary applied and the outlines of the given buildings cut out of it\.
+
+```csharp
+public static DiGi.GLTF.Classes.GLTFNode? TerrainGLTFNode(this DiGi.GLTF.Classes.GLTFNode? gLTFNode, System.Collections.Generic.IEnumerable<DiGi.Analytical.Building.Classes.BuildingModel>? buildingModels, DiGi.Geometry.Planar.Classes.BoundingBox2D? boundaryBoundingBox, double offset=0.05, double tolerance=1E-06);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNode(thisDiGi.GLTF.Classes.GLTFNode,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.Geometry.Planar.Classes.BoundingBox2D,double,double).gLTFNode'></a>
+
+`gLTFNode` [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode')
+
+The node holding the ground surface\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNode(thisDiGi.GLTF.Classes.GLTFNode,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.Geometry.Planar.Classes.BoundingBox2D,double,double).buildingModels'></a>
+
+`buildingModels` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The buildings standing on the surface\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNode(thisDiGi.GLTF.Classes.GLTFNode,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.Geometry.Planar.Classes.BoundingBox2D,double,double).boundaryBoundingBox'></a>
+
+`boundaryBoundingBox` [DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')
+
+The rectangular bounding box to clip the ground surface to\. When null, no boundary clipping is performed\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNode(thisDiGi.GLTF.Classes.GLTFNode,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.Geometry.Planar.Classes.BoundingBox2D,double,double).offset'></a>
+
+`offset` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The outward offset distance in meters applied to the building footprints before cutting the terrain\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNode(thisDiGi.GLTF.Classes.GLTFNode,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.Geometry.Planar.Classes.BoundingBox2D,double,double).tolerance'></a>
+
+`tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The distance tolerance used for the outlines and for the subtraction\.
+
+#### Returns
+[DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode')  
+A new node holding the clipped surface with building footprints cut out, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') if no surface remains\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNode(thisDiGi.GLTF.Classes.GLTFNode,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.Geometry.Planar.Classes.Circle2D,double,double)'></a>
+
+## Create\.TerrainGLTFNode\(this GLTFNode, IEnumerable\<BuildingModel\>, Circle2D, double, double\) Method
+
+Creates the [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode') holding the ground surface of a scene with a regular circular boundary applied and the outlines of the given buildings cut out of it\.
+
+```csharp
+public static DiGi.GLTF.Classes.GLTFNode? TerrainGLTFNode(this DiGi.GLTF.Classes.GLTFNode? gLTFNode, System.Collections.Generic.IEnumerable<DiGi.Analytical.Building.Classes.BuildingModel>? buildingModels, DiGi.Geometry.Planar.Classes.Circle2D? boundaryCircle, double offset=0.05, double tolerance=1E-06);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNode(thisDiGi.GLTF.Classes.GLTFNode,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.Geometry.Planar.Classes.Circle2D,double,double).gLTFNode'></a>
+
+`gLTFNode` [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode')
+
+The node holding the ground surface\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNode(thisDiGi.GLTF.Classes.GLTFNode,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.Geometry.Planar.Classes.Circle2D,double,double).buildingModels'></a>
+
+`buildingModels` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The buildings standing on the surface\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNode(thisDiGi.GLTF.Classes.GLTFNode,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.Geometry.Planar.Classes.Circle2D,double,double).boundaryCircle'></a>
+
+`boundaryCircle` [DiGi\.Geometry\.Planar\.Classes\.Circle2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.circle2d 'DiGi\.Geometry\.Planar\.Classes\.Circle2D')
+
+The circular boundary to clip the ground surface to\. When null, no boundary clipping is performed\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNode(thisDiGi.GLTF.Classes.GLTFNode,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.Geometry.Planar.Classes.Circle2D,double,double).offset'></a>
+
+`offset` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The outward offset distance in meters applied to the building footprints before cutting the terrain\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNode(thisDiGi.GLTF.Classes.GLTFNode,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.Geometry.Planar.Classes.Circle2D,double,double).tolerance'></a>
+
+`tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The distance tolerance used for the outlines and for the subtraction\.
+
+#### Returns
+[DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode')  
+A new node holding the clipped surface with building footprints cut out, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') if no surface remains\.
+
 <a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNode(thisDiGi.GLTF.Classes.GLTFNode,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,double,double)'></a>
 
 ## Create\.TerrainGLTFNode\(this GLTFNode, IEnumerable\<BuildingModel\>, double, double\) Method
@@ -125,42 +263,48 @@ A new node holding the surface with the buildings cut out, the given node when t
 ### Remarks
 The node is returned untouched whenever there is nothing to cut \- no node, no surface, or no building covering any ground \- so a caller can apply this to whatever the terrain service answered without checking first\.
 
-<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Circle2D,string,System.Nullable_double_,System.Threading.CancellationToken)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.BoundingBox2D,string,System.Nullable_double_,double,System.Threading.CancellationToken)'></a>
 
-## Create\.TerrainGLTFNodeAsync\(this HttpClient, Circle2D, string, Nullable\<double\>, CancellationToken\) Method
+## Create\.TerrainGLTFNodeAsync\(this HttpClient, BoundingBox2D, string, Nullable\<double\>, double, CancellationToken\) Method
 
-Asynchronously creates the [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode') holding the ground surface of a circular area, read from the GIS Web API terrain service\.
+Asynchronously creates the [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode') holding the ground surface of a rectangular bounding box, read from the GIS Web API terrain service and clipped to a regular rectangular boundary\.
 
 ```csharp
-public static System.Threading.Tasks.Task<DiGi.GLTF.Classes.GLTFNode?> TerrainGLTFNodeAsync(this System.Net.Http.HttpClient? httpClient, DiGi.Geometry.Planar.Classes.Circle2D? circle2D, string? name=null, System.Nullable<double> tolerance=null, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+public static System.Threading.Tasks.Task<DiGi.GLTF.Classes.GLTFNode?> TerrainGLTFNodeAsync(this System.Net.Http.HttpClient? httpClient, DiGi.Geometry.Planar.Classes.BoundingBox2D? boundingBox2D, string? name=null, System.Nullable<double> tolerance=null, double buffer=15.0, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Circle2D,string,System.Nullable_double_,System.Threading.CancellationToken).httpClient'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.BoundingBox2D,string,System.Nullable_double_,double,System.Threading.CancellationToken).httpClient'></a>
 
 `httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
 
 The HTTP client used for the request\. This value can be null\.
 
-<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Circle2D,string,System.Nullable_double_,System.Threading.CancellationToken).circle2D'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.BoundingBox2D,string,System.Nullable_double_,double,System.Threading.CancellationToken).boundingBox2D'></a>
 
-`circle2D` [DiGi\.Geometry\.Planar\.Classes\.Circle2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.circle2d 'DiGi\.Geometry\.Planar\.Classes\.Circle2D')
+`boundingBox2D` [DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')
 
 The area to show the terrain surface of, in PL\-1992 \(EPSG:2180\) metres\. This value can be null\.
 
-<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Circle2D,string,System.Nullable_double_,System.Threading.CancellationToken).name'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.BoundingBox2D,string,System.Nullable_double_,double,System.Threading.CancellationToken).name'></a>
 
 `name` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The name given to the node\. This value can be null\.
 
-<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Circle2D,string,System.Nullable_double_,System.Threading.CancellationToken).tolerance'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.BoundingBox2D,string,System.Nullable_double_,double,System.Threading.CancellationToken).tolerance'></a>
 
 `tolerance` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 An optional tolerance for the spatial query, in metres\. When omitted the terrain service applies its own default\.
 
-<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Circle2D,string,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.BoundingBox2D,string,System.Nullable_double_,double,System.Threading.CancellationToken).buffer'></a>
+
+`buffer` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The query buffer in meters added to the search area to ensure complete boundary coverage before regular geometric clipping\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.BoundingBox2D,string,System.Nullable_double_,double,System.Threading.CancellationToken).cancellationToken'></a>
 
 `cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
 
@@ -168,7 +312,58 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-The terrain node, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the area has no surface to show\.
+The terrain node with a regular rectangular boundary, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the area has no surface to show\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Circle2D,string,System.Nullable_double_,double,System.Threading.CancellationToken)'></a>
+
+## Create\.TerrainGLTFNodeAsync\(this HttpClient, Circle2D, string, Nullable\<double\>, double, CancellationToken\) Method
+
+Asynchronously creates the [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode') holding the ground surface of a circular area, read from the GIS Web API terrain service and clipped to a regular circular boundary\.
+
+```csharp
+public static System.Threading.Tasks.Task<DiGi.GLTF.Classes.GLTFNode?> TerrainGLTFNodeAsync(this System.Net.Http.HttpClient? httpClient, DiGi.Geometry.Planar.Classes.Circle2D? circle2D, string? name=null, System.Nullable<double> tolerance=null, double buffer=15.0, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Circle2D,string,System.Nullable_double_,double,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Circle2D,string,System.Nullable_double_,double,System.Threading.CancellationToken).circle2D'></a>
+
+`circle2D` [DiGi\.Geometry\.Planar\.Classes\.Circle2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.circle2d 'DiGi\.Geometry\.Planar\.Classes\.Circle2D')
+
+The area to show the terrain surface of, in PL\-1992 \(EPSG:2180\) metres\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Circle2D,string,System.Nullable_double_,double,System.Threading.CancellationToken).name'></a>
+
+`name` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The name given to the node\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Circle2D,string,System.Nullable_double_,double,System.Threading.CancellationToken).tolerance'></a>
+
+`tolerance` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+An optional tolerance for the spatial query, in metres\. When omitted the terrain service applies its own default\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Circle2D,string,System.Nullable_double_,double,System.Threading.CancellationToken).buffer'></a>
+
+`buffer` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The query buffer in meters added to the search area to ensure complete boundary coverage before regular geometric clipping\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Circle2D,string,System.Nullable_double_,double,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The terrain node with a regular circular boundary, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the area has no surface to show\.
 
 <a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,string,string,System.Threading.CancellationToken)'></a>
 
@@ -223,6 +418,111 @@ public static class Modify
 
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → Modify
 ### Methods
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.Clip(thisDiGi.Geometry.Spatial.Classes.Mesh3D,DiGi.Geometry.Planar.Classes.BoundingBox2D,double)'></a>
+
+## Modify\.Clip\(this Mesh3D, BoundingBox2D, double\) Method
+
+Clips a 3D mesh in plan view to the rectangular boundary defined by the specified [DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')\.
+
+```csharp
+public static DiGi.Geometry.Spatial.Classes.Mesh3D? Clip(this DiGi.Geometry.Spatial.Classes.Mesh3D? mesh3D, DiGi.Geometry.Planar.Classes.BoundingBox2D? boundingBox2D, double tolerance=1E-06);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.Clip(thisDiGi.Geometry.Spatial.Classes.Mesh3D,DiGi.Geometry.Planar.Classes.BoundingBox2D,double).mesh3D'></a>
+
+`mesh3D` [DiGi\.Geometry\.Spatial\.Classes\.Mesh3D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.spatial.classes.mesh3d 'DiGi\.Geometry\.Spatial\.Classes\.Mesh3D')
+
+The mesh to clip\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.Clip(thisDiGi.Geometry.Spatial.Classes.Mesh3D,DiGi.Geometry.Planar.Classes.BoundingBox2D,double).boundingBox2D'></a>
+
+`boundingBox2D` [DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')
+
+The bounding box defining the allowed plan view boundary\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.Clip(thisDiGi.Geometry.Spatial.Classes.Mesh3D,DiGi.Geometry.Planar.Classes.BoundingBox2D,double).tolerance'></a>
+
+`tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The distance tolerance used for the plan view clipping\.
+
+#### Returns
+[DiGi\.Geometry\.Spatial\.Classes\.Mesh3D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.spatial.classes.mesh3d 'DiGi\.Geometry\.Spatial\.Classes\.Mesh3D')  
+A new [DiGi\.Geometry\.Spatial\.Classes\.Mesh3D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.spatial.classes.mesh3d 'DiGi\.Geometry\.Spatial\.Classes\.Mesh3D') clipped to the rectangular boundary, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') if no geometry remains\.
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.Clip(thisDiGi.Geometry.Spatial.Classes.Mesh3D,DiGi.Geometry.Planar.Classes.Circle2D,int,double)'></a>
+
+## Modify\.Clip\(this Mesh3D, Circle2D, int, double\) Method
+
+Clips a 3D mesh in plan view to the regular circular boundary defined by the specified [DiGi\.Geometry\.Planar\.Classes\.Circle2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.circle2d 'DiGi\.Geometry\.Planar\.Classes\.Circle2D')\.
+
+```csharp
+public static DiGi.Geometry.Spatial.Classes.Mesh3D? Clip(this DiGi.Geometry.Spatial.Classes.Mesh3D? mesh3D, DiGi.Geometry.Planar.Classes.Circle2D? circle2D, int segmentCount=64, double tolerance=1E-06);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.Clip(thisDiGi.Geometry.Spatial.Classes.Mesh3D,DiGi.Geometry.Planar.Classes.Circle2D,int,double).mesh3D'></a>
+
+`mesh3D` [DiGi\.Geometry\.Spatial\.Classes\.Mesh3D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.spatial.classes.mesh3d 'DiGi\.Geometry\.Spatial\.Classes\.Mesh3D')
+
+The mesh to clip\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.Clip(thisDiGi.Geometry.Spatial.Classes.Mesh3D,DiGi.Geometry.Planar.Classes.Circle2D,int,double).circle2D'></a>
+
+`circle2D` [DiGi\.Geometry\.Planar\.Classes\.Circle2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.circle2d 'DiGi\.Geometry\.Planar\.Classes\.Circle2D')
+
+The circle defining the allowed plan view boundary\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.Clip(thisDiGi.Geometry.Spatial.Classes.Mesh3D,DiGi.Geometry.Planar.Classes.Circle2D,int,double).segmentCount'></a>
+
+`segmentCount` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of segments used to discretize the circular boundary\.
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.Clip(thisDiGi.Geometry.Spatial.Classes.Mesh3D,DiGi.Geometry.Planar.Classes.Circle2D,int,double).tolerance'></a>
+
+`tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The distance tolerance used for the plan view clipping\.
+
+#### Returns
+[DiGi\.Geometry\.Spatial\.Classes\.Mesh3D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.spatial.classes.mesh3d 'DiGi\.Geometry\.Spatial\.Classes\.Mesh3D')  
+A new [DiGi\.Geometry\.Spatial\.Classes\.Mesh3D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.spatial.classes.mesh3d 'DiGi\.Geometry\.Spatial\.Classes\.Mesh3D') clipped to the circular boundary, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') if no geometry remains\.
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.Clip(thisDiGi.Geometry.Spatial.Classes.Mesh3D,DiGi.Geometry.Planar.Classes.Polygon2D,double)'></a>
+
+## Modify\.Clip\(this Mesh3D, Polygon2D, double\) Method
+
+Clips a 3D mesh in plan view to the interior of the specified boundary polygon\.
+
+```csharp
+public static DiGi.Geometry.Spatial.Classes.Mesh3D? Clip(this DiGi.Geometry.Spatial.Classes.Mesh3D? mesh3D, DiGi.Geometry.Planar.Classes.Polygon2D? boundaryPolygon, double tolerance=1E-06);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.Clip(thisDiGi.Geometry.Spatial.Classes.Mesh3D,DiGi.Geometry.Planar.Classes.Polygon2D,double).mesh3D'></a>
+
+`mesh3D` [DiGi\.Geometry\.Spatial\.Classes\.Mesh3D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.spatial.classes.mesh3d 'DiGi\.Geometry\.Spatial\.Classes\.Mesh3D')
+
+The mesh to clip\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.Clip(thisDiGi.Geometry.Spatial.Classes.Mesh3D,DiGi.Geometry.Planar.Classes.Polygon2D,double).boundaryPolygon'></a>
+
+`boundaryPolygon` [DiGi\.Geometry\.Planar\.Classes\.Polygon2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.polygon2d 'DiGi\.Geometry\.Planar\.Classes\.Polygon2D')
+
+The boundary polygon defining the allowed plan view region\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.Clip(thisDiGi.Geometry.Spatial.Classes.Mesh3D,DiGi.Geometry.Planar.Classes.Polygon2D,double).tolerance'></a>
+
+`tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The distance tolerance used for the plan view clipping\.
+
+#### Returns
+[DiGi\.Geometry\.Spatial\.Classes\.Mesh3D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.spatial.classes.mesh3d 'DiGi\.Geometry\.Spatial\.Classes\.Mesh3D')  
+A new [DiGi\.Geometry\.Spatial\.Classes\.Mesh3D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.spatial.classes.mesh3d 'DiGi\.Geometry\.Spatial\.Classes\.Mesh3D') clipped to the boundary polygon, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') if no geometry remains\.
 
 <a name='DiGi.GIS.WebAPI.UI.Modify.Reduce(thisSystem.Collections.Generic.List_DiGi.Geometry.Planar.Classes.Point2D_,System.Nullable_double_,int)'></a>
 
@@ -559,6 +859,78 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The response body, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there is none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainCircle(thisDiGi.Analytical.Building.Classes.BuildingModel,double,double)'></a>
+
+## Query\.TerrainCircle\(this BuildingModel, double, double\) Method
+
+Calculates the dynamic terrain coverage circle encompassing the specified [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') with appropriate margin padding\.
+
+```csharp
+public static DiGi.Geometry.Planar.Classes.Circle2D? TerrainCircle(this DiGi.Analytical.Building.Classes.BuildingModel? buildingModel, double padding=50.0, double minimumRadius=100.0);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainCircle(thisDiGi.Analytical.Building.Classes.BuildingModel,double,double).buildingModel'></a>
+
+`buildingModel` [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')
+
+The building model to calculate terrain coverage for\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainCircle(thisDiGi.Analytical.Building.Classes.BuildingModel,double,double).padding'></a>
+
+`padding` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The margin in meters extending beyond the building bounding envelope\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainCircle(thisDiGi.Analytical.Building.Classes.BuildingModel,double,double).minimumRadius'></a>
+
+`minimumRadius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The minimum allowable terrain radius in meters\.
+
+#### Returns
+[DiGi\.Geometry\.Planar\.Classes\.Circle2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.circle2d 'DiGi\.Geometry\.Planar\.Classes\.Circle2D')  
+A [DiGi\.Geometry\.Planar\.Classes\.Circle2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.circle2d 'DiGi\.Geometry\.Planar\.Classes\.Circle2D') centered on the building bounding centroid with expanded radius, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') if the building model or its bounds are invalid\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainCircle(thisSystem.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.Geometry.Planar.Classes.Circle2D,double,double)'></a>
+
+## Query\.TerrainCircle\(this IEnumerable\<BuildingModel\>, Circle2D, double, double\) Method
+
+Calculates the dynamic terrain coverage circle encompassing a collection of [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') instances, optionally anchoring to a search circle\.
+
+```csharp
+public static DiGi.Geometry.Planar.Classes.Circle2D? TerrainCircle(this System.Collections.Generic.IEnumerable<DiGi.Analytical.Building.Classes.BuildingModel>? buildingModels, DiGi.Geometry.Planar.Classes.Circle2D? searchCircle=null, double padding=50.0, double minimumRadius=100.0);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainCircle(thisSystem.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.Geometry.Planar.Classes.Circle2D,double,double).buildingModels'></a>
+
+`buildingModels` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The collection of building models to calculate terrain coverage for\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainCircle(thisSystem.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.Geometry.Planar.Classes.Circle2D,double,double).searchCircle'></a>
+
+`searchCircle` [DiGi\.Geometry\.Planar\.Classes\.Circle2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.circle2d 'DiGi\.Geometry\.Planar\.Classes\.Circle2D')
+
+The original search area circle\. When provided, its center is used as the terrain circle anchor\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainCircle(thisSystem.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.Geometry.Planar.Classes.Circle2D,double,double).padding'></a>
+
+`padding` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The margin in meters extending beyond the furthest building corner\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainCircle(thisSystem.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.Geometry.Planar.Classes.Circle2D,double,double).minimumRadius'></a>
+
+`minimumRadius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The minimum allowable terrain radius in meters\.
+
+#### Returns
+[DiGi\.Geometry\.Planar\.Classes\.Circle2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.circle2d 'DiGi\.Geometry\.Planar\.Classes\.Circle2D')  
+A [DiGi\.Geometry\.Planar\.Classes\.Circle2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.circle2d 'DiGi\.Geometry\.Planar\.Classes\.Circle2D') encompassing all building footprints and search area, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') if no valid geometry is available\.
 
 <a name='DiGi.GIS.WebAPI.UI.Query.TerrainJsonAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken)'></a>
 
