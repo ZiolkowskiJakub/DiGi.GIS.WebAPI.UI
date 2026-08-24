@@ -53,7 +53,7 @@
         <p class="gis-hero-text">
             Enter a central point and a radius to load all buildings within that circular area and explore the whole district in 3D.
         </p>
-        <form method="get" action="~/buildingmodel/itemsbyradius" class="gis-inline-form">
+        <form id="buildingmodel-radius-form" method="get" action="~/buildingmodel/itemsbyradius" class="gis-inline-form">
             <label>Point X
                 <input type="number" name="centerX" value="629671.3" step="any" required />
             </label>
@@ -67,3 +67,10 @@
         </form>
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/gis-common.js" asp-append-version="true"></script>
+    <script>
+        setupDisplayAreaRadiusValidation('#buildingmodel-radius-form');
+    </script>
+}

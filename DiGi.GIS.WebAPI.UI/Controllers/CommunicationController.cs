@@ -45,9 +45,9 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         [HttpGet("buildingsbyradius")]
         public IActionResult GetBuildingsByRadius([FromQuery(Name = "centerX")] double centerX, [FromQuery(Name = "centerY")] double centerY, [FromQuery(Name = "radius")] double radius)
         {
-            if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0)
+            if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0 || radius > Constants.Default.DisplayRadiusMax)
             {
-                return BadRequest("The analyzed area center coordinates and radius must be valid positive numbers.");
+                return BadRequest($"The analyzed area center coordinates and radius must be valid numbers, with radius between 0 and {Constants.Default.DisplayRadiusMax} meters.");
             }
 
             string gLBUrl = $"~/buildingmodel/glb/buildingsbyradius?centerX={centerX.ToString(CultureInfo.InvariantCulture)}&centerY={centerY.ToString(CultureInfo.InvariantCulture)}&radius={radius.ToString(CultureInfo.InvariantCulture)}";
@@ -85,9 +85,9 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return BadRequest("Two antennas (transmitter and receiver) are required.");
             }
 
-            if (double.IsNaN(communicationCalculationParameter.CenterX) || double.IsNaN(communicationCalculationParameter.CenterY) || double.IsNaN(communicationCalculationParameter.Radius) || communicationCalculationParameter.Radius <= 0)
+            if (double.IsNaN(communicationCalculationParameter.CenterX) || double.IsNaN(communicationCalculationParameter.CenterY) || double.IsNaN(communicationCalculationParameter.Radius) || communicationCalculationParameter.Radius <= 0 || communicationCalculationParameter.Radius > Constants.Default.DisplayRadiusMax)
             {
-                return BadRequest("The analyzed area center coordinates and radius must be valid positive numbers.");
+                return BadRequest($"The analyzed area center coordinates and radius must be valid numbers, with radius between 0 and {Constants.Default.DisplayRadiusMax} meters.");
             }
 
             try

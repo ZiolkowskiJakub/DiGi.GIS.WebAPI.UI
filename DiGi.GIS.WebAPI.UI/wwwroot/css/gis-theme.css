@@ -107,6 +107,18 @@ button.gis-menu-btn {
         cursor: not-allowed;
     }
 
+    .gis-button.gis-button-secondary {
+        background-color: transparent;
+        color: var(--text-dark);
+        border-color: var(--border-color);
+    }
+
+    .gis-button.gis-button-secondary:hover {
+        background-color: var(--bg-table-zebra);
+        border-color: var(--border-color);
+        color: var(--text-dark);
+    }
+
 /* Building Reference button / links */
 /* Height 3: 4px vertical padding matches .btn-sm (the "0201" reference), so plain pills
    ("Buildings", pagers) sit at the same height as the code pills next to them. .btn-xs overrides
@@ -1596,6 +1608,28 @@ h1.gis-title-large {
         width: 1400px;
         max-width: 95vw;
     }
+
+    /* Warning/error confirmation dialogs (display area radius validation, action confirmation). */
+    .gis-modal.gis-dialog-card {
+        width: 440px;
+        max-width: 90vw;
+        padding: 20px;
+    }
+
+.gis-dialog-message {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--text-dark);
+    margin: 12px 0 20px 0;
+}
+
+.gis-dialog-title-warning {
+    color: #d97706;
+}
+
+.gis-dialog-title-error {
+    color: var(--danger-color);
+}
 
 /* Preformatted payload block inside a modal (selection export JSON). */
 .gis-modal-pre {

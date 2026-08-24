@@ -45,10 +45,10 @@ namespace DiGi.GIS.WebAPI.UI
 
             if (boundaryCircle is not null)
             {
-                mesh3D = Modify.Clip(mesh3D, boundaryCircle, tolerance: tolerance);
-                if (mesh3D is null)
+                Mesh3D? mesh3D_Clipped = Modify.Clip(mesh3D, boundaryCircle, tolerance: tolerance);
+                if (mesh3D_Clipped is not null)
                 {
-                    return null;
+                    mesh3D = mesh3D_Clipped;
                 }
             }
 
@@ -63,6 +63,13 @@ namespace DiGi.GIS.WebAPI.UI
                 return new GLTFNode(gLTFNode.Name, gLTFNode.Reference, mesh3D, gLTFNode.Color, gLTFNode.Opacity, gLTFNode.Properties);
             }
 
+            // Temporary limitation: cutting footprints across a large number of buildings incurs heavy Delaunay constraint enforcement overhead
+            // and potential topology failures in NetTopologySuite until spatial batching optimization is implemented.
+            if (polygonalFace2Ds.Count > Constants.Default.TerrainCuttingMaxBuildingCount)
+            {
+                return new GLTFNode(gLTFNode.Name, gLTFNode.Reference, mesh3D, gLTFNode.Color, gLTFNode.Opacity, gLTFNode.Properties);
+            }
+
             if (offset != 0 && !double.IsNaN(offset))
             {
                 polygonalFace2Ds = Geometry.Planar.Query.Offset(polygonalFace2Ds, offset);
@@ -72,13 +79,19 @@ namespace DiGi.GIS.WebAPI.UI
                 }
             }
 
-            Mesh3D? mesh3D_Cut = Geometry.Spatial.Query.Difference(mesh3D, polygonalFace2Ds, tolerance);
-            if (mesh3D_Cut is null)
+            try
             {
-                return null;
+                Mesh3D? mesh3D_Cut = Geometry.Spatial.Query.Difference(mesh3D, polygonalFace2Ds, tolerance);
+                if (mesh3D_Cut is not null)
+                {
+                    return new GLTFNode(gLTFNode.Name, gLTFNode.Reference, mesh3D_Cut, gLTFNode.Color, gLTFNode.Opacity, gLTFNode.Properties);
+                }
+            }
+            catch
+            {
             }
 
-            return new GLTFNode(gLTFNode.Name, gLTFNode.Reference, mesh3D_Cut, gLTFNode.Color, gLTFNode.Opacity, gLTFNode.Properties);
+            return new GLTFNode(gLTFNode.Name, gLTFNode.Reference, mesh3D, gLTFNode.Color, gLTFNode.Opacity, gLTFNode.Properties);
         }
 
         /// <summary>
@@ -100,10 +113,10 @@ namespace DiGi.GIS.WebAPI.UI
 
             if (boundaryBoundingBox is not null)
             {
-                mesh3D = Modify.Clip(mesh3D, boundaryBoundingBox, tolerance: tolerance);
-                if (mesh3D is null)
+                Mesh3D? mesh3D_Clipped = Modify.Clip(mesh3D, boundaryBoundingBox, tolerance: tolerance);
+                if (mesh3D_Clipped is not null)
                 {
-                    return null;
+                    mesh3D = mesh3D_Clipped;
                 }
             }
 
@@ -118,6 +131,13 @@ namespace DiGi.GIS.WebAPI.UI
                 return new GLTFNode(gLTFNode.Name, gLTFNode.Reference, mesh3D, gLTFNode.Color, gLTFNode.Opacity, gLTFNode.Properties);
             }
 
+            // Temporary limitation: cutting footprints across a large number of buildings incurs heavy Delaunay constraint enforcement overhead
+            // and potential topology failures in NetTopologySuite until spatial batching optimization is implemented.
+            if (polygonalFace2Ds.Count > Constants.Default.TerrainCuttingMaxBuildingCount)
+            {
+                return new GLTFNode(gLTFNode.Name, gLTFNode.Reference, mesh3D, gLTFNode.Color, gLTFNode.Opacity, gLTFNode.Properties);
+            }
+
             if (offset != 0 && !double.IsNaN(offset))
             {
                 polygonalFace2Ds = Geometry.Planar.Query.Offset(polygonalFace2Ds, offset);
@@ -127,13 +147,19 @@ namespace DiGi.GIS.WebAPI.UI
                 }
             }
 
-            Mesh3D? mesh3D_Cut = Geometry.Spatial.Query.Difference(mesh3D, polygonalFace2Ds, tolerance);
-            if (mesh3D_Cut is null)
+            try
             {
-                return null;
+                Mesh3D? mesh3D_Cut = Geometry.Spatial.Query.Difference(mesh3D, polygonalFace2Ds, tolerance);
+                if (mesh3D_Cut is not null)
+                {
+                    return new GLTFNode(gLTFNode.Name, gLTFNode.Reference, mesh3D_Cut, gLTFNode.Color, gLTFNode.Opacity, gLTFNode.Properties);
+                }
+            }
+            catch
+            {
             }
 
-            return new GLTFNode(gLTFNode.Name, gLTFNode.Reference, mesh3D_Cut, gLTFNode.Color, gLTFNode.Opacity, gLTFNode.Properties);
+            return new GLTFNode(gLTFNode.Name, gLTFNode.Reference, mesh3D, gLTFNode.Color, gLTFNode.Opacity, gLTFNode.Properties);
         }
     }
 }

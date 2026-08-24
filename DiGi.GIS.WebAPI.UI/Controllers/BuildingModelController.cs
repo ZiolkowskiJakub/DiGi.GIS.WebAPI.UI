@@ -132,7 +132,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         [HttpGet("itemsbyradius")]
         public IActionResult GetItemsByRadius([FromQuery(Name = "centerX")] double centerX, [FromQuery(Name = "centerY")] double centerY, [FromQuery(Name = "radius")] double radius)
         {
-            if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0)
+            if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0 || radius > Constants.Default.DisplayRadiusMax)
             {
                 return BadRequest();
             }
@@ -159,7 +159,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         [HttpGet("glb/buildingsbyradius")]
         public async Task<IActionResult> GetBuildingsGLBByRadiusAsync([FromQuery(Name = "centerX")] double centerX, [FromQuery(Name = "centerY")] double centerY, [FromQuery(Name = "radius")] double radius, CancellationToken cancellationToken = default)
         {
-            if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0)
+            if (double.IsNaN(centerX) || double.IsNaN(centerY) || double.IsNaN(radius) || radius <= 0 || radius > Constants.Default.DisplayRadiusMax)
             {
                 return BadRequest();
             }

@@ -72,6 +72,32 @@ public const string CommunicationWebAPIUri_Development = "https://api.digiprojec
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.DisplayRadiusFastMax'></a>
+
+## Default\.DisplayRadiusFastMax Field
+
+The maximum radius in meters for fast loading 3D display areas without user warnings\.
+
+```csharp
+public const double DisplayRadiusFastMax = 1000;
+```
+
+#### Field Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.DisplayRadiusMax'></a>
+
+## Default\.DisplayRadiusMax Field
+
+The maximum allowable radius in meters for 3D display areas\.
+
+```csharp
+public const double DisplayRadiusMax = 1500;
+```
+
+#### Field Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.GISWebAPIUri'></a>
 
 ## Default\.GISWebAPIUri Field
@@ -234,6 +260,21 @@ public const int TerrainCircleSegmentCount = 64;
 #### Field Value
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.TerrainCuttingMaxBuildingCount'></a>
+
+## Default\.TerrainCuttingMaxBuildingCount Field
+
+The maximum number of buildings for which terrain footprint hole cutting is performed\.
+
+Temporary limitation: cutting footprints across large numbers of dense buildings incurs heavy Delaunay triangulation constraint enforcement overhead and potential topology failures in NetTopologySuite until spatial batching optimization is implemented.
+
+```csharp
+public const int TerrainCuttingMaxBuildingCount = 250;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.TerrainEnabled'></a>
 
 ## Default\.TerrainEnabled Field
@@ -287,6 +328,19 @@ A building scene ensures at least this radius of ground is displayed for context
 
 ```csharp
 public const double TerrainRadius = 100;
+```
+
+#### Field Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.TerrainRadiusMax'></a>
+
+## Default\.TerrainRadiusMax Field
+
+The maximum search radius in meters supported by the GIS Web API terrain service\.
+
+```csharp
+public const double TerrainRadiusMax = 2000;
 ```
 
 #### Field Value

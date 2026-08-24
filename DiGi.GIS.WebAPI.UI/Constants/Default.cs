@@ -28,6 +28,16 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const string CommunicationWebAPIUri_Development = "https://api.digiproject.uk";
 
         /// <summary>
+        /// The maximum radius in meters for fast loading 3D display areas without user warnings.
+        /// </summary>
+        public const double DisplayRadiusFastMax = 1000.0;
+
+        /// <summary>
+        /// The maximum allowable radius in meters for 3D display areas.
+        /// </summary>
+        public const double DisplayRadiusMax = 1500.0;
+
+        /// <summary>
         /// Base URI of the GIS Web API (DiGi.GIS.WebAPI, hosted by the generic DiGi.WebAPI.WindowsService) this application proxies.
         /// <para>Every outbound request this application makes is built on this value, so the whole application can be pointed at another host by changing it here. The service is deployed on a separate machine and is versioned independently of this application - query <c>GET /information/controllers</c> on it to learn which build is actually answering before relying on a recently added endpoint.</para>
         /// </summary>
@@ -91,6 +101,12 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const int TerrainCircleSegmentCount = 64;
 
         /// <summary>
+        /// The maximum number of buildings for which terrain footprint hole cutting is performed.
+        /// <para>Temporary limitation: cutting footprints across large numbers of dense buildings incurs heavy Delaunay triangulation constraint enforcement overhead and potential topology failures in NetTopologySuite until spatial batching optimization is implemented.</para>
+        /// </summary>
+        public const int TerrainCuttingMaxBuildingCount = 250;
+
+        /// <summary>
         /// Whether the ground surface is added to the scenes that display <see cref="DiGi.Analytical.Building.Classes.BuildingModel"/> geometry (the 3D viewer and the communication view).
         /// <para>The standalone terrain feature (the Terrain controller and its own pages) shows the surface on its own, where the elevation is correct as stored.</para>
         /// <para>Note that an area smaller than the sampling lattice legitimately holds no points: the counties are sampled at 10 m to 100 m, so a request with a radius below the lattice step answers 404 without meaning that nothing was ever stored there.</para>
@@ -112,6 +128,11 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         /// <para>A building scene ensures at least this radius of ground is displayed for context even when building footprints are small.</para>
         /// </summary>
         public const double TerrainRadius = 100.0;
+
+        /// <summary>
+        /// The maximum search radius in meters supported by the GIS Web API terrain service.
+        /// </summary>
+        public const double TerrainRadiusMax = 2000.0;
 
         /// <summary>
         /// The longest a terrain request to the GIS Web API may take, in seconds, before it is abandoned.

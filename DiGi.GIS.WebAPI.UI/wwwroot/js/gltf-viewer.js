@@ -442,6 +442,19 @@ if (container) {
                 }
             });
 
+            container.addEventListener('gltf-error', (event) => {
+                if (loader) {
+                    loader.style.display = 'none';
+                }
+
+                stopLoadingTimer();
+                const panel = document.getElementById('gltf-properties');
+                if (panel) {
+                    panel.innerHTML = '<span class="gltf-muted" style="color: var(--danger-color);">Error loading 3D scene data. The requested area may be too large to fit in browser memory.</span>';
+                }
+                reportStatus(`Error: ${event.detail?.error?.message || 'Failed to load 3D scene data.'}`);
+            });
+
             container.addEventListener('gltf-selectionchanged', (event) => {
                 fillProperties(viewer, event.detail.references);
 
@@ -594,10 +607,27 @@ if (container) {
         okButton.addEventListener('click', () => {
             const x = document.getElementById('scene-change-x')?.value;
             const y = document.getElementById('scene-change-y')?.value;
-            const radius = document.getElementById('scene-change-radius')?.value;
+            const radiusStr = document.getElementById('scene-change-radius')?.value;
 
-            if (!x || !y || !radius) {
+            if (!x || !y || !radiusStr) {
                 return;
+            }
+
+            const radius = parseFloat(radiusStr);
+            if (isNaN(radius) || radius <= 0) {
+                return;
+            }
+
+            if (radius > 1500) {
+                alert(`The requested search radius (${radius.toLocaleString()} m) exceeds the maximum allowed display limit of 1,500 m. Please reduce the radius to proceed.`);
+                return;
+            }
+
+            if (radius > 1000) {
+                const proceed = confirm(`The requested search radius (${radius.toLocaleString()} m) is greater than 1,000 m. Retrieving and rendering 3D data for a large area may take longer. Do you want to proceed?`);
+                if (!proceed) {
+                    return;
+                }
             }
 
             window.location.href = `/communication/buildingsbyradius?centerX=${encodeURIComponent(x)}&centerY=${encodeURIComponent(y)}&radius=${encodeURIComponent(radius)}`;

@@ -27,10 +27,12 @@ namespace DiGi.GIS.WebAPI.UI
                 return null;
             }
 
+            double radius_Query = System.Math.Min(radius, Constants.Default.TerrainRadiusMax);
+
             UrlBuilder urlBuilder = new($"{Constants.Default.TerrainUri}/mesh3dbycircle");
             urlBuilder = urlBuilder.AddParameter("x", center.X);
             urlBuilder = urlBuilder.AddParameter("y", center.Y);
-            urlBuilder = urlBuilder.AddParameter("radius", radius);
+            urlBuilder = urlBuilder.AddParameter("radius", radius_Query);
 
             if (tolerance.HasValue && double.IsFinite(tolerance.Value) && tolerance.Value >= 0)
             {

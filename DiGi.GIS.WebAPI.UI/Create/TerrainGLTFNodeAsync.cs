@@ -54,7 +54,9 @@ namespace DiGi.GIS.WebAPI.UI
                 return null;
             }
 
-            Circle2D circle2D_Query = buffer > 0 ? new Circle2D(circle2D.Center, circle2D.Radius + buffer) : circle2D;
+            double radius_Clamped = System.Math.Min(circle2D.Radius, Constants.Default.TerrainRadiusMax);
+            double buffer_Effective = System.Math.Min(buffer, System.Math.Max(0, Constants.Default.TerrainRadiusMax - radius_Clamped));
+            Circle2D circle2D_Query = buffer_Effective > 0 ? new Circle2D(circle2D.Center, radius_Clamped + buffer_Effective) : new Circle2D(circle2D.Center, radius_Clamped);
 
             GLTFNode? gLTFNode = await httpClient.TerrainGLTFNodeAsync(circle2D_Query.TerrainRequestUri(tolerance), name, cancellationToken);
             if (gLTFNode is null)
