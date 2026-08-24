@@ -59,7 +59,7 @@ public double Y { get; set; }
 
 ## AntennaParameter\.Z Property
 
-Gets or sets the height of the antenna top above the ground plane \(Z = 0\) in meters\.
+Gets or sets the absolute elevation \(Z coordinate in world coordinates\) of the antenna top in meters\.
 
 ```csharp
 public double Z { get; set; }

@@ -239,7 +239,15 @@ if (container && card && showLink) {
             exportButton.style.display = '';
         }
 
-        exportData = { Type: 'Antenna', X: antenna.x, Y: antenna.y, Z: antenna.z, Functions: antenna.functions ?? [] };
+        exportData = {
+            Type: 'Antenna',
+            X: antenna.x,
+            Y: antenna.y,
+            Z: antenna.z,
+            Height: antenna.height,
+            GroundElevation: antenna.groundZ,
+            Functions: antenna.functions ?? []
+        };
         card.style.display = '';
     });
 

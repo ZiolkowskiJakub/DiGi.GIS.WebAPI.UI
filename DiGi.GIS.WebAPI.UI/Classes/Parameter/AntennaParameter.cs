@@ -16,7 +16,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
         /// <summary> Gets or sets the Y coordinate of the antenna in world coordinates. </summary>
         public double Y { get; set; }
 
-        /// <summary> Gets or sets the height of the antenna top above the ground plane (Z = 0) in meters. </summary>
+        /// <summary> Gets or sets the absolute elevation (Z coordinate in world coordinates) of the antenna top in meters. </summary>
         public double Z { get; set; }
     }
 }

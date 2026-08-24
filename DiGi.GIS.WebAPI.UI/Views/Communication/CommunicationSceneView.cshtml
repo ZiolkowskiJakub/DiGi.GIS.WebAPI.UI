@@ -50,7 +50,7 @@
 
             <div class="gis-card gltf-card" id="communication-card" data-expanded="true">
                 <h3 class="gltf-card-title">Communication</h3>
-                <button type="button" id="communication-add-antenna-button" class="gis-button" disabled title="Place a new antenna on the ground plane (Z = 0)">Add antenna</button>
+                <button type="button" id="communication-add-antenna-button" class="gis-button" disabled title="Place a new antenna on the terrain surface">Add antenna</button>
                 <button type="button" id="communication-remove-antenna-button" class="gis-button" disabled title="Select antennas to remove (Enter removes, Esc cancels)">Remove antenna</button>
                 <button type="button" id="communication-calculate-button" class="gis-button" disabled title="Calculate the communication between the two antennas">Calculate</button>
                 <button type="button" id="communication-clear-button" class="gis-button" title="Remove all antennas and calculation results">Clear</button>
@@ -224,7 +224,7 @@
     </div>
 </div>
 
-@* Antenna modal: opened after the user clicks a point on the ground plane in "Add antenna" mode and
+@* Antenna modal: opened after the user clicks a point on the terrain surface in "Add antenna" mode and
    by the "Edit" button of the Selection card (the title switches to "Edit antenna" and the fields are
    pre-filled with the selected antenna values). *@
 <div id="communication-antenna-modal" class="gis-modal-overlay" style="display: none;">
@@ -236,8 +236,8 @@
         <label class="communication-modal-label">Y coordinate
             <input type="number" id="communication-antenna-y" step="any" required />
         </label>
-        <label class="communication-modal-label">Z (Height) [m]
-            <input type="number" id="communication-antenna-z" step="any" min="0" value="30" required />
+        <label class="communication-modal-label">Height [m]
+            <input type="number" id="communication-antenna-z" step="any" min="0" value="15" required />
         </label>
         <fieldset class="communication-modal-functions">
             <legend>Functions</legend>

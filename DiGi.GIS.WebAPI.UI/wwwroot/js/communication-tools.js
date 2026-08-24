@@ -40,7 +40,7 @@ const VECTOR_RADIUS_FACTOR = 0.1;        // angular power vector tube radius vs 
 const DEFAULT_VECTOR_SCALE = 10;         // default stretch applied to the angular power vectors (matches the input value in the Results panel)
 const RAY_DECIBEL_WINDOW = 30;           // dB range mapped onto the ray length scale
 const CLICK_THRESHOLD = 5;               // pixels of pointer travel before a click becomes a drag
-const DEFAULT_ANTENNA_HEIGHT = 15;       // default Z coordinate for the antenna modal and live preview
+const DEFAULT_ANTENNA_HEIGHT = 15;       // default antenna height above terrain for the antenna modal and live preview
 const DEFAULT_FREQUENCY_MHZ = 5000;      // default frequency of the calculation modal in MHz (matches the input value)
 const ANTENNA_PREVIEW_OPACITY = 0.5;     // semi-transparent live preview during add mode
 
@@ -177,8 +177,9 @@ function antennaDotRadius() {
 function buildAntennaVisual(data) {
     const dotRadius = antennaDotRadius();
     const baseZ = data.groundZ !== undefined ? data.groundZ : (data.z > DEFAULT_ANTENNA_HEIGHT ? data.z - DEFAULT_ANTENNA_HEIGHT : 0);
+    const topZ = data.z !== undefined ? data.z : (baseZ + (data.height ?? DEFAULT_ANTENNA_HEIGHT));
     const base = toScene(data.x, data.y, baseZ);
-    const top = toScene(data.x, data.y, data.z);
+    const top = toScene(data.x, data.y, topZ);
 
     const group = new THREE.Group();
     const meshes = [];
@@ -258,6 +259,8 @@ function notifyAntennaSelection(antenna) {
                 x: antenna.data.x,
                 y: antenna.data.y,
                 z: antenna.data.z,
+                groundZ: antenna.data.groundZ,
+                height: antenna.data.height !== undefined ? antenna.data.height : (antenna.data.z - (antenna.data.groundZ ?? 0)),
                 functions: [...(antenna.data.functions ?? [])]
             }
         }
@@ -527,7 +530,7 @@ function handleAddClick(event) {
     modalTitle.textContent = 'Add antenna';
     modalX.value = world.x.toFixed(2);
     modalY.value = world.y.toFixed(2);
-    modalZ.value = (world.z + DEFAULT_ANTENNA_HEIGHT).toFixed(2);
+    modalZ.value = DEFAULT_ANTENNA_HEIGHT.toFixed(2);
     for (const checkbox of modal.querySelectorAll('.communication-antenna-function')) {
         checkbox.checked = antennas.length === 0 ? checkbox.value === 'Transmitter'
             : antennas.length === 1 ? checkbox.value === 'Receiver'
@@ -550,7 +553,10 @@ antennaEditButton?.addEventListener('click', () => {
     modalTitle.textContent = 'Edit antenna';
     modalX.value = String(editingAntenna.data.x);
     modalY.value = String(editingAntenna.data.y);
-    modalZ.value = String(editingAntenna.data.z);
+    const height = editingAntenna.data.height !== undefined
+        ? editingAntenna.data.height
+        : (editingAntenna.data.z - (editingAntenna.data.groundZ ?? 0));
+    modalZ.value = height.toFixed(2);
     for (const checkbox of modal.querySelectorAll('.communication-antenna-function')) {
         checkbox.checked = (editingAntenna.data.functions ?? []).includes(checkbox.value);
     }
@@ -562,8 +568,8 @@ antennaEditButton?.addEventListener('click', () => {
 modalOkButton.addEventListener('click', () => {
     const x = parseFloat(modalX.value);
     const y = parseFloat(modalY.value);
-    const z = parseFloat(modalZ.value);
-    if (!isFinite(x) || !isFinite(y) || !isFinite(z) || z < 0) {
+    const height = parseFloat(modalZ.value);
+    if (!isFinite(x) || !isFinite(y) || !isFinite(height) || height < 0) {
         return;
     }
 
@@ -578,7 +584,9 @@ modalOkButton.addEventListener('click', () => {
         editingAntenna = null;
 
         const data = antenna.data;
-        const changed = data.x !== x || data.y !== y || data.z !== z
+        const groundZ = data.groundZ !== undefined ? data.groundZ : 0;
+        const z = groundZ + height;
+        const changed = data.x !== x || data.y !== y || data.z !== z || data.height !== height
             || (data.functions ?? []).length !== functions.length
             || (data.functions ?? []).some((value, index) => value !== functions[index]);
         if (!changed) {
@@ -586,12 +594,14 @@ modalOkButton.addEventListener('click', () => {
             return;
         }
 
-        updateAntennaObject(antenna, { x, y, z, groundZ: data.groundZ, functions });
+        updateAntennaObject(antenna, { x, y, z, groundZ, height, functions });
         reportStatus('Antenna updated.');
         return;
     }
 
-    addAntennaObject({ x, y, z, groundZ: pendingGroundZ, functions });
+    const groundZ = pendingGroundZ;
+    const z = groundZ + height;
+    addAntennaObject({ x, y, z, groundZ, height, functions });
     reportStatus('Antenna added.');
 });
 
