@@ -166,18 +166,16 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             #region AdministrativeAreal2DReferences
 
-            urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/administrativeareal2D/administrativeareal2Dreferencesbycode");
-            urlBuilder = urlBuilder.AddParameter("code", code);
+            List<PostgreSQL.Classes.AdministrativeAreal2DReference>? administrativeAreal2DReferences = null;
 
             if (administrativeAreal2DReference.AdministrativeArealType.ChildAdministrativeArealType() is AdministrativeArealType administrativeArealType_Child)
             {
+                urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/administrativeareal2D/administrativeareal2Dreferencesbyadministrativearealtype");
                 urlBuilder = urlBuilder.AddParameter("administrativearealtype", (int)administrativeArealType_Child);
-            }
+                urlBuilder = urlBuilder.AddParameter("parentId", administrativeAreal2DReference.Id);
+                urlBuilder = urlBuilder.AddParameter("uniquecode", true);
 
-            List<PostgreSQL.Classes.AdministrativeAreal2DReference>? administrativeAreal2DReferences = await httpClient.ItemsAsync<PostgreSQL.Classes.AdministrativeAreal2DReference>(urlBuilder.ToString(), cancellationToken);
-            if (administrativeAreal2DReferences is null)
-            {
-                return NotFound();
+                administrativeAreal2DReferences = await httpClient.ItemsAsync<PostgreSQL.Classes.AdministrativeAreal2DReference>(urlBuilder.ToString(), cancellationToken);
             }
 
             #endregion AdministrativeAreal2DReferences
@@ -249,11 +247,12 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             List<PostgreSQL.Classes.AdministrativeAreal2DReference>? administrativeAreal2DReferences = null;
 
-            if (!string.IsNullOrWhiteSpace(administrativeAreal2DReference.Code) && administrativeAreal2DReference.AdministrativeArealType.ChildAdministrativeArealType() is AdministrativeArealType administrativeArealType_Child)
+            if (administrativeAreal2DReference.AdministrativeArealType.ChildAdministrativeArealType() is AdministrativeArealType administrativeArealType_Child)
             {
-                urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/administrativeareal2D/administrativeareal2Dreferencesbycode");
-                urlBuilder = urlBuilder.AddParameter("code", administrativeAreal2DReference.Code);
+                urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/administrativeareal2D/administrativeareal2Dreferencesbyadministrativearealtype");
                 urlBuilder = urlBuilder.AddParameter("administrativearealtype", (int)administrativeArealType_Child);
+                urlBuilder = urlBuilder.AddParameter("parentId", administrativeAreal2DReference.Id);
+                urlBuilder = urlBuilder.AddParameter("uniquecode", true);
 
                 administrativeAreal2DReferences = await httpClient.ItemsAsync<PostgreSQL.Classes.AdministrativeAreal2DReference>(urlBuilder.ToString(), cancellationToken);
             }
