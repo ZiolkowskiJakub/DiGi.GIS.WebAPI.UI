@@ -211,7 +211,19 @@
                 <tr>
                     <td class="property-label">3D Model:</td>
                     <td>
-                        <button type="button" class="btn-buildings btn-disabled btn-sm" disabled>Show</button>
+                        @if (building2DView.Building2DReference is { Id: > 0 })
+                        {
+                            string modelUrl = $"/buildingmodel/buildingmodelbyid?id={building2DView.Building2DReference.Id}";
+                            if (building2DView.Building2DReference.CountyId.HasValue)
+                            {
+                                modelUrl += $"&countyid={building2DView.Building2DReference.CountyId.Value}";
+                            }
+                            <a href="@modelUrl" target="_blank" class="btn-buildings btn-active btn-sm">Show</a>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn-buildings btn-disabled btn-sm" disabled>Show</button>
+                        }
                     </td>
                 </tr>
             </table>
