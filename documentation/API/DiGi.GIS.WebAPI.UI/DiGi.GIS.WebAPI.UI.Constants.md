@@ -260,21 +260,6 @@ public const int TerrainCircleSegmentCount = 64;
 #### Field Value
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
-<a name='DiGi.GIS.WebAPI.UI.Constants.Default.TerrainCuttingMaxBuildingCount'></a>
-
-## Default\.TerrainCuttingMaxBuildingCount Field
-
-The maximum number of buildings for which terrain footprint hole cutting is performed\.
-
-Temporary limitation: cutting footprints across large numbers of dense buildings incurs heavy Delaunay triangulation constraint enforcement overhead and potential topology failures in NetTopologySuite until spatial batching optimization is implemented.
-
-```csharp
-public const int TerrainCuttingMaxBuildingCount = 250;
-```
-
-#### Field Value
-[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
-
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.TerrainEnabled'></a>
 
 ## Default\.TerrainEnabled Field

@@ -63,13 +63,6 @@ namespace DiGi.GIS.WebAPI.UI
                 return new GLTFNode(gLTFNode.Name, gLTFNode.Reference, mesh3D, gLTFNode.Color, gLTFNode.Opacity, gLTFNode.Properties);
             }
 
-            // Temporary limitation: cutting footprints across a large number of buildings incurs heavy Delaunay constraint enforcement overhead
-            // and potential topology failures in NetTopologySuite until spatial batching optimization is implemented.
-            if (polygonalFace2Ds.Count > Constants.Default.TerrainCuttingMaxBuildingCount)
-            {
-                return new GLTFNode(gLTFNode.Name, gLTFNode.Reference, mesh3D, gLTFNode.Color, gLTFNode.Opacity, gLTFNode.Properties);
-            }
-
             if (offset != 0 && !double.IsNaN(offset))
             {
                 polygonalFace2Ds = Geometry.Planar.Query.Offset(polygonalFace2Ds, offset);
@@ -127,13 +120,6 @@ namespace DiGi.GIS.WebAPI.UI
 
             List<PolygonalFace2D>? polygonalFace2Ds = DiGi.Analytical.Building.Query.Footprints(buildingModels, tolerance);
             if (polygonalFace2Ds is null || polygonalFace2Ds.Count == 0)
-            {
-                return new GLTFNode(gLTFNode.Name, gLTFNode.Reference, mesh3D, gLTFNode.Color, gLTFNode.Opacity, gLTFNode.Properties);
-            }
-
-            // Temporary limitation: cutting footprints across a large number of buildings incurs heavy Delaunay constraint enforcement overhead
-            // and potential topology failures in NetTopologySuite until spatial batching optimization is implemented.
-            if (polygonalFace2Ds.Count > Constants.Default.TerrainCuttingMaxBuildingCount)
             {
                 return new GLTFNode(gLTFNode.Name, gLTFNode.Reference, mesh3D, gLTFNode.Color, gLTFNode.Opacity, gLTFNode.Properties);
             }

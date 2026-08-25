@@ -101,12 +101,6 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const int TerrainCircleSegmentCount = 64;
 
         /// <summary>
-        /// The maximum number of buildings for which terrain footprint hole cutting is performed.
-        /// <para>Temporary limitation: cutting footprints across large numbers of dense buildings incurs heavy Delaunay triangulation constraint enforcement overhead and potential topology failures in NetTopologySuite until spatial batching optimization is implemented.</para>
-        /// </summary>
-        public const int TerrainCuttingMaxBuildingCount = 250;
-
-        /// <summary>
         /// Whether the ground surface is added to the scenes that display <see cref="DiGi.Analytical.Building.Classes.BuildingModel"/> geometry (the 3D viewer and the communication view).
         /// <para>The standalone terrain feature (the Terrain controller and its own pages) shows the surface on its own, where the elevation is correct as stored.</para>
         /// <para>Note that an area smaller than the sampling lattice legitimately holds no points: the counties are sampled at 10 m to 100 m, so a request with a radius below the lattice step answers 404 without meaning that nothing was ever stored there.</para>
