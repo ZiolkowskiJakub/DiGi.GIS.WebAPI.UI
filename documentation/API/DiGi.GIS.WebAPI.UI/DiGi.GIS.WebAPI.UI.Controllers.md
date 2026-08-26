@@ -1309,6 +1309,8 @@ Retrieves the estimated orthophoto coverage factors of several administrative ar
 
 The values come back in the order the identifiers were given, which is what lets the page update one progress bar per row without matching anything up.
 
+A value is `null` where the coverage could not be measured, which the API keeps distinct from zero - a county nothing has ever been downloaded for is not a county that is nought per cent covered. Relayed on as null so the page can show it as such rather than drawing an empty bar.
+
 ```csharp
 public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetEstimatedCoverageFactorsAsync(System.Collections.Generic.IEnumerable<int> administrativeAreal2DIds, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```

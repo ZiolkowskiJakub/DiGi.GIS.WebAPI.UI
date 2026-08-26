@@ -98,6 +98,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// <summary>
         /// Retrieves the estimated orthophoto coverage factors of several administrative areas at once.
         /// <para>The values come back in the order the identifiers were given, which is what lets the page update one progress bar per row without matching anything up.</para>
+        /// <para>A value is <c>null</c> where the coverage could not be measured, which the API keeps distinct from zero - a county nothing has ever been downloaded for is not a county that is nought per cent covered. Relayed on as null so the page can show it as such rather than drawing an empty bar.</para>
         /// </summary>
         /// <param name="administrativeAreal2DIds">The unique identifiers of the administrative areas.</param>
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
@@ -118,7 +119,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NoContent();
             }
 
-            List<double>? values = JsonSerializer.Deserialize<List<double>>(json);
+            List<double?>? values = JsonSerializer.Deserialize<List<double?>>(json);
             if (values is null)
             {
                 return NoContent();

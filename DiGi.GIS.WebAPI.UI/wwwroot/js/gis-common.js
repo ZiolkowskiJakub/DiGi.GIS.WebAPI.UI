@@ -31,24 +31,36 @@ async function loadAllOrtoCoverages(ids) {
             const textElement = document.getElementById(`text-coverage-${id}`);
             const barElement = document.getElementById(`bar-coverage-${id}`);
 
-            if (textElement && barElement && values[index] !== undefined) {
-                const percentage = (parseFloat(values[index]) * 100).toFixed(1);
+            if (!textElement || !barElement || values[index] === undefined) {
+                return;
+            }
 
-                textElement.innerText = `${percentage}%`;
-                const safeWidth = Math.min(Math.max(percentage, 0), 100);
-                barElement.style.width = `${safeWidth}%`;
+            // Reset color styling in case of previous errors
+            textElement.style.color = "";
 
-                // Logic-based coloring
-                if (safeWidth > 80) {
-                    barElement.style.backgroundColor = "#28a745";
-                } else if (safeWidth < 30) {
-                    barElement.style.backgroundColor = "#dc3545";
-                } else {
-                    barElement.style.backgroundColor = ""; // Reset inline color to CSS default if middle range
-                }
+            // null is not zero. The API answers null where it could not measure the coverage at all - a
+            // county nothing has ever been downloaded for - and drawing that as an empty red bar would
+            // report it as uncovered. parseFloat(null) is NaN, so this has to be caught before the maths.
+            if (values[index] === null) {
+                textElement.innerText = "N/A";
+                barElement.style.width = "0%";
+                barElement.style.backgroundColor = "";
+                return;
+            }
 
-                // Reset color styling in case of previous errors
-                textElement.style.color = "";
+            const percentage = (parseFloat(values[index]) * 100).toFixed(1);
+
+            textElement.innerText = `${percentage}%`;
+            const safeWidth = Math.min(Math.max(percentage, 0), 100);
+            barElement.style.width = `${safeWidth}%`;
+
+            // Logic-based coloring
+            if (safeWidth > 80) {
+                barElement.style.backgroundColor = "#28a745";
+            } else if (safeWidth < 30) {
+                barElement.style.backgroundColor = "#dc3545";
+            } else {
+                barElement.style.backgroundColor = ""; // Reset inline color to CSS default if middle range
             }
         });
     } catch (error) {
