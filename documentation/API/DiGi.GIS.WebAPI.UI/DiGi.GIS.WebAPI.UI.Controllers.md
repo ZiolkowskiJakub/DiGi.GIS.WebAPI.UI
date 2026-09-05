@@ -340,46 +340,48 @@ public Building2DController(System.Net.Http.IHttpClientFactory httpClientFactory
 The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') used to create [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') instances\.
 ### Methods
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.CountyIdAsync(System.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.CountyIdsAsync(System.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
 
-## Building2DController\.CountyIdAsync\(HttpClient, Nullable\<double\>, Nullable\<double\>, CancellationToken\) Method
+## Building2DController\.CountyIdsAsync\(HttpClient, Nullable\<double\>, Nullable\<double\>, CancellationToken\) Method
 
-Asynchronously resolves which county a plan position falls in\.
+Asynchronously resolves which county polygon parts a plan position can be filed under\.
 
 Used only as a fallback: the 3D viewer knows a building by its reference and its centroid, and the reference alone does not say which county partition holds it.
 
+Every part of the county the point falls in is returned, not just the part covering the point. A county whose territory is disconnected is stored as one row per part and the building is filed under one of them, which need not be the part its own coordinates fall in.
+
 ```csharp
-private static System.Threading.Tasks.Task<System.Nullable<int>> CountyIdAsync(System.Net.Http.HttpClient httpClient, System.Nullable<double> x, System.Nullable<double> y, System.Threading.CancellationToken cancellationToken);
+private static System.Threading.Tasks.Task<System.Collections.Generic.List<int>?> CountyIdsAsync(System.Net.Http.HttpClient httpClient, System.Nullable<double> x, System.Nullable<double> y, System.Threading.CancellationToken cancellationToken);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.CountyIdAsync(System.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).httpClient'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.CountyIdsAsync(System.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).httpClient'></a>
 
 `httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
 
 The HTTP client used for the requests\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.CountyIdAsync(System.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).x'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.CountyIdsAsync(System.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).x'></a>
 
 `x` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The X coordinate, in PL\-1992 \(EPSG:2180\) metres\. This value can be null\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.CountyIdAsync(System.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).y'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.CountyIdsAsync(System.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).y'></a>
 
 `y` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The Y coordinate, in PL\-1992 \(EPSG:2180\) metres\. This value can be null\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.CountyIdAsync(System.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.CountyIdsAsync(System.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
 
 `cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
 
 A cancellation token that can be used by the caller to cancel the asynchronous operation\.
 
 #### Returns
-[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-The identifier of the county, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when it cannot be resolved\.
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The identifiers of every polygon part of the county, in ascending order, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when no county could be resolved\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetBuilding2DReferencesByAdministrativeAreal2DIdAsync(int,System.Threading.CancellationToken)'></a>
 

@@ -6,6 +6,7 @@ using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -87,9 +88,37 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             HttpClient httpClient = httpClientFactory.CreateClient();
 
-            countyId ??= await CountyIdAsync(httpClient, x, y, cancellationToken);
+            Building2DReference? building2DReference = null;
 
-            Building2DReference? building2DReference = await httpClient.Building2DReferenceAsync(reference, countyId, cancellationToken);
+            if (countyId.HasValue)
+            {
+                building2DReference = await httpClient.Building2DReferenceAsync(reference, countyId, cancellationToken);
+            }
+            else
+            {
+                // Every polygon part of the county the point falls in is tried rather than one being chosen.
+                // A county whose territory is disconnected is stored as one row per part and the building is
+                // filed under one of them, which is not necessarily the part covering its own coordinates -
+                // for code 3020 the data sits under a part that covers none of the buildings at all. See
+                // https://github.com/ZiolkowskiJakub/DiGi.GIS.PostgreSQL/issues/64.
+                List<int>? countyIds = await CountyIdsAsync(httpClient, x, y, cancellationToken);
+                if (countyIds is not null)
+                {
+                    foreach (int countyId_Part in countyIds)
+                    {
+                        building2DReference = await httpClient.Building2DReferenceAsync(reference, countyId_Part, cancellationToken);
+                        if (building2DReference is not null)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                // No part answered, or the point named no county at all. The reference alone still resolves,
+                // and that is what this call did before a county was ever resolved from the point.
+                building2DReference ??= await httpClient.Building2DReferenceAsync(reference, null, cancellationToken);
+            }
+
             if (building2DReference is null)
             {
                 return NotFound();
@@ -215,15 +244,16 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
 
         /// <summary>
-        /// Asynchronously resolves which county a plan position falls in.
+        /// Asynchronously resolves which county polygon parts a plan position can be filed under.
         /// <para>Used only as a fallback: the 3D viewer knows a building by its reference and its centroid, and the reference alone does not say which county partition holds it.</para>
+        /// <para>Every part of the county the point falls in is returned, not just the part covering the point. A county whose territory is disconnected is stored as one row per part and the building is filed under one of them, which need not be the part its own coordinates fall in.</para>
         /// </summary>
         /// <param name="httpClient">The HTTP client used for the requests.</param>
         /// <param name="x">The X coordinate, in PL-1992 (EPSG:2180) metres. This value can be null.</param>
         /// <param name="y">The Y coordinate, in PL-1992 (EPSG:2180) metres. This value can be null.</param>
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
-        /// <returns>The identifier of the county, or <see langword="null"/> when it cannot be resolved.</returns>
-        private static async Task<int?> CountyIdAsync(HttpClient httpClient, double? x, double? y, CancellationToken cancellationToken)
+        /// <returns>The identifiers of every polygon part of the county, in ascending order, or <see langword="null"/> when no county could be resolved.</returns>
+        private static async Task<List<int>?> CountyIdsAsync(HttpClient httpClient, double? x, double? y, CancellationToken cancellationToken)
         {
             if (!x.HasValue || !y.HasValue || !double.IsFinite(x.Value) || !double.IsFinite(y.Value))
             {
@@ -248,19 +278,39 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return null;
             }
 
-            // TODO [GISWebAPIRedeploy] Swap idbycode for idsbycode and try each part.
-            // A county whose territory is disconnected is stored as one row per polygon part, and idbycode
-            // collapses the code to the lowest of them - so for the 18 multi-part codes this can name a part the
-            // building is not filed under. idsbycode returns every part and is the correct source, but it answers
-            // 404 on the deployed GIS Web API (verified 2026-08-21). Remove this marker once
-            // GET /information/controllers reports a DiGi.GIS.WebAPI build carrying idsbycode.
-            urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/administrativeareal2D/idbycode");
+            // idsbycode rather than idbycode: the latter collapses a code to its lowest polygon part, and for
+            // 3020 that part holds no building at all. Every part is returned instead and the caller tries them
+            // in turn. Ordered so the part tried first does not change with the query plan.
+            urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/administrativeareal2D/idsbycode");
             urlBuilder = urlBuilder.AddParameter("code", code);
             urlBuilder = urlBuilder.AddParameter("administrativearealtype", (int)AdministrativeArealType.County);
 
+            // A bare JSON array of integers rather than a serializable object, so it is read as text and
+            // deserialized here - ItemsAsync only handles ISerializableObject payloads.
             string? json = await httpClient.JsonAsync(urlBuilder.ToString(), cancellationToken);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return null;
+            }
 
-            return int.TryParse(json, out int countyId) ? countyId : null;
+            List<int>? countyIds;
+            try
+            {
+                countyIds = JsonSerializer.Deserialize<List<int>>(json);
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
+
+            if (countyIds is null || countyIds.Count == 0)
+            {
+                return null;
+            }
+
+            countyIds.Sort();
+
+            return countyIds;
         }
     }
 }
