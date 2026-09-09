@@ -138,5 +138,48 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         /// Base URI of the GIS Web API terrain endpoints.
         /// </summary>
         public const string TerrainUri = GISWebAPIUri + "/gis/terrain";
+
+        /// <summary>
+        /// URI of the endpoint that exchanges a set of credentials for a session token.
+        /// </summary>
+        public const string UserLoginUri = UserWebAPIUri + "/user/login";
+
+        /// <summary>
+        /// URI of the endpoint that terminates the presented session, revoking its token until the token's natural expiration.
+        /// </summary>
+        public const string UserLogoutUri = UserWebAPIUri + "/user/logout";
+
+        /// <summary>
+        /// URI of the endpoint that issues a new token for the identity carried by the presented one.
+        /// </summary>
+        public const string UserRefreshUri = UserWebAPIUri + "/user/session/refresh";
+
+        /// <summary>
+        /// URI of the endpoint that reads the stored record of the authenticated user.
+        /// </summary>
+        public const string UserSecureDataUri = UserWebAPIUri + "/user/secure-data";
+
+        /// <summary>
+        /// URI of the endpoint that introspects the presented session.
+        /// </summary>
+        public const string UserSessionUri = UserWebAPIUri + "/user/session";
+
+        /// <summary>
+        /// The name of the cookie this application keeps a visitor's session token in.
+        /// <para>The token never reaches the browser as a value: the cookie is written HttpOnly by the server and read back by it on every relayed request, so a script on the page cannot read, copy or leak it. See <see cref="Create.UserTokenCookieOptions"/>.</para>
+        /// </summary>
+        public const string UserTokenCookieName = "digi_user_token";
+
+        /// <summary>
+        /// Base URI of the user authentication service (DiGi.User.WebAPI, hosted by the generic DiGi.WebAPI.WindowsService) this application signs its visitors in against.
+        /// <para>Kept apart from <see cref="GISWebAPIUri"/> even though both address the same host today: the authentication service is versioned and deployed independently, so pointing sign-in at another host must not move every GIS read with it.</para>
+        /// </summary>
+        public const string UserWebAPIUri = "https://api.digiproject.uk";
+
+        /// <summary>
+        /// Base URI of the user authentication service used during local development.
+        /// <para>Points at the production service for the same reason <see cref="GISWebAPIUri_Development"/> does: no host runs locally by default, and a dead localhost URI would turn every sign-in attempt into a failure indistinguishable from a wrong password. Restore a localhost URI (matching the local host port) only when debugging DiGi.User.WebAPI locally.</para>
+        /// </summary>
+        public const string UserWebAPIUri_Development = "https://api.digiproject.uk";
     }
 }

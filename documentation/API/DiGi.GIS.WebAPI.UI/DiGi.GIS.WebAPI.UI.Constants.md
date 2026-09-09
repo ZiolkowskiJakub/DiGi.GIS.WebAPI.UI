@@ -358,3 +358,113 @@ public const string TerrainUri = "https://api.digiproject.uk/gis/terrain";
 
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.UserLoginUri'></a>
+
+## Default\.UserLoginUri Field
+
+URI of the endpoint that exchanges a set of credentials for a session token\.
+
+```csharp
+public const string UserLoginUri = "https://api.digiproject.uk/user/login";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.UserLogoutUri'></a>
+
+## Default\.UserLogoutUri Field
+
+URI of the endpoint that terminates the presented session, revoking its token until the token's natural expiration\.
+
+```csharp
+public const string UserLogoutUri = "https://api.digiproject.uk/user/logout";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.UserRefreshUri'></a>
+
+## Default\.UserRefreshUri Field
+
+URI of the endpoint that issues a new token for the identity carried by the presented one\.
+
+```csharp
+public const string UserRefreshUri = "https://api.digiproject.uk/user/session/refresh";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.UserSecureDataUri'></a>
+
+## Default\.UserSecureDataUri Field
+
+URI of the endpoint that reads the stored record of the authenticated user\.
+
+```csharp
+public const string UserSecureDataUri = "https://api.digiproject.uk/user/secure-data";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.UserSessionUri'></a>
+
+## Default\.UserSessionUri Field
+
+URI of the endpoint that introspects the presented session\.
+
+```csharp
+public const string UserSessionUri = "https://api.digiproject.uk/user/session";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.UserTokenCookieName'></a>
+
+## Default\.UserTokenCookieName Field
+
+The name of the cookie this application keeps a visitor's session token in\.
+
+The token never reaches the browser as a value: the cookie is written HttpOnly by the server and read back by it on every relayed request, so a script on the page cannot read, copy or leak it. See [UserTokenCookieOptions\(\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.UserTokenCookieOptions() 'DiGi\.GIS\.WebAPI\.UI\.Create\.UserTokenCookieOptions\(\)').
+
+```csharp
+public const string UserTokenCookieName = "digi_user_token";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.UserWebAPIUri'></a>
+
+## Default\.UserWebAPIUri Field
+
+Base URI of the user authentication service \(DiGi\.User\.WebAPI, hosted by the generic DiGi\.WebAPI\.WindowsService\) this application signs its visitors in against\.
+
+Kept apart from [GISWebAPIUri](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.GISWebAPIUri 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.GISWebAPIUri') even though both address the same host today: the authentication service is versioned and deployed independently, so pointing sign-in at another host must not move every GIS read with it.
+
+```csharp
+public const string UserWebAPIUri = "https://api.digiproject.uk";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.UserWebAPIUri_Development'></a>
+
+## Default\.UserWebAPIUri\_Development Field
+
+Base URI of the user authentication service used during local development\.
+
+Points at the production service for the same reason [GISWebAPIUri\_Development](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.GISWebAPIUri_Development 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.GISWebAPIUri\_Development') does: no host runs locally by default, and a dead localhost URI would turn every sign-in attempt into a failure indistinguishable from a wrong password. Restore a localhost URI (matching the local host port) only when debugging DiGi.User.WebAPI locally.
+
+```csharp
+public const string UserWebAPIUri_Development = "https://api.digiproject.uk";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')

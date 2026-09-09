@@ -1916,6 +1916,208 @@ public Microsoft.AspNetCore.Mvc.IActionResult Start();
 [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
 An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') result that renders the starting view\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.UserController'></a>
+
+## UserController Class
+
+Controller providing the sign\-in page and the session endpoints this application's pages use, relaying each of them to the user authentication service \(DiGi\.User\.WebAPI\)\.
+
+The session token never reaches the browser. It is written into an HttpOnly cookie by [LoginAsync\(UserLoginParameter, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.UserController.LoginAsync(DiGi.GIS.WebAPI.UI.Classes.UserLoginParameter,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.UserController\.LoginAsync\(DiGi\.GIS\.WebAPI\.UI\.Classes\.UserLoginParameter, System\.Threading\.CancellationToken\)'), read back out of that cookie here on every later call, and presented to the service as a bearer token - so a script on the page can act as the visitor but can never read, copy or forward the credential that lets it.
+
+Nothing in this application is gated on being signed in. These endpoints add a session; which content requires one is decided feature by feature as gated features arrive.
+
+```csharp
+public class UserController : Microsoft.AspNetCore.Mvc.Controller
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [Microsoft\.AspNetCore\.Mvc\.ControllerBase](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controllerbase 'Microsoft\.AspNetCore\.Mvc\.ControllerBase') → [Microsoft\.AspNetCore\.Mvc\.Controller](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controller 'Microsoft\.AspNetCore\.Mvc\.Controller') → UserController
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.UserController.UserController(System.Net.Http.IHttpClientFactory)'></a>
+
+## UserController\(IHttpClientFactory\) Constructor
+
+Initializes a new instance of the [UserController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.UserController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.UserController') class\.
+
+```csharp
+public UserController(System.Net.Http.IHttpClientFactory httpClientFactory);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.UserController.UserController(System.Net.Http.IHttpClientFactory).httpClientFactory'></a>
+
+`httpClientFactory` [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory')
+
+The HTTP client factory used to create [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') instances\.
+### Methods
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.UserController.GetMeAsync(System.Threading.CancellationToken)'></a>
+
+## UserController\.GetMeAsync\(CancellationToken\) Method
+
+Reads the stored record of the signed\-in visitor, for the name and email the header shows\.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetMeAsync(System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.UserController.GetMeAsync(System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the user record, or an empty result when nobody is signed in\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.UserController.GetSessionAsync(System.Threading.CancellationToken)'></a>
+
+## UserController\.GetSessionAsync\(CancellationToken\) Method
+
+Introspects the current session, returning the identity and the token's issue and expiry times\.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetSessionAsync(System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.UserController.GetSessionAsync(System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the session information, or an empty result when nobody is signed in\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.UserController.Login(string)'></a>
+
+## UserController\.Login\(string\) Method
+
+Returns the sign\-in page\.
+
+Routed at the site root rather than under this controller, because it is a page a visitor is sent to and reads as an address, not one of the session endpoints below.
+
+```csharp
+public Microsoft.AspNetCore.Mvc.IActionResult Login(string? returnUrl=null);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.UserController.Login(string).returnUrl'></a>
+
+`returnUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The page to return to once signed in\.
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the sign\-in view\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.UserController.LoginAsync(DiGi.GIS.WebAPI.UI.Classes.UserLoginParameter,System.Threading.CancellationToken)'></a>
+
+## UserController\.LoginAsync\(UserLoginParameter, CancellationToken\) Method
+
+Exchanges a set of credentials for a session, storing the issued token in this application's session cookie\.
+
+Nothing about which part of the credential was wrong survives this method. An unknown email, an account with no stored credential and a wrong password are one 401 to the service and stay one 401 here, so the page can only ever say that signing in failed.
+
+The submitted password exists in the request body and in the relayed body, and nowhere else: it is never logged, never returned and never written into a view. Do not add request logging to this action.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> LoginAsync(DiGi.GIS.WebAPI.UI.Classes.UserLoginParameter? userLoginParameter, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.UserController.LoginAsync(DiGi.GIS.WebAPI.UI.Classes.UserLoginParameter,System.Threading.CancellationToken).userLoginParameter'></a>
+
+`userLoginParameter` [UserLoginParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.UserLoginParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.UserLoginParameter')
+
+The submitted credentials\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.UserController.LoginAsync(DiGi.GIS.WebAPI.UI.Classes.UserLoginParameter,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') that is empty on success, the session being carried in a cookie rather than in the body\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.UserController.LogoutAsync(System.Threading.CancellationToken)'></a>
+
+## UserController\.LogoutAsync\(CancellationToken\) Method
+
+Ends the session, clearing this application's cookie and asking the service to revoke the token\.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> LogoutAsync(System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.UserController.LogoutAsync(System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') confirming that the session has ended\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.UserController.RefreshAsync(System.Threading.CancellationToken)'></a>
+
+## UserController\.RefreshAsync\(CancellationToken\) Method
+
+Carries the session forward by exchanging the presented token for a new one\.
+
+This works only while the presented token is still valid: the service issues the new token for the identity carried by the old one, so a session that has already expired cannot be recovered and ends in signing out.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> RefreshAsync(System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.UserController.RefreshAsync(System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') that is empty on success, the renewed session being carried in the cookie\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.UserController.Relay(DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse)'></a>
+
+## UserController\.Relay\(WebAPIResponse\) Method
+
+Turns a relayed response into the result this application answers with\.
+
+The upstream status is mirrored rather than reinterpreted: a 500 from the authentication service is a server fault, and answering it as a bad request would blame the caller for it.
+
+Only a successful body is passed on. A failure body carries the service's own diagnostics - a trace identifier and its build number - which are of no use to the page and need not be published to whoever asked.
+
+A 401 is relayed with the cookie left alone, deliberately. It means the presented token was not accepted, but not yet that the session is over: the caller is expected to try [RefreshAsync\(CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.UserController.RefreshAsync(System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.UserController\.RefreshAsync\(System\.Threading\.CancellationToken\)') once, and clearing the cookie here would delete the very token that refresh has to present, turning every expiry into an immediate sign-out. Ending the session is [RefreshAsync\(CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.UserController.RefreshAsync(System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.UserController\.RefreshAsync\(System\.Threading\.CancellationToken\)')'s to do, when the refresh itself is refused.
+
+```csharp
+private Microsoft.AspNetCore.Mvc.IActionResult Relay(DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse? webAPIResponse);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.UserController.Relay(DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse).webAPIResponse'></a>
+
+`webAPIResponse` [WebAPIResponse](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse 'DiGi\.GIS\.WebAPI\.UI\.Classes\.WebAPIResponse')
+
+The relayed response\. This value can be null\.
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+The result to answer with\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.YearBuiltDataController'></a>
 
 ## YearBuiltDataController Class

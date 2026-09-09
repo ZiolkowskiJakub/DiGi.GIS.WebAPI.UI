@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - GIS System</title>
     <meta name="description" content="@(ViewData["Description"] ?? "High-performance GIS data exchange platform by DigiProject.")" />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content="@(ViewData["Robots"] ?? "index, follow")" />
     <link rel="canonical" href="@(ViewData["CanonicalUrl"] ?? Context.Request.Scheme + "://" + Context.Request.Host + Context.Request.Path)" />
     
     <!-- Open Graph / Facebook -->
@@ -29,6 +29,16 @@
 <body class="gis-app-body">
     @{
         string currentPath = Context.Request.Path.Value ?? "";
+
+        // Whether a session is being shown, not what it is: the token sits in an HttpOnly cookie, so only its
+        // presence is knowable here. Should the token in it turn out to be spent, the first authenticated call
+        // says so and the page swaps the control back to signed out (wwwroot/js/user.js).
+        bool signedIn = Context.Request.Cookies.ContainsKey(DiGi.GIS.WebAPI.UI.Constants.Default.UserTokenCookieName);
+
+        // Returning to the sign-in page after signing in would leave the visitor staring at the form they just
+        // used, so that one address returns home instead.
+        string returnUrl = currentPath.StartsWith("/login", StringComparison.OrdinalIgnoreCase) ? Url.Content("~/") : Context.Request.Path + Context.Request.QueryString;
+        string loginUrl = Url.Content("~/login") + "?returnUrl=" + Uri.EscapeDataString(returnUrl);
     }
     <header class="gis-header">
         <div class="gis-header-container">
@@ -39,6 +49,29 @@
                items mirror the main menu (Views/Home/Start.cshtml), including Communication, plus the
                3D Viewer entry. *@
             <nav class="gis-nav">
+                @* Session control. Both forms are rendered and one of them hidden, so signing out swaps which
+                   is visible rather than building markup in script. It wears the hamburger's own classes - only
+                   the width differs - so the two controls cannot drift apart. *@
+                <a id="gis-user-login" class="gis-nav-toggle gis-nav-toggle-wide" href="@loginUrl" hidden="@(signedIn ? "hidden" : null)">Log in</a>
+                @* A disclosure rather than a menu, unlike the navigation dropdown beside it: most of what it
+                   holds is the visitor's name and e-mail, which are content and not menu items, and role="menu"
+                   admits only menuitem, separator and group as children. aria-expanded plus aria-controls is the
+                   pattern for revealing a panel; the shared classes keep it looking identical either way. *@
+                <button type="button" id="gis-user-toggle" class="gis-nav-toggle gis-nav-toggle-wide" aria-expanded="false" aria-controls="gis-user-menu" hidden="@(signedIn ? null : "hidden")">
+                    Profile
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-hidden="true">
+                        <path d="m6 9 6 6 6-6" />
+                    </svg>
+                </button>
+                <div id="gis-user-menu" class="gis-nav-menu" hidden>
+                    @* Filled on first open from /user/me - see wwwroot/js/user.js. *@
+                    <div class="gis-nav-menu-identity">
+                        <span id="gis-user-name" class="fw-bold"></span>
+                        <span id="gis-user-email" class="text-muted"></span>
+                    </div>
+                    <div class="gis-nav-menu-separator"></div>
+                    <a id="gis-user-logout" href="#" class="gis-nav-link">Log out</a>
+                </div>
                 <button type="button" id="gis-nav-toggle" class="gis-nav-toggle" aria-label="Open navigation menu" aria-haspopup="true" aria-expanded="false" aria-controls="gis-nav-menu">
                     <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-hidden="true">
                         <line x1="4" x2="20" y1="6" y2="6" />
@@ -82,37 +115,56 @@
             </div>
         </div>
     </footer>
-    @* Header navigation dropdown: toggles the hamburger menu, closing on outside click or Escape. *@
+    @* Header dropdowns: toggles a menu, closing on outside click or Escape. The navigation menu and the
+       profile menu behave identically and are anchored to the same corner, so one function drives both and
+       opening either closes the other. *@
     <script>
         (function () {
-            var toggle = document.getElementById('gis-nav-toggle');
-            var menu = document.getElementById('gis-nav-menu');
-            if (!toggle || !menu) {
-                return;
+            var menus = [];
+
+            function closeAll() {
+                menus.forEach(function (entry) {
+                    entry.setOpen(false);
+                });
             }
 
-            function setOpen(open) {
-                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-                menu.hidden = !open;
+            function setupMenu(toggleId, menuId) {
+                var toggle = document.getElementById(toggleId);
+                var menu = document.getElementById(menuId);
+                if (!toggle || !menu) {
+                    return;
+                }
+
+                function setOpen(open) {
+                    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    menu.hidden = !open;
+                }
+
+                menus.push({ setOpen: setOpen });
+
+                toggle.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    var open = menu.hidden;
+                    closeAll();
+                    setOpen(open);
+                });
+
+                document.addEventListener('click', function (event) {
+                    if (!menu.hidden && !menu.contains(event.target) && !toggle.contains(event.target)) {
+                        setOpen(false);
+                    }
+                });
+
+                document.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape' && !menu.hidden) {
+                        setOpen(false);
+                        toggle.focus();
+                    }
+                });
             }
 
-            toggle.addEventListener('click', function (event) {
-                event.stopPropagation();
-                setOpen(menu.hidden);
-            });
-
-            document.addEventListener('click', function (event) {
-                if (!menu.hidden && !menu.contains(event.target) && !toggle.contains(event.target)) {
-                    setOpen(false);
-                }
-            });
-
-            document.addEventListener('keydown', function (event) {
-                if (event.key === 'Escape' && !menu.hidden) {
-                    setOpen(false);
-                    toggle.focus();
-                }
-            });
+            setupMenu('gis-nav-toggle', 'gis-nav-menu');
+            setupMenu('gis-user-toggle', 'gis-user-menu');
         })();
 
         (function () {
@@ -132,6 +184,7 @@
             });
         })();
     </script>
+    <script src="~/js/user.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -199,3 +199,111 @@ public System.Nullable<double> RelativePermittivity { get; set; }
 
 #### Property Value
 [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.UserLoginParameter'></a>
+
+## UserLoginParameter Class
+
+The credentials a visitor submits on the sign\-in page, relayed to the user authentication service\.
+
+These two property names are the wire contract of `POST /user/login` and must match `DiGi.User.Classes.UserLogin`. This application reaches that service over HTTP only, so nothing checks them at compile time and a rename on either side fails silently - diff them by hand whenever either moves (Coding - WebAPI Contracts, section 5).
+
+[Password](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.UserLoginParameter.Password 'DiGi\.GIS\.WebAPI\.UI\.Classes\.UserLoginParameter\.Password') is a secret in transit. It is never logged, never echoed back to the browser and never written into a view.
+
+```csharp
+public class UserLoginParameter
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → UserLoginParameter
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.UserLoginParameter.Email'></a>
+
+## UserLoginParameter\.Email Property
+
+Gets or sets the email address identifying the account\.
+
+```csharp
+public string? Email { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.UserLoginParameter.Password'></a>
+
+## UserLoginParameter\.Password Property
+
+Gets or sets the password submitted for the account\.
+
+```csharp
+public string? Password { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse'></a>
+
+## WebAPIResponse Class
+
+The outcome of a single request relayed to a Web API: the status it answered with, and the body it carried\.
+
+The other `Query` helpers of this application collapse every failure into [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null'), so that a page assembled from several independent requests survives one of them coming back empty. Authentication is the case that rule does not cover: there the status <em>is</em> the answer. A refused credential (401) has to stay distinct from a faulting authentication service (500) and from a service that could not be reached at all, because collapsing them reports an outage to the visitor as a wrong password and hides it from everyone else.
+
+```csharp
+public class WebAPIResponse
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → WebAPIResponse
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse.WebAPIResponse(int,string)'></a>
+
+## WebAPIResponse\(int, string\) Constructor
+
+Initializes a new instance of the [WebAPIResponse](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse 'DiGi\.GIS\.WebAPI\.UI\.Classes\.WebAPIResponse') class\.
+
+```csharp
+public WebAPIResponse(int statusCode, string? json=null);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse.WebAPIResponse(int,string).statusCode'></a>
+
+`statusCode` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The HTTP status code the Web API answered with\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse.WebAPIResponse(int,string).json'></a>
+
+`json` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The response body, or null when the response carried none\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse.Json'></a>
+
+## WebAPIResponse\.Json Property
+
+Gets the response body, or null when the response carried none\.
+
+```csharp
+public string? Json { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse.StatusCode'></a>
+
+## WebAPIResponse\.StatusCode Property
+
+Gets the HTTP status code the Web API answered with\.
+
+```csharp
+public int StatusCode { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')

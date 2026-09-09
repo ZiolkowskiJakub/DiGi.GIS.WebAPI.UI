@@ -834,6 +834,29 @@ h1.gis-title-large {
         background: rgba(0, 0, 0, 0.02);
     }
 
+    /* Wider variant for a control carrying a label (Log in / Profile) rather than an icon. Height, border,
+       radius, colour, hover and the open state are all inherited from the block above, so the labelled
+       control and the hamburger beside it cannot drift apart. */
+    .gis-nav-toggle.gis-nav-toggle-wide {
+        width: auto;
+        /* A button is border-box by default and an anchor is not, so without this the signed-out control
+           renders 2px taller than the hamburger beside it and sits a pixel higher. */
+        box-sizing: border-box;
+        gap: 8px;
+        padding: 0 14px;
+        font-family: var(--font-sans);
+        font-size: 0.85rem;
+        font-weight: 600;
+        /* The signed-out control is an <a>, which .gis-nav-toggle does not reset. */
+        text-decoration: none;
+    }
+
+    /* The hidden attribute must win over the inline-flex display above, exactly as for .gis-nav-menu below:
+       the header renders both the signed-out and the signed-in control and hides one of them. */
+    .gis-nav-toggle[hidden] {
+        display: none;
+    }
+
 .gis-nav-menu {
     position: absolute;
     top: calc(100% + 10px);
@@ -876,6 +899,27 @@ h1.gis-title-large {
             background: rgba(0, 0, 0, 0.05);
             color: var(--primary-color);
         }
+
+    /* Identity block at the top of the profile menu: the name over the e-mail, neither of them a menu item. */
+    .gis-nav-menu-identity {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        /* Aligned with .gis-nav-menu .gis-nav-link above, so the name sits over the items below it. */
+        padding: 10px 14px;
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+        .gis-nav-menu-identity .text-muted {
+            font-size: 0.8rem;
+        }
+
+    /* Hairline between the identity block and the actions, in the menu's own border colour. */
+    .gis-nav-menu-separator {
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+        margin: 6px 4px;
+    }
 
 .gis-content-wrapper {
     flex: 1;
@@ -1644,6 +1688,9 @@ h1.gis-title-large {
     font-size: 0.8rem;
 }
 
+/* Stacked label over a full-width field. .gis-field-label is the general form; the modal class is kept as
+   the name the communication dialog already uses, sharing the same declarations rather than a copy of them. */
+.gis-field-label,
 .communication-modal-label {
     display: block;
     font-size: 0.9rem;
@@ -1651,6 +1698,7 @@ h1.gis-title-large {
     margin-bottom: 10px;
 }
 
+    .gis-field-label input,
     .communication-modal-label input,
     .communication-modal-label select {
         display: block;
@@ -1659,6 +1707,22 @@ h1.gis-title-large {
         padding: 6px 8px;
         margin-top: 4px;
     }
+
+    /* A stacked field reads left aligned wherever it sits, including on a centred hero card. */
+    .gis-field-label {
+        text-align: left;
+    }
+
+        /* The theme border the other text inputs carry (.gis-select, .gis-inline-form input). Scoped to the
+           general class so the communication dialog keeps the appearance it already has. */
+        .gis-field-label input {
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+            .gis-field-label input:focus {
+                border-color: var(--primary-color);
+            }
 
 .communication-modal-functions {
     border: 1px solid rgba(128, 128, 128, 0.35);
