@@ -1,5 +1,6 @@
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,7 +28,13 @@ namespace DiGi.GIS.WebAPI.UI
 
             try
             {
-                using HttpResponseMessage httpResponseMessage = await httpClient.PostAsJsonAsync(requestUri, value, cancellationToken);
+                // JsonSerializerOptions.Default rather than what System.Net.Http.Json would pick on its own,
+                // which is JsonSerializerDefaults.Web - a camelCase naming policy that renames every property
+                // of the body on the way out. Nothing sent through here today carries property names (a string,
+                // a collection of ints), so this changes no call that exists; it is what stops the first caller
+                // that posts a parameter object from silently depending on the receiver binding names
+                // case-insensitively. See Coding - WebAPI Contracts, section 2.
+                using HttpResponseMessage httpResponseMessage = await httpClient.PostAsJsonAsync(requestUri, value, JsonSerializerOptions.Default, cancellationToken);
                 if (!httpResponseMessage.IsSuccessStatusCode)
                 {
                     return null;
