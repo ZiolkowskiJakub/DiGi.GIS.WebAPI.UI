@@ -16,6 +16,19 @@ public static class Default
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → Default
 ### Fields
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingDataColumnsUri'></a>
+
+## Default\.BuildingDataColumnsUri Field
+
+URI of the GIS Web API endpoint listing the columns of the building data table, which the Typology definition page offers for grouping and the definition import resolves its columns against\.
+
+```csharp
+public const string BuildingDataColumnsUri = "https://api.digiproject.uk/gis/BuildingData/columns";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingSearchRadius'></a>
 
 ## Default\.BuildingSearchRadius Field
@@ -358,6 +371,21 @@ public const string TerrainUri = "https://api.digiproject.uk/gis/terrain";
 
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.TypologyAppearanceThickness'></a>
+
+## Default\.TypologyAppearanceThickness Field
+
+The curve and edge thickness written into every appearance of a Typology definition document\.
+
+The definition page edits a single color per bucket; the document carries a full [DiGi\.Typology\.Visual\.Classes\.TypologyAppearance](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.typologyappearance 'DiGi\.Typology\.Visual\.Classes\.TypologyAppearance') per bucket, so the thickness the page does not edit is fixed here rather than invented per export.
+
+```csharp
+public const double TypologyAppearanceThickness = 1;
+```
+
+#### Field Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.UserLoginUri'></a>
 

@@ -2291,3 +2291,14 @@ h1.gis-title-large {
     font-size: 0.8rem;
     line-height: 1.4;
 }
+
+/* The Import/Export error dialog (#17): one line per message the server returned, in its order. */
+.gis-typology-error-list {
+    padding-left: 20px;
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.gis-typology-error-list li {
+    margin: 4px 0;
+}

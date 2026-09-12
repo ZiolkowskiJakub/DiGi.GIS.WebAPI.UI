@@ -17,6 +17,11 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const double BuildingSearchTolerance = 5.0;
 
         /// <summary>
+        /// URI of the GIS Web API endpoint listing the columns of the building data table, which the Typology definition page offers for grouping and the definition import resolves its columns against.
+        /// </summary>
+        public const string BuildingDataColumnsUri = GISWebAPIUri + "/gis/BuildingData/columns";
+
+        /// <summary>
         /// Base URI of the DiGi.Communication.WebAPI extension (hosted by the generic DiGi.WebAPI.WindowsService) used in production.
         /// </summary>
         public const string CommunicationWebAPIUri = "https://api.digiproject.uk";
@@ -138,6 +143,12 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         /// Base URI of the GIS Web API terrain endpoints.
         /// </summary>
         public const string TerrainUri = GISWebAPIUri + "/gis/terrain";
+
+        /// <summary>
+        /// The curve and edge thickness written into every appearance of a Typology definition document.
+        /// <para>The definition page edits a single color per bucket; the document carries a full <see cref="DiGi.Typology.Visual.Classes.TypologyAppearance"/> per bucket, so the thickness the page does not edit is fixed here rather than invented per export.</para>
+        /// </summary>
+        public const double TypologyAppearanceThickness = 1.0;
 
         /// <summary>
         /// URI of the endpoint that exchanges a set of credentials for a session token.

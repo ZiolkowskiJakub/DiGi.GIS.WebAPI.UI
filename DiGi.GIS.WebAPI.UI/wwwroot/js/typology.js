@@ -5,7 +5,8 @@
  * drag & drop, remove by button or drag-back, reorder by Move Up/Down or drag, and single-click
  * selection; #16 the Column Properties editor of the selected level — rule type, range rows with
  * inline validation, unique values loaded through the /typology/uniquevalues proxy, a colour per
- * bucket; #17 Import/Export and #18 the Load modal follow. One object rather than loose globals:
+ * bucket; #17 Import/Export — the page state posted to the server, which alone composes and parses
+ * the DiGi document; #18 the Load modal follows. One object rather than loose globals:
  * names such as import() or load() are too general to own at window scope (same reasoning as user.js).
  */
 const digiTypology = (function () {
@@ -1009,6 +1010,317 @@ const digiTypology = (function () {
         }
     }
 
+    // ----- import / export (#17) -----
+
+    // The document is composed and parsed on the server: Export posts the page state to
+    // /typology/definition/export and receives the DiGi JSON of the VisualColumnTypologyFilter
+    // chain; Import posts a chosen file to /typology/definition/validate and receives page state
+    // back. This script therefore never spells a _type or a TypologyAppearanceCollection key
+    // ("[min, max]" is rendered by .NET with invariant formatting, which String(x) need not match).
+    // Both actions answer 400 with a JSON array of messages naming the level and the row.
+
+    const definitionFileName = 'typology.json';
+
+    function definitionRequestUrl(action) {
+        return baseUrl() + '/typology/definition/' + action;
+    }
+
+    // Only the rows of the active rule are sent: both row lists survive a rule-type switch in the
+    // page state so nothing typed is lost, but the document has one rule per level.
+    function definitionPayload() {
+        const levels = [];
+        for (let i = 0; i < state.levels.length; i++) {
+            const level = state.levels[i];
+            const isRange = level.ruleType === ruleType_IntegerRange || level.ruleType === ruleType_DoubleRange;
+            levels.push({
+                uniqueId: level.uniqueId,
+                name: level.name,
+                dataType: level.dataType,
+                isNumeric: level.isNumeric,
+                ruleType: level.ruleType,
+                ranges: isRange ? level.ranges : [],
+                uniqueValueColors: level.ruleType === ruleType_UniqueValue ? level.uniqueValueColors : []
+            });
+        }
+        return { levels: levels };
+    }
+
+    // Reads a 400 body as the message list, or falls back to the status when the body is not one.
+    function definitionErrors(response) {
+        return response.text().then(function (text) {
+            try {
+                const parsed = JSON.parse(text);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    return parsed.map(function (item) { return String(item); });
+                }
+            } catch (error) {
+                // not a message list
+            }
+            if (response.status === 503) {
+                return ['The building data column catalog is unavailable — try again later.'];
+            }
+            return ['The request failed (' + response.status + ').'];
+        });
+    }
+
+    function exportDefinition() {
+        if (state.levels.length === 0) {
+            showDefinitionErrors('Export', ['Select at least one column before exporting.']);
+            return;
+        }
+
+        fetch(definitionRequestUrl('export'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(definitionPayload())
+        })
+            .then(function (response) {
+                if (!response.ok) {
+                    return definitionErrors(response).then(function (errors) {
+                        showDefinitionErrors('Export', errors);
+                    });
+                }
+                return response.text().then(showExportModal);
+            })
+            .catch(function () {
+                showDefinitionErrors('Export', ['The request could not be sent.']);
+            });
+    }
+
+    function importDefinition(file) {
+        if (!file) {
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onerror = function () {
+            showDefinitionErrors('Import', ['The file could not be read.']);
+        };
+        reader.onload = function () {
+            fetch(definitionRequestUrl('validate'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: String(reader.result)
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        return definitionErrors(response).then(function (errors) {
+                            showDefinitionErrors('Import', errors);
+                        });
+                    }
+                    return response.json().then(applyDefinition);
+                })
+                .catch(function () {
+                    showDefinitionErrors('Import', ['The request could not be sent.']);
+                });
+        };
+        reader.readAsText(file);
+    }
+
+    // Replaces the page state with what validate answered. Reached only on 200, so a rejected or
+    // malformed file never touches the levels the visitor has.
+    function applyDefinition(definition) {
+        if (definition === null || typeof definition !== 'object' || !Array.isArray(definition.levels)) {
+            showDefinitionErrors('Import', ['The definition could not be read.']);
+            return;
+        }
+
+        abortUniqueValuesLoad();
+        uniqueValuesMessage = null;
+
+        const levels = [];
+        for (let i = 0; i < definition.levels.length; i++) {
+            const level = definition.levels[i];
+            levels.push({
+                uniqueId: level.uniqueId,
+                name: level.name,
+                dataType: level.dataType,
+                isNumeric: level.isNumeric === true,
+                ruleType: level.ruleType || null,
+                ranges: Array.isArray(level.ranges) ? level.ranges : [],
+                uniqueValueColors: Array.isArray(level.uniqueValueColors) ? level.uniqueValueColors : []
+            });
+        }
+
+        state.levels = levels;
+        state.selectedIndex = -1;
+        renderAll();
+    }
+
+    // ----- modals -----
+
+    let exportModal = null;
+
+    function ensureExportModal() {
+        if (exportModal !== null) {
+            return exportModal;
+        }
+
+        exportModal = document.createElement('div');
+        exportModal.className = 'gis-modal-overlay';
+        exportModal.style.display = 'none';
+        exportModal.innerHTML =
+            '<div class="gis-card gis-modal gis-modal-wide" role="dialog" aria-modal="true" aria-labelledby="typology-export-title">' +
+            '<h3 class="gis-title" id="typology-export-title">Export</h3>' +
+            '<pre class="gis-modal-pre"></pre>' +
+            '<div class="gis-modal-buttons">' +
+            '<button type="button" id="typology-export-close-button" class="gis-button">Close</button>' +
+            '<button type="button" id="typology-export-copy-button" class="gis-button">Copy</button>' +
+            '<button type="button" id="typology-export-download-button" class="gis-button">Download</button>' +
+            '</div></div>';
+        document.body.appendChild(exportModal);
+
+        const pre = exportModal.querySelector('.gis-modal-pre');
+        const copyButton = exportModal.querySelector('#typology-export-copy-button');
+
+        exportModal.querySelector('#typology-export-close-button').addEventListener('click', hideExportModal);
+        exportModal.addEventListener('click', function (event) {
+            if (event.target === exportModal) {
+                hideExportModal();
+            }
+        });
+        copyButton.addEventListener('click', function () {
+            copyText(pre.textContent, copyButton);
+        });
+        exportModal.querySelector('#typology-export-download-button').addEventListener('click', function () {
+            downloadText(pre.textContent, definitionFileName);
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && exportModal.style.display !== 'none') {
+                hideExportModal();
+            }
+        });
+
+        return exportModal;
+    }
+
+    function showExportModal(json) {
+        const modal = ensureExportModal();
+        let text = json;
+        try {
+            text = JSON.stringify(JSON.parse(json), null, 2);
+        } catch (error) {
+            // shown as received
+        }
+        modal.querySelector('.gis-modal-pre').textContent = text;
+        modal.style.display = 'flex';
+        modal.querySelector('#typology-export-download-button').focus();
+    }
+
+    function hideExportModal() {
+        if (exportModal !== null) {
+            exportModal.style.display = 'none';
+        }
+    }
+
+    function copyText(text, button) {
+        function flash() {
+            const label = button.textContent;
+            button.textContent = 'Copied';
+            setTimeout(function () { button.textContent = label; }, 1200);
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(flash).catch(function () { fallbackCopy(text); flash(); });
+        } else {
+            fallbackCopy(text);
+            flash();
+        }
+    }
+
+    function fallbackCopy(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+        } catch (error) {
+            // clipboard unavailable
+        }
+        document.body.removeChild(textarea);
+    }
+
+    function downloadText(text, fileName) {
+        const blob = new Blob([text], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = fileName;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 0);
+    }
+
+    let errorModal = null;
+
+    // Every message is escaped: the list carries column names and file content echoed back.
+    function showDefinitionErrors(title, errors) {
+        if (errorModal === null) {
+            errorModal = document.createElement('div');
+            errorModal.className = 'gis-modal-overlay';
+            errorModal.style.display = 'none';
+            errorModal.innerHTML =
+                '<div class="gis-card gis-modal gis-dialog-card" role="dialog" aria-modal="true" aria-labelledby="typology-error-title">' +
+                '<h3 class="gis-title gis-dialog-title-error" id="typology-error-title"></h3>' +
+                '<ul class="gis-dialog-message gis-typology-error-list"></ul>' +
+                '<div class="gis-modal-buttons">' +
+                '<button type="button" id="typology-error-close-button" class="gis-button">Close</button>' +
+                '</div></div>';
+            document.body.appendChild(errorModal);
+
+            errorModal.querySelector('#typology-error-close-button').addEventListener('click', hideDefinitionErrors);
+            errorModal.addEventListener('click', function (event) {
+                if (event.target === errorModal) {
+                    hideDefinitionErrors();
+                }
+            });
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && errorModal.style.display !== 'none') {
+                    hideDefinitionErrors();
+                }
+            });
+        }
+
+        errorModal.querySelector('#typology-error-title').textContent = title + ' failed';
+        let html = '';
+        for (let i = 0; i < errors.length; i++) {
+            html += '<li>' + escapeHtml(errors[i]) + '</li>';
+        }
+        errorModal.querySelector('.gis-typology-error-list').innerHTML = html;
+        errorModal.style.display = 'flex';
+        errorModal.querySelector('#typology-error-close-button').focus();
+    }
+
+    function hideDefinitionErrors() {
+        if (errorModal !== null) {
+            errorModal.style.display = 'none';
+        }
+    }
+
+    function setupDefinitionEvents() {
+        const exportButton = document.getElementById('typology-export-button');
+        const importButton = document.getElementById('typology-import-button');
+        const fileInput = document.getElementById('typology-import-file');
+
+        if (exportButton !== null) {
+            exportButton.addEventListener('click', exportDefinition);
+        }
+        if (importButton !== null && fileInput !== null) {
+            importButton.addEventListener('click', function () {
+                fileInput.value = ''; // so choosing the same file again fires change
+                fileInput.click();
+            });
+            fileInput.addEventListener('change', function () {
+                importDefinition(fileInput.files && fileInput.files.length > 0 ? fileInput.files[0] : null);
+            });
+        }
+    }
+
     // ----- boot -----
 
     function init() {
@@ -1016,6 +1328,7 @@ const digiTypology = (function () {
         setupAvailableEvents();
         setupSelectedEvents();
         setupPropertiesEvents();
+        setupDefinitionEvents();
         renderSelected(); // the empty state, until the columns arrive
         renderProperties();
         loadAvailableColumns();

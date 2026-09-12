@@ -408,6 +408,58 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The terrain node, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the area has no surface to show\.
 
+<a name='DiGi.GIS.WebAPI.UI.Create.TypologyAppearance(thisDiGi.Core.Classes.Color)'></a>
+
+## Create\.TypologyAppearance\(this Color\) Method
+
+Creates the bucket appearance a Typology definition document carries for one color of the page\.
+
+The page edits one color per bucket; the document needs an appearance per shape kind, so the color is written into a curve, a face and a mesh appearance with [TypologyAppearanceThickness](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.TypologyAppearanceThickness 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.TypologyAppearanceThickness') on every edge - the same three kinds the DiGi.Typology.Visual facts build, and the ones a building viewer reads. [Color\(this TypologyAppearance\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Color(thisDiGi.Typology.Visual.Classes.TypologyAppearance) 'DiGi\.GIS\.WebAPI\.UI\.Query\.Color\(this DiGi\.Typology\.Visual\.Classes\.TypologyAppearance\)') reads the color back.
+
+```csharp
+public static DiGi.Typology.Visual.Classes.TypologyAppearance TypologyAppearance(this DiGi.Core.Classes.Color color);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TypologyAppearance(thisDiGi.Core.Classes.Color).color'></a>
+
+`color` [DiGi\.Core\.Classes\.Color](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.color 'DiGi\.Core\.Classes\.Color')
+
+The bucket color\.
+
+#### Returns
+[DiGi\.Typology\.Visual\.Classes\.TypologyAppearance](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.typologyappearance 'DiGi\.Typology\.Visual\.Classes\.TypologyAppearance')  
+The appearance\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TypologyDefinitionParameter(thisDiGi.Typology.Visual.Classes.VisualColumnTypologyFilter_DiGi.Core.IO.Table.Classes.Column_,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_)'></a>
+
+## Create\.TypologyDefinitionParameter\(this VisualColumnTypologyFilter\<Column\>, IEnumerable\<Column\>\) Method
+
+Creates the page state of the Typology definition page from a document: one level per link of the [DiGi\.Typology\.Visual\.Classes\.VisualColumnTypologyFilter&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.visualcolumntypologyfilter-1 'DiGi\.Typology\.Visual\.Classes\.VisualColumnTypologyFilter\`1') chain, with the column described from the live catalog and the rule's colors rendered as the page holds them\.
+
+The document is checked by [TypologyDefinitionErrors\(this VisualColumnTypologyFilter&lt;Column&gt;, IEnumerable&lt;Column&gt;\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TypologyDefinitionErrors(thisDiGi.Typology.Visual.Classes.VisualColumnTypologyFilter_DiGi.Core.IO.Table.Classes.Column_,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_) 'DiGi\.GIS\.WebAPI\.UI\.Query\.TypologyDefinitionErrors\(this DiGi\.Typology\.Visual\.Classes\.VisualColumnTypologyFilter\<DiGi\.Core\.IO\.Table\.Classes\.Column\>, System\.Collections\.Generic\.IEnumerable\<DiGi\.PostgreSQL\.Table\.Classes\.Column\>\)') first and nothing is built when it reports anything, so an import never replaces the page with a level it cannot show. Range rows come from the rule in ascending order with the color filed under the range; unique-value rows come from the collection keys, each converted back to the column's CLR type (`"null"` to the NULL bucket) so the page compares them with the values the unique-values endpoint lists. The inactive row list of a level is left empty rather than null, the shape `typology.js` keeps.
+
+```csharp
+public static DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter? TypologyDefinitionParameter(this DiGi.Typology.Visual.Classes.VisualColumnTypologyFilter<DiGi.Core.IO.Table.Classes.Column>? visualColumnTypologyFilter, System.Collections.Generic.IEnumerable<DiGi.PostgreSQL.Table.Classes.Column>? columns);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TypologyDefinitionParameter(thisDiGi.Typology.Visual.Classes.VisualColumnTypologyFilter_DiGi.Core.IO.Table.Classes.Column_,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_).visualColumnTypologyFilter'></a>
+
+`visualColumnTypologyFilter` [DiGi\.Typology\.Visual\.Classes\.VisualColumnTypologyFilter&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.visualcolumntypologyfilter-1 'DiGi\.Typology\.Visual\.Classes\.VisualColumnTypologyFilter\`1')[DiGi\.Core\.IO\.Table\.Classes\.Column](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.column 'DiGi\.Core\.IO\.Table\.Classes\.Column')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.visualcolumntypologyfilter-1 'DiGi\.Typology\.Visual\.Classes\.VisualColumnTypologyFilter\`1')
+
+The root of the document chain\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TypologyDefinitionParameter(thisDiGi.Typology.Visual.Classes.VisualColumnTypologyFilter_DiGi.Core.IO.Table.Classes.Column_,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_).columns'></a>
+
+`columns` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.PostgreSQL\.Table\.Classes\.Column](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.column 'DiGi\.PostgreSQL\.Table\.Classes\.Column')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The live column catalog of the building data table\. This value can be null\.
+
+#### Returns
+[TypologyDefinitionParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionParameter')  
+The page state, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the document is invalid or the catalog is unavailable\.
+
 <a name='DiGi.GIS.WebAPI.UI.Create.UserTokenCookieOptions()'></a>
 
 ## Create\.UserTokenCookieOptions\(\) Method
@@ -429,6 +481,35 @@ public static Microsoft.AspNetCore.Http.CookieOptions UserTokenCookieOptions();
 #### Returns
 [Microsoft\.AspNetCore\.Http\.CookieOptions](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.cookieoptions 'Microsoft\.AspNetCore\.Http\.CookieOptions')  
 The [Microsoft\.AspNetCore\.Http\.CookieOptions](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.cookieoptions 'Microsoft\.AspNetCore\.Http\.CookieOptions') used for the session token cookie\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.VisualColumnTypologyFilter(thisDiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_)'></a>
+
+## Create\.VisualColumnTypologyFilter\(this TypologyDefinitionParameter, IEnumerable\<Column\>\) Method
+
+Creates the Typology definition document from the page state: the [DiGi\.Typology\.Visual\.Classes\.VisualColumnTypologyFilter](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.visualcolumntypologyfilter 'DiGi\.Typology\.Visual\.Classes\.VisualColumnTypologyFilter') chain the page describes, one level per selected column\.
+
+The state is checked by [TypologyDefinitionErrors\(this TypologyDefinitionParameter, IEnumerable&lt;Column&gt;\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TypologyDefinitionErrors(thisDiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_) 'DiGi\.GIS\.WebAPI\.UI\.Query\.TypologyDefinitionErrors\(this DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionParameter, System\.Collections\.Generic\.IEnumerable\<DiGi\.PostgreSQL\.Table\.Classes\.Column\>\)') first and nothing is built when it reports anything, so the document never carries a partial level. Each level's column becomes a [DiGi\.Core\.IO\.Table\.Classes\.Column](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.column 'DiGi\.Core\.IO\.Table\.Classes\.Column') carrying the catalog name, index and CLR type - the document identifies it by the slug of that name (`Core.IO.Query.UniqueId`), which is the catalog's `UniqueId`; the index is the catalog's projection index and is not trusted by any reader. Colors are filed through the rule's appearance collection indexer, so the `"[min, max]"` and value keys are rendered by `DiGi.Typology.Visual.Query.Key` and never spelled here; a unique value is converted to the column's CLR type before it is keyed, so `2010` bound as a JSON number files under the same key as the stored value.
+
+```csharp
+public static DiGi.Typology.Visual.Classes.VisualColumnTypologyFilter? VisualColumnTypologyFilter(this DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter? typologyDefinitionParameter, System.Collections.Generic.IEnumerable<DiGi.PostgreSQL.Table.Classes.Column>? columns);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.VisualColumnTypologyFilter(thisDiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_).typologyDefinitionParameter'></a>
+
+`typologyDefinitionParameter` [TypologyDefinitionParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionParameter')
+
+The page state\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.VisualColumnTypologyFilter(thisDiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_).columns'></a>
+
+`columns` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.PostgreSQL\.Table\.Classes\.Column](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.column 'DiGi\.PostgreSQL\.Table\.Classes\.Column')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The live column catalog of the building data table\. This value can be null\.
+
+#### Returns
+[DiGi\.Typology\.Visual\.Classes\.VisualColumnTypologyFilter](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.visualcolumntypologyfilter 'DiGi\.Typology\.Visual\.Classes\.VisualColumnTypologyFilter')  
+The root of the chain, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the page state is invalid or the catalog is unavailable\.
 
 <a name='DiGi.GIS.WebAPI.UI.Modify'></a>
 
@@ -629,6 +710,35 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReference](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.classes.building2dreference 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReference')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The reference record, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there is none\.
 
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataColumnsAsync(thisSystem.Net.Http.HttpClient,System.Threading.CancellationToken)'></a>
+
+## Query\.BuildingDataColumnsAsync\(this HttpClient, CancellationToken\) Method
+
+Asynchronously reads the columns of the building data table from the GIS Web API\.
+
+The catalog is read live on every call: it is the reference every Typology definition is resolved against, and a definition must never be validated against a column list older than the one the page offered.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.PostgreSQL.Table.Classes.Column>?> BuildingDataColumnsAsync(this System.Net.Http.HttpClient? httpClient, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataColumnsAsync(thisSystem.Net.Http.HttpClient,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataColumnsAsync(thisSystem.Net.Http.HttpClient,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.PostgreSQL\.Table\.Classes\.Column](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.column 'DiGi\.PostgreSQL\.Table\.Classes\.Column')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The columns, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the GIS Web API answers nothing or cannot be reached\.
+
 <a name='DiGi.GIS.WebAPI.UI.Query.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,System.Threading.CancellationToken)'></a>
 
 ## Query\.BuildingModelAsync\(this HttpClient, long, Nullable\<int\>, CancellationToken\) Method
@@ -706,6 +816,75 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The stored [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel'), or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') if the building could not be found\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Color(thisDiGi.Typology.Visual.Classes.TypologyAppearance)'></a>
+
+## Query\.Color\(this TypologyAppearance\) Method
+
+Reads the single color the Typology definition page shows for a bucket appearance\.
+
+A [DiGi\.Typology\.Visual\.Classes\.TypologyAppearance](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.typologyappearance 'DiGi\.Typology\.Visual\.Classes\.TypologyAppearance') holds one appearance per shape kind; the page edits one color per bucket and writes it into every kind ([TypologyAppearance\(this Color\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.TypologyAppearance(thisDiGi.Core.Classes.Color) 'DiGi\.GIS\.WebAPI\.UI\.Create\.TypologyAppearance\(this DiGi\.Core\.Classes\.Color\)')), so any of them answers. The mesh appearance is preferred because buildings render as meshes; a document written elsewhere may carry only some kinds, so the first appearance carrying a color is the fallback.
+
+```csharp
+public static DiGi.Core.Classes.Color? Color(this DiGi.Typology.Visual.Classes.TypologyAppearance? typologyAppearance);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Color(thisDiGi.Typology.Visual.Classes.TypologyAppearance).typologyAppearance'></a>
+
+`typologyAppearance` [DiGi\.Typology\.Visual\.Classes\.TypologyAppearance](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.typologyappearance 'DiGi\.Typology\.Visual\.Classes\.TypologyAppearance')
+
+The bucket appearance\. This value can be null\.
+
+#### Returns
+[DiGi\.Core\.Classes\.Color](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.color 'DiGi\.Core\.Classes\.Color')  
+The color, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when no appearance carries one\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ColumnDictionary(System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_)'></a>
+
+## Query\.ColumnDictionary\(IEnumerable\<Column\>\) Method
+
+Indexes the building data columns by their unique identifier, the key a Typology definition addresses a column by\.
+
+A column without a unique identifier is skipped; when two columns share one the first is kept, as the deployed catalog never lists a duplicate (194 columns, 194 distinct identifiers on 2026-09-12) and a later duplicate would otherwise throw on insertion.
+
+```csharp
+public static System.Collections.Generic.Dictionary<string,DiGi.PostgreSQL.Table.Classes.Column>? ColumnDictionary(System.Collections.Generic.IEnumerable<DiGi.PostgreSQL.Table.Classes.Column>? columns);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ColumnDictionary(System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_).columns'></a>
+
+`columns` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.PostgreSQL\.Table\.Classes\.Column](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.column 'DiGi\.PostgreSQL\.Table\.Classes\.Column')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The columns\. This value can be null\.
+
+#### Returns
+[System\.Collections\.Generic\.Dictionary&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[,](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[DiGi\.PostgreSQL\.Table\.Classes\.Column](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.column 'DiGi\.PostgreSQL\.Table\.Classes\.Column')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')  
+The columns by unique identifier, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there are none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Hex(thisDiGi.Core.Classes.Color)'></a>
+
+## Query\.Hex\(this Color\) Method
+
+Renders a color as the `#rrggbb` string a color picker holds\.
+
+The alpha channel is dropped: the Typology definition page edits opaque colors only, and `Core.Convert.ToDrawing(string)` reads an eight digit form as RGBA rather than ARGB, so emitting it would round-trip wrongly. DiGi.Core ships only the parser; this is its emitter for the page.
+
+```csharp
+public static string? Hex(this DiGi.Core.Classes.Color? color);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Hex(thisDiGi.Core.Classes.Color).color'></a>
+
+`color` [DiGi\.Core\.Classes\.Color](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.color 'DiGi\.Core\.Classes\.Color')
+
+The color to render\. This value can be null\.
+
+#### Returns
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
+The lower case `#rrggbb` string, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when [color](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Hex(thisDiGi.Core.Classes.Color).color 'DiGi\.GIS\.WebAPI\.UI\.Query\.Hex\(this DiGi\.Core\.Classes\.Color\)\.color') is null\.
 
 <a name='DiGi.GIS.WebAPI.UI.Query.ItemAsync_T_(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken)'></a>
 
@@ -1190,3 +1369,98 @@ The response body to read\. This value can be null\.
 #### Returns
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
 The session token, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the body carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TryConvertValue(object,DiGi.Core.Enums.DataType,object)'></a>
+
+## Query\.TryConvertValue\(object, DataType, object\) Method
+
+Attempts to convert a value of a Typology definition row to the CLR type of its column\.
+
+A value bound from a request body is a [System\.Text\.Json\.JsonElement](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.jsonelement 'System\.Text\.Json\.JsonElement'), which `Core.Query.TryConvert(object, out object, DataType)` does not unwrap, so this dispatches to the [System\.Text\.Json\.JsonElement](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.jsonelement 'System\.Text\.Json\.JsonElement') overload first. A JSON null and a CLR null both convert to [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null'), the NULL bucket of a unique-value rule; a column whose [dataType](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TryConvertValue(object,DiGi.Core.Enums.DataType,object).dataType 'DiGi\.GIS\.WebAPI\.UI\.Query\.TryConvertValue\(object, DiGi\.Core\.Enums\.DataType, object\)\.dataType') is [DiGi\.Core\.Enums\.DataType\.Undefined](https://learn.microsoft.com/en-us/dotnet/api/digi.core.enums.datatype.undefined 'DiGi\.Core\.Enums\.DataType\.Undefined') converts nothing.
+
+```csharp
+public static bool TryConvertValue(object? value, DiGi.Core.Enums.DataType dataType, out object? result);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TryConvertValue(object,DiGi.Core.Enums.DataType,object).value'></a>
+
+`value` [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object')
+
+The value to convert: a CLR primitive, a [System\.Text\.Json\.JsonElement](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.jsonelement 'System\.Text\.Json\.JsonElement') or null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TryConvertValue(object,DiGi.Core.Enums.DataType,object).dataType'></a>
+
+`dataType` [DiGi\.Core\.Enums\.DataType](https://learn.microsoft.com/en-us/dotnet/api/digi.core.enums.datatype 'DiGi\.Core\.Enums\.DataType')
+
+The data type of the column the value belongs to\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TryConvertValue(object,DiGi.Core.Enums.DataType,object).result'></a>
+
+`result` [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object')
+
+When this method returns, the converted value, or null for a null input or a failed conversion\.
+
+#### Returns
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')  
+[true](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/bool 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/builtin\-types/bool') when the value converts, or is null; otherwise [false](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/bool 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/builtin\-types/bool')\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TypologyDefinitionErrors(thisDiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_)'></a>
+
+## Query\.TypologyDefinitionErrors\(this TypologyDefinitionParameter, IEnumerable\<Column\>\) Method
+
+Lists everything that stops a Typology definition page state from becoming a document\.
+
+Every level must name a column of [columns](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TypologyDefinitionErrors(thisDiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_).columns 'DiGi\.GIS\.WebAPI\.UI\.Query\.TypologyDefinitionErrors\(this DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionParameter, System\.Collections\.Generic\.IEnumerable\<DiGi\.PostgreSQL\.Table\.Classes\.Column\>\)\.columns') exactly once and carry a rule type the column admits: `VisualIntegerRangeFilterRule` needs an integer column, `VisualDoubleRangeFilterRule` a floating point one (the split `typology.js` makes), `VisualUniqueValueFilterRule` any column. Range rows need both bounds (whole numbers on an integer rule), an ascending order that does not overlap - closed intervals keyed by their minimum, so two rows sharing a minimum would silently replace each other in the rule - and a parseable color; unique-value rows need a value the column type admits, listed once, and a parseable color. The rule kind is never inferred from the column: a numeric column may be classified by unique value.
+
+Messages name the level and the row so the page can show them as they are.
+
+```csharp
+public static System.Collections.Generic.List<string> TypologyDefinitionErrors(this DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter? typologyDefinitionParameter, System.Collections.Generic.IEnumerable<DiGi.PostgreSQL.Table.Classes.Column>? columns);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TypologyDefinitionErrors(thisDiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_).typologyDefinitionParameter'></a>
+
+`typologyDefinitionParameter` [TypologyDefinitionParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionParameter')
+
+The page state to check\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TypologyDefinitionErrors(thisDiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_).columns'></a>
+
+`columns` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.PostgreSQL\.Table\.Classes\.Column](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.column 'DiGi\.PostgreSQL\.Table\.Classes\.Column')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The live column catalog of the building data table\. This value can be null\.
+
+#### Returns
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
+The errors, empty when the page state is valid\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TypologyDefinitionErrors(thisDiGi.Typology.Visual.Classes.VisualColumnTypologyFilter_DiGi.Core.IO.Table.Classes.Column_,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_)'></a>
+
+## Query\.TypologyDefinitionErrors\(this VisualColumnTypologyFilter\<Column\>, IEnumerable\<Column\>\) Method
+
+Lists everything that stops a Typology definition document from being loaded into the page\.
+
+Beyond the checks of the page state overload, a document may carry what the page cannot show: a level whose column is not in [columns](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TypologyDefinitionErrors(thisDiGi.Typology.Visual.Classes.VisualColumnTypologyFilter_DiGi.Core.IO.Table.Classes.Column_,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_).columns 'DiGi\.GIS\.WebAPI\.UI\.Query\.TypologyDefinitionErrors\(this DiGi\.Typology\.Visual\.Classes\.VisualColumnTypologyFilter\<DiGi\.Core\.IO\.Table\.Classes\.Column\>, System\.Collections\.Generic\.IEnumerable\<DiGi\.PostgreSQL\.Table\.Classes\.Column\>\)\.columns') (resolved by `Core.IO.Query.UniqueId`, the slug of the column name, exactly as the solver resolves it), a rule class the page has no editor for, a range without a color, an appearance filed under a key that matches no range (the orphan a client spelling the key itself would produce), an appearance carrying no color, or a unique-value key the column type cannot hold. The rule keeps its ranges sorted by minimum but rejects no overlap, so the overlap check is repeated here. A chain linking back on itself is refused.
+
+```csharp
+public static System.Collections.Generic.List<string> TypologyDefinitionErrors(this DiGi.Typology.Visual.Classes.VisualColumnTypologyFilter<DiGi.Core.IO.Table.Classes.Column>? visualColumnTypologyFilter, System.Collections.Generic.IEnumerable<DiGi.PostgreSQL.Table.Classes.Column>? columns);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TypologyDefinitionErrors(thisDiGi.Typology.Visual.Classes.VisualColumnTypologyFilter_DiGi.Core.IO.Table.Classes.Column_,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_).visualColumnTypologyFilter'></a>
+
+`visualColumnTypologyFilter` [DiGi\.Typology\.Visual\.Classes\.VisualColumnTypologyFilter&lt;](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.visualcolumntypologyfilter-1 'DiGi\.Typology\.Visual\.Classes\.VisualColumnTypologyFilter\`1')[DiGi\.Core\.IO\.Table\.Classes\.Column](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.column 'DiGi\.Core\.IO\.Table\.Classes\.Column')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.visualcolumntypologyfilter-1 'DiGi\.Typology\.Visual\.Classes\.VisualColumnTypologyFilter\`1')
+
+The root of the document chain\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TypologyDefinitionErrors(thisDiGi.Typology.Visual.Classes.VisualColumnTypologyFilter_DiGi.Core.IO.Table.Classes.Column_,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_).columns'></a>
+
+`columns` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.PostgreSQL\.Table\.Classes\.Column](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.column 'DiGi\.PostgreSQL\.Table\.Classes\.Column')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The live column catalog of the building data table\. This value can be null\.
+
+#### Returns
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
+The errors, empty when the document can be shown by the page\.

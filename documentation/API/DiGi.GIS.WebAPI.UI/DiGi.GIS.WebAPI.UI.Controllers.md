@@ -1949,6 +1949,35 @@ public TypologyController(System.Net.Http.IHttpClientFactory httpClientFactory);
 The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') the feature's data actions use to create [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') instances\.
 ### Methods
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.ExportDefinitionAsync(DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Threading.CancellationToken)'></a>
+
+## TypologyController\.ExportDefinitionAsync\(TypologyDefinitionParameter, CancellationToken\) Method
+
+Turns the page state of the Typology definition page into its document: the DiGi JSON of a [DiGi\.Typology\.Visual\.Classes\.VisualColumnTypologyFilter](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.visualcolumntypologyfilter 'DiGi\.Typology\.Visual\.Classes\.VisualColumnTypologyFilter') chain, which is what the page downloads on Export and what [ValidateDefinitionAsync\(JsonObject, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TypologyController.ValidateDefinitionAsync(System.Text.Json.Nodes.JsonObject,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TypologyController\.ValidateDefinitionAsync\(System\.Text\.Json\.Nodes\.JsonObject, System\.Threading\.CancellationToken\)') reads back on Import\.
+
+The state is resolved against the live column catalog and checked by [TypologyDefinitionErrors\(this TypologyDefinitionParameter, IEnumerable&lt;Column&gt;\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TypologyDefinitionErrors(thisDiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_) 'DiGi\.GIS\.WebAPI\.UI\.Query\.TypologyDefinitionErrors\(this DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionParameter, System\.Collections\.Generic\.IEnumerable\<DiGi\.PostgreSQL\.Table\.Classes\.Column\>\)'); the document is composed here so that the browser never spells a `_type` or an appearance key. Unlike the read actions above, a rejected state answers 400 with the error list as a JSON string array - the page shows it as it is - because the visitor can act on it; an unreachable catalog is not the visitor's fault and answers 503.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> ExportDefinitionAsync(DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter? typologyDefinitionParameter, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.ExportDefinitionAsync(DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Threading.CancellationToken).typologyDefinitionParameter'></a>
+
+`typologyDefinitionParameter` [TypologyDefinitionParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionParameter')
+
+The page state, as `typology.js` holds it\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.ExportDefinitionAsync(DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the document as JSON, a 400 Bad Request response carrying the error list, or a 503 Service Unavailable response when the column catalog cannot be read\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetColumnsAsync(System.Threading.CancellationToken)'></a>
 
 ## TypologyController\.GetColumnsAsync\(CancellationToken\) Method
@@ -2018,6 +2047,35 @@ public Microsoft.AspNetCore.Mvc.IActionResult Start();
 #### Returns
 [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
 An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') result that renders the start view\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.ValidateDefinitionAsync(System.Text.Json.Nodes.JsonObject,System.Threading.CancellationToken)'></a>
+
+## TypologyController\.ValidateDefinitionAsync\(JsonObject, CancellationToken\) Method
+
+Reads a Typology definition document chosen for Import, validates it against the live column catalog and answers the page state the page replaces its own with\.
+
+The body is bound as a JSON object so that a file that is not JSON is refused before anything is read from it; a body whose `_type` names no known class deserializes to nothing and is refused the same way - never turned into an emptied level. Every check of [TypologyDefinitionErrors\(this VisualColumnTypologyFilter&lt;Column&gt;, IEnumerable&lt;Column&gt;\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TypologyDefinitionErrors(thisDiGi.Typology.Visual.Classes.VisualColumnTypologyFilter_DiGi.Core.IO.Table.Classes.Column_,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_) 'DiGi\.GIS\.WebAPI\.UI\.Query\.TypologyDefinitionErrors\(this DiGi\.Typology\.Visual\.Classes\.VisualColumnTypologyFilter\<DiGi\.Core\.IO\.Table\.Classes\.Column\>, System\.Collections\.Generic\.IEnumerable\<DiGi\.PostgreSQL\.Table\.Classes\.Column\>\)') answers 400 with the error list; only a document the page can show in full answers 200, so the page state is replaced after this action succeeds and never before.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> ValidateDefinitionAsync(System.Text.Json.Nodes.JsonObject? jsonObject, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.ValidateDefinitionAsync(System.Text.Json.Nodes.JsonObject,System.Threading.CancellationToken).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The document, the JSON [ExportDefinitionAsync\(TypologyDefinitionParameter, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TypologyController.ExportDefinitionAsync(DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TypologyController\.ExportDefinitionAsync\(DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionParameter, System\.Threading\.CancellationToken\)') produced\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.ValidateDefinitionAsync(System.Text.Json.Nodes.JsonObject,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the page state, a 400 Bad Request response carrying the error list, or a 503 Service Unavailable response when the column catalog cannot be read\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.UserController'></a>
 

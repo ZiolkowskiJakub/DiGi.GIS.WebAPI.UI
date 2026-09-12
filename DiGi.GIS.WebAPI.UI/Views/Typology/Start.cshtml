@@ -1,7 +1,7 @@
 @{
     ViewData["Title"] = "Typology";
     ViewData["Description"] = "Define a building typology: chain building-data columns into classification rules with ranges and colors, and load it for an administrative area.";
-    @* TODO [TypologyShell]: remove the noindex and the disabled action bar once #14-#18 ship the working sections and buttons (#19). *@
+    @* TODO [TypologyShell]: remove the noindex and the disabled Load button once #18 ships the Load modal (#19). *@
     ViewData["Robots"] = "noindex, nofollow";
 }
 
@@ -19,11 +19,12 @@
         <p class="gis-hero-text">
             Chain columns of the building data into classification rules - rule type, ranges and the colors they map to - to define a building typology, then load it for an administrative area.
         </p>
-        @* The action bar ships disabled: Import/Export come with #17, Load with #18. The buttons themselves are permanent. *@
+        @* Import and Export (#17) round-trip the definition through the server; Load stays disabled until #18. The file input is the picker Import opens and is never shown on its own. *@
         <div class="gis-form-row">
-            <button type="button" class="gis-button" disabled>Import</button>
-            <button type="button" class="gis-button" disabled>Export</button>
+            <button type="button" id="typology-import-button" class="gis-button">Import</button>
+            <button type="button" id="typology-export-button" class="gis-button">Export</button>
             <button type="button" class="gis-button" disabled>Load</button>
+            <input type="file" id="typology-import-file" accept=".json,application/json" hidden />
         </div>
     </div>
 

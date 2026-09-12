@@ -200,6 +200,231 @@ public System.Nullable<double> RelativePermittivity { get; set; }
 #### Property Value
 [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionLevelParameter'></a>
+
+## TypologyDefinitionLevelParameter Class
+
+One level of the Typology definition page state: a selected building\-data column, its rule type and the rows of the active rule editor\.
+
+[Name](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionLevelParameter.Name 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionLevelParameter\.Name'), [DataType](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionLevelParameter.DataType 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionLevelParameter\.DataType') and [IsNumeric](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionLevelParameter.IsNumeric 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionLevelParameter\.IsNumeric') describe the column as listed by the deployed GIS Web API; the server fills them from the live column catalog on import and ignores them on export, where the column is identified by [UniqueId](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionLevelParameter.UniqueId 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionLevelParameter\.UniqueId') alone.
+
+```csharp
+public class TypologyDefinitionLevelParameter
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → TypologyDefinitionLevelParameter
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionLevelParameter.DataType'></a>
+
+## TypologyDefinitionLevelParameter\.DataType Property
+
+Gets or sets the integer [DiGi\.Core\.Enums\.DataType](https://learn.microsoft.com/en-us/dotnet/api/digi.core.enums.datatype 'DiGi\.Core\.Enums\.DataType') value of the column \(0 Undefined through 14 String\)\.
+
+```csharp
+public int DataType { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionLevelParameter.IsNumeric'></a>
+
+## TypologyDefinitionLevelParameter\.IsNumeric Property
+
+Gets or sets a value indicating whether the column is numeric and eligible for a range rule\.
+
+```csharp
+public bool IsNumeric { get; set; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionLevelParameter.Name'></a>
+
+## TypologyDefinitionLevelParameter\.Name Property
+
+Gets or sets the display name of the column\.
+
+```csharp
+public string? Name { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionLevelParameter.Ranges'></a>
+
+## TypologyDefinitionLevelParameter\.Ranges Property
+
+Gets or sets the range rows, read when [RuleType](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionLevelParameter.RuleType 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionLevelParameter\.RuleType') names a range rule\.
+
+```csharp
+public System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionRangeParameter>? Ranges { get; set; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[TypologyDefinitionRangeParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionRangeParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionRangeParameter')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionLevelParameter.RuleType'></a>
+
+## TypologyDefinitionLevelParameter\.RuleType Property
+
+Gets or sets the rule class name: `VisualIntegerRangeFilterRule`, `VisualDoubleRangeFilterRule` or `VisualUniqueValueFilterRule`\. Null when no rule has been chosen yet\.
+
+```csharp
+public string? RuleType { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionLevelParameter.UniqueId'></a>
+
+## TypologyDefinitionLevelParameter\.UniqueId Property
+
+Gets or sets the unique identifier \(slug\) of the column, as addressed by the deployed GIS Web API\.
+
+```csharp
+public string? UniqueId { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionLevelParameter.UniqueValueColors'></a>
+
+## TypologyDefinitionLevelParameter\.UniqueValueColors Property
+
+Gets or sets the unique\-value rows, read when [RuleType](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionLevelParameter.RuleType 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionLevelParameter\.RuleType') names the unique\-value rule\.
+
+```csharp
+public System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionUniqueValueParameter>? UniqueValueColors { get; set; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[TypologyDefinitionUniqueValueParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionUniqueValueParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionUniqueValueParameter')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter'></a>
+
+## TypologyDefinitionParameter Class
+
+The page state of the Typology definition page: the chain of selected building\-data columns, each with its rule type, ranges and colors\.
+
+This is the wire contract of `POST /typology/definition/export` (request) and `POST /typology/definition/validate` (response), serialized camelCase by the application's default JSON options, exactly as `typology.js` holds it. The DiGi document ([DiGi\.Typology\.Visual\.Classes\.VisualColumnTypologyFilter](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.visualcolumntypologyfilter 'DiGi\.Typology\.Visual\.Classes\.VisualColumnTypologyFilter')) is composed and parsed on the server only, so the page never spells a `_type` or a `TypologyAppearanceCollection` key.
+
+```csharp
+public class TypologyDefinitionParameter
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → TypologyDefinitionParameter
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter.Levels'></a>
+
+## TypologyDefinitionParameter\.Levels Property
+
+Gets or sets the levels of the chain, root first\.
+
+```csharp
+public System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionLevelParameter>? Levels { get; set; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[TypologyDefinitionLevelParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionLevelParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionLevelParameter')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionRangeParameter'></a>
+
+## TypologyDefinitionRangeParameter Class
+
+One range row of a Typology definition level: a closed interval and the color of the bucket it maps to\.
+
+```csharp
+public class TypologyDefinitionRangeParameter
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → TypologyDefinitionRangeParameter
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionRangeParameter.Color'></a>
+
+## TypologyDefinitionRangeParameter\.Color Property
+
+Gets or sets the bucket color as the color picker holds it, `#rrggbb`\.
+
+```csharp
+public string? Color { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionRangeParameter.Max'></a>
+
+## TypologyDefinitionRangeParameter\.Max Property
+
+Gets or sets the inclusive upper bound\. Null when the row is still being typed\.
+
+```csharp
+public System.Nullable<double> Max { get; set; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionRangeParameter.Min'></a>
+
+## TypologyDefinitionRangeParameter\.Min Property
+
+Gets or sets the inclusive lower bound\. Null when the row is still being typed\.
+
+```csharp
+public System.Nullable<double> Min { get; set; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionUniqueValueParameter'></a>
+
+## TypologyDefinitionUniqueValueParameter Class
+
+One unique\-value row of a Typology definition level: a value of the column and the color of the bucket it maps to\.
+
+```csharp
+public class TypologyDefinitionUniqueValueParameter
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → TypologyDefinitionUniqueValueParameter
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionUniqueValueParameter.Color'></a>
+
+## TypologyDefinitionUniqueValueParameter\.Color Property
+
+Gets or sets the bucket color as the color picker holds it, `#rrggbb`\.
+
+```csharp
+public string? Color { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionUniqueValueParameter.Value'></a>
+
+## TypologyDefinitionUniqueValueParameter\.Value Property
+
+Gets or sets the value, a JSON primitive or null for the NULL bucket\. Bound from a request body it arrives as a [System\.Text\.Json\.JsonElement](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.jsonelement 'System\.Text\.Json\.JsonElement'); read it through [TryConvertValue\(object, DataType, object\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TryConvertValue(object,DiGi.Core.Enums.DataType,object) 'DiGi\.GIS\.WebAPI\.UI\.Query\.TryConvertValue\(object, DiGi\.Core\.Enums\.DataType, object\)'), never by pattern matching on a CLR primitive\.
+
+```csharp
+public object? Value { get; set; }
+```
+
+#### Property Value
+[System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object')
+
 <a name='DiGi.GIS.WebAPI.UI.Classes.UserLoginParameter'></a>
 
 ## UserLoginParameter Class

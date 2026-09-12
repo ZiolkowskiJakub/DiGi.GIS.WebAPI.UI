@@ -6,7 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using DiGi.GIS.WebAPI.UI.ViewModels;
 using DiGi.WebAPI.Classes;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json.Nodes;
 
 namespace DiGi.GIS.WebAPI.UI.Controllers
 {
@@ -49,10 +51,8 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         {
             HttpClient httpClient = httpClientFactory.CreateClient();
 
-            List<DiGi.PostgreSQL.Table.Classes.Column>? columns = await httpClient.ItemsAsync<DiGi.PostgreSQL.Table.Classes.Column>(
-                $"{Constants.Default.GISWebAPIUri}/gis/BuildingData/columns", cancellationToken);
-
-            if (columns is null || columns.Count == 0)
+            List<DiGi.PostgreSQL.Table.Classes.Column>? columns = await httpClient.BuildingDataColumnsAsync(cancellationToken);
+            if (columns is null)
             {
                 return NoContent();
             }
@@ -99,6 +99,89 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             }
 
             return Content(json, "application/json");
+        }
+
+        /// <summary>
+        /// Turns the page state of the Typology definition page into its document: the DiGi JSON of a <see cref="DiGi.Typology.Visual.Classes.VisualColumnTypologyFilter"/> chain, which is what the page downloads on Export and what <see cref="ValidateDefinitionAsync"/> reads back on Import.
+        /// <para>The state is resolved against the live column catalog and checked by <see cref="Query.TypologyDefinitionErrors(Classes.TypologyDefinitionParameter, IEnumerable{DiGi.PostgreSQL.Table.Classes.Column})"/>; the document is composed here so that the browser never spells a <c>_type</c> or an appearance key. Unlike the read actions above, a rejected state answers 400 with the error list as a JSON string array - the page shows it as it is - because the visitor can act on it; an unreachable catalog is not the visitor's fault and answers 503.</para>
+        /// </summary>
+        /// <param name="typologyDefinitionParameter">The page state, as <c>typology.js</c> holds it.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> containing the document as JSON, a 400 Bad Request response carrying the error list, or a 503 Service Unavailable response when the column catalog cannot be read.</returns>
+        [HttpPost("definition/export")]
+        public async Task<IActionResult> ExportDefinitionAsync([FromBody] Classes.TypologyDefinitionParameter? typologyDefinitionParameter, CancellationToken cancellationToken = default)
+        {
+            if (typologyDefinitionParameter == null)
+            {
+                return BadRequest(new List<string>() { "The request carries no definition." });
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            List<DiGi.PostgreSQL.Table.Classes.Column>? columns = await httpClient.BuildingDataColumnsAsync(cancellationToken);
+            if (columns is null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            List<string> errors = Query.TypologyDefinitionErrors(typologyDefinitionParameter, columns);
+            if (errors.Count != 0)
+            {
+                return BadRequest(errors);
+            }
+
+            DiGi.Typology.Visual.Classes.VisualColumnTypologyFilter? visualColumnTypologyFilter = Create.VisualColumnTypologyFilter(typologyDefinitionParameter, columns);
+            string? json = Core.Convert.ToSystem_String(visualColumnTypologyFilter);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return BadRequest(new List<string>() { "The definition could not be serialized." });
+            }
+
+            return Content(json, "application/json");
+        }
+
+        /// <summary>
+        /// Reads a Typology definition document chosen for Import, validates it against the live column catalog and answers the page state the page replaces its own with.
+        /// <para>The body is bound as a JSON object so that a file that is not JSON is refused before anything is read from it; a body whose <c>_type</c> names no known class deserializes to nothing and is refused the same way - never turned into an emptied level. Every check of <see cref="Query.TypologyDefinitionErrors(DiGi.Typology.Visual.Classes.VisualColumnTypologyFilter{Core.IO.Table.Classes.Column}, IEnumerable{DiGi.PostgreSQL.Table.Classes.Column})"/> answers 400 with the error list; only a document the page can show in full answers 200, so the page state is replaced after this action succeeds and never before.</para>
+        /// </summary>
+        /// <param name="jsonObject">The document, the JSON <see cref="ExportDefinitionAsync"/> produced.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> containing the page state, a 400 Bad Request response carrying the error list, or a 503 Service Unavailable response when the column catalog cannot be read.</returns>
+        [HttpPost("definition/validate")]
+        public async Task<IActionResult> ValidateDefinitionAsync([FromBody] JsonObject? jsonObject, CancellationToken cancellationToken = default)
+        {
+            if (jsonObject == null)
+            {
+                return BadRequest(new List<string>() { "The file is not a JSON object." });
+            }
+
+            DiGi.Typology.Visual.Classes.VisualColumnTypologyFilter? visualColumnTypologyFilter = Core.Convert.ToDiGi<DiGi.Typology.Visual.Classes.VisualColumnTypologyFilter>(jsonObject.ToJsonString())?.FirstOrDefault();
+            if (visualColumnTypologyFilter == null)
+            {
+                return BadRequest(new List<string>() { "The file is not a Typology definition: its _type is not a VisualColumnTypologyFilter." });
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            List<DiGi.PostgreSQL.Table.Classes.Column>? columns = await httpClient.BuildingDataColumnsAsync(cancellationToken);
+            if (columns is null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            List<string> errors = Query.TypologyDefinitionErrors(visualColumnTypologyFilter, columns);
+            if (errors.Count != 0)
+            {
+                return BadRequest(errors);
+            }
+
+            Classes.TypologyDefinitionParameter? typologyDefinitionParameter = Create.TypologyDefinitionParameter(visualColumnTypologyFilter, columns);
+            if (typologyDefinitionParameter == null)
+            {
+                return BadRequest(new List<string>() { "The definition could not be read." });
+            }
+
+            return Ok(typologyDefinitionParameter);
         }
     }
 }
