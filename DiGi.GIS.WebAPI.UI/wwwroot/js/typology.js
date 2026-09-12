@@ -335,14 +335,14 @@ const digiTypology = (function () {
         }
         level.uniqueValueColors.splice(index, 1);
         renderProperties();
-        focusPropertiesField('button[data-action="load-values"]');
+        focusPropertiesField('button[data-action="select-scope"]');
     }
 
     function clearUniqueValues(level) {
         level.uniqueValueColors = [];
         uniqueValuesMessage = null;
         renderProperties();
-        focusPropertiesField('button[data-action="load-values"]');
+        focusPropertiesField('button[data-action="select-scope"]');
     }
 
     function setUniqueValueColor(level, index, color) {
@@ -351,14 +351,31 @@ const digiTypology = (function () {
         }
     }
 
-    // The county part that scopes "Load values" — a load scope, not part of the definition, so it lives
-    // beside the state rather than on a level. null means the whole table (slow; may answer nothing).
-    let uniqueValuesCountyId = null;
+    // The administrative area that scopes the values load — a load scope, not part of the definition,
+    // so it lives beside the state rather than on a level. null until an area is chosen, the only
+    // state in which no load can start. Picked in the same modal as Load:
+    // { name, code, administrativeArealType, countyIds }, where countyIds is the resolved list of
+    // county part ids (null until resolved, empty for a country, which loads the whole table).
+    let uniqueValuesScope = null;
     // The in-flight request (so a second click or a level switch cancels the first), the uniqueId of
-    // the level whose values are loading, and the outcome message of the last load.
+    // the level whose values are loading, the progress line shown while loading, and the outcome
+    // message of the last load.
     let uniqueValuesAbortController = null;
     let uniqueValuesLoadingId = null;
+    let uniqueValuesProgress = null;
     let uniqueValuesMessage = null;
+    // The upstream endpoint filters by one county part at a time and takes several seconds per part,
+    // so an area is loaded county by county, a few in flight at once, and every answer is merged as it
+    // arrives.
+    const uniqueValuesConcurrency = 3;
+
+    // A values load is capped: a colour-per-value list longer than this is too large to work with, so
+    // the load is refused with a message instead of rendering the values.
+    const uniqueValuesLimit = 100;
+
+    function uniqueValuesScopeName() {
+        return uniqueValuesScope === null ? 'Whole table' : uniqueValuesScope.name;
+    }
 
     function loadUniqueValues(level) {
         abortUniqueValuesLoad();
@@ -366,45 +383,203 @@ const digiTypology = (function () {
         const abortController = new AbortController();
         uniqueValuesAbortController = abortController;
         uniqueValuesLoadingId = level.uniqueId;
+        uniqueValuesProgress = null;
         uniqueValuesMessage = null;
         renderProperties();
 
-        let url = baseUrl() + '/typology/uniquevalues?columnuniqueid=' + encodeURIComponent(level.uniqueId);
-        if (uniqueValuesCountyId !== null) {
-            url += '&countyid=' + encodeURIComponent(String(uniqueValuesCountyId));
+        function current() {
+            return uniqueValuesAbortController === abortController; // false once superseded by a later load or a level switch
         }
 
-        function finish(values) {
-            if (uniqueValuesAbortController !== abortController) {
-                return; // superseded by a later load or a level switch
+        function finish(message) {
+            if (!current()) {
+                return;
             }
             uniqueValuesAbortController = null;
             uniqueValuesLoadingId = null;
-            if (Array.isArray(values)) {
-                mergeUniqueValues(level, values);
-                uniqueValuesMessage = values.length === 0 ? 'No values returned.' : null;
-            } else {
-                // 204 from the proxy covers an empty column, an unknown column and an upstream
-                // timeout alike; a national load is the usual cause of the last one.
-                uniqueValuesMessage = 'No values returned' + (uniqueValuesCountyId === null ? ' — try a county id; a load over the whole table can exceed the service timeout.' : '.');
-            }
+            uniqueValuesProgress = null;
+            uniqueValuesMessage = message;
             renderProperties();
         }
 
-        fetch(url, { signal: abortController.signal })
-            .then(function (response) {
-                if (response.status === 204 || !response.ok) {
+        // A scoped load whose merged values pass uniqueValuesLimit is refused: the rows it added are
+        // rolled back to this snapshot, the county requests still in flight are cancelled, and the
+        // outcome message says why. The rollback matters because a merge happens county by county —
+        // without it a refused load would leave the values of its first few counties behind.
+        const rowsBeforeLoad = level.uniqueValueColors.slice();
+
+        function exceedLimit() {
+            level.uniqueValueColors = rowsBeforeLoad;
+            abortController.abort(); // the county requests still in flight; their AbortError lands in the catch below
+            finish('The selected area has more than ' + uniqueValuesLimit + ' unique values — they cannot be loaded. Select a smaller area.');
+        }
+
+        // One uniquevalues request; resolves to the value array, or null for 204 and every failure —
+        // 204 from the proxy covers an empty column, an unknown column and an upstream timeout alike.
+        function fetchValues(countyId) {
+            let url = baseUrl() + '/typology/uniquevalues?columnuniqueid=' + encodeURIComponent(level.uniqueId);
+            if (countyId !== null) {
+                url += '&countyid=' + encodeURIComponent(String(countyId));
+            }
+            return fetch(url, { signal: abortController.signal })
+                .then(function (response) {
+                    if (response.status === 204 || !response.ok) {
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(function (values) {
+                    return Array.isArray(values) ? values : null;
+                })
+                .catch(function (error) {
+                    if (error !== null && error !== undefined && error.name === 'AbortError') {
+                        throw error;
+                    }
                     return null;
-                }
-                return response.json();
-            })
-            .then(finish)
-            .catch(function (error) {
-                if (error !== null && error !== undefined && error.name === 'AbortError') {
+                });
+        }
+
+        function loadWholeTable() {
+            return fetchValues(null).then(function (values) {
+                if (!current()) {
                     return;
                 }
-                finish(null);
+                if (values === null) {
+                    finish('No values returned — select an area; a load over the whole table can exceed the service timeout.');
+                    return;
+                }
+                mergeUniqueValues(level, values);
+                // Reached only through a country selection, so the limit applies here too.
+                if (level.uniqueValueColors.length > uniqueValuesLimit) {
+                    exceedLimit();
+                    return;
+                }
+                finish(values.length === 0 ? 'No values returned.' : null);
             });
+        }
+
+        function loadCounties(countyIds) {
+            const total = countyIds.length;
+            let next = 0;
+            let done = 0;
+            let answered = 0;
+            let added = 0;
+
+            function progress() {
+                uniqueValuesProgress = 'Loading values… ' + done + ' of ' + total + ' ' + (total === 1 ? 'county' : 'counties') + '.';
+                renderProperties();
+            }
+
+            function worker() {
+                if (!current() || next >= total) {
+                    return Promise.resolve();
+                }
+                const countyId = countyIds[next++];
+                return fetchValues(countyId).then(function (values) {
+                    if (!current()) {
+                        return;
+                    }
+                    done++;
+                    if (values !== null) {
+                        answered++;
+                        const before = level.uniqueValueColors.length;
+                        mergeUniqueValues(level, values);
+                        added += level.uniqueValueColors.length - before;
+                        // loadCounties is reached only through a selected area, so the limit applies
+                        // unconditionally here.
+                        if (level.uniqueValueColors.length > uniqueValuesLimit) {
+                            exceedLimit();
+                            return;
+                        }
+                    }
+                    progress();
+                    return worker();
+                });
+            }
+
+            progress();
+            const workers = [];
+            for (let i = 0; i < uniqueValuesConcurrency && i < total; i++) {
+                workers.push(worker());
+            }
+            return Promise.all(workers).then(function () {
+                if (!current()) {
+                    return;
+                }
+                if (answered === 0) {
+                    finish('No values returned.');
+                } else if (answered < total) {
+                    finish(added + ' new ' + (added === 1 ? 'value' : 'values') + '; ' + (total - answered) + ' of ' + total + ' counties answered nothing.');
+                } else {
+                    finish(null);
+                }
+            });
+        }
+
+        function resolveCountyIds() {
+            if (uniqueValuesScope.countyIds !== null) {
+                return Promise.resolve(uniqueValuesScope.countyIds);
+            }
+            const scope = uniqueValuesScope;
+            const url = baseUrl() + '/typology/countyids?code=' + encodeURIComponent(scope.code) + '&administrativearealtype=' + scope.administrativeArealType;
+            return fetch(url, { signal: abortController.signal })
+                .then(function (response) {
+                    if (response.status === 204 || !response.ok) {
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(function (ids) {
+                    if (!Array.isArray(ids)) {
+                        return null;
+                    }
+                    scope.countyIds = ids;
+                    return ids;
+                });
+        }
+
+        // A load starts only from a chosen area — the confirm callback of the Load Area modal sets the
+        // scope and loads at once — so every load resolves counties; a country resolves to none and
+        // loads the whole table.
+        const chain = resolveCountyIds().then(function (countyIds) {
+            if (!current()) {
+                return;
+            }
+            if (countyIds === null) {
+                finish('The area could not be resolved into counties — try another area.');
+                return;
+            }
+            return countyIds.length === 0 ? loadWholeTable() : loadCounties(countyIds);
+        });
+
+        chain.catch(function (error) {
+            if (error !== null && error !== undefined && error.name === 'AbortError') {
+                return;
+            }
+            finish('The load failed — try again.');
+        });
+    }
+
+    // "Select area…" in Column Properties: the Load Area modal picks the scope; a chosen area starts a
+    // load at once, so the button is one step rather than two.
+    function selectUniqueValuesScope(level) {
+        const container = propertiesContainer();
+        openLoadModal({
+            opener: container !== null ? container.querySelector('button[data-action="select-scope"]') : null,
+            title: 'Load Values From Area',
+            confirm: function (target) {
+                uniqueValuesScope = { name: target.name, code: target.code, administrativeArealType: target.administrativeArealType, countyIds: null };
+                loadUniqueValues(level);
+            }
+        });
+    }
+
+    function clearUniqueValuesScope() {
+        abortUniqueValuesLoad();
+        uniqueValuesScope = null;
+        uniqueValuesMessage = null;
+        renderProperties();
+        focusPropertiesField('button[data-action="select-scope"]');
     }
 
     function abortUniqueValuesLoad() {
@@ -413,6 +588,7 @@ const digiTypology = (function () {
             uniqueValuesAbortController = null;
         }
         uniqueValuesLoadingId = null;
+        uniqueValuesProgress = null;
     }
 
     function focusPropertiesField(selector) {
@@ -596,7 +772,7 @@ const digiTypology = (function () {
 
         let rows;
         if (loading) {
-            rows = '<div class="gis-loader"></div><p class="gis-loader-text">Loading values…</p>';
+            rows = '<div class="gis-loader"></div><p class="gis-loader-text">' + escapeHtml(uniqueValuesProgress || 'Loading values…') + '</p>';
         } else if (level.uniqueValueColors.length === 0) {
             rows = '<div class="gis-empty-state">' + escapeHtml(uniqueValuesMessage || 'No values yet — load them from the building data.') + '</div>';
         } else {
@@ -613,14 +789,21 @@ const digiTypology = (function () {
             }
         }
 
-        return '<div class="gis-typology-actions">' +
-            '<input type="number" min="1" step="1" data-field="countyId" value="' + numberAttribute(uniqueValuesCountyId) + '" placeholder="County id" aria-label="County id (optional)" title="County part id that scopes the values; empty loads the whole table" />' +
-            '<button type="button" class="gis-button" data-action="load-values"' + (loading ? ' disabled' : '') + '>Load values</button>' +
+        // The scope line names the area the values come from; "Select area…" opens the Load Area
+        // modal, and a chosen area loads at once — there is no separate load button.
+        const scopeName = uniqueValuesScopeName();
+        return '<div class="gis-typology-scope">' +
+            '<span class="gis-typology-scope-label">Values from</span>' +
+            '<span class="gis-typology-scope-name" title="' + escapeHtml(scopeName) + '">' + escapeHtml(scopeName) + '</span>' +
+            (uniqueValuesScope !== null ? '<button type="button" class="gis-button gis-button-icon gis-button-secondary" data-action="clear-scope" title="Whole table" aria-label="Load from the whole table instead">&times;</button>' : '') +
+            '</div>' +
+            '<div class="gis-typology-actions">' +
+            '<button type="button" class="gis-button" data-action="select-scope"' + (loading ? ' disabled' : '') + '>Select area…</button>' +
             '<button type="button" class="gis-button gis-button-secondary" data-action="clear-values"' + (level.uniqueValueColors.length === 0 ? ' disabled' : '') + '>Clear</button>' +
             '</div>' +
             '<div class="gis-typology-values">' + rows + '</div>' +
             '<p class="gis-typology-hint">Each distinct value is its own bucket; a missing value is bucketed as (null). ' +
-            'Loading takes several seconds per county and much longer over the whole table.</p>';
+            'Values load a county at a time — a municipality loads its whole county, a voivodeship every county in it — and the whole table can exceed the service timeout.</p>';
     }
 
     // Refreshes the error list and the outlined boxes of the range editor in place — called after a
@@ -931,8 +1114,8 @@ const digiTypology = (function () {
             }
         });
 
-        // Bounds and the county id are written on every keystroke; the range validation refreshes in
-        // place so the caret stays where the user left it.
+        // Bounds are written on every keystroke; the range validation refreshes in place so the caret
+        // stays where the user left it.
         container.addEventListener('input', function (event) {
             const level = selectedLevel();
             const target = event.target;
@@ -942,10 +1125,6 @@ const digiTypology = (function () {
             const field = target.getAttribute('data-field');
             if (field === 'min' || field === 'max') {
                 setRangeBound(level, rowIndex(target), field, target.value);
-            } else if (field === 'countyId') {
-                const trimmed = target.value.trim();
-                const parsed = parseInt(trimmed, 10);
-                uniqueValuesCountyId = trimmed === '' || !Number.isFinite(parsed) || parsed <= 0 ? null : parsed;
             } else if (field === 'color') {
                 setRowColor(level, target); // live preview while the native picker is open; change commits the same value
             }
@@ -962,8 +1141,10 @@ const digiTypology = (function () {
                 addRange(level);
             } else if (action === 'remove-range') {
                 removeRange(level, rowIndex(button));
-            } else if (action === 'load-values') {
-                loadUniqueValues(level);
+            } else if (action === 'select-scope') {
+                selectUniqueValuesScope(level);
+            } else if (action === 'clear-scope') {
+                clearUniqueValuesScope();
             } else if (action === 'clear-values') {
                 clearUniqueValues(level);
             } else if (action === 'remove-value') {
@@ -971,8 +1152,8 @@ const digiTypology = (function () {
             }
         });
 
-        // Enter in a bound or the county box acts like the row's natural next step instead of doing
-        // nothing: a new range after the last Max, a load from the county box.
+        // Enter in the last Max acts like the row's natural next step instead of doing nothing: a new
+        // range after it.
         container.addEventListener('keydown', function (event) {
             if (event.key !== 'Enter') {
                 return;
@@ -986,9 +1167,6 @@ const digiTypology = (function () {
             if (field === 'max' && rowIndex(target) === level.ranges.length - 1) {
                 event.preventDefault();
                 addRange(level);
-            } else if (field === 'countyId') {
-                event.preventDefault();
-                loadUniqueValues(level);
             }
         });
     }
@@ -1330,9 +1508,13 @@ const digiTypology = (function () {
     // dropped instead of overwriting the newer list. The abort itself only rejects the fetch, not a
     // response already parsed.
     let loadSearchSequence = 0;
-    let loadRows = []; // { id, code, administrativeArealType } - the redirect target of each rendered row
+    let loadRows = []; // { id, code, administrativeArealType, name } - the target of each rendered row
     let loadSelectionIndex = -1;
-    let loadOpener = null; // the Load button, to return focus to when the modal closes
+    let loadOpener = null; // the button that opened the modal, to return focus to when it closes
+    // The modal serves two callers: Load (no callback - OK redirects to the area view) and "Select
+    // area…" in Column Properties (OK hands the row to the callback and closes).
+    let loadConfirm = null;
+    const loadTitle_Default = 'Load Area';
 
     function abortLoadSearch() {
         if (loadSearchTimer !== null) {
@@ -1346,13 +1528,20 @@ const digiTypology = (function () {
         loadSearchSequence++;
     }
 
-    function openLoadModal() {
+    function openLoadModal(options) {
         const modal = document.getElementById('typology-load-modal');
         if (modal === null) {
             return;
         }
 
-        loadOpener = document.getElementById('typology-load-button');
+        const settings = options !== null && options !== undefined ? options : {};
+        loadOpener = settings.opener !== null && settings.opener !== undefined ? settings.opener : document.getElementById('typology-load-button');
+        loadConfirm = typeof settings.confirm === 'function' ? settings.confirm : null;
+
+        const title = document.getElementById('typology-load-title');
+        if (title !== null) {
+            title.textContent = settings.title || loadTitle_Default;
+        }
 
         const input = document.getElementById('typology-load-input');
         if (input !== null) {
@@ -1375,6 +1564,7 @@ const digiTypology = (function () {
 
         abortLoadSearch();
         modal.style.display = 'none';
+        loadConfirm = null;
 
         if (loadOpener !== null) {
             loadOpener.focus();
@@ -1492,7 +1682,12 @@ const digiTypology = (function () {
                 '</div>'
             );
 
-            loadRows.push({ id: target.Id, code: target.Code, administrativeArealType: target.AdministrativeArealType });
+            loadRows.push({
+                id: target.Id,
+                code: target.Code,
+                administrativeArealType: target.AdministrativeArealType,
+                name: (target.Name || '') + ' (' + (loadTypeNames[target.AdministrativeArealType] || 'Area') + ')'
+            });
         }
 
         if (loadRows.length === 0) {
@@ -1529,8 +1724,9 @@ const digiTypology = (function () {
         }
     }
 
-    // OK (and Enter in the search box): file the definition where the target page reads it, then redirect
-    // with the selected area. The type travels as the integer the wire already carries - never a name.
+    // OK (and Enter in the search box): with a caller's callback, hand it the row and close; otherwise
+    // file the definition where the target page reads it, then redirect with the selected area. The
+    // type travels as the integer the wire already carries - never a name.
     function confirmLoadSelection() {
         if (loadSelectionIndex < 0 || loadSelectionIndex >= loadRows.length) {
             return;
@@ -1538,6 +1734,13 @@ const digiTypology = (function () {
 
         const target = loadRows[loadSelectionIndex];
         if (target === null || target === undefined || !target.id) {
+            return;
+        }
+
+        if (loadConfirm !== null) {
+            const confirm = loadConfirm;
+            closeLoadModal();
+            confirm(target);
             return;
         }
 
@@ -1560,7 +1763,9 @@ const digiTypology = (function () {
             return;
         }
 
-        loadButton.addEventListener('click', openLoadModal);
+        loadButton.addEventListener('click', function () {
+            openLoadModal();
+        });
 
         const input = document.getElementById('typology-load-input');
         if (input !== null) {
@@ -1583,7 +1788,7 @@ const digiTypology = (function () {
                 }, loadSearchDelay);
             });
 
-            // Enter confirms the current selection, like the county box in Column Properties.
+            // Enter confirms the current selection.
             input.addEventListener('keydown', function (event) {
                 if (event.key === 'Enter') {
                     event.preventDefault();

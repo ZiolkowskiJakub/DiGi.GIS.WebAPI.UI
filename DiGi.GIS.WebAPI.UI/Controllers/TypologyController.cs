@@ -88,6 +88,66 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
 
         /// <summary>
+        /// Resolves the administrative area selected in the Load Area modal into the county part identifiers that scope a "Load values" request of the Column Properties section.
+        /// <para>The upstream <c>gis/BuildingData/uniquevalues</c> filters by a single county part id, so the page loads a county at a time and unions the answers. A county code maps to one id per polygon part (18 codes have several - see <c>Coding - GIS Administrative Data.md</c>), so a county resolves through <c>idsbycode</c> rather than the single id the modal row carries. A municipality or subdivision resolves to the parts of its parent county (a TERYT municipality code carries the county code as its first four characters), so its values are a superset - the upstream endpoint cannot narrow below a county. A voivodeship resolves to every county whose code starts with the voivodeship code. A country resolves to an empty list, which the page reads as the whole table.</para>
+        /// </summary>
+        /// <param name="code">The administrative code of the selected area.</param>
+        /// <param name="administrativeArealType">The type of the selected area, bound as nullable so an omitted value is refused rather than read as <see cref="AdministrativeArealType.Country"/>.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> containing the JSON array of county part identifiers (empty for a country), a 204 No Content response when the upstream service answers nothing, or a 400 Bad Request response when the code is blank or the type is missing.</returns>
+        [HttpGet("countyids")]
+        public async Task<IActionResult> GetCountyIdsAsync([FromQuery(Name = "code")] string code, [FromQuery(Name = "administrativearealtype")] AdministrativeArealType? administrativeArealType, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(code) || administrativeArealType is null || administrativeArealType.Value == AdministrativeArealType.Undefined)
+            {
+                return BadRequest();
+            }
+
+            if (administrativeArealType.Value == AdministrativeArealType.Country)
+            {
+                return Ok(Array.Empty<int>());
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            if (administrativeArealType.Value == AdministrativeArealType.Voivodeship)
+            {
+                UrlBuilder urlBuilder_References = new($"{Constants.Default.GISWebAPIUri}/gis/administrativeareal2D/administrativeareal2Dreferencesbyadministrativearealtype");
+                urlBuilder_References = urlBuilder_References.AddParameter("administrativearealtype", (int)AdministrativeArealType.County);
+
+                List<PostgreSQL.Classes.AdministrativeAreal2DReference>? administrativeAreal2DReferences = await httpClient.ItemsAsync<PostgreSQL.Classes.AdministrativeAreal2DReference>(urlBuilder_References.ToString(), cancellationToken);
+                if (administrativeAreal2DReferences is null)
+                {
+                    return NoContent();
+                }
+
+                List<int> ids = administrativeAreal2DReferences
+                    .Where(administrativeAreal2DReference => administrativeAreal2DReference.Id >= 0 && administrativeAreal2DReference.Code is not null && administrativeAreal2DReference.Code.StartsWith(code, StringComparison.Ordinal))
+                    .Select(administrativeAreal2DReference => administrativeAreal2DReference.Id)
+                    .Distinct()
+                    .OrderBy(id => id)
+                    .ToList();
+
+                return ids.Count == 0 ? NoContent() : Ok(ids);
+            }
+
+            // A county code is the first four characters of a municipality or subdivision code.
+            string code_County = administrativeArealType.Value == AdministrativeArealType.County ? code : (code.Length >= 4 ? code.Substring(0, 4) : code);
+
+            UrlBuilder urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/administrativeareal2D/idsbycode");
+            urlBuilder = urlBuilder.AddParameter("code", code_County);
+            urlBuilder = urlBuilder.AddParameter("administrativearealtype", (int)AdministrativeArealType.County);
+
+            string? json = await httpClient.JsonAsync(urlBuilder.ToString(), cancellationToken);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return NoContent();
+            }
+
+            return Content(json, "application/json");
+        }
+
+        /// <summary>
         /// Relays the distinct values of one building-data column, for unique-value coloring in the Column Properties section.
         /// <para>The upstream <c>gis/BuildingData/uniquevalues</c> answers 404 for an empty result and takes several seconds per county (tens of seconds nationwide), so every non-success collapses to 204 No Content and the page shows its empty state rather than an error.</para>
         /// </summary>

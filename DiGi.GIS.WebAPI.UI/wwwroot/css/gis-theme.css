@@ -2055,10 +2055,33 @@ h1.gis-title-large {
     gap: 20px;
 }
 
+    /* The three cards share one fixed, viewport-based height so a drop or a longer rule editor never
+       reflows the row: the heading and filter keep their natural size and the list/editor below them
+       takes the rest and scrolls on its own. */
+    .gis-typology-layout > .gis-card {
+        display: flex;
+        flex-direction: column;
+        height: clamp(420px, calc(100vh - 380px), 800px);
+        min-height: 0;
+        margin-bottom: 0;
+        box-sizing: border-box;
+    }
+
+        .gis-typology-layout > .gis-card > .gis-column-list,
+        .gis-typology-layout > .gis-card > .gis-typology-properties {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+        }
+
 @media (max-width: 1100px) {
     .gis-typology-layout {
         grid-template-columns: 1fr;
     }
+
+        .gis-typology-layout > .gis-card {
+            height: 420px;
+        }
 }
 
 /* Filter input above the Available Columns list (#14). */
@@ -2270,6 +2293,30 @@ h1.gis-title-large {
         border-radius: 4px;
         box-sizing: border-box;
         font-family: var(--font-sans);
+    }
+
+/* The area the unique values are loaded from: label, area name, and the x that returns to the whole
+   table. The name ellipsises so a long breadcrumb never widens the column. */
+.gis-typology-scope {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0 0 0;
+    font-size: 0.85rem;
+}
+
+    .gis-typology-scope-label {
+        flex-shrink: 0;
+        color: var(--text-muted);
+    }
+
+    .gis-typology-scope-name {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-weight: 600;
     }
 
 /* Inline validation errors, announced as an alert; one line per offending row. */

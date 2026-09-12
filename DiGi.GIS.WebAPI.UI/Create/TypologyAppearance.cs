@@ -6,7 +6,7 @@ namespace DiGi.GIS.WebAPI.UI
     {
         /// <summary>
         /// Creates the bucket appearance a Typology definition document carries for one color of the page.
-        /// <para>The page edits one color per bucket; the document needs an appearance per shape kind, so the color is written into a curve, a face and a mesh appearance with <see cref="Constants.Default.TypologyAppearanceThickness"/> on every edge - the same three kinds the DiGi.Typology.Visual facts build, and the ones a building viewer reads. <see cref="Query.Color(Typology.Visual.Classes.TypologyAppearance)"/> reads the color back.</para>
+        /// <para>The page edits one color per bucket; the document needs an appearance per shape kind, so the color is written into a point, a face and a mesh appearance with <see cref="Constants.Default.TypologyAppearanceThickness"/> on every kind - the point kind because the typology is displayed as points, and the face and mesh kinds for the viewers that render shapes. <see cref="Query.Color(Typology.Visual.Classes.TypologyAppearance)"/> reads the color back.</para>
         /// </summary>
         /// <param name="color">The bucket color.</param>
         /// <returns>The appearance.</returns>
@@ -14,7 +14,7 @@ namespace DiGi.GIS.WebAPI.UI
         {
             double thickness = Constants.Default.TypologyAppearanceThickness;
 
-            return new Typology.Visual.Classes.TypologyAppearance([new CurveAppearance(color, thickness), new FaceAppearance(color, color, thickness), new MeshAppearance(color, color, thickness)]);
+            return new Typology.Visual.Classes.TypologyAppearance([new PointAppearance(color, thickness), new FaceAppearance(color, color, thickness), new MeshAppearance(color, color, thickness)]);
         }
     }
 }

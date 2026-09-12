@@ -2034,6 +2034,41 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the sorted column list, or a 204 No Content response when the upstream service answers nothing\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetCountyIdsAsync(string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken)'></a>
+
+## TypologyController\.GetCountyIdsAsync\(string, Nullable\<AdministrativeArealType\>, CancellationToken\) Method
+
+Resolves the administrative area selected in the Load Area modal into the county part identifiers that scope a "Load values" request of the Column Properties section\.
+
+The upstream `gis/BuildingData/uniquevalues` filters by a single county part id, so the page loads a county at a time and unions the answers. A county code maps to one id per polygon part (18 codes have several - see `Coding - GIS Administrative Data.md`), so a county resolves through `idsbycode` rather than the single id the modal row carries. A municipality or subdivision resolves to the parts of its parent county (a TERYT municipality code carries the county code as its first four characters), so its values are a superset - the upstream endpoint cannot narrow below a county. A voivodeship resolves to every county whose code starts with the voivodeship code. A country resolves to an empty list, which the page reads as the whole table.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetCountyIdsAsync(string code, System.Nullable<DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType> administrativeArealType, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetCountyIdsAsync(string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken).code'></a>
+
+`code` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The administrative code of the selected area\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetCountyIdsAsync(string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken).administrativeArealType'></a>
+
+`administrativeArealType` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.enums.administrativearealtype 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The type of the selected area, bound as nullable so an omitted value is refused rather than read as [DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType\.Country](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.enums.administrativearealtype.country 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType\.Country')\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetCountyIdsAsync(string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the JSON array of county part identifiers \(empty for a country\), a 204 No Content response when the upstream service answers nothing, or a 400 Bad Request response when the code is blank or the type is missing\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetUniqueValuesAsync(string,System.Nullable_int_,System.Threading.CancellationToken)'></a>
 
 ## TypologyController\.GetUniqueValuesAsync\(string, Nullable\<int\>, CancellationToken\) Method
