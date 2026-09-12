@@ -1,4 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using DiGi.GIS.WebAPI.UI.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DiGi.GIS.WebAPI.UI.Controllers
@@ -30,6 +36,32 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         public IActionResult Start()
         {
             return View();
+        }
+
+        /// <summary>
+        /// Retrieves the building-data columns available for typology grouping, sorted alphabetically by name.
+        /// </summary>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> containing the sorted column list, or a 204 No Content response when the upstream service answers nothing.</returns>
+        [HttpGet("columns")]
+        public async Task<IActionResult> GetColumnsAsync(CancellationToken cancellationToken = default)
+        {
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            List<DiGi.PostgreSQL.Table.Classes.Column>? columns = await httpClient.ItemsAsync<DiGi.PostgreSQL.Table.Classes.Column>(
+                $"{Constants.Default.GISWebAPIUri}/gis/BuildingData/columns", cancellationToken);
+
+            if (columns is null || columns.Count == 0)
+            {
+                return NoContent();
+            }
+
+            List<TypologyColumnViewModel> viewModels = columns
+                .OrderBy(column => column.Name ?? "", StringComparer.OrdinalIgnoreCase)
+                .Select(column => new TypologyColumnViewModel(column))
+                .ToList();
+
+            return Ok(viewModels);
         }
     }
 }

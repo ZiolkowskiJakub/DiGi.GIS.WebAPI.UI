@@ -894,6 +894,125 @@ public DiGi.PostgreSQL.Table.Classes.Table? Table { get; }
 #### Property Value
 [DiGi\.PostgreSQL\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.table 'DiGi\.PostgreSQL\.Table\.Classes\.Table')
 
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyColumnViewModel'></a>
+
+## TypologyColumnViewModel Class
+
+Represents a single building\-data column available for typology grouping, as listed in the Available Columns section\.
+
+```csharp
+public class TypologyColumnViewModel
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → TypologyColumnViewModel
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyColumnViewModel.TypologyColumnViewModel()'></a>
+
+## TypologyColumnViewModel\(\) Constructor
+
+Initializes a new instance of the [TypologyColumnViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyColumnViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyColumnViewModel') class\.
+
+```csharp
+public TypologyColumnViewModel();
+```
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyColumnViewModel.TypologyColumnViewModel(DiGi.PostgreSQL.Table.Classes.Column)'></a>
+
+## TypologyColumnViewModel\(Column\) Constructor
+
+Initializes a new instance of the [TypologyColumnViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyColumnViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyColumnViewModel') class from a deployed GIS Web API [DiGi\.PostgreSQL\.Table\.Classes\.Column](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.column 'DiGi\.PostgreSQL\.Table\.Classes\.Column')\.
+
+```csharp
+public TypologyColumnViewModel(DiGi.PostgreSQL.Table.Classes.Column column);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyColumnViewModel.TypologyColumnViewModel(DiGi.PostgreSQL.Table.Classes.Column).column'></a>
+
+`column` [DiGi\.PostgreSQL\.Table\.Classes\.Column](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.column 'DiGi\.PostgreSQL\.Table\.Classes\.Column')
+
+The source column\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyColumnViewModel.Category'></a>
+
+## TypologyColumnViewModel\.Category Property
+
+Gets the category grouping of the column\.
+
+```csharp
+public string? Category { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyColumnViewModel.DataType'></a>
+
+## TypologyColumnViewModel\.DataType Property
+
+Gets the integer data type value \(0 Undefined through 14 String\)\.
+
+```csharp
+public int DataType { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyColumnViewModel.Description'></a>
+
+## TypologyColumnViewModel\.Description Property
+
+Gets the description of the column\.
+
+```csharp
+public string? Description { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyColumnViewModel.IsNumeric'></a>
+
+## TypologyColumnViewModel\.IsNumeric Property
+
+Gets a value indicating whether the column is numeric and eligible for a Range rule\.
+
+```csharp
+public bool IsNumeric { get; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyColumnViewModel.Name'></a>
+
+## TypologyColumnViewModel\.Name Property
+
+Gets the display name of the column\.
+
+```csharp
+public string? Name { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyColumnViewModel.UniqueId'></a>
+
+## TypologyColumnViewModel\.UniqueId Property
+
+Gets the unique identifier \(slug\) of the column, as addressed by the deployed GIS Web API\.
+
+```csharp
+public string? UniqueId { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.YearBuiltDataViewModel'></a>
 
 ## YearBuiltDataViewModel Class

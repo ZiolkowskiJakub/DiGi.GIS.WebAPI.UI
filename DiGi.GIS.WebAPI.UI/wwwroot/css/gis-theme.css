@@ -2061,6 +2061,17 @@ h1.gis-title-large {
     }
 }
 
+/* Filter input above the Available Columns list (#14). */
+.gis-column-filter {
+    margin-bottom: 8px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
 /* The shared list surface the Available/Selected Columns sections render into (#14, #15). */
 .gis-column-list {
     min-height: 120px;
