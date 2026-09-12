@@ -2041,3 +2041,48 @@ h1.gis-title-large {
 .gltf-layout.gltf-left-panel-collapsed #gltf-left-resizer {
     display: none;
 }
+
+/* Typology definition page (shell #13; the three sections are filled by #14-#16). */
+.gis-typology-layout {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+@media (max-width: 1100px) {
+    .gis-typology-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* The shared list surface the Available/Selected Columns sections render into (#14, #15). */
+.gis-column-list {
+    min-height: 120px;
+    padding: 8px;
+    border: 1px solid var(--border-color-light);
+    border-radius: 4px;
+    background-color: var(--bg-table-zebra);
+}
+
+    .gis-column-item {
+        padding: 6px 10px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+    }
+
+    .gis-column-item + .gis-column-item {
+        margin-top: 4px;
+    }
+
+    /* Selected-chain modifier, mirroring the .btn-active pill on the reference rows. */
+    .gis-column-item-selected {
+        background-color: var(--primary-light);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
+
+/* Drop-target highlight for the #15 drag & drop reordering. */
+.gis-drag-over {
+    background-color: var(--bg-table-hover);
+    border-color: var(--primary-color);
+}

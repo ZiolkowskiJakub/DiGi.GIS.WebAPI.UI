@@ -1,0 +1,48 @@
+@{
+    ViewData["Title"] = "Typology";
+    ViewData["Description"] = "Define a building typology: chain building-data columns into classification rules with ranges and colors, and load it for an administrative area.";
+    @* TODO [TypologyShell]: remove the noindex and the disabled action bar once #14-#18 ship the working sections and buttons (#19). *@
+    ViewData["Robots"] = "noindex, nofollow";
+}
+
+<div class="gis-panel">
+    <div class="gis-card gis-hero-card">
+        @* Stacked-strata line icon, from the same line-icon set as the Terrain, 3D viewer, Communication and Login start pages. *@
+        <div class="gis-hero-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" role="img" aria-hidden="true">
+                <path d="m12 3 8.5 4.25L12 11.5 3.5 7.25 12 3Z" />
+                <path d="m3.5 12.25 8.5 4.25 8.5-4.25" />
+                <path d="m3.5 16.75 8.5 4.25 8.5-4.25" />
+            </svg>
+        </div>
+        <h2 class="gis-title gis-title-hero">Typology</h2>
+        <p class="gis-hero-text">
+            Chain columns of the building data into classification rules - rule type, ranges and the colors they map to - to define a building typology, then load it for an administrative area.
+        </p>
+        @* The action bar ships disabled: Import/Export come with #17, Load with #18. The buttons themselves are permanent. *@
+        <div class="gis-form-row">
+            <button type="button" class="gis-button" disabled>Import</button>
+            <button type="button" class="gis-button" disabled>Export</button>
+            <button type="button" class="gis-button" disabled>Load</button>
+        </div>
+    </div>
+
+    <div class="gis-typology-layout">
+        <div class="gis-card" id="typology-available-columns">
+            <h3 class="gis-title">Available Columns</h3>
+            <div class="gis-column-list"></div>
+        </div>
+        <div class="gis-card" id="typology-selected-columns">
+            <h3 class="gis-title">Selected Columns</h3>
+            <div class="gis-column-list"></div>
+        </div>
+        <div class="gis-card" id="typology-column-properties">
+            <h3 class="gis-title">Column Properties</h3>
+            <div class="gis-column-list"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/typology.js" asp-append-version="true"></script>
+}
