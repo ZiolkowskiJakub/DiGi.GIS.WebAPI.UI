@@ -2163,3 +2163,131 @@ h1.gis-title-large {
         border-color: var(--border-color-light);
         color: var(--text-gray-light);
     }
+
+/* Column Properties editor (#16): the selected level's rule type, range rows and unique-value rows.
+   A form surface rather than a .gis-column-list — stacked .gis-field-label fields over compact rows. */
+.gis-typology-properties {
+    min-height: 120px;
+}
+
+    .gis-typology-properties .gis-field-label select,
+    .gis-typology-properties .gis-field-label input[type="number"] {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        margin-top: 4px;
+        padding: 4px 8px;
+        font-size: 0.85rem;
+        height: 28px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        background-color: var(--bg-card);
+        color: var(--text-dark);
+        font-family: var(--font-sans);
+    }
+
+        .gis-typology-properties .gis-field-label select:focus,
+        .gis-typology-properties .gis-field-label input[type="number"]:focus,
+        .gis-typology-row input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+    /* The section's own name line, so the editor says which level it edits. */
+    .gis-typology-properties-name {
+        font-weight: 600;
+        margin: 0 0 10px 0;
+    }
+
+/* One range or unique-value row: bounds/value, colour swatch, remove button. */
+.gis-typology-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+}
+
+    .gis-typology-row + .gis-typology-row {
+        border-top: 1px solid var(--border-color-light);
+    }
+
+    .gis-typology-row input[type="number"] {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 4px 6px;
+        font-size: 0.85rem;
+        height: 28px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-family: var(--font-sans);
+    }
+
+    /* A bound that fails validation is outlined in place, beside the error list that names the row. */
+    .gis-typology-row input.gis-typology-invalid {
+        border-color: var(--danger-color);
+    }
+
+    .gis-typology-row input[type="color"] {
+        flex-shrink: 0;
+        width: 32px;
+        height: 28px;
+        padding: 0 2px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        background-color: var(--bg-card);
+        cursor: pointer;
+    }
+
+    .gis-typology-row-text {
+        flex: 1 1 auto;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 0.9rem;
+    }
+
+    .gis-typology-row-separator {
+        flex-shrink: 0;
+        color: var(--text-muted);
+    }
+
+/* Action row under a list (Add range / Load values / Clear): compact buttons, wrapping on narrow cards. */
+.gis-typology-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+}
+
+    .gis-typology-actions input[type="number"] {
+        width: 110px;
+        padding: 4px 8px;
+        font-size: 0.85rem;
+        height: 28px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-family: var(--font-sans);
+    }
+
+/* Inline validation errors, announced as an alert; one line per offending row. */
+.gis-typology-errors {
+    margin: 8px 0 0 0;
+    padding: 0 0 0 18px;
+    color: var(--danger-color);
+    font-size: 0.85rem;
+}
+
+    .gis-typology-errors:empty {
+        display: none;
+    }
+
+/* Solver hints (NULL rows, open-end sentinels, load latency). */
+.gis-typology-hint {
+    margin: 8px 0 0 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.4;
+}

@@ -3,9 +3,10 @@
  *
  * #14 ships the Available Columns section; #15 the Selected Columns chain — add by double-click or
  * drag & drop, remove by button or drag-back, reorder by Move Up/Down or drag, and single-click
- * selection; #16 Column Properties, #17 Import/Export and #18 the Load modal follow. One object
- * rather than loose globals: names such as import() or load() are too general to own at window
- * scope (same reasoning as user.js).
+ * selection; #16 the Column Properties editor of the selected level — rule type, range rows with
+ * inline validation, unique values loaded through the /typology/uniquevalues proxy, a colour per
+ * bucket; #17 Import/Export and #18 the Load modal follow. One object rather than loose globals:
+ * names such as import() or load() are too general to own at window scope (same reasoning as user.js).
  */
 const digiTypology = (function () {
     'use strict';
@@ -15,13 +16,34 @@ const digiTypology = (function () {
     const dragType_Available = 'application/x-typology-available';
     const dragType_Level = 'application/x-typology-level';
 
+    // The concrete rule class names of the DiGi.Typology.Visual document model (#17 puts them on the
+    // wire as _type). The editor offers two kinds — unique values or ranges — and picks the integer or
+    // double range rule from the column's DataType, so the user never sees three options.
+    const ruleType_UniqueValue = 'VisualUniqueValueFilterRule';
+    const ruleType_IntegerRange = 'VisualIntegerRangeFilterRule';
+    const ruleType_DoubleRange = 'VisualDoubleRangeFilterRule';
+
+    // DiGi.Core.Enums.DataType on the wire: 1 SByte … 8 ULong are integers, 9 Float … 11 Decimal are
+    // floating point; everything else (Bool, String, DateTime, …) takes unique values only.
+    const dataType_IntegerMax = 8;
+
+    // Default bucket colours, handed out in order so every new range or value is visible in the
+    // colour-coded view before the user touches a picker. Hex is the picker's native form; #17 turns it
+    // into the ARGB TypologyAppearance the document carries.
+    const palette = [
+        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b',
+        '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', '#393b79', '#e7ba52'
+    ];
+
     const state = {
         availableColumns: [],
         // The ordered grouping chain — its order is the grouping order the solver consumes
         // (ZiolkowskiJakub/DiGi.Gis#5). The level shape follows the DiGi.Typology.Visual document
-        // model: plain { min, max } ranges, no per-level fallback appearance. ruleType, ranges and
-        // uniqueValueColors start empty — #16 edits them, and #17 files the appearances into the
-        // rule's TypologyAppearanceCollection (the client never spells the "[min, max]" key itself).
+        // model: ruleType is one of the rule class names above (null until chosen), ranges are plain
+        // { min, max, color } rows, uniqueValueColors are { value, color } rows, and there is no
+        // per-level fallback appearance. Both row lists survive a rule-type switch so nothing typed
+        // is lost; #17 exports the active one and files the colours into the rule's
+        // TypologyAppearanceCollection (the client never spells the "[min, max]" key itself).
         levels: [],
         selectedIndex: -1
     };
@@ -163,6 +185,242 @@ const digiTypology = (function () {
         renderAll();
     }
 
+    // ----- Column Properties state (#16): every edit writes into the selected level -----
+
+    function isRangeRuleType(ruleType) {
+        return ruleType === ruleType_IntegerRange || ruleType === ruleType_DoubleRange;
+    }
+
+    // The range rule a column takes: integer DataTypes get the integer rule, floating point the double
+    // rule. null for a column that cannot take ranges at all (Bool, String, DateTime, …).
+    function rangeRuleTypeFor(level) {
+        if (level.isNumeric !== true) {
+            return null;
+        }
+        return level.dataType <= dataType_IntegerMax ? ruleType_IntegerRange : ruleType_DoubleRange;
+    }
+
+    // kind is the select's value: 'unique', 'range' or '' (undecided). Both row lists are kept across
+    // the switch — the persistence criterion — only the active kind changes.
+    function setRuleType(level, kind) {
+        if (kind === 'unique') {
+            level.ruleType = ruleType_UniqueValue;
+        } else if (kind === 'range') {
+            level.ruleType = rangeRuleTypeFor(level);
+        } else {
+            level.ruleType = null;
+        }
+        renderProperties();
+    }
+
+    function nextColor(count) {
+        return palette[count % palette.length];
+    }
+
+    // A new row starts where the previous one ended, so a typical ascending list needs only its Max
+    // typed; the first row starts empty.
+    function addRange(level) {
+        const previous = level.ranges.length > 0 ? level.ranges[level.ranges.length - 1] : null;
+        const start = previous !== null && typeof previous.max === 'number' && Number.isFinite(previous.max)
+            ? previous.max + (level.ruleType === ruleType_IntegerRange ? 1 : 0)
+            : null;
+        level.ranges.push({ min: start, max: null, color: nextColor(level.ranges.length) });
+        renderProperties();
+        focusPropertiesField('.gis-typology-row[data-index="' + (level.ranges.length - 1) + '"] input[data-field="min"]');
+    }
+
+    function removeRange(level, index) {
+        if (index < 0 || index >= level.ranges.length) {
+            return;
+        }
+        level.ranges.splice(index, 1);
+        renderProperties();
+        focusPropertiesField('button[data-action="add-range"]');
+    }
+
+    // Bounds are written on every keystroke without a re-render — a rebuild would drop the caret —
+    // so only the validation block is refreshed in place. An empty box is null, never NaN.
+    function setRangeBound(level, index, field, rawValue) {
+        if (index < 0 || index >= level.ranges.length) {
+            return;
+        }
+        const trimmed = String(rawValue).trim();
+        level.ranges[index][field] = trimmed === '' ? null : Number(trimmed);
+        renderRangeValidation(level);
+    }
+
+    function setRangeColor(level, index, color) {
+        if (index >= 0 && index < level.ranges.length) {
+            level.ranges[index].color = color;
+        }
+    }
+
+    // Validation of the closed intervals the solver walks by Min (ZiolkowskiJakub/DiGi.Gis#5 §4.5.3):
+    // both bounds present (whole numbers on an integer rule), Min <= Max, and every row starting after
+    // the previous valid row ends — two closed intervals meeting at one value overlap there. Returns
+    // the messages to list and the "row:field" keys of the boxes to outline. No auto-sort: the issue
+    // asks for an inline error, and silently reordering typed rows would hide a mistake.
+    function rangeErrors(level) {
+        const errors = [];
+        const invalid = {};
+        const integer = level.ruleType === ruleType_IntegerRange;
+
+        function bound(value) {
+            return typeof value === 'number' && Number.isFinite(value) && (!integer || Number.isInteger(value));
+        }
+
+        let previous = null;
+        let previousIndex = -1;
+        for (let i = 0; i < level.ranges.length; i++) {
+            const range = level.ranges[i];
+            const row = i + 1;
+            const minOk = bound(range.min);
+            const maxOk = bound(range.max);
+            if (!minOk || !maxOk) {
+                errors.push('Row ' + row + ': enter both bounds' + (integer ? ' as whole numbers.' : '.'));
+                if (!minOk) {
+                    invalid[i + ':min'] = true;
+                }
+                if (!maxOk) {
+                    invalid[i + ':max'] = true;
+                }
+                continue;
+            }
+            if (range.min > range.max) {
+                errors.push('Row ' + row + ': Min exceeds Max.');
+                invalid[i + ':min'] = true;
+                invalid[i + ':max'] = true;
+                continue;
+            }
+            if (previous !== null && range.min <= previous.max) {
+                errors.push('Row ' + row + ' overlaps row ' + (previousIndex + 1) + ': ranges must be ascending, and closed intervals meeting at ' + previous.max + ' share that value.');
+                invalid[i + ':min'] = true;
+            }
+            previous = range;
+            previousIndex = i;
+        }
+
+        return { errors: errors, invalid: invalid };
+    }
+
+    // Unique-value rows are keyed by the JSON form of the value, which tells "1" from 1 and keeps null
+    // addressable. Loaded values merge into the existing rows so recoloured rows keep their colour.
+    function valueKey(value) {
+        return JSON.stringify(value === undefined ? null : value);
+    }
+
+    function mergeUniqueValues(level, values) {
+        const present = {};
+        for (let i = 0; i < level.uniqueValueColors.length; i++) {
+            present[valueKey(level.uniqueValueColors[i].value)] = true;
+        }
+        for (let i = 0; i < values.length; i++) {
+            const key = valueKey(values[i]);
+            if (present[key] === true) {
+                continue;
+            }
+            present[key] = true;
+            level.uniqueValueColors.push({ value: values[i] === undefined ? null : values[i], color: nextColor(level.uniqueValueColors.length) });
+        }
+    }
+
+    function removeUniqueValue(level, index) {
+        if (index < 0 || index >= level.uniqueValueColors.length) {
+            return;
+        }
+        level.uniqueValueColors.splice(index, 1);
+        renderProperties();
+        focusPropertiesField('button[data-action="load-values"]');
+    }
+
+    function clearUniqueValues(level) {
+        level.uniqueValueColors = [];
+        uniqueValuesMessage = null;
+        renderProperties();
+        focusPropertiesField('button[data-action="load-values"]');
+    }
+
+    function setUniqueValueColor(level, index, color) {
+        if (index >= 0 && index < level.uniqueValueColors.length) {
+            level.uniqueValueColors[index].color = color;
+        }
+    }
+
+    // The county part that scopes "Load values" — a load scope, not part of the definition, so it lives
+    // beside the state rather than on a level. null means the whole table (slow; may answer nothing).
+    let uniqueValuesCountyId = null;
+    // The in-flight request (so a second click or a level switch cancels the first), the uniqueId of
+    // the level whose values are loading, and the outcome message of the last load.
+    let uniqueValuesAbortController = null;
+    let uniqueValuesLoadingId = null;
+    let uniqueValuesMessage = null;
+
+    function loadUniqueValues(level) {
+        abortUniqueValuesLoad();
+
+        const abortController = new AbortController();
+        uniqueValuesAbortController = abortController;
+        uniqueValuesLoadingId = level.uniqueId;
+        uniqueValuesMessage = null;
+        renderProperties();
+
+        let url = baseUrl() + '/typology/uniquevalues?columnuniqueid=' + encodeURIComponent(level.uniqueId);
+        if (uniqueValuesCountyId !== null) {
+            url += '&countyid=' + encodeURIComponent(String(uniqueValuesCountyId));
+        }
+
+        function finish(values) {
+            if (uniqueValuesAbortController !== abortController) {
+                return; // superseded by a later load or a level switch
+            }
+            uniqueValuesAbortController = null;
+            uniqueValuesLoadingId = null;
+            if (Array.isArray(values)) {
+                mergeUniqueValues(level, values);
+                uniqueValuesMessage = values.length === 0 ? 'No values returned.' : null;
+            } else {
+                // 204 from the proxy covers an empty column, an unknown column and an upstream
+                // timeout alike; a national load is the usual cause of the last one.
+                uniqueValuesMessage = 'No values returned' + (uniqueValuesCountyId === null ? ' — try a county id; a load over the whole table can exceed the service timeout.' : '.');
+            }
+            renderProperties();
+        }
+
+        fetch(url, { signal: abortController.signal })
+            .then(function (response) {
+                if (response.status === 204 || !response.ok) {
+                    return null;
+                }
+                return response.json();
+            })
+            .then(finish)
+            .catch(function (error) {
+                if (error !== null && error !== undefined && error.name === 'AbortError') {
+                    return;
+                }
+                finish(null);
+            });
+    }
+
+    function abortUniqueValuesLoad() {
+        if (uniqueValuesAbortController !== null) {
+            uniqueValuesAbortController.abort();
+            uniqueValuesAbortController = null;
+        }
+        uniqueValuesLoadingId = null;
+    }
+
+    function focusPropertiesField(selector) {
+        const container = propertiesContainer();
+        if (container === null) {
+            return;
+        }
+        const field = container.querySelector(selector);
+        if (field !== null) {
+            field.focus();
+        }
+    }
+
     // ----- rendering (plain DOM re-render; 194 small rows is fine at this scale) -----
 
     function availableColumnsContainer() {
@@ -173,9 +431,18 @@ const digiTypology = (function () {
         return document.querySelector('#typology-selected-columns .gis-column-list');
     }
 
+    function propertiesContainer() {
+        return document.querySelector('#typology-column-properties .gis-typology-properties');
+    }
+
+    function selectedLevel() {
+        return state.selectedIndex >= 0 && state.selectedIndex < state.levels.length ? state.levels[state.selectedIndex] : null;
+    }
+
     function renderAll() {
         renderAvailable();
         renderSelected();
+        renderProperties();
     }
 
     function renderAvailable() {
@@ -240,6 +507,155 @@ const digiTypology = (function () {
                    '<span class="gis-column-item-text">' + name + '</span>' +
                    actions + '</div>';
         }).join('');
+    }
+
+    // The uniqueId last rendered into Section 3, so a level switch can drop the previous level's
+    // in-flight load and outcome message instead of showing them under the new level.
+    let renderedPropertiesId = null;
+
+    function renderProperties() {
+        const container = propertiesContainer();
+        if (container === null) {
+            return;
+        }
+
+        const level = selectedLevel();
+        const levelId = level === null ? null : level.uniqueId;
+        if (levelId !== renderedPropertiesId) {
+            abortUniqueValuesLoad();
+            uniqueValuesMessage = null;
+            renderedPropertiesId = levelId;
+        }
+
+        if (level === null) {
+            showEmptyState(container, 'Select a column in Selected Columns to edit its properties.');
+            return;
+        }
+
+        const rangeRuleType = rangeRuleTypeFor(level);
+        const kind = level.ruleType === ruleType_UniqueValue ? 'unique' : (isRangeRuleType(level.ruleType) ? 'range' : '');
+
+        let html =
+            '<p class="gis-typology-properties-name">' + escapeHtml(level.name || level.uniqueId || '') + '</p>' +
+            '<label class="gis-field-label">Rule type' +
+            '<select data-field="ruleType" class="gis-select">' +
+            '<option value=""' + (kind === '' ? ' selected' : '') + '>— choose —</option>' +
+            '<option value="unique"' + (kind === 'unique' ? ' selected' : '') + '>Unique values</option>' +
+            '<option value="range"' + (kind === 'range' ? ' selected' : '') + (rangeRuleType === null ? ' disabled' : '') + '>Ranges</option>' +
+            '</select></label>';
+
+        if (kind === 'range') {
+            html += renderRangeEditor(level);
+        } else if (kind === 'unique') {
+            html += renderUniqueValueEditor(level);
+        } else {
+            html += '<p class="gis-typology-hint">Choose how this level groups rows: by each distinct value, or by ranges' +
+                (rangeRuleType === null ? ' (ranges need a numeric column)' : '') + '.</p>';
+        }
+
+        container.innerHTML = html;
+        renderRangeValidation(level);
+    }
+
+    function renderRangeEditor(level) {
+        const integer = level.ruleType === ruleType_IntegerRange;
+        const step = integer ? '1' : 'any';
+
+        let rows;
+        if (level.ranges.length === 0) {
+            rows = '<div class="gis-empty-state">No ranges — add one.</div>';
+        } else {
+            rows = level.ranges.map(function (range, index) {
+                const row = index + 1;
+                return '<div class="gis-typology-row" data-index="' + index + '">' +
+                    '<input type="number" step="' + step + '" data-field="min" value="' + numberAttribute(range.min) + '" placeholder="Min" aria-label="Range ' + row + ' minimum" />' +
+                    '<span class="gis-typology-row-separator" aria-hidden="true">–</span>' +
+                    '<input type="number" step="' + step + '" data-field="max" value="' + numberAttribute(range.max) + '" placeholder="Max" aria-label="Range ' + row + ' maximum" />' +
+                    '<input type="color" data-field="color" value="' + escapeHtml(range.color) + '" aria-label="Range ' + row + ' colour" title="Colour" />' +
+                    '<button type="button" class="gis-button gis-button-icon gis-button-secondary" data-action="remove-range" title="Remove" aria-label="Remove range ' + row + '">&times;</button>' +
+                    '</div>';
+            }).join('');
+        }
+
+        return '<div class="gis-typology-ranges" aria-describedby="typology-range-errors">' + rows + '</div>' +
+            '<div class="gis-typology-actions">' +
+            '<button type="button" class="gis-button gis-button-secondary" data-action="add-range">Add range</button>' +
+            '</div>' +
+            '<ul id="typology-range-errors" class="gis-typology-errors" role="alert"></ul>' +
+            '<p class="gis-typology-hint">Closed intervals' + (integer ? ' of whole numbers' : '') + ', ascending and non-overlapping — the solver walks them by Min and a disordered list matches nothing. ' +
+            'Rows with no value in this column fall out of this level. For an open end use a sentinel (for years, 0 and 9999).</p>';
+    }
+
+    function renderUniqueValueEditor(level) {
+        const loading = uniqueValuesLoadingId === level.uniqueId;
+
+        let rows;
+        if (loading) {
+            rows = '<div class="gis-loader"></div><p class="gis-loader-text">Loading values…</p>';
+        } else if (level.uniqueValueColors.length === 0) {
+            rows = '<div class="gis-empty-state">' + escapeHtml(uniqueValuesMessage || 'No values yet — load them from the building data.') + '</div>';
+        } else {
+            rows = level.uniqueValueColors.map(function (entry, index) {
+                const text = displayValue(entry.value);
+                return '<div class="gis-typology-row" data-index="' + index + '">' +
+                    '<span class="gis-typology-row-text" title="' + escapeHtml(text) + '">' + escapeHtml(text) + '</span>' +
+                    '<input type="color" data-field="color" value="' + escapeHtml(entry.color) + '" aria-label="Colour of ' + escapeHtml(text) + '" title="Colour" />' +
+                    '<button type="button" class="gis-button gis-button-icon gis-button-secondary" data-action="remove-value" title="Remove" aria-label="Remove ' + escapeHtml(text) + '">&times;</button>' +
+                    '</div>';
+            }).join('');
+            if (uniqueValuesMessage !== null) {
+                rows += '<p class="gis-typology-hint">' + escapeHtml(uniqueValuesMessage) + '</p>';
+            }
+        }
+
+        return '<div class="gis-typology-actions">' +
+            '<input type="number" min="1" step="1" data-field="countyId" value="' + numberAttribute(uniqueValuesCountyId) + '" placeholder="County id" aria-label="County id (optional)" title="County part id that scopes the values; empty loads the whole table" />' +
+            '<button type="button" class="gis-button" data-action="load-values"' + (loading ? ' disabled' : '') + '>Load values</button>' +
+            '<button type="button" class="gis-button gis-button-secondary" data-action="clear-values"' + (level.uniqueValueColors.length === 0 ? ' disabled' : '') + '>Clear</button>' +
+            '</div>' +
+            '<div class="gis-typology-values">' + rows + '</div>' +
+            '<p class="gis-typology-hint">Each distinct value is its own bucket; a missing value is bucketed as (null). ' +
+            'Loading takes several seconds per county and much longer over the whole table.</p>';
+    }
+
+    // Refreshes the error list and the outlined boxes of the range editor in place — called after a
+    // full render and after every keystroke in a bound, without rebuilding the rows.
+    function renderRangeValidation(level) {
+        const container = propertiesContainer();
+        if (container === null) {
+            return;
+        }
+        const list = container.querySelector('#typology-range-errors');
+        if (list === null || !isRangeRuleType(level.ruleType)) {
+            return;
+        }
+
+        const result = rangeErrors(level);
+        list.innerHTML = result.errors.map(function (error) {
+            return '<li>' + escapeHtml(error) + '</li>';
+        }).join('');
+
+        const inputs = container.querySelectorAll('.gis-typology-row input[type="number"]');
+        for (let i = 0; i < inputs.length; i++) {
+            const row = inputs[i].closest('.gis-typology-row');
+            const key = (row === null ? '' : row.getAttribute('data-index')) + ':' + inputs[i].getAttribute('data-field');
+            inputs[i].classList.toggle('gis-typology-invalid', result.invalid[key] === true);
+            inputs[i].setAttribute('aria-invalid', result.invalid[key] === true ? 'true' : 'false');
+        }
+    }
+
+    function numberAttribute(value) {
+        return typeof value === 'number' && Number.isFinite(value) ? String(value) : '';
+    }
+
+    function displayValue(value) {
+        if (value === null || value === undefined) {
+            return '(null)';
+        }
+        if (typeof value === 'object') {
+            return JSON.stringify(value);
+        }
+        return String(value);
     }
 
     function showLoader(container) {
@@ -471,6 +887,107 @@ const digiTypology = (function () {
         });
     }
 
+    // Column Properties events (#16), delegated on the section container. Every handler resolves the
+    // selected level first: the rendered editor always belongs to it, so a stale event after a
+    // selection change finds no level and does nothing.
+    function setupPropertiesEvents() {
+        const container = propertiesContainer();
+        if (container === null) {
+            return;
+        }
+
+        function rowIndex(target) {
+            const row = target.closest('.gis-typology-row');
+            return row === null ? -1 : parseInt(row.getAttribute('data-index'), 10);
+        }
+
+        // A colour picker sits in either list; the enclosing list says which state array it edits.
+        function setRowColor(level, picker) {
+            if (picker.closest('.gis-typology-values') !== null) {
+                setUniqueValueColor(level, rowIndex(picker), picker.value);
+            } else {
+                setRangeColor(level, rowIndex(picker), picker.value);
+            }
+        }
+
+        // Selects and colour pickers commit on change. Colour writes need no re-render: the picker
+        // already shows the value, and rebuilding would close a native picker mid-drag on some browsers.
+        container.addEventListener('change', function (event) {
+            const level = selectedLevel();
+            const target = event.target;
+            if (level === null || target === null || target.closest === undefined) {
+                return;
+            }
+            const field = target.getAttribute('data-field');
+            if (field === 'ruleType') {
+                setRuleType(level, target.value);
+            } else if (field === 'color') {
+                setRowColor(level, target);
+            }
+        });
+
+        // Bounds and the county id are written on every keystroke; the range validation refreshes in
+        // place so the caret stays where the user left it.
+        container.addEventListener('input', function (event) {
+            const level = selectedLevel();
+            const target = event.target;
+            if (level === null || target === null || target.getAttribute === undefined) {
+                return;
+            }
+            const field = target.getAttribute('data-field');
+            if (field === 'min' || field === 'max') {
+                setRangeBound(level, rowIndex(target), field, target.value);
+            } else if (field === 'countyId') {
+                const trimmed = target.value.trim();
+                const parsed = parseInt(trimmed, 10);
+                uniqueValuesCountyId = trimmed === '' || !Number.isFinite(parsed) || parsed <= 0 ? null : parsed;
+            } else if (field === 'color') {
+                setRowColor(level, target); // live preview while the native picker is open; change commits the same value
+            }
+        });
+
+        container.addEventListener('click', function (event) {
+            const level = selectedLevel();
+            const button = event.target.closest !== undefined ? event.target.closest('button[data-action]') : null;
+            if (level === null || button === null) {
+                return;
+            }
+            const action = button.getAttribute('data-action');
+            if (action === 'add-range') {
+                addRange(level);
+            } else if (action === 'remove-range') {
+                removeRange(level, rowIndex(button));
+            } else if (action === 'load-values') {
+                loadUniqueValues(level);
+            } else if (action === 'clear-values') {
+                clearUniqueValues(level);
+            } else if (action === 'remove-value') {
+                removeUniqueValue(level, rowIndex(button));
+            }
+        });
+
+        // Enter in a bound or the county box acts like the row's natural next step instead of doing
+        // nothing: a new range after the last Max, a load from the county box.
+        container.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter') {
+                return;
+            }
+            const level = selectedLevel();
+            const target = event.target;
+            if (level === null || target === null || target.getAttribute === undefined) {
+                return;
+            }
+            const field = target.getAttribute('data-field');
+            if (field === 'max' && rowIndex(target) === level.ranges.length - 1) {
+                event.preventDefault();
+                addRange(level);
+            } else if (field === 'countyId') {
+                event.preventDefault();
+                loadUniqueValues(level);
+            }
+        });
+    }
+
     // dragover exposes only the type list, never the payload — so both the "is this one of ours?"
     // check and the drag-kind check read the types.
     function hasDragType(dataTransfer, dragType) {
@@ -495,7 +1012,9 @@ const digiTypology = (function () {
         setupFilter();
         setupAvailableEvents();
         setupSelectedEvents();
+        setupPropertiesEvents();
         renderSelected(); // the empty state, until the columns arrive
+        renderProperties();
         loadAvailableColumns();
     }
 

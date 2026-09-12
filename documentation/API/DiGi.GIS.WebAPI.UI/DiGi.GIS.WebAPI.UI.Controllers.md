@@ -1970,6 +1970,41 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the sorted column list, or a 204 No Content response when the upstream service answers nothing\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetUniqueValuesAsync(string,System.Nullable_int_,System.Threading.CancellationToken)'></a>
+
+## TypologyController\.GetUniqueValuesAsync\(string, Nullable\<int\>, CancellationToken\) Method
+
+Relays the distinct values of one building\-data column, for unique\-value coloring in the Column Properties section\.
+
+The upstream `gis/BuildingData/uniquevalues` answers 404 for an empty result and takes several seconds per county (tens of seconds nationwide), so every non-success collapses to 204 No Content and the page shows its empty state rather than an error.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetUniqueValuesAsync(string columnUniqueId, System.Nullable<int> countyId=null, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetUniqueValuesAsync(string,System.Nullable_int_,System.Threading.CancellationToken).columnUniqueId'></a>
+
+`columnUniqueId` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The unique identifier \(slug\) of the column, as listed by [GetColumnsAsync\(CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetColumnsAsync(System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TypologyController\.GetColumnsAsync\(System\.Threading\.CancellationToken\)')\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetUniqueValuesAsync(string,System.Nullable_int_,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional county part identifier that scopes the distinct values; `null` asks for the whole table\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetUniqueValuesAsync(string,System.Nullable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the upstream JSON array of primitive values, a 204 No Content response when the upstream service answers nothing, or a 400 Bad Request response when the column identifier is blank\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.Start()'></a>
 
 ## TypologyController\.Start\(\) Method
