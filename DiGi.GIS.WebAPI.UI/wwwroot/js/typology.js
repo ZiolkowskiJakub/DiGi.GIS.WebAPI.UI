@@ -211,6 +211,9 @@ const digiTypology = (function () {
             level.ruleType = null;
         }
         renderProperties();
+        // Arrow keys on a focused select fire change at once; the rebuild would drop the focus and
+        // strand a keyboard user after the first press.
+        focusPropertiesField('select[data-field="ruleType"]');
     }
 
     function nextColor(count) {
@@ -571,7 +574,7 @@ const digiTypology = (function () {
                     '<input type="number" step="' + step + '" data-field="min" value="' + numberAttribute(range.min) + '" placeholder="Min" aria-label="Range ' + row + ' minimum" />' +
                     '<span class="gis-typology-row-separator" aria-hidden="true">–</span>' +
                     '<input type="number" step="' + step + '" data-field="max" value="' + numberAttribute(range.max) + '" placeholder="Max" aria-label="Range ' + row + ' maximum" />' +
-                    '<input type="color" data-field="color" value="' + escapeHtml(range.color) + '" aria-label="Range ' + row + ' colour" title="Colour" />' +
+                    '<input type="color" data-field="color" value="' + escapeHtml(range.color || nextColor(index)) + '" aria-label="Range ' + row + ' colour" title="Colour" />' +
                     '<button type="button" class="gis-button gis-button-icon gis-button-secondary" data-action="remove-range" title="Remove" aria-label="Remove range ' + row + '">&times;</button>' +
                     '</div>';
             }).join('');
@@ -599,7 +602,7 @@ const digiTypology = (function () {
                 const text = displayValue(entry.value);
                 return '<div class="gis-typology-row" data-index="' + index + '">' +
                     '<span class="gis-typology-row-text" title="' + escapeHtml(text) + '">' + escapeHtml(text) + '</span>' +
-                    '<input type="color" data-field="color" value="' + escapeHtml(entry.color) + '" aria-label="Colour of ' + escapeHtml(text) + '" title="Colour" />' +
+                    '<input type="color" data-field="color" value="' + escapeHtml(entry.color || nextColor(index)) + '" aria-label="Colour of ' + escapeHtml(text) + '" title="Colour" />' +
                     '<button type="button" class="gis-button gis-button-icon gis-button-secondary" data-action="remove-value" title="Remove" aria-label="Remove ' + escapeHtml(text) + '">&times;</button>' +
                     '</div>';
             }).join('');
