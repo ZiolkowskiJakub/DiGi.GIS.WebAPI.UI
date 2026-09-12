@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using DiGi.GIS.PostgreSQL.Enums;
 using DiGi.GIS.WebAPI.UI.ViewModels;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Http;
@@ -39,6 +40,27 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         public IActionResult Start()
         {
             return View();
+        }
+
+        // Named AreaView rather than View: Controller.View() is already taken, and the action is the
+        // Load modal's redirect target, not a generic view resolver.
+        /// <summary>
+        /// Renders the stub navigation target the Typology Load modal redirects to: the colour-coded building typology of one administrative area is out of scope (#18), so the page shows only the area context carried on the query.
+        /// <para>The type is bound nullable and rejected when absent: a non-nullable <see cref="AdministrativeArealType"/> binding keeps <c>Country</c> for an omitted parameter, because the <c>Undefined</c> sentinel is -1 and not 0 - see Coding - WebAPI Contracts, section 2.</para>
+        /// </summary>
+        /// <param name="id">The unique identifier of the selected administrative area.</param>
+        /// <param name="code">The optional code of the selected administrative area.</param>
+        /// <param name="administrativeArealType">The type of the selected administrative area, as the integer the Load modal carried.</param>
+        /// <returns>An <see cref="IActionResult"/> result that renders the stub view, or a 400 Bad Request response when the identifier or the area type is missing.</returns>
+        [HttpGet("view")]
+        public IActionResult AreaView([FromQuery(Name = "id")] int id, [FromQuery(Name = "code")] string? code = null, [FromQuery(Name = "administrativearealtype")] AdministrativeArealType? administrativeArealType = null)
+        {
+            if (id <= 0 || administrativeArealType is null || administrativeArealType.Value == AdministrativeArealType.Undefined)
+            {
+                return BadRequest();
+            }
+
+            return View("View", new TypologyViewViewModel(id, code, administrativeArealType.Value));
         }
 
         /// <summary>

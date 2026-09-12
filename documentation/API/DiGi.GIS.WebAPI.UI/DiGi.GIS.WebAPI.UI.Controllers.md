@@ -1949,6 +1949,41 @@ public TypologyController(System.Net.Http.IHttpClientFactory httpClientFactory);
 The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') the feature's data actions use to create [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') instances\.
 ### Methods
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.AreaView(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_)'></a>
+
+## TypologyController\.AreaView\(int, string, Nullable\<AdministrativeArealType\>\) Method
+
+Renders the stub navigation target the Typology Load modal redirects to: the colour\-coded building typology of one administrative area is out of scope \(\#18\), so the page shows only the area context carried on the query\.
+
+The type is bound nullable and rejected when absent: a non-nullable [DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.enums.administrativearealtype 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType') binding keeps `Country` for an omitted parameter, because the `Undefined` sentinel is -1 and not 0 - see Coding - WebAPI Contracts, section 2.
+
+```csharp
+public Microsoft.AspNetCore.Mvc.IActionResult AreaView(int id, string? code=null, System.Nullable<DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType> administrativeArealType=null);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.AreaView(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_).id'></a>
+
+`id` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The unique identifier of the selected administrative area\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.AreaView(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_).code'></a>
+
+`code` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The optional code of the selected administrative area\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.AreaView(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_).administrativeArealType'></a>
+
+`administrativeArealType` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.enums.administrativearealtype 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The type of the selected administrative area, as the integer the Load modal carried\.
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') result that renders the stub view, or a 400 Bad Request response when the identifier or the area type is missing\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.ExportDefinitionAsync(DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Threading.CancellationToken)'></a>
 
 ## TypologyController\.ExportDefinitionAsync\(TypologyDefinitionParameter, CancellationToken\) Method

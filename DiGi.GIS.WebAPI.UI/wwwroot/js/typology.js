@@ -6,7 +6,8 @@
  * selection; #16 the Column Properties editor of the selected level — rule type, range rows with
  * inline validation, unique values loaded through the /typology/uniquevalues proxy, a colour per
  * bucket; #17 Import/Export — the page state posted to the server, which alone composes and parses
- * the DiGi document; #18 the Load modal follows. One object rather than loose globals:
+ * the DiGi document; #18 the Load modal — live administrative-area search and the redirect to the
+ * stub view. One object rather than loose globals:
  * names such as import() or load() are too general to own at window scope (same reasoning as user.js).
  */
 const digiTypology = (function () {
@@ -1302,6 +1303,339 @@ const digiTypology = (function () {
         }
     }
 
+    // ----- load modal (#18) -----
+
+    // The search goes through this application's own proxy (AdministrativeAreal2DController), which binds
+    // [FromBody] string: the body is a raw JSON string with the JSON content type. The proxy relays to the
+    // GIS Web API, which matches every administrative type by name and answers full reference paths -
+    // each path's AdministrativeAreal2DReferences runs from the country down to the matched area.
+    const loadSearchDelay = 300;
+    const loadSearchMinimum = 2;
+    const loadResultCap = 50;
+
+    // The definition travels to the redirect target in sessionStorage rather than the query string: a
+    // chain of levels with ranges and colours would bloat the URL past every reasonable limit. The stub
+    // page does not read it; the colour-coded view will.
+    const loadDefinitionStorageKey = 'digiTypology.definition';
+
+    // AdministrativeArealType on the wire: 1 Voivodeship, 2 County, 3 Municipality, 4 Subdivision. The
+    // modal selects among the first three; a Subdivision match folds onto its parent municipality - the
+    // entry before it in the path, which shares its code, because a subdivision has no page of its own.
+    const loadTypeNames = { 1: 'Voivodeship', 2: 'County', 3: 'Municipality', 4: 'Subdivision' };
+    const loadType_Subdivision = 4;
+
+    let loadSearchTimer = null;
+    let loadSearchController = null;
+    // Bumped on every abort, so a response that outlives its keystroke (or the modal's closing) is
+    // dropped instead of overwriting the newer list. The abort itself only rejects the fetch, not a
+    // response already parsed.
+    let loadSearchSequence = 0;
+    let loadRows = []; // { id, code, administrativeArealType } - the redirect target of each rendered row
+    let loadSelectionIndex = -1;
+    let loadOpener = null; // the Load button, to return focus to when the modal closes
+
+    function abortLoadSearch() {
+        if (loadSearchTimer !== null) {
+            clearTimeout(loadSearchTimer);
+            loadSearchTimer = null;
+        }
+        if (loadSearchController !== null) {
+            loadSearchController.abort();
+            loadSearchController = null;
+        }
+        loadSearchSequence++;
+    }
+
+    function openLoadModal() {
+        const modal = document.getElementById('typology-load-modal');
+        if (modal === null) {
+            return;
+        }
+
+        loadOpener = document.getElementById('typology-load-button');
+
+        const input = document.getElementById('typology-load-input');
+        if (input !== null) {
+            input.value = '';
+        }
+
+        showLoadMessage('Type at least ' + loadSearchMinimum + ' characters to search.');
+
+        modal.style.display = 'flex';
+        if (input !== null) {
+            input.focus();
+        }
+    }
+
+    function closeLoadModal() {
+        const modal = document.getElementById('typology-load-modal');
+        if (modal === null) {
+            return;
+        }
+
+        abortLoadSearch();
+        modal.style.display = 'none';
+
+        if (loadOpener !== null) {
+            loadOpener.focus();
+            loadOpener = null;
+        }
+    }
+
+    // Every message state is a non-result state: the rows are gone, and with them any selection, so OK
+    // must not confirm a selection the visitor can no longer see (a row picked before the query was
+    // shortened below the minimum, or a failed search).
+    function showLoadMessage(text) {
+        loadRows = [];
+        setLoadSelection(-1);
+
+        const results = document.getElementById('typology-load-results');
+        if (results !== null) {
+            results.innerHTML = '<div class="gis-empty-state">' + escapeHtml(text) + '</div>';
+        }
+    }
+
+    function searchLoadAreas(text) {
+        abortLoadSearch();
+
+        const results = document.getElementById('typology-load-results');
+        if (results === null) {
+            return;
+        }
+
+        results.innerHTML = '<div class="gis-loader"></div><p class="gis-loader-text">Searching areas…</p>';
+
+        loadSearchController = new AbortController();
+        const sequence = loadSearchSequence;
+
+        fetch(baseUrl() + '/administrativeareal2D/administrativeareal2Dreferencepathsbyname', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(text),
+            signal: loadSearchController.signal
+        })
+            .then(function (response) {
+                // The proxy answers an empty 200 for blank text; that path is unreachable through the
+                // minimum-length guard, but an empty body still has to parse as nothing, not throw.
+                return response.text().then(function (responseText) {
+                    if (!response.ok || responseText.trim() === '') {
+                        return null;
+                    }
+                    try {
+                        return JSON.parse(responseText);
+                    } catch (error) {
+                        return null;
+                    }
+                });
+            })
+            .then(function (paths) {
+                if (sequence !== loadSearchSequence) {
+                    return; // superseded by a newer keystroke or by the modal closing
+                }
+                if (paths === null) {
+                    showLoadMessage('The search failed - try again.');
+                    return;
+                }
+                renderLoadResults(Array.isArray(paths) ? paths : []);
+            })
+            .catch(function (error) {
+                if (error !== null && error.name === 'AbortError') {
+                    return;
+                }
+                if (sequence !== loadSearchSequence) {
+                    return;
+                }
+                showLoadMessage('The search failed - try again.');
+            });
+    }
+
+    function renderLoadResults(paths) {
+        const results = document.getElementById('typology-load-results');
+        if (results === null) {
+            return;
+        }
+
+        loadRows = [];
+        const rows = [];
+
+        for (let i = 0; i < paths.length && loadRows.length < loadResultCap; i++) {
+            const references = paths[i] !== null && Array.isArray(paths[i].AdministrativeAreal2DReferences) ? paths[i].AdministrativeAreal2DReferences : [];
+            if (references.length === 0) {
+                continue;
+            }
+
+            // The path runs from the country down to the matched area, so the last entry is the match. A
+            // subdivision match folds onto the municipality before it - the row keeps its full breadcrumb
+            // so the typed name stays visible, but the redirect carries the municipality's context.
+            let target = references[references.length - 1];
+            if (target.AdministrativeArealType === loadType_Subdivision) {
+                if (references.length < 2) {
+                    continue;
+                }
+                target = references[references.length - 2];
+            }
+
+            const matched = references[references.length - 1];
+            const matchedTypeName = loadTypeNames[matched.AdministrativeArealType] || 'Area';
+
+            const breadcrumb =
+                '<span class="gis-path-breadcrumb">' +
+                references.map(function (reference) {
+                    return '<span class="breadcrumb-item-wrapper">' + escapeHtml(reference.Name || '') + '</span>';
+                }).join('<span class="breadcrumb-separator">&rsaquo;</span>') +
+                '</span>';
+
+            rows.push(
+                '<div class="gis-typology-result-row" role="option" tabindex="0" aria-selected="false" data-load-index="' + loadRows.length + '">' +
+                breadcrumb +
+                '<span class="gis-typology-type-badge">' + escapeHtml(matchedTypeName) + '</span>' +
+                '</div>'
+            );
+
+            loadRows.push({ id: target.Id, code: target.Code, administrativeArealType: target.AdministrativeArealType });
+        }
+
+        if (loadRows.length === 0) {
+            showLoadMessage('No matching areas.');
+            return;
+        }
+
+        let html = rows.join('');
+        const remaining = paths.length - loadRows.length;
+        if (remaining > 0) {
+            html += '<div class="gis-typology-more-row">' + remaining + ' more - keep typing to narrow the list.</div>';
+        }
+
+        setLoadSelection(-1);
+        results.innerHTML = html;
+    }
+
+    function setLoadSelection(index) {
+        loadSelectionIndex = index;
+
+        const okButton = document.getElementById('typology-load-ok-button');
+        if (okButton !== null) {
+            okButton.disabled = index < 0;
+        }
+
+        const results = document.getElementById('typology-load-results');
+        if (results !== null) {
+            const rows = results.querySelectorAll('.gis-typology-result-row');
+            for (let i = 0; i < rows.length; i++) {
+                const selected = String(index) === rows[i].getAttribute('data-load-index');
+                rows[i].setAttribute('aria-selected', selected ? 'true' : 'false');
+                rows[i].classList.toggle('gis-typology-result-selected', selected);
+            }
+        }
+    }
+
+    // OK (and Enter in the search box): file the definition where the target page reads it, then redirect
+    // with the selected area. The type travels as the integer the wire already carries - never a name.
+    function confirmLoadSelection() {
+        if (loadSelectionIndex < 0 || loadSelectionIndex >= loadRows.length) {
+            return;
+        }
+
+        const target = loadRows[loadSelectionIndex];
+        if (target === null || target === undefined || !target.id) {
+            return;
+        }
+
+        try {
+            window.sessionStorage.setItem(loadDefinitionStorageKey, JSON.stringify(definitionPayload()));
+        } catch (error) {
+            // A full or blocked store must not eat the redirect; the target page treats absence as no
+            // definition carried.
+        }
+
+        window.location.href = baseUrl() + '/typology/view?id=' + target.id +
+            '&code=' + encodeURIComponent(target.code === null || target.code === undefined ? '' : target.code) +
+            '&administrativearealtype=' + target.administrativeArealType;
+    }
+
+    function setupLoadEvents() {
+        const modal = document.getElementById('typology-load-modal');
+        const loadButton = document.getElementById('typology-load-button');
+        if (modal === null || loadButton === null) {
+            return;
+        }
+
+        loadButton.addEventListener('click', openLoadModal);
+
+        const input = document.getElementById('typology-load-input');
+        if (input !== null) {
+            input.addEventListener('input', function () {
+                if (loadSearchTimer !== null) {
+                    clearTimeout(loadSearchTimer);
+                    loadSearchTimer = null;
+                }
+
+                const text = input.value.trim();
+                if (text.length < loadSearchMinimum) {
+                    abortLoadSearch();
+                    showLoadMessage('Type at least ' + loadSearchMinimum + ' characters to search.');
+                    return;
+                }
+
+                loadSearchTimer = setTimeout(function () {
+                    loadSearchTimer = null;
+                    searchLoadAreas(text);
+                }, loadSearchDelay);
+            });
+
+            // Enter confirms the current selection, like the county box in Column Properties.
+            input.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    confirmLoadSelection();
+                }
+            });
+        }
+
+        const results = document.getElementById('typology-load-results');
+        if (results !== null) {
+            results.addEventListener('click', function (event) {
+                const row = event.target.closest !== undefined ? event.target.closest('.gis-typology-result-row') : null;
+                if (row !== null && results.contains(row)) {
+                    setLoadSelection(parseInt(row.getAttribute('data-load-index'), 10));
+                }
+            });
+
+            results.addEventListener('keydown', function (event) {
+                if (event.key !== 'Enter' && event.key !== ' ') {
+                    return;
+                }
+                const row = event.target.closest !== undefined ? event.target.closest('.gis-typology-result-row') : null;
+                if (row !== null && results.contains(row)) {
+                    event.preventDefault(); // keep Space from scrolling the page
+                    setLoadSelection(parseInt(row.getAttribute('data-load-index'), 10));
+                }
+            });
+        }
+
+        const cancelButton = document.getElementById('typology-load-cancel-button');
+        if (cancelButton !== null) {
+            cancelButton.addEventListener('click', closeLoadModal);
+        }
+
+        const okButton = document.getElementById('typology-load-ok-button');
+        if (okButton !== null) {
+            okButton.addEventListener('click', confirmLoadSelection);
+        }
+
+        modal.addEventListener('click', function (event) {
+            if (event.target === modal) {
+                closeLoadModal();
+            }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && modal.style.display !== 'none') {
+                closeLoadModal();
+            }
+        });
+    }
+
     function setupDefinitionEvents() {
         const exportButton = document.getElementById('typology-export-button');
         const importButton = document.getElementById('typology-import-button');
@@ -1329,6 +1663,7 @@ const digiTypology = (function () {
         setupSelectedEvents();
         setupPropertiesEvents();
         setupDefinitionEvents();
+        setupLoadEvents();
         renderSelected(); // the empty state, until the columns arrive
         renderProperties();
         loadAvailableColumns();

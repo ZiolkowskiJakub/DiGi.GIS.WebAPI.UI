@@ -2302,3 +2302,100 @@ h1.gis-title-large {
 .gis-typology-error-list li {
     margin: 4px 0;
 }
+
+/* Typology area view stub (#18): the context row under the hero title - a stacked label over value. */
+.gis-typology-context {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 24px;
+    margin: 4px 0 8px 0;
+}
+
+    .gis-typology-context-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+    }
+
+    .gis-typology-context-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .gis-typology-context-value {
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+/* Load modal results (#18): one row per matched path - the full breadcrumb with the matched area's
+   type badge beside it. The row is the listbox option, so hover, focus and selection all read. */
+.gis-modal.gis-modal-load {
+    width: 640px;
+    max-width: 92vw;
+}
+
+.gis-typology-load-results {
+    max-height: 320px;
+    min-height: 120px;
+    margin: 10px 0;
+}
+
+    .gis-typology-result-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .gis-typology-result-row:hover,
+    .gis-typology-result-row:focus {
+        background-color: var(--bg-table-hover);
+        border-color: var(--border-color-light);
+        outline: none;
+    }
+
+    .gis-typology-result-row:focus-visible {
+        border-color: var(--primary-color);
+    }
+
+    .gis-typology-result-row.gis-typology-result-selected {
+        background-color: var(--primary-light);
+        border-color: var(--primary-color);
+    }
+
+    /* A whole path in one row: tighter than the page breadcrumb, which has room to breathe. */
+    .gis-typology-result-row .gis-path-breadcrumb {
+        flex: 1 1 auto;
+        gap: 0;
+        min-width: 0;
+        font-size: 0.9rem;
+    }
+
+    .gis-typology-result-row .breadcrumb-separator {
+        margin: 0 4px;
+        font-weight: normal;
+    }
+
+    .gis-typology-type-badge {
+        flex-shrink: 0;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: var(--text-active-link);
+        background-color: var(--primary-light);
+        border: 1px solid var(--border-color-light);
+        border-radius: 10px;
+        padding: 2px 8px;
+    }
+
+    .gis-typology-more-row {
+        padding: 6px 10px;
+        color: var(--text-muted);
+        font-size: 0.8rem;
+    }

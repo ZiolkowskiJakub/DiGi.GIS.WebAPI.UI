@@ -1,0 +1,33 @@
+@model DiGi.GIS.WebAPI.UI.ViewModels.TypologyViewViewModel
+@{
+    ViewData["Title"] = "Typology View";
+    ViewData["Description"] = "Colour-coded building typology for a selected administrative area.";
+    @* The colour-coded view itself is out of scope (#18): the page answers the Load modal's redirect with the
+       selected area context only, so the address stays discoverable-safe until the real view ships. *@
+    ViewData["Robots"] = "noindex, follow";
+}
+
+<div class="gis-panel">
+    <div class="gis-card gis-hero-card">
+        @* The same stacked-strata icon as the Typology start page: the two pages are one feature. *@
+        <div class="gis-hero-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" role="img" aria-hidden="true">
+                <path d="m12 3 8.5 4.25L12 11.5 3.5 7.25 12 3Z" />
+                <path d="m3.5 12.25 8.5 4.25 8.5-4.25" />
+                <path d="m3.5 16.75 8.5 4.25 8.5-4.25" />
+            </svg>
+        </div>
+        <h2 class="gis-title gis-title-hero">Colour-coded building typology for the selected area &mdash; in development</h2>
+        <p class="gis-hero-text">
+            This page will draw the buildings of the area in the colours of the defined typology. Until then, it confirms the area selected in the Load modal.
+        </p>
+        <div class="gis-typology-context">
+            <span class="gis-typology-context-item"><span class="gis-typology-context-label">Type</span><span class="gis-typology-context-value">@Model.AdministrativeArealTypeName</span></span>
+            <span class="gis-typology-context-item"><span class="gis-typology-context-label">Code</span><span class="gis-typology-context-value">@Model.Code</span></span>
+            <span class="gis-typology-context-item"><span class="gis-typology-context-label">Id</span><span class="gis-typology-context-value">@Model.Id</span></span>
+        </div>
+        <div class="gis-form-row">
+            <a href="~/typology" class="gis-button">Back to the definition page</a>
+        </div>
+    </div>
+</div>
