@@ -2095,6 +2095,20 @@ h1.gis-title-large {
     width: 100%;
 }
 
+/* Import/Export row just under the Selected Columns heading: pulls closer to the heading's border
+   line than .gis-form-row's default, and separates the row from the chain list below it. */
+.gis-typology-panel-actions {
+    margin: -8px 0 12px 0;
+}
+
+/* Load pinned to the bottom of the Selected Columns card, stretched across it: the card is a flex
+   column with the list flexing between this button and the Import/Export row above. */
+.gis-button-stretch {
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 12px;
+}
+
 /* The shared list surface the Available/Selected Columns sections render into (#14, #15). */
 .gis-column-list {
     min-height: 120px;
@@ -2330,6 +2344,15 @@ h1.gis-title-large {
     .gis-typology-errors:empty {
         display: none;
     }
+
+/* The validation line of the Add prompt (#16): danger colour, its height reserved so an appearing
+   error does not shift the buttons below it. */
+.gis-typology-prompt-error {
+    min-height: 1.3em;
+    margin: 8px 0 0 0;
+    color: var(--danger-color);
+    font-size: 0.85rem;
+}
 
 /* Solver hints (NULL rows, open-end sentinels, load latency). */
 .gis-typology-hint {

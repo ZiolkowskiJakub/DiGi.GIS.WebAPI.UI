@@ -28,6 +28,8 @@ const digiTypology = (function () {
     // DiGi.Core.Enums.DataType on the wire: 1 SByte … 8 ULong are integers, 9 Float … 11 Decimal are
     // floating point; everything else (Bool, String, DateTime, …) takes unique values only.
     const dataType_IntegerMax = 8;
+    const dataType_DecimalMax = 11;
+    const dataType_Bool = 13;
 
     // Default bucket colours, handed out in order so every new range or value is visible in the
     // colour-coded view before the user touches a picker. Hex is the picker's native form; #17 turns it
@@ -222,25 +224,13 @@ const digiTypology = (function () {
         return palette[count % palette.length];
     }
 
-    // A new row starts where the previous one ended, so a typical ascending list needs only its Max
-    // typed; the first row starts empty.
-    function addRange(level) {
-        const previous = level.ranges.length > 0 ? level.ranges[level.ranges.length - 1] : null;
-        const start = previous !== null && typeof previous.max === 'number' && Number.isFinite(previous.max)
-            ? previous.max + (level.ruleType === ruleType_IntegerRange ? 1 : 0)
-            : null;
-        level.ranges.push({ min: start, max: null, color: nextColor(level.ranges.length) });
-        renderProperties();
-        focusPropertiesField('.gis-typology-row[data-index="' + (level.ranges.length - 1) + '"] input[data-field="min"]');
-    }
-
     function removeRange(level, index) {
         if (index < 0 || index >= level.ranges.length) {
             return;
         }
         level.ranges.splice(index, 1);
         renderProperties();
-        focusPropertiesField('button[data-action="add-range"]');
+        focusPropertiesField('button[data-action="add"]');
     }
 
     // Bounds are written on every keystroke without a re-render — a rebuild would drop the caret —
@@ -335,14 +325,28 @@ const digiTypology = (function () {
         }
         level.uniqueValueColors.splice(index, 1);
         renderProperties();
-        focusPropertiesField('button[data-action="select-scope"]');
+        focusPropertiesField('button[data-action="add"]');
     }
 
+    // "Clear" of either editor asks for confirmation first — one stray click must not drop a
+    // hand-built list. The modal is opened here rather than in the click handler so the count in the
+    // message is read from the level, not the event.
     function clearUniqueValues(level) {
-        level.uniqueValueColors = [];
-        uniqueValuesMessage = null;
-        renderProperties();
-        focusPropertiesField('button[data-action="select-scope"]');
+        openConfirmModal('Clear Values', 'Remove all ' + level.uniqueValueColors.length + ' values?', function () {
+            level.uniqueValueColors = [];
+            uniqueValuesMessage = null;
+            renderProperties();
+            focusPropertiesField('button[data-action="clear"]');
+        });
+    }
+
+    function clearRanges(level) {
+        openConfirmModal('Clear Ranges', 'Remove all ' + level.ranges.length + ' ranges?', function () {
+            level.ranges = [];
+            uniqueValuesMessage = null;
+            renderProperties();
+            focusPropertiesField('button[data-action="clear"]');
+        });
     }
 
     function setUniqueValueColor(level, index, color) {
@@ -373,11 +377,20 @@ const digiTypology = (function () {
     // the load is refused with a message instead of rendering the values.
     const uniqueValuesLimit = 100;
 
+    // The number of ranges a Load generates for a range rule, splitting the span of the loaded
+    // values into equal-width intervals.
+    const generatedRangeCount = 4;
+
     function uniqueValuesScopeName() {
-        return uniqueValuesScope === null ? 'Whole table' : uniqueValuesScope.name;
+        return uniqueValuesScope === null ? 'No area selected' : uniqueValuesScope.name;
     }
 
-    function loadUniqueValues(level) {
+    // "Load" of either editor: the Load Area modal picks the scope, and a chosen area loads at once.
+    // A unique-value rule merges every answer into its rows as it arrives (capped at
+    // uniqueValuesLimit); a range rule collects the answers and, at the end, replaces its rows with
+    // generatedRangeCount ranges covering the span of the values.
+    function loadColumnValues(level) {
+        const forRanges = isRangeRuleType(level.ruleType);
         abortUniqueValuesLoad();
 
         const abortController = new AbortController();
@@ -402,8 +415,8 @@ const digiTypology = (function () {
             renderProperties();
         }
 
-        // A scoped load whose merged values pass uniqueValuesLimit is refused: the rows it added are
-        // rolled back to this snapshot, the county requests still in flight are cancelled, and the
+        // A unique-value load whose merged values pass uniqueValuesLimit is refused: the rows it added
+        // are rolled back to this snapshot, the county requests still in flight are cancelled, and the
         // outcome message says why. The rollback matters because a merge happens county by county —
         // without it a refused load would leave the values of its first few counties behind.
         const rowsBeforeLoad = level.uniqueValueColors.slice();
@@ -412,6 +425,40 @@ const digiTypology = (function () {
             level.uniqueValueColors = rowsBeforeLoad;
             abortController.abort(); // the county requests still in flight; their AbortError lands in the catch below
             finish('The selected area has more than ' + uniqueValuesLimit + ' unique values — they cannot be loaded. Select a smaller area.');
+        }
+
+        // What one answer does: a unique-value load merges it (refusing past the limit, which stops
+        // the worker chain); a range load only collects it — the ranges need every value before the
+        // span is known. Answers false when the load was refused.
+        function accept(values) {
+            if (forRanges) {
+                for (let i = 0; i < values.length; i++) {
+                    if (typeof values[i] === 'number' && Number.isFinite(values[i])) {
+                        collectedValues.push(values[i]);
+                    }
+                }
+                return true;
+            }
+            mergeUniqueValues(level, values);
+            if (level.uniqueValueColors.length > uniqueValuesLimit) {
+                exceedLimit();
+                return false;
+            }
+            return true;
+        }
+
+        const collectedValues = [];
+
+        function finishRanges(missedCounties) {
+            if (collectedValues.length === 0) {
+                finish('No values returned.');
+                return;
+            }
+            const generated = generatedRanges(collectedValues, level.ruleType === ruleType_IntegerRange);
+            level.ranges = generated.ranges;
+            finish('Generated ' + generated.ranges.length + ' ranges from ' + collectedValues.length + ' values (' +
+                displayValue(generated.min) + ' – ' + displayValue(generated.max) + ')' +
+                (missedCounties > 0 ? '; ' + missedCounties + ' counties answered nothing.' : '.'));
         }
 
         // One uniquevalues request; resolves to the value array, or null for 204 and every failure —
@@ -448,10 +495,11 @@ const digiTypology = (function () {
                     finish('No values returned — select an area; a load over the whole table can exceed the service timeout.');
                     return;
                 }
-                mergeUniqueValues(level, values);
-                // Reached only through a country selection, so the limit applies here too.
-                if (level.uniqueValueColors.length > uniqueValuesLimit) {
-                    exceedLimit();
+                if (!accept(values)) {
+                    return;
+                }
+                if (forRanges) {
+                    finishRanges(0);
                     return;
                 }
                 finish(values.length === 0 ? 'No values returned.' : null);
@@ -483,14 +531,10 @@ const digiTypology = (function () {
                     if (values !== null) {
                         answered++;
                         const before = level.uniqueValueColors.length;
-                        mergeUniqueValues(level, values);
-                        added += level.uniqueValueColors.length - before;
-                        // loadCounties is reached only through a selected area, so the limit applies
-                        // unconditionally here.
-                        if (level.uniqueValueColors.length > uniqueValuesLimit) {
-                            exceedLimit();
+                        if (!accept(values)) {
                             return;
                         }
+                        added += level.uniqueValueColors.length - before;
                     }
                     progress();
                     return worker();
@@ -504,6 +548,10 @@ const digiTypology = (function () {
             }
             return Promise.all(workers).then(function () {
                 if (!current()) {
+                    return;
+                }
+                if (forRanges) {
+                    finishRanges(answered === 0 ? 0 : total - answered);
                     return;
                 }
                 if (answered === 0) {
@@ -560,16 +608,16 @@ const digiTypology = (function () {
         });
     }
 
-    // "Select area…" in Column Properties: the Load Area modal picks the scope; a chosen area starts a
-    // load at once, so the button is one step rather than two.
+    // "Load" in Column Properties: the Load Area modal picks the scope; a chosen area starts a load
+    // at once, so the button is one step rather than two.
     function selectUniqueValuesScope(level) {
         const container = propertiesContainer();
         openLoadModal({
-            opener: container !== null ? container.querySelector('button[data-action="select-scope"]') : null,
+            opener: container !== null ? container.querySelector('button[data-action="load"]') : null,
             title: 'Load Values From Area',
             confirm: function (target) {
                 uniqueValuesScope = { name: target.name, code: target.code, administrativeArealType: target.administrativeArealType, countyIds: null };
-                loadUniqueValues(level);
+                loadColumnValues(level);
             }
         });
     }
@@ -579,7 +627,60 @@ const digiTypology = (function () {
         uniqueValuesScope = null;
         uniqueValuesMessage = null;
         renderProperties();
-        focusPropertiesField('button[data-action="select-scope"]');
+        focusPropertiesField('button[data-action="load"]');
+    }
+
+    // Splits [min, max] of the collected values into generatedRangeCount equal-width closed ranges
+    // covering every value. The validation of the editor (and of the export) rejects closed intervals
+    // that share a value, so consecutive ranges are kept strictly apart: whole-number bounds stepping
+    // by one on an integer rule, a relative epsilon on a double rule — the epsilon gap is a billionth
+    // of the span, so no real value falls between the ranges.
+    function generatedRanges(values, integer) {
+        let min = Infinity;
+        let max = -Infinity;
+        for (let i = 0; i < values.length; i++) {
+            if (values[i] < min) {
+                min = values[i];
+            }
+            if (values[i] > max) {
+                max = values[i];
+            }
+        }
+
+        if (max < min) {
+            return { ranges: [], min: null, max: null };
+        }
+
+        const ranges = [];
+        if (integer) {
+            const boundaries = [min];
+            for (let i = 1; i < generatedRangeCount; i++) {
+                boundaries.push(Math.ceil(min + (max - min) * i / generatedRangeCount));
+            }
+            for (let i = 0; i < generatedRangeCount; i++) {
+                const rangeMin = boundaries[i];
+                const rangeMax = i === generatedRangeCount - 1 ? max : boundaries[i + 1] - 1;
+                if (rangeMax >= rangeMin) { // a narrow span yields fewer than four non-empty ranges
+                    ranges.push({ min: rangeMin, max: rangeMax, color: nextColor(ranges.length) });
+                }
+            }
+        } else {
+            if (max === min) {
+                ranges.push({ min: min, max: max, color: nextColor(0) });
+            } else {
+                const width = (max - min) / generatedRangeCount;
+                const gap = (max - min) * 1e-9;
+                for (let i = 0; i < generatedRangeCount; i++) {
+                    ranges.push({
+                        min: i === 0 ? min : min + width * i + gap,
+                        max: i === generatedRangeCount - 1 ? max : min + width * (i + 1),
+                        color: nextColor(i)
+                    });
+                }
+            }
+        }
+
+        return { ranges: ranges, min: min, max: max };
     }
 
     function abortUniqueValuesLoad() {
@@ -716,13 +817,15 @@ const digiTypology = (function () {
         const rangeRuleType = rangeRuleTypeFor(level);
         const kind = level.ruleType === ruleType_UniqueValue ? 'unique' : (isRangeRuleType(level.ruleType) ? 'range' : '');
 
+        // A text-based column offers unique values only: the Ranges option is absent rather than
+        // disabled, so the choice the select shows is exactly the choice the column admits.
         let html =
             '<p class="gis-typology-properties-name">' + escapeHtml(level.name || level.uniqueId || '') + '</p>' +
             '<label class="gis-field-label">Rule type' +
             '<select data-field="ruleType" class="gis-select">' +
             '<option value=""' + (kind === '' ? ' selected' : '') + '>— choose —</option>' +
             '<option value="unique"' + (kind === 'unique' ? ' selected' : '') + '>Unique values</option>' +
-            '<option value="range"' + (kind === 'range' ? ' selected' : '') + (rangeRuleType === null ? ' disabled' : '') + '>Ranges</option>' +
+            (rangeRuleType !== null ? '<option value="range"' + (kind === 'range' ? ' selected' : '') + '>Ranges</option>' : '') +
             '</select></label>';
 
         if (kind === 'range') {
@@ -738,13 +841,40 @@ const digiTypology = (function () {
         renderRangeValidation(level);
     }
 
+    // The chrome both editors share: the scope line and the Add / Load / Clear row — the same three
+    // actions in the same order for both rule kinds, so switching a level's kind never moves the
+    // buttons under the pointer. Add and Load wait out a running load; Clear waits out an empty list.
+    function renderScopeLine() {
+        const scopeName = uniqueValuesScopeName();
+        return '<div class="gis-typology-scope">' +
+            '<span class="gis-typology-scope-label">Values from</span>' +
+            '<span class="gis-typology-scope-name" title="' + escapeHtml(scopeName) + '">' + escapeHtml(scopeName) + '</span>' +
+            (uniqueValuesScope !== null ? '<button type="button" class="gis-button gis-button-icon gis-button-secondary" data-action="clear-scope" title="No area" aria-label="Clear the selected area">&times;</button>' : '') +
+            '</div>';
+    }
+
+    function renderEditorActions(loading, listEmpty) {
+        return '<div class="gis-typology-actions">' +
+            '<button type="button" class="gis-button" data-action="add"' + (loading ? ' disabled' : '') + '>Add</button>' +
+            '<button type="button" class="gis-button" data-action="load"' + (loading ? ' disabled' : '') + '>Load</button>' +
+            '<button type="button" class="gis-button gis-button-secondary" data-action="clear"' + (listEmpty ? ' disabled' : '') + '>Clear</button>' +
+            '</div>';
+    }
+
+    function renderLoading() {
+        return '<div class="gis-loader"></div><p class="gis-loader-text">' + escapeHtml(uniqueValuesProgress || 'Loading values…') + '</p>';
+    }
+
     function renderRangeEditor(level) {
+        const loading = uniqueValuesLoadingId === level.uniqueId;
         const integer = level.ruleType === ruleType_IntegerRange;
         const step = integer ? '1' : 'any';
 
         let rows;
-        if (level.ranges.length === 0) {
-            rows = '<div class="gis-empty-state">No ranges — add one.</div>';
+        if (loading) {
+            rows = renderLoading();
+        } else if (level.ranges.length === 0) {
+            rows = '<div class="gis-empty-state">' + escapeHtml(uniqueValuesMessage || 'No ranges — add one or load them from an area.') + '</div>';
         } else {
             rows = level.ranges.map(function (range, index) {
                 const row = index + 1;
@@ -756,14 +886,17 @@ const digiTypology = (function () {
                     '<button type="button" class="gis-button gis-button-icon gis-button-secondary" data-action="remove-range" title="Remove" aria-label="Remove range ' + row + '">&times;</button>' +
                     '</div>';
             }).join('');
+            if (uniqueValuesMessage !== null) {
+                rows += '<p class="gis-typology-hint">' + escapeHtml(uniqueValuesMessage) + '</p>';
+            }
         }
 
-        return '<div class="gis-typology-ranges" aria-describedby="typology-range-errors">' + rows + '</div>' +
-            '<div class="gis-typology-actions">' +
-            '<button type="button" class="gis-button gis-button-secondary" data-action="add-range">Add range</button>' +
-            '</div>' +
+        return renderScopeLine() +
+            renderEditorActions(loading, level.ranges.length === 0) +
+            '<div class="gis-typology-ranges" aria-describedby="typology-range-errors">' + rows + '</div>' +
             '<ul id="typology-range-errors" class="gis-typology-errors" role="alert"></ul>' +
             '<p class="gis-typology-hint">Closed intervals' + (integer ? ' of whole numbers' : '') + ', ascending and non-overlapping — the solver walks them by Min and a disordered list matches nothing. ' +
+            'Load divides the values of an area into four ranges covering their span. ' +
             'Rows with no value in this column fall out of this level. For an open end use a sentinel (for years, 0 and 9999).</p>';
     }
 
@@ -772,9 +905,9 @@ const digiTypology = (function () {
 
         let rows;
         if (loading) {
-            rows = '<div class="gis-loader"></div><p class="gis-loader-text">' + escapeHtml(uniqueValuesProgress || 'Loading values…') + '</p>';
+            rows = renderLoading();
         } else if (level.uniqueValueColors.length === 0) {
-            rows = '<div class="gis-empty-state">' + escapeHtml(uniqueValuesMessage || 'No values yet — load them from the building data.') + '</div>';
+            rows = '<div class="gis-empty-state">' + escapeHtml(uniqueValuesMessage || 'No values yet — add one or load them from an area.') + '</div>';
         } else {
             rows = level.uniqueValueColors.map(function (entry, index) {
                 const text = displayValue(entry.value);
@@ -789,21 +922,11 @@ const digiTypology = (function () {
             }
         }
 
-        // The scope line names the area the values come from; "Select area…" opens the Load Area
-        // modal, and a chosen area loads at once — there is no separate load button.
-        const scopeName = uniqueValuesScopeName();
-        return '<div class="gis-typology-scope">' +
-            '<span class="gis-typology-scope-label">Values from</span>' +
-            '<span class="gis-typology-scope-name" title="' + escapeHtml(scopeName) + '">' + escapeHtml(scopeName) + '</span>' +
-            (uniqueValuesScope !== null ? '<button type="button" class="gis-button gis-button-icon gis-button-secondary" data-action="clear-scope" title="Whole table" aria-label="Load from the whole table instead">&times;</button>' : '') +
-            '</div>' +
-            '<div class="gis-typology-actions">' +
-            '<button type="button" class="gis-button" data-action="select-scope"' + (loading ? ' disabled' : '') + '>Select area…</button>' +
-            '<button type="button" class="gis-button gis-button-secondary" data-action="clear-values"' + (level.uniqueValueColors.length === 0 ? ' disabled' : '') + '>Clear</button>' +
-            '</div>' +
+        return renderScopeLine() +
+            renderEditorActions(loading, level.uniqueValueColors.length === 0) +
             '<div class="gis-typology-values">' + rows + '</div>' +
             '<p class="gis-typology-hint">Each distinct value is its own bucket; a missing value is bucketed as (null). ' +
-            'Values load a county at a time — a municipality loads its whole county, a voivodeship every county in it — and the whole table can exceed the service timeout.</p>';
+            'Values load a county at a time — a municipality loads its whole county, a voivodeship every county in it.</p>';
     }
 
     // Refreshes the error list and the outlined boxes of the range editor in place — called after a
@@ -1130,6 +1253,8 @@ const digiTypology = (function () {
             }
         });
 
+        // The three editor actions are shared by both rule kinds; the active kind decides what Add
+        // and Clear act on. The per-row × buttons act on their own row.
         container.addEventListener('click', function (event) {
             const level = selectedLevel();
             const button = event.target.closest !== undefined ? event.target.closest('button[data-action]') : null;
@@ -1137,23 +1262,32 @@ const digiTypology = (function () {
                 return;
             }
             const action = button.getAttribute('data-action');
-            if (action === 'add-range') {
-                addRange(level);
-            } else if (action === 'remove-range') {
-                removeRange(level, rowIndex(button));
-            } else if (action === 'select-scope') {
+            const forRanges = isRangeRuleType(level.ruleType);
+            if (action === 'add') {
+                if (forRanges) {
+                    openAddRangePrompt(level);
+                } else {
+                    openAddValuePrompt(level);
+                }
+            } else if (action === 'load') {
                 selectUniqueValuesScope(level);
+            } else if (action === 'clear') {
+                if (forRanges) {
+                    clearRanges(level);
+                } else {
+                    clearUniqueValues(level);
+                }
             } else if (action === 'clear-scope') {
                 clearUniqueValuesScope();
-            } else if (action === 'clear-values') {
-                clearUniqueValues(level);
+            } else if (action === 'remove-range') {
+                removeRange(level, rowIndex(button));
             } else if (action === 'remove-value') {
                 removeUniqueValue(level, rowIndex(button));
             }
         });
 
-        // Enter in the last Max acts like the row's natural next step instead of doing nothing: a new
-        // range after it.
+        // Enter in the last Max acts like the row's natural next step instead of doing nothing: the
+        // Add prompt for the range after it.
         container.addEventListener('keydown', function (event) {
             if (event.key !== 'Enter') {
                 return;
@@ -1166,7 +1300,7 @@ const digiTypology = (function () {
             const field = target.getAttribute('data-field');
             if (field === 'max' && rowIndex(target) === level.ranges.length - 1) {
                 event.preventDefault();
-                addRange(level);
+                openAddRangePrompt(level);
             }
         });
     }
@@ -1479,6 +1613,284 @@ const digiTypology = (function () {
         if (errorModal !== null) {
             errorModal.style.display = 'none';
         }
+    }
+
+    // ----- Add prompt and Clear confirmation (#16) -----
+
+    // One modal serves the two Add prompts — a single value box for the unique-value editor, a
+    // min/max pair for the range editor. The fields are rebuilt on open; the confirm callback
+    // validates and answers false to keep the modal open with the message under the fields.
+    let promptModal = null;
+    let promptModalConfirm = null;
+
+    function ensurePromptModal() {
+        if (promptModal !== null) {
+            return promptModal;
+        }
+
+        promptModal = document.createElement('div');
+        promptModal.className = 'gis-modal-overlay';
+        promptModal.style.display = 'none';
+        promptModal.innerHTML =
+            '<div class="gis-card gis-modal gis-dialog-card" role="dialog" aria-modal="true" aria-labelledby="typology-prompt-title">' +
+            '<h3 class="gis-title" id="typology-prompt-title"></h3>' +
+            '<div id="typology-prompt-fields"></div>' +
+            '<p id="typology-prompt-error" class="gis-typology-prompt-error" role="alert"></p>' +
+            '<div class="gis-modal-buttons">' +
+            '<button type="button" id="typology-prompt-cancel-button" class="gis-button gis-button-secondary">Cancel</button>' +
+            '<button type="button" id="typology-prompt-ok-button" class="gis-button">OK</button>' +
+            '</div></div>';
+        document.body.appendChild(promptModal);
+
+        promptModal.querySelector('#typology-prompt-cancel-button').addEventListener('click', closePromptModal);
+        promptModal.querySelector('#typology-prompt-ok-button').addEventListener('click', confirmPromptModal);
+        promptModal.addEventListener('click', function (event) {
+            if (event.target === promptModal) {
+                closePromptModal();
+            }
+        });
+        promptModal.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' && event.target.tagName === 'INPUT') {
+                event.preventDefault();
+                confirmPromptModal();
+            }
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && promptModal.style.display !== 'none') {
+                closePromptModal();
+            }
+        });
+
+        return promptModal;
+    }
+
+    // fields: [{ name, label, type ('text'|'number'), step, value, placeholder }]
+    function openPromptModal(settings) {
+        const modal = ensurePromptModal();
+        promptModalConfirm = typeof settings.confirm === 'function' ? settings.confirm : null;
+
+        modal.querySelector('#typology-prompt-title').textContent = settings.title || '';
+
+        const fields = settings.fields || [];
+        modal.querySelector('#typology-prompt-fields').innerHTML = fields.map(function (field) {
+            const type = field.type || 'text';
+            const step = type === 'number' ? ' step="' + (field.step || 'any') + '"' : '';
+            const value = typeof field.value === 'number' ? ' value="' + numberAttribute(field.value) + '"' : '';
+            const placeholder = field.placeholder !== undefined ? ' placeholder="' + escapeHtml(field.placeholder) + '"' : '';
+            return '<label class="gis-field-label">' + escapeHtml(field.label || '') +
+                '<input type="' + type + '"' + step + value + placeholder + ' data-prompt-field="' + escapeHtml(field.name || '') + '" /></label>';
+        }).join('');
+
+        modal.querySelector('#typology-prompt-error').textContent = '';
+        modal.style.display = 'flex';
+        const input = modal.querySelector('#typology-prompt-fields input');
+        if (input !== null) {
+            input.focus();
+        }
+    }
+
+    function closePromptModal() {
+        if (promptModal !== null) {
+            promptModal.style.display = 'none';
+        }
+        promptModalConfirm = null;
+        focusPropertiesField('button[data-action="add"]'); // back to the button that opened it
+    }
+
+    function confirmPromptModal() {
+        if (promptModalConfirm === null) {
+            closePromptModal();
+            return;
+        }
+
+        const inputs = promptModal.querySelectorAll('#typology-prompt-fields input');
+        const values = [];
+        for (let i = 0; i < inputs.length; i++) {
+            values.push(inputs[i].value);
+        }
+
+        const errorElement = promptModal.querySelector('#typology-prompt-error');
+        errorElement.textContent = '';
+        if (promptModalConfirm(values, function (message) {
+            errorElement.textContent = message;
+        }) !== false) {
+            closePromptModal();
+        }
+    }
+
+    // "Add" of the unique-value editor: one value typed by hand, parsed to the column's type — the
+    // same admission the export runs on every row (Query.TryConvertValue server side), so what the
+    // prompt accepts is what the document can carry.
+    function openAddValuePrompt(level) {
+        const integer = level.dataType >= 1 && level.dataType <= dataType_IntegerMax;
+        const floating = level.dataType > dataType_IntegerMax && level.dataType <= dataType_DecimalMax;
+        const boolean = level.dataType === dataType_Bool;
+
+        openPromptModal({
+            title: 'Add Value',
+            fields: [{
+                name: 'value',
+                label: integer ? 'Value (whole number)' : floating ? 'Value (number)' : boolean ? 'Value (true or false)' : 'Value',
+                type: 'text'
+            }],
+            confirm: function (values, error) {
+                const raw = String(values[0]).trim();
+                if (raw === '') {
+                    error('Enter a value.');
+                    return false;
+                }
+
+                let value = null;
+                if (integer) {
+                    if (!/^-?\d+$/.test(raw)) {
+                        error('Enter a whole number.');
+                        return false;
+                    }
+                    value = Number(raw);
+                } else if (floating) {
+                    value = Number(raw);
+                    if (!Number.isFinite(value)) {
+                        error('Enter a number.');
+                        return false;
+                    }
+                } else if (boolean) {
+                    const lowered = raw.toLowerCase();
+                    if (lowered !== 'true' && lowered !== 'false') {
+                        error('Enter true or false.');
+                        return false;
+                    }
+                    value = lowered === 'true';
+                } else {
+                    value = raw; // a textual column (String, DateTime, …) keeps the text
+                }
+
+                const key = valueKey(value);
+                for (let i = 0; i < level.uniqueValueColors.length; i++) {
+                    if (valueKey(level.uniqueValueColors[i].value) === key) {
+                        error('"' + displayValue(value) + '" is already in the list.');
+                        return false;
+                    }
+                }
+
+                level.uniqueValueColors.push({ value: value, color: nextColor(level.uniqueValueColors.length) });
+                renderProperties();
+                return true;
+            }
+        });
+    }
+
+    // "Add" of the range editor: the prompt asks for both bounds up front, the start prefilled where
+    // the last row ended — the carry-over the inline editor's Add used to make. The checks mirror the
+    // inline validation, so a row the list would outline red never enters it.
+    function openAddRangePrompt(level) {
+        const integer = level.ruleType === ruleType_IntegerRange;
+        const previous = level.ranges.length > 0 ? level.ranges[level.ranges.length - 1] : null;
+        const previousMax = previous !== null && typeof previous.max === 'number' && Number.isFinite(previous.max) ? previous.max : null;
+        const start = previousMax !== null ? previousMax + (integer ? 1 : 0) : null;
+
+        openPromptModal({
+            title: 'Add Range',
+            fields: [
+                { name: 'min', label: 'Min', type: 'number', step: integer ? '1' : 'any', value: start },
+                { name: 'max', label: 'Max', type: 'number', step: integer ? '1' : 'any' }
+            ],
+            confirm: function (values, error) {
+                const min = parseBound(values[0]);
+                const max = parseBound(values[1]);
+                if (min === null || max === null) {
+                    error('Enter both bounds.');
+                    return false;
+                }
+                if (integer && (!Number.isInteger(min) || !Number.isInteger(max))) {
+                    error('Enter whole numbers.');
+                    return false;
+                }
+                if (min > max) {
+                    error('Min exceeds Max.');
+                    return false;
+                }
+                if (previousMax !== null && min <= previousMax) {
+                    error('Min must exceed ' + previousMax + ' — ranges ascend and must not overlap.');
+                    return false;
+                }
+
+                level.ranges.push({ min: min, max: max, color: nextColor(level.ranges.length) });
+                renderProperties();
+                return true;
+            }
+        });
+    }
+
+    // '' to null — an empty or unparseable box never enters the list as NaN.
+    function parseBound(rawValue) {
+        const trimmed = String(rawValue).trim();
+        if (trimmed === '') {
+            return null;
+        }
+        const value = Number(trimmed);
+        return Number.isFinite(value) ? value : null;
+    }
+
+    // The Clear confirmation: Cancel is focused so one Enter through the dialog dismisses rather
+    // than destroys.
+    let confirmModal = null;
+    let confirmModalCallback = null;
+
+    function ensureConfirmModal() {
+        if (confirmModal !== null) {
+            return confirmModal;
+        }
+
+        confirmModal = document.createElement('div');
+        confirmModal.className = 'gis-modal-overlay';
+        confirmModal.style.display = 'none';
+        confirmModal.innerHTML =
+            '<div class="gis-card gis-modal gis-dialog-card" role="dialog" aria-modal="true" aria-labelledby="typology-confirm-title">' +
+            '<h3 class="gis-title" id="typology-confirm-title"></h3>' +
+            '<p id="typology-confirm-message" class="gis-dialog-message"></p>' +
+            '<div class="gis-modal-buttons">' +
+            '<button type="button" id="typology-confirm-cancel-button" class="gis-button gis-button-secondary">Cancel</button>' +
+            '<button type="button" id="typology-confirm-ok-button" class="gis-button">OK</button>' +
+            '</div></div>';
+        document.body.appendChild(confirmModal);
+
+        confirmModal.querySelector('#typology-confirm-cancel-button').addEventListener('click', closeConfirmModal);
+        confirmModal.querySelector('#typology-confirm-ok-button').addEventListener('click', function () {
+            const callback = confirmModalCallback;
+            closeConfirmModal();
+            if (callback !== null) {
+                callback();
+            }
+        });
+        confirmModal.addEventListener('click', function (event) {
+            if (event.target === confirmModal) {
+                closeConfirmModal();
+            }
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && confirmModal.style.display !== 'none') {
+                closeConfirmModal();
+            }
+        });
+
+        return confirmModal;
+    }
+
+    function openConfirmModal(title, message, onOk) {
+        const modal = ensureConfirmModal();
+        confirmModalCallback = typeof onOk === 'function' ? onOk : null;
+        modal.querySelector('#typology-confirm-title').textContent = title;
+        modal.querySelector('#typology-confirm-message').textContent = message;
+        modal.style.display = 'flex';
+        modal.querySelector('#typology-confirm-cancel-button').focus();
+    }
+
+    function closeConfirmModal() {
+        if (confirmModal !== null) {
+            confirmModal.style.display = 'none';
+        }
+        confirmModalCallback = null;
+        focusPropertiesField('button[data-action="clear"]'); // back to the button that opened it
     }
 
     // ----- load modal (#18) -----

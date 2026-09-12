@@ -17,15 +17,6 @@
         <p class="gis-hero-text">
             Chain columns of the building data into classification rules - rule type, ranges and the colors they map to - to define a building typology, then load it for an administrative area.
         </p>
-        @* Import and Export (#17) round-trip the definition through the server; Load (#18) opens the area
-           modal below and redirects to the typology view with the selected area. The file input is the
-           picker Import opens and is never shown on its own. *@
-        <div class="gis-form-row">
-            <button type="button" id="typology-import-button" class="gis-button">Import</button>
-            <button type="button" id="typology-export-button" class="gis-button">Export</button>
-            <button type="button" id="typology-load-button" class="gis-button">Load</button>
-            <input type="file" id="typology-import-file" accept=".json,application/json" hidden />
-        </div>
     </div>
 
     <div class="gis-typology-layout">
@@ -36,7 +27,17 @@
         </div>
         <div class="gis-card" id="typology-selected-columns">
             <h3 class="gis-title">Selected Columns</h3>
+            @* Import and Export (#17) sit under the heading of the chain they act on. The file input is
+               the picker Import opens and is never shown on its own. *@
+            <div class="gis-form-row gis-typology-panel-actions">
+                <button type="button" id="typology-import-button" class="gis-button gis-button-secondary">Import</button>
+                <button type="button" id="typology-export-button" class="gis-button gis-button-secondary">Export</button>
+                <input type="file" id="typology-import-file" accept=".json,application/json" hidden />
+            </div>
             <div class="gis-column-list"></div>
+            @* Load (#18) is pinned to the card's bottom, stretched: the card is a flex column, so the
+               list keeps flexing between this button and the Import/Export row above. *@
+            <button type="button" id="typology-load-button" class="gis-button gis-button-stretch">Load</button>
         </div>
         <div class="gis-card" id="typology-column-properties">
             <h3 class="gis-title">Column Properties</h3>
