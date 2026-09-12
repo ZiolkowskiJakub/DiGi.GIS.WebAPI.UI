@@ -1273,6 +1273,12 @@ h1.gis-title-large {
         flex-shrink: 0;
     }
 
+    /* Center the row inside a hero card, like the .gis-inline-form rows there: .gis-hero-card's
+       text-align does not reach a flex row, so without this the Typology action bar hugs the left edge. */
+    .gis-hero-card .gis-form-row {
+        justify-content: center;
+    }
+
 /* AJAX results target below a control card */
 .gis-results-container {
     display: flex;
