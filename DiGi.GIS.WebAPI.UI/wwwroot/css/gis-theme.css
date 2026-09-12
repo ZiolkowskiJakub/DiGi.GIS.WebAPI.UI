@@ -2103,3 +2103,63 @@ h1.gis-title-large {
     background-color: var(--bg-table-hover);
     border-color: var(--primary-color);
 }
+
+/* Interactive column rows (#15): focusable and draggable, dimmed once they are in the chain. */
+.gis-column-item {
+    user-select: none;
+}
+
+    .gis-column-item:focus-visible {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 1px;
+    }
+
+    .gis-column-item-disabled {
+        color: var(--text-gray-light);
+        cursor: not-allowed;
+    }
+
+/* Selected Columns row (#15): position badge, name, and the Move Up / Move Down / Remove actions. */
+.gis-typology-level {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+    .gis-typology-level-index {
+        flex-shrink: 0;
+        min-width: 20px;
+        padding: 1px 4px;
+        font-size: 0.75rem;
+        line-height: 1.2;
+        text-align: center;
+        border-radius: 3px;
+        background-color: var(--bg-table-hover);
+        color: var(--text-muted);
+    }
+
+    .gis-typology-level .gis-column-item-text {
+        flex: 1 1 auto;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .gis-typology-level-actions {
+        flex-shrink: 0;
+        display: flex;
+        gap: 4px;
+    }
+
+/* Compact icon button for the Selected Columns actions: the .gis-button metrics with half the
+   horizontal padding, so three fit beside the name in a 300px column. */
+.gis-button.gis-button-icon {
+    padding: 4px 7px;
+    gap: 0;
+}
+
+    .gis-button.gis-button-icon:disabled {
+        background-color: transparent;
+        border-color: var(--border-color-light);
+        color: var(--text-gray-light);
+    }
