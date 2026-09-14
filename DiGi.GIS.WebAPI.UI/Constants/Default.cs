@@ -22,6 +22,17 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const string BuildingDataColumnsUri = GISWebAPIUri + "/gis/BuildingData/columns";
 
         /// <summary>
+        /// URI of the GIS Web API endpoint that pages building data rows by county part, used by the Typology solve to fetch the table the solver classifies.
+        /// </summary>
+        public const string BuildingDataTableUri = GISWebAPIUri + "/gis/BuildingData/tablebybuildingdatabypagingparameter";
+
+        /// <summary>
+        /// The ceiling on the total number of buildings one Typology solve classifies; an area above it is refused with a 413 and an actionable message instead of timing out the fetch and the solve.
+        /// <para>Chosen above the largest county verified live (code 1465 with 154 529 buildings) and below any voivodeship, so a county still solves while a voivodeship or country scope degrades gracefully (issue #22 guardrail).</para>
+        /// </summary>
+        public const int BuildingSolveCeiling = 200_000;
+
+        /// <summary>
         /// Base URI of the DiGi.Communication.WebAPI extension (hosted by the generic DiGi.WebAPI.WindowsService) used in production.
         /// </summary>
         public const string CommunicationWebAPIUri = "https://api.digiproject.uk";

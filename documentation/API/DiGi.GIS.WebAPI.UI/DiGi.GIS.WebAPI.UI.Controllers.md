@@ -1931,22 +1931,28 @@ public class TypologyController : Microsoft.AspNetCore.Mvc.Controller
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [Microsoft\.AspNetCore\.Mvc\.ControllerBase](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controllerbase 'Microsoft\.AspNetCore\.Mvc\.ControllerBase') → [Microsoft\.AspNetCore\.Mvc\.Controller](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controller 'Microsoft\.AspNetCore\.Mvc\.Controller') → TypologyController
 ### Constructors
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.TypologyController(System.Net.Http.IHttpClientFactory)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.TypologyController(System.Net.Http.IHttpClientFactory,Microsoft.Extensions.Logging.ILogger_DiGi.GIS.WebAPI.UI.Controllers.TypologyController_)'></a>
 
-## TypologyController\(IHttpClientFactory\) Constructor
+## TypologyController\(IHttpClientFactory, ILogger\<TypologyController\>\) Constructor
 
 Initializes a new instance of the [TypologyController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TypologyController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TypologyController') class\.
 
 ```csharp
-public TypologyController(System.Net.Http.IHttpClientFactory httpClientFactory);
+public TypologyController(System.Net.Http.IHttpClientFactory httpClientFactory, Microsoft.Extensions.Logging.ILogger<DiGi.GIS.WebAPI.UI.Controllers.TypologyController> logger);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.TypologyController(System.Net.Http.IHttpClientFactory).httpClientFactory'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.TypologyController(System.Net.Http.IHttpClientFactory,Microsoft.Extensions.Logging.ILogger_DiGi.GIS.WebAPI.UI.Controllers.TypologyController_).httpClientFactory'></a>
 
 `httpClientFactory` [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory')
 
 The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') the feature's data actions use to create [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') instances\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.TypologyController(System.Net.Http.IHttpClientFactory,Microsoft.Extensions.Logging.ILogger_DiGi.GIS.WebAPI.UI.Controllers.TypologyController_).logger'></a>
+
+`logger` [Microsoft\.Extensions\.Logging\.ILogger&lt;](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.ilogger-1 'Microsoft\.Extensions\.Logging\.ILogger\`1')[TypologyController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TypologyController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TypologyController')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.ilogger-1 'Microsoft\.Extensions\.Logging\.ILogger\`1')
+
+The logger the solve action reports each county part's page count and row count to \(issue \#22 Definition of Done: "upstream page count logged per part"\)\.
 ### Methods
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.AreaView(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_)'></a>
@@ -2103,6 +2109,37 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the upstream JSON array of primitive values, a 204 No Content response when the upstream service answers nothing, or a 400 Bad Request response when the column identifier is blank\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.SolveBuildingsAsync(DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter,System.Threading.CancellationToken)'></a>
+
+## TypologyController\.SolveBuildingsAsync\(TypologySolveParameter, CancellationToken\) Method
+
+Solves the Typology definition for the selected administrative area: joins the building data to the definition, runs the solver, and answers the view DTO the area view renders\.
+
+The pipeline: validate the definition against the live column catalog, resolve the area to county part identifiers, fetch building data per part (sequential, with a single retry on a cold partition), clip to the area when it is below county, solve, and flatten to the view DTO. The page arrives already in the solver's table type - the deployed GIS Web API's own `Create.Table` shape - so the join needs no bridge. The browser never spells a `_type` or a rule name; the join and the solve run server-side.
+
+[DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.enums.administrativearealtype 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType') is bound nullable and rejected when absent: the `Undefined` sentinel is -1 and not 0, so a non-nullable binding would silently keep `Country` for an omitted parameter (Coding - WebAPI Contracts, section 2).
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> SolveBuildingsAsync(DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter? typologySolveParameter, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.SolveBuildingsAsync(DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter,System.Threading.CancellationToken).typologySolveParameter'></a>
+
+`typologySolveParameter` [TypologySolveParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologySolveParameter')
+
+The request body: the definition to solve and the area it is solved for\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.SolveBuildingsAsync(DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the view DTO, a 400 Bad Request response for a rejected definition, a 404 Not Found response when the area has no buildings, a 413 Payload Too Large response when the area exceeds [BuildingSolveCeiling](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.BuildingSolveCeiling 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.BuildingSolveCeiling'), or a 503 Service Unavailable response when the column catalog or the building data cannot be read\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.Start()'></a>
 

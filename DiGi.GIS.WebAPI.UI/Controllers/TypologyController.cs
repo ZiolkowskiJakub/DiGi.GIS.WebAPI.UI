@@ -9,7 +9,9 @@ using DiGi.GIS.WebAPI.UI.ViewModels;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System.Text.Json.Nodes;
+using DiGi.Typology.Visual;
 
 namespace DiGi.GIS.WebAPI.UI.Controllers
 {
@@ -21,14 +23,17 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
     public class TypologyController : Controller
     {
         private readonly IHttpClientFactory httpClientFactory;
+        private readonly ILogger<TypologyController> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TypologyController"/> class.
         /// </summary>
         /// <param name="httpClientFactory">The <see cref="IHttpClientFactory"/> the feature's data actions use to create <see cref="HttpClient"/> instances.</param>
-        public TypologyController(IHttpClientFactory httpClientFactory)
+        /// <param name="logger">The logger the solve action reports each county part's page count and row count to (issue #22 Definition of Done: "upstream page count logged per part").</param>
+        public TypologyController(IHttpClientFactory httpClientFactory, ILogger<TypologyController> logger)
         {
             this.httpClientFactory = httpClientFactory;
+            this.logger = logger;
         }
 
         // This action will trigger for: gis.digiproject.uk/typology
@@ -103,48 +108,16 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return BadRequest();
             }
 
-            if (administrativeArealType.Value == AdministrativeArealType.Country)
-            {
-                return Ok(Array.Empty<int>());
-            }
-
             HttpClient httpClient = httpClientFactory.CreateClient();
 
-            if (administrativeArealType.Value == AdministrativeArealType.Voivodeship)
-            {
-                UrlBuilder urlBuilder_References = new($"{Constants.Default.GISWebAPIUri}/gis/administrativeareal2D/administrativeareal2Dreferencesbyadministrativearealtype");
-                urlBuilder_References = urlBuilder_References.AddParameter("administrativearealtype", (int)AdministrativeArealType.County);
-
-                List<PostgreSQL.Classes.AdministrativeAreal2DReference>? administrativeAreal2DReferences = await httpClient.ItemsAsync<PostgreSQL.Classes.AdministrativeAreal2DReference>(urlBuilder_References.ToString(), cancellationToken);
-                if (administrativeAreal2DReferences is null)
-                {
-                    return NoContent();
-                }
-
-                List<int> ids = administrativeAreal2DReferences
-                    .Where(administrativeAreal2DReference => administrativeAreal2DReference.Id >= 0 && administrativeAreal2DReference.Code is not null && administrativeAreal2DReference.Code.StartsWith(code, StringComparison.Ordinal))
-                    .Select(administrativeAreal2DReference => administrativeAreal2DReference.Id)
-                    .Distinct()
-                    .OrderBy(id => id)
-                    .ToList();
-
-                return ids.Count == 0 ? NoContent() : Ok(ids);
-            }
-
-            // A county code is the first four characters of a municipality or subdivision code.
-            string code_County = administrativeArealType.Value == AdministrativeArealType.County ? code : (code.Length >= 4 ? code.Substring(0, 4) : code);
-
-            UrlBuilder urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/administrativeareal2D/idsbycode");
-            urlBuilder = urlBuilder.AddParameter("code", code_County);
-            urlBuilder = urlBuilder.AddParameter("administrativearealtype", (int)AdministrativeArealType.County);
-
-            string? json = await httpClient.JsonAsync(urlBuilder.ToString(), cancellationToken);
-            if (string.IsNullOrWhiteSpace(json))
+            // The resolution is shared with POST /typology/buildings: one implementation, both actions call it.
+            List<int>? countyParts = await httpClient.CountyPartsAsync(code, administrativeArealType.Value, cancellationToken);
+            if (countyParts is null)
             {
                 return NoContent();
             }
 
-            return Content(json, "application/json");
+            return Ok(countyParts);
         }
 
         /// <summary>
@@ -264,6 +237,199 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             }
 
             return Ok(typologyDefinitionParameter);
+        }
+
+        /// <summary>
+        /// Solves the Typology definition for the selected administrative area: joins the building data to the definition, runs the solver, and answers the view DTO the area view renders.
+        /// <para>The pipeline: validate the definition against the live column catalog, resolve the area to county part identifiers, fetch building data per part (sequential, with a single retry on a cold partition), clip to the area when it is below county, solve, and flatten to the view DTO. The page arrives already in the solver's table type - the deployed GIS Web API's own <c>Create.Table</c> shape - so the join needs no bridge. The browser never spells a <c>_type</c> or a rule name; the join and the solve run server-side.</para>
+        /// <para><see cref="AdministrativeArealType"/> is bound nullable and rejected when absent: the <c>Undefined</c> sentinel is -1 and not 0, so a non-nullable binding would silently keep <c>Country</c> for an omitted parameter (Coding - WebAPI Contracts, section 2).</para>
+        /// </summary>
+        /// <param name="typologySolveParameter">The request body: the definition to solve and the area it is solved for.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> containing the view DTO, a 400 Bad Request response for a rejected definition, a 404 Not Found response when the area has no buildings, a 413 Payload Too Large response when the area exceeds <see cref="Constants.Default.BuildingSolveCeiling"/>, or a 503 Service Unavailable response when the column catalog or the building data cannot be read.</returns>
+        [HttpPost("buildings")]
+        public async Task<IActionResult> SolveBuildingsAsync([FromBody] Classes.TypologySolveParameter? typologySolveParameter, CancellationToken cancellationToken = default)
+        {
+            if (typologySolveParameter is null)
+            {
+                return BadRequest(new List<string>() { "The request carries no definition." });
+            }
+
+            if (typologySolveParameter.Id <= 0)
+            {
+                return BadRequest(new List<string>() { "The area identifier is missing or invalid." });
+            }
+
+            if (typologySolveParameter.AdministrativeArealType is null || typologySolveParameter.AdministrativeArealType.Value == AdministrativeArealType.Undefined)
+            {
+                return BadRequest(new List<string>() { "The administrative area type is missing or undefined." });
+            }
+
+            if (typologySolveParameter.Definition is null)
+            {
+                return BadRequest(new List<string>() { "The request carries no definition levels." });
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            // Validate the definition against the live column catalog.
+            List<DiGi.PostgreSQL.Table.Classes.Column>? columns = await httpClient.BuildingDataColumnsAsync(cancellationToken);
+            if (columns is null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            List<string> errors = Query.TypologyDefinitionErrors(typologySolveParameter.Definition, columns);
+            if (errors.Count != 0)
+            {
+                return BadRequest(errors);
+            }
+
+            DiGi.Typology.Visual.Classes.VisualColumnTypologyFilter? filter = Create.VisualColumnTypologyFilter(typologySolveParameter.Definition, columns);
+            if (filter is null)
+            {
+                return BadRequest(new List<string>() { "The definition could not be resolved to a filter chain." });
+            }
+
+            // Resolve the area to county part identifiers.
+            string code = typologySolveParameter.Code ?? "";
+            List<int>? countyParts = await httpClient.CountyPartsAsync(code, typologySolveParameter.AdministrativeArealType.Value, cancellationToken);
+            if (countyParts is null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (countyParts.Count == 0)
+            {
+                return NotFound();
+            }
+
+            // Build the column projection: the definition's chain columns + reference.
+            List<string> columnUniqueIds = [];
+            DiGi.Typology.Visual.Classes.VisualColumnTypologyFilter<DiGi.Core.IO.Table.Classes.Column>? level = filter;
+            while (level is not null)
+            {
+                DiGi.Core.IO.Table.Classes.Column? column = level.Value;
+                if (column is not null && !string.IsNullOrWhiteSpace(column.Name))
+                {
+                    DiGi.PostgreSQL.Table.Classes.Column? catalogColumn = columns.FirstOrDefault(c => string.Equals(c.Name, column.Name, System.StringComparison.Ordinal));
+                    if (catalogColumn is not null && !string.IsNullOrWhiteSpace(catalogColumn.UniqueId))
+                    {
+                        columnUniqueIds.Add(catalogColumn.UniqueId);
+                    }
+                }
+
+                level = level.Filter;
+            }
+
+            // The reference column is always needed: it names the buildings the solve files into buckets, and it is the keyset cursor that pages a part.
+            DiGi.PostgreSQL.Table.Classes.Column? referenceColumn = columns.FirstOrDefault(c => string.Equals(c.UniqueId, "reference", System.StringComparison.OrdinalIgnoreCase));
+            if (referenceColumn is not null && !string.IsNullOrWhiteSpace(referenceColumn.UniqueId))
+            {
+                columnUniqueIds.Add(referenceColumn.UniqueId);
+            }
+
+            // A municipality or subdivision is a subset of its county, so its county's buildings are clipped to the area boundary; the clip reads each row's internal point, which must therefore be projected.
+            bool clip = typologySolveParameter.AdministrativeArealType.Value >= AdministrativeArealType.Municipality;
+            if (clip)
+            {
+                DiGi.PostgreSQL.Table.Classes.Column? internalPointXColumn = columns.FirstOrDefault(c => string.Equals(c.UniqueId, "internal_point_x", System.StringComparison.OrdinalIgnoreCase));
+                if (internalPointXColumn is not null && !string.IsNullOrWhiteSpace(internalPointXColumn.UniqueId))
+                {
+                    columnUniqueIds.Add(internalPointXColumn.UniqueId);
+                }
+
+                DiGi.PostgreSQL.Table.Classes.Column? internalPointYColumn = columns.FirstOrDefault(c => string.Equals(c.UniqueId, "internal_point_y", System.StringComparison.OrdinalIgnoreCase));
+                if (internalPointYColumn is not null && !string.IsNullOrWhiteSpace(internalPointYColumn.UniqueId))
+                {
+                    columnUniqueIds.Add(internalPointYColumn.UniqueId);
+                }
+            }
+
+            // Fetch building data per part, sequentially. One part failing does not fail the area - the rest are collected;
+            // but every part failing is the upstream answering nothing, which is a 503, not the 404 a genuinely empty area earns.
+            DiGi.Core.IO.Table.Classes.Table? table = null;
+            Dictionary<string, int> countyId_ByReference = [];
+            int parts_Fetched = 0;
+
+            for (int i = 0; i < countyParts.Count; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // A lambda rather than a method group: LogInformation is an extension method, which cannot convert to the Action<string> the fetch takes.
+                DiGi.Core.IO.Table.Classes.Table? partTable = await httpClient.BuildingDataTableAsync(countyParts[i], columnUniqueIds, message => this.logger.LogInformation(message), cancellationToken: cancellationToken);
+                if (partTable is null)
+                {
+                    continue;
+                }
+
+                parts_Fetched++;
+                table = Modify.Append(table, partTable);
+
+                // Track the county part for each reference in this page.
+                int index_Reference = partTable.GetColumnIndex(Constants.BuildingData.ReferenceName);
+                if (index_Reference != -1)
+                {
+                    foreach (DiGi.Core.IO.Table.Classes.Row row in partTable.Rows)
+                    {
+                        if (row[index_Reference] is string reference)
+                        {
+                            countyId_ByReference[reference] = countyParts[i];
+                        }
+                    }
+                }
+            }
+
+            if (parts_Fetched == 0)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (clip)
+            {
+                DiGi.Geometry.Planar.Classes.PolygonalFace2D? polygonalFace2D = await httpClient.AreaPolygonAsync(typologySolveParameter.Id, cancellationToken);
+                if (polygonalFace2D is null)
+                {
+                    return StatusCode(StatusCodes.Status503ServiceUnavailable);
+                }
+
+                table = table.ClipByPolygon(polygonalFace2D);
+            }
+
+            if (table is null || table.RowCount == 0)
+            {
+                return NotFound();
+            }
+
+            // Guardrail: an area above the ceiling is refused with an actionable answer instead of timing out the solve (issue #22, scope step 8).
+            if (table.RowCount > Constants.Default.BuildingSolveCeiling)
+            {
+                return StatusCode(StatusCodes.Status413PayloadTooLarge, new List<string>() { $"The area carries {table.RowCount} buildings; a solve classifies at most {Constants.Default.BuildingSolveCeiling}. Select a smaller area." });
+            }
+
+            // Find the reference column for the solver: it names the buildings the solve files into buckets.
+            int index_Reference_Solver = table.GetColumnIndex(referenceColumn?.Name);
+            DiGi.Core.IO.Table.Classes.Column? referenceCoreColumn = index_Reference_Solver == -1 ? null : table.GetColumn(index_Reference_Solver);
+            if (referenceCoreColumn is null)
+            {
+                return BadRequest(new List<string>() { "The reference column is not present in the fetched data." });
+            }
+
+            // Solve.
+            DiGi.Typology.Visual.Classes.VisualTypology? visualTypology = table.VisualTypology(filter, referenceCoreColumn, includeReferences: true);
+            if (visualTypology is null)
+            {
+                return BadRequest(new List<string>() { "The definition could not be solved: a column named by the chain is absent from the table, or a level carries no rule." });
+            }
+
+            // Flatten to the view DTO.
+            ViewModels.TypologyBuildingsViewModel? viewModel = visualTypology.TypologyBuildingsViewModel(countyId_ByReference);
+            if (viewModel is null)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            return Ok(viewModel);
         }
     }
 }

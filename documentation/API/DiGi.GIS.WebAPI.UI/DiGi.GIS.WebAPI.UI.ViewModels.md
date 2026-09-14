@@ -894,6 +894,175 @@ public DiGi.PostgreSQL.Table.Classes.Table? Table { get; }
 #### Property Value
 [DiGi\.PostgreSQL\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.table 'DiGi\.PostgreSQL\.Table\.Classes\.Table')
 
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel'></a>
+
+## TypologyBuildingsViewModel Class
+
+The response of `POST /typology/buildings`: the solved Typology tree and the flat building list the view renders as dots\.
+
+The [Root](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel.Root 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingsViewModel\.Root') is the recursive tree the view renders as the typology panel: each node carries its name, description, color and children. The [Buildings](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel.Buildings 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingsViewModel\.Buildings') is the flat list of building entries, one per reference solved into a leaf bucket; the view joins each entry to its dot position by `(Reference, CountyId)` against the area-scoped centroid endpoint.
+
+```csharp
+public class TypologyBuildingsViewModel
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → TypologyBuildingsViewModel
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel.TypologyBuildingsViewModel()'></a>
+
+## TypologyBuildingsViewModel\(\) Constructor
+
+Initializes a new instance of the [TypologyBuildingsViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingsViewModel') class\.
+
+```csharp
+public TypologyBuildingsViewModel();
+```
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel.TypologyBuildingsViewModel(DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel_)'></a>
+
+## TypologyBuildingsViewModel\(TypologyTreeNodeViewModel, List\<TypologyBuildingViewModel\>\) Constructor
+
+Initializes a new instance of the [TypologyBuildingsViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingsViewModel') class\.
+
+```csharp
+public TypologyBuildingsViewModel(DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel? root, System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel> buildings);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel.TypologyBuildingsViewModel(DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel_).root'></a>
+
+`root` [TypologyTreeNodeViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyTreeNodeViewModel')
+
+The root of the solved typology tree, or null when the solve produced no nodes\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel.TypologyBuildingsViewModel(DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel_).buildings'></a>
+
+`buildings` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[TypologyBuildingViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingViewModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+The flat list of building entries, one per reference solved into a leaf bucket\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel.Buildings'></a>
+
+## TypologyBuildingsViewModel\.Buildings Property
+
+Gets the flat list of building entries, one per reference solved into a leaf bucket\.
+
+```csharp
+public System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel> Buildings { get; set; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[TypologyBuildingViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingViewModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel.Root'></a>
+
+## TypologyBuildingsViewModel\.Root Property
+
+Gets the root of the solved typology tree\.
+
+```csharp
+public DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel? Root { get; set; }
+```
+
+#### Property Value
+[TypologyTreeNodeViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyTreeNodeViewModel')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel'></a>
+
+## TypologyBuildingViewModel Class
+
+One building entry of the Typology area view: the reference that identifies it in the GIS Web API, the county part it was fetched from, and the path of the typology bucket it was solved into\.
+
+Coordinates are intentionally absent: the dot positions come from the area-scoped centroid endpoint in `DiGi.GIS.WebAPI`, joined in the view by `(Reference, CountyId)`. The [Path](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.Path 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingViewModel\.Path') is the filing index chain of the typology bucket, one integer per level, which the view uses to locate the node in the tree for the centroid join.
+
+```csharp
+public class TypologyBuildingViewModel
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → TypologyBuildingViewModel
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.TypologyBuildingViewModel()'></a>
+
+## TypologyBuildingViewModel\(\) Constructor
+
+Initializes a new instance of the [TypologyBuildingViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingViewModel') class\.
+
+```csharp
+public TypologyBuildingViewModel();
+```
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.TypologyBuildingViewModel(string,int,System.Collections.Generic.List_int_)'></a>
+
+## TypologyBuildingViewModel\(string, int, List\<int\>\) Constructor
+
+Initializes a new instance of the [TypologyBuildingViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingViewModel') class\.
+
+```csharp
+public TypologyBuildingViewModel(string reference, int countyId, System.Collections.Generic.List<int> path);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.TypologyBuildingViewModel(string,int,System.Collections.Generic.List_int_).reference'></a>
+
+`reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The building reference key\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.TypologyBuildingViewModel(string,int,System.Collections.Generic.List_int_).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The county part identifier the building was fetched from\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.TypologyBuildingViewModel(string,int,System.Collections.Generic.List_int_).path'></a>
+
+`path` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+The typology path, one filing index per level\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.CountyId'></a>
+
+## TypologyBuildingViewModel\.CountyId Property
+
+Gets the county part identifier the building was fetched from\.
+
+```csharp
+public int CountyId { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.Path'></a>
+
+## TypologyBuildingViewModel\.Path Property
+
+Gets the typology path, one filing index per level, identifying the bucket the building was solved into\.
+
+```csharp
+public System.Collections.Generic.List<int> Path { get; set; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.Reference'></a>
+
+## TypologyBuildingViewModel\.Reference Property
+
+Gets the building reference key, as addressed by the GIS Web API\.
+
+```csharp
+public string Reference { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyColumnViewModel'></a>
 
 ## TypologyColumnViewModel Class
@@ -1012,6 +1181,140 @@ public string? UniqueId { get; }
 
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel'></a>
+
+## TypologyTreeNodeViewModel Class
+
+One node of the solved Typology tree as rendered by the area view: the bucket name, description, color and children\.
+
+The [Color](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.Color 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyTreeNodeViewModel\.Color') is a CSS hex string (`#rrggbb`) read from the node's `TypologyAppearance` via [Color\(this TypologyAppearance\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Color(thisDiGi.Typology.Visual.Classes.TypologyAppearance) 'DiGi\.GIS\.WebAPI\.UI\.Query\.Color\(this DiGi\.Typology\.Visual\.Classes\.TypologyAppearance\)'), not a `System.Drawing.Color` — the view paints CSS, and a serialized color type would add a dependency the page does not need.
+
+The [Path](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.Path 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyTreeNodeViewModel\.Path') is the filing index chain of this node, one integer per level from the root. The view uses it to locate the node in the tree for the centroid join with the building dot positions.
+
+```csharp
+public class TypologyTreeNodeViewModel
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → TypologyTreeNodeViewModel
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.TypologyTreeNodeViewModel()'></a>
+
+## TypologyTreeNodeViewModel\(\) Constructor
+
+Initializes a new instance of the [TypologyTreeNodeViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyTreeNodeViewModel') class\.
+
+```csharp
+public TypologyTreeNodeViewModel();
+```
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.TypologyTreeNodeViewModel(string,string,string,System.Collections.Generic.List_int_,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel_)'></a>
+
+## TypologyTreeNodeViewModel\(string, string, string, List\<int\>, List\<TypologyTreeNodeViewModel\>\) Constructor
+
+Initializes a new instance of the [TypologyTreeNodeViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyTreeNodeViewModel') class\.
+
+```csharp
+public TypologyTreeNodeViewModel(string? name, string? description, string? color, System.Collections.Generic.List<int> path, System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel>? children);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.TypologyTreeNodeViewModel(string,string,string,System.Collections.Generic.List_int_,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel_).name'></a>
+
+`name` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The bucket name, as the solver named it\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.TypologyTreeNodeViewModel(string,string,string,System.Collections.Generic.List_int_,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel_).description'></a>
+
+`description` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The bucket description, or null when the column carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.TypologyTreeNodeViewModel(string,string,string,System.Collections.Generic.List_int_,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel_).color'></a>
+
+`color` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The bucket color as a CSS hex string, or null when the rule maps none for this bucket\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.TypologyTreeNodeViewModel(string,string,string,System.Collections.Generic.List_int_,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel_).path'></a>
+
+`path` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+The typology path, one filing index per level from the root\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.TypologyTreeNodeViewModel(string,string,string,System.Collections.Generic.List_int_,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel_).children'></a>
+
+`children` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[TypologyTreeNodeViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyTreeNodeViewModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+The sub\-typology nodes, or null when this node is a leaf\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.Children'></a>
+
+## TypologyTreeNodeViewModel\.Children Property
+
+Gets the sub\-typology nodes, or null when this node is a leaf\.
+
+```csharp
+public System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel>? Children { get; set; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[TypologyTreeNodeViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyTreeNodeViewModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.Color'></a>
+
+## TypologyTreeNodeViewModel\.Color Property
+
+Gets the bucket color as a CSS hex string \(`#rrggbb`\), or null when the rule maps no appearance for this bucket\.
+
+```csharp
+public string? Color { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.Description'></a>
+
+## TypologyTreeNodeViewModel\.Description Property
+
+Gets the bucket description, the column's description when the column carries one\.
+
+```csharp
+public string? Description { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.Name'></a>
+
+## TypologyTreeNodeViewModel\.Name Property
+
+Gets the bucket name, as the solver named it: the level's column name and the rule data's text\.
+
+```csharp
+public string? Name { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.Path'></a>
+
+## TypologyTreeNodeViewModel\.Path Property
+
+Gets the typology path, one filing index per level from the root\.
+
+```csharp
+public System.Collections.Generic.List<int> Path { get; set; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
 
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyViewViewModel'></a>
 

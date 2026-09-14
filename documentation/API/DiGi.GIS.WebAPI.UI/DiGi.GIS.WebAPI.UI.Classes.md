@@ -425,6 +425,75 @@ public object? Value { get; set; }
 #### Property Value
 [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object')
 
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter'></a>
+
+## TypologySolveParameter Class
+
+The request body of `POST /typology/buildings`: the Typology definition page state to solve, and the administrative area it is solved for\.
+
+The [Definition](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter.Definition 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologySolveParameter\.Definition') is the same page state the definition page exports, resolved server-side against the live column catalog before the solve. The [Id](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter.Id 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologySolveParameter\.Id'), [Code](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter.Code 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologySolveParameter\.Code') and [AdministrativeArealType](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter.AdministrativeArealType 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologySolveParameter\.AdministrativeArealType') carry the area context the Load modal selected, and are used to resolve the county part identifiers that scope the building data fetch.
+
+[AdministrativeArealType](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter.AdministrativeArealType 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologySolveParameter\.AdministrativeArealType') is nullable on the wire: the `Undefined` sentinel is -1 and not 0, so a non-nullable binding would silently keep `Country` for an omitted parameter (Coding - WebAPI Contracts, section 2). The action rejects [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') and [DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType\.Undefined](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.enums.administrativearealtype.undefined 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType\.Undefined') explicitly.
+
+```csharp
+public class TypologySolveParameter
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → TypologySolveParameter
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter.AdministrativeArealType'></a>
+
+## TypologySolveParameter\.AdministrativeArealType Property
+
+Gets or sets the type of the selected administrative area, bound as nullable so an omitted value is refused rather than read as [DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType\.Country](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.enums.administrativearealtype.country 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType\.Country')\.
+
+```csharp
+public System.Nullable<DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType> AdministrativeArealType { get; set; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.enums.administrativearealtype 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter.Code'></a>
+
+## TypologySolveParameter\.Code Property
+
+Gets or sets the code of the selected administrative area\.
+
+```csharp
+public string? Code { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter.Definition'></a>
+
+## TypologySolveParameter\.Definition Property
+
+Gets or sets the Typology definition page state: the chain of selected building\-data columns with rule types, ranges and colors\.
+
+```csharp
+public DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter? Definition { get; set; }
+```
+
+#### Property Value
+[TypologyDefinitionParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionParameter')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter.Id'></a>
+
+## TypologySolveParameter\.Id Property
+
+Gets or sets the unique identifier of the selected administrative area, as carried by the Load modal\.
+
+```csharp
+public int Id { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
 <a name='DiGi.GIS.WebAPI.UI.Classes.UserLoginParameter'></a>
 
 ## UserLoginParameter Class

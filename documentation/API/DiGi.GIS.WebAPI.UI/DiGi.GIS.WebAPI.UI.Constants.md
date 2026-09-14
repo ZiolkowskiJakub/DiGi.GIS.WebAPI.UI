@@ -3,6 +3,60 @@
 ## DiGi\.GIS\.WebAPI\.UI\.Constants Namespace
 ### Classes
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.BuildingData'></a>
+
+## BuildingData Class
+
+Provides the canonical names of the building data table's built\-in columns, as the deployed GIS Web API carries them on the wire\.
+
+The names are the `Name` of the columns the GIS Web API's own `DiGi.GIS.IO.Constants.Column` defines (reference, internal point), and are the keys the client addresses them by - the projection slugs (`reference`, `internal_point_x`, ...) are the catalog's `UniqueId`s and name the same columns.
+
+```csharp
+public static class BuildingData
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → BuildingData
+### Fields
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.BuildingData.InternalPointXName'></a>
+
+## BuildingData\.InternalPointXName Field
+
+The name of the building data table's internal point X column, read by the clip when the area is below county level\.
+
+```csharp
+public const string InternalPointXName = "Internal Point X";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.BuildingData.InternalPointYName'></a>
+
+## BuildingData\.InternalPointYName Field
+
+The name of the building data table's internal point Y column, read by the clip when the area is below county level\.
+
+```csharp
+public const string InternalPointYName = "Internal Point Y";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.BuildingData.ReferenceName'></a>
+
+## BuildingData\.ReferenceName Field
+
+The name of the building data table's reference column: it names the buildings the solve files into buckets, and it is the keyset cursor that pages a part\.
+
+```csharp
+public const string ReferenceName = "Reference";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default'></a>
 
 ## Default Class
@@ -24,6 +78,19 @@ URI of the GIS Web API endpoint listing the columns of the building data table, 
 
 ```csharp
 public const string BuildingDataColumnsUri = "https://api.digiproject.uk/gis/BuildingData/columns";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingDataTableUri'></a>
+
+## Default\.BuildingDataTableUri Field
+
+URI of the GIS Web API endpoint that pages building data rows by county part, used by the Typology solve to fetch the table the solver classifies\.
+
+```csharp
+public const string BuildingDataTableUri = "https://api.digiproject.uk/gis/BuildingData/tablebybuildingdatabypagingparameter";
 ```
 
 #### Field Value
@@ -56,6 +123,21 @@ public const double BuildingSearchTolerance = 5;
 
 #### Field Value
 [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingSolveCeiling'></a>
+
+## Default\.BuildingSolveCeiling Field
+
+The ceiling on the total number of buildings one Typology solve classifies; an area above it is refused with a 413 and an actionable message instead of timing out the fetch and the solve\.
+
+Chosen above the largest county verified live (code 1465 with 154 529 buildings) and below any voivodeship, so a county still solves while a voivodeship or country scope degrades gracefully (issue #22 guardrail).
+
+```csharp
+public const int BuildingSolveCeiling = 200000;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.CommunicationWebAPIUri'></a>
 
