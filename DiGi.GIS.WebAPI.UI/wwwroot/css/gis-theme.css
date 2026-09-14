@@ -2048,6 +2048,224 @@ h1.gis-title-large {
     display: none;
 }
 
+/* Typology area view shell (#23): the 3D viewer's 3-column resizable split with inverted defaults
+   (left open / right closed). The .typology-shell column wrapper keeps the area-context strip on top
+   and the flexing 3-column row below, within one viewport-height budget. */
+.typology-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: calc(100vh - 180px);
+    min-height: 480px;
+}
+
+    /* Header strip: the area context (type + code + id) across the top. */
+    .typology-context {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .typology-context-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .typology-context-label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
+    .typology-context-value {
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .typology-context-back {
+        margin-left: auto;
+    }
+
+/* The 3-column row (the flexing child of the shell). */
+.typology-layout {
+    display: flex;
+    gap: 0;
+    align-items: stretch;
+    flex: 1 1 auto;
+    min-height: 0;
+    transition: height 0.3s ease;
+}
+
+/* Centre viewport: the flexing SVG mount point between the two docked panels. */
+.typology-viewport {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #171a21;
+}
+
+    .typology-viewport-empty {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .typology-muted {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    .typology-card-title {
+        margin: 0 0 10px 0;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+/* Docked side panels (identical metrics to .gltf-side-panel / .gltf-left-panel). */
+.typology-left-panel {
+    flex: 0 0 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.typology-side-panel {
+    flex: 0 0 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+/* Splitter handle (identical to .gltf-resizer). */
+.typology-resizer {
+    width: 16px;
+    background: transparent;
+    cursor: col-resize;
+    flex: 0 0 auto;
+    position: relative;
+    user-select: none;
+    z-index: 10;
+}
+
+    .typology-resizer::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 2px;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.05);
+        transition: background 0.2s ease, width 0.2s ease;
+    }
+
+    .typology-resizer:hover::after,
+    .typology-resizer.is-dragging::after {
+        background: var(--primary-color);
+        width: 4px;
+    }
+
+/* Corner toggles: base metrics on the shared class; each corner class anchors its side. */
+.typology-panel-toggle {
+    position: absolute;
+    top: 10px;
+    z-index: 5;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--text-dark);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+    .typology-panel-toggle:hover {
+        color: var(--primary-color);
+        background: #ffffff;
+    }
+
+    .typology-panel-toggle svg {
+        transition: transform 0.2s ease;
+    }
+
+.typology-left-panel-toggle {
+    left: 10px;
+}
+
+.typology-right-panel-toggle {
+    right: 10px;
+}
+
+/* Collapsed-state modifiers (mirror .gltf-panel-collapsed / .gltf-left-panel-collapsed). */
+.typology-layout.typology-panel-collapsed .typology-side-panel {
+    display: none;
+}
+
+.typology-layout.typology-panel-collapsed #typology-resizer {
+    display: none;
+}
+
+.typology-layout.typology-panel-collapsed .typology-right-panel-toggle svg {
+    transform: rotate(180deg);
+}
+
+.typology-layout.typology-left-panel-collapsed .typology-left-panel {
+    display: none;
+}
+
+.typology-layout.typology-left-panel-collapsed #typology-left-resizer {
+    display: none;
+}
+
+.typology-layout:not(.typology-left-panel-collapsed) .typology-left-panel-toggle svg {
+    transform: rotate(180deg);
+}
+
+/* Header/footer collapse (mirror .gis-layout-collapsed .gltf-layout). */
+.gis-layout-collapsed .typology-shell {
+    height: calc(100vh - 40px);
+}
+
+/* Responsive stacking below ~1100 px, like the definition page. */
+@media (max-width: 1100px) {
+    .typology-shell {
+        height: auto;
+    }
+
+    .typology-layout {
+        flex-direction: column;
+    }
+
+    .typology-resizer {
+        display: none;
+    }
+
+    .typology-left-panel,
+    .typology-side-panel {
+        height: auto;
+        overflow: visible;
+    }
+
+    .typology-viewport {
+        min-height: 320px;
+    }
+}
+
 /* Typology definition page (shell #13; the three sections are filled by #14-#16). */
 .gis-typology-layout {
     display: grid;
