@@ -454,32 +454,40 @@ The bucket color\.
 [DiGi\.Typology\.Visual\.Classes\.TypologyAppearance](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.typologyappearance 'DiGi\.Typology\.Visual\.Classes\.TypologyAppearance')  
 The appearance\.
 
-<a name='DiGi.GIS.WebAPI.UI.Create.TypologyBuildingsViewModel(thisDiGi.Typology.Visual.Classes.VisualTypology,System.Collections.Generic.Dictionary_string,int_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.TypologyBuildingsViewModel(thisDiGi.Typology.Visual.Classes.VisualTypology,System.Collections.Generic.Dictionary_string,int_,System.Collections.Generic.Dictionary_string,long_)'></a>
 
-## Create\.TypologyBuildingsViewModel\(this VisualTypology, Dictionary\<string,int\>\) Method
+## Create\.TypologyBuildingsViewModel\(this VisualTypology, Dictionary\<string,int\>, Dictionary\<string,long\>\) Method
 
 Flattens a solved [DiGi\.Typology\.Visual\.Classes\.VisualTypology](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.visualtypology 'DiGi\.Typology\.Visual\.Classes\.VisualTypology') tree into the view DTO the area view renders: the recursive node tree and the flat building list\.
 
 The tree is walked depth-first. Each node carries its name, description, color (read from the [DiGi\.Typology\.Visual\.Classes\.VisualTypologyItem\.Appearance](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.visualtypologyitem.appearance 'DiGi\.Typology\.Visual\.Classes\.VisualTypologyItem\.Appearance') via [Color\(this TypologyAppearance\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Color(thisDiGi.Typology.Visual.Classes.TypologyAppearance) 'DiGi\.GIS\.WebAPI\.UI\.Query\.Color\(this DiGi\.Typology\.Visual\.Classes\.TypologyAppearance\)')), the count of its reference set and its children. A leaf node's references become [TypologyBuildingViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingViewModel') entries in the flat list, each carrying the node's path so the view can join it to the dot position by `(Reference, CountyId)`.
 
-The [countyId\_ByReference](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.TypologyBuildingsViewModel(thisDiGi.Typology.Visual.Classes.VisualTypology,System.Collections.Generic.Dictionary_string,int_).countyId_ByReference 'DiGi\.GIS\.WebAPI\.UI\.Create\.TypologyBuildingsViewModel\(this DiGi\.Typology\.Visual\.Classes\.VisualTypology, System\.Collections\.Generic\.Dictionary\<string,int\>\)\.countyId\_ByReference') maps a building reference to the county part it was fetched from, so the flat entry carries the correct `CountyId`. When the map is null or a reference is absent from it, the entry's `CountyId` is 0 — the view treats that as "part unknown" and skips the centroid join for that building.
+The [countyId\_ByReference](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.TypologyBuildingsViewModel(thisDiGi.Typology.Visual.Classes.VisualTypology,System.Collections.Generic.Dictionary_string,int_,System.Collections.Generic.Dictionary_string,long_).countyId_ByReference 'DiGi\.GIS\.WebAPI\.UI\.Create\.TypologyBuildingsViewModel\(this DiGi\.Typology\.Visual\.Classes\.VisualTypology, System\.Collections\.Generic\.Dictionary\<string,int\>, System\.Collections\.Generic\.Dictionary\<string,long\>\)\.countyId\_ByReference') maps a building reference to the county part it was fetched from, so the flat entry carries the correct `CountyId`. When the map is null or a reference is absent from it, the entry's `CountyId` is 0 — the view treats that as "part unknown" and skips the centroid join for that building.
+
+The [id\_ByReference](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.TypologyBuildingsViewModel(thisDiGi.Typology.Visual.Classes.VisualTypology,System.Collections.Generic.Dictionary_string,int_,System.Collections.Generic.Dictionary_string,long_).id_ByReference 'DiGi\.GIS\.WebAPI\.UI\.Create\.TypologyBuildingsViewModel\(this DiGi\.Typology\.Visual\.Classes\.VisualTypology, System\.Collections\.Generic\.Dictionary\<string,int\>, System\.Collections\.Generic\.Dictionary\<string,long\>\)\.id\_ByReference') maps a building reference to its database identifier, so the flat entry carries the `Id` the details and 3D viewer links address. When the map is null or a reference is absent from it, the entry's `Id` is 0 — the view treats that as "identifier unknown" and hides the links that need it.
 
 ```csharp
-public static DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel? TypologyBuildingsViewModel(this DiGi.Typology.Visual.Classes.VisualTypology? visualTypology, System.Collections.Generic.Dictionary<string,int>? countyId_ByReference=null);
+public static DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel? TypologyBuildingsViewModel(this DiGi.Typology.Visual.Classes.VisualTypology? visualTypology, System.Collections.Generic.Dictionary<string,int>? countyId_ByReference=null, System.Collections.Generic.Dictionary<string,long>? id_ByReference=null);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Create.TypologyBuildingsViewModel(thisDiGi.Typology.Visual.Classes.VisualTypology,System.Collections.Generic.Dictionary_string,int_).visualTypology'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.TypologyBuildingsViewModel(thisDiGi.Typology.Visual.Classes.VisualTypology,System.Collections.Generic.Dictionary_string,int_,System.Collections.Generic.Dictionary_string,long_).visualTypology'></a>
 
 `visualTypology` [DiGi\.Typology\.Visual\.Classes\.VisualTypology](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.visualtypology 'DiGi\.Typology\.Visual\.Classes\.VisualTypology')
 
 The solved typology tree\. This value can be null\.
 
-<a name='DiGi.GIS.WebAPI.UI.Create.TypologyBuildingsViewModel(thisDiGi.Typology.Visual.Classes.VisualTypology,System.Collections.Generic.Dictionary_string,int_).countyId_ByReference'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.TypologyBuildingsViewModel(thisDiGi.Typology.Visual.Classes.VisualTypology,System.Collections.Generic.Dictionary_string,int_,System.Collections.Generic.Dictionary_string,long_).countyId_ByReference'></a>
 
 `countyId_ByReference` [System\.Collections\.Generic\.Dictionary&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[,](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')
 
 A map from building reference to the county part identifier it was fetched from, or null when the part is not tracked\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TypologyBuildingsViewModel(thisDiGi.Typology.Visual.Classes.VisualTypology,System.Collections.Generic.Dictionary_string,int_,System.Collections.Generic.Dictionary_string,long_).id_ByReference'></a>
+
+`id_ByReference` [System\.Collections\.Generic\.Dictionary&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[,](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')
+
+A map from building reference to its database identifier, or null when the identifier is not tracked\.
 
 #### Returns
 [TypologyBuildingsViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingsViewModel')  

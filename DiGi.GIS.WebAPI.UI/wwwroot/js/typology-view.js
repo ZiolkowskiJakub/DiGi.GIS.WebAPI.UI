@@ -118,25 +118,45 @@
     });
 })();
 
-// Right side panel fold/unfold toggle. Collapsing the panel widens the centre viewport; the class
-// toggle plus a resize dispatch is all that is needed (there is no 3D engine here, so the refit is
-// purely the CSS layout reacting). Wired independently so it works regardless of panel content.
-(function initRightPanelToggle() {
+// Right side panel fold/unfold. Collapsing the panel widens the centre viewport; the class toggle plus
+// a resize dispatch is all that is needed (there is no 3D engine here, so the refit is purely the CSS
+// layout reacting). Exposed as a small module (issue #26): the right panel is closed by default and the
+// inspector opens it on the first tree selection and closes it when the selection clears, so the class,
+// the aria state and the resize dispatch stay in one place whichever side drives them.
+const digiTypologyLayout = (function () {
+    'use strict';
+
     const layout = document.querySelector('.typology-layout');
     const toggle = document.getElementById('typology-panel-toggle');
-    if (!layout || !toggle) {
-        return;
+
+    function isRightPanelCollapsed() {
+        return layout !== null && layout.classList.contains('typology-panel-collapsed');
     }
 
-    toggle.addEventListener('click', () => {
-        const collapsed = layout.classList.toggle('typology-panel-collapsed');
+    function setRightPanelCollapsed(collapsed) {
+        if (layout === null || toggle === null) {
+            return;
+        }
+
+        layout.classList.toggle('typology-panel-collapsed', collapsed);
         const label = collapsed ? 'Show panel' : 'Hide panel';
         toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
         toggle.setAttribute('aria-label', label);
         toggle.title = label;
 
         window.dispatchEvent(new Event('resize'));
-    });
+    }
+
+    if (toggle !== null) {
+        toggle.addEventListener('click', function () {
+            setRightPanelCollapsed(!isRightPanelCollapsed());
+        });
+    }
+
+    return {
+        isRightPanelCollapsed: isRightPanelCollapsed,
+        setRightPanelCollapsed: setRightPanelCollapsed
+    };
 })();
 
 // Left side panel fold/unfold toggle. The same symmetric logic as the right side.
@@ -160,11 +180,12 @@
 
 // Solve bootstrap (issue #24): the definition the Load modal filed in sessionStorage is posted with the
 // area from the shell's data-* attributes to POST /typology/buildings, and the answer is handed to the
-// left panel renderer (typology-panel.js) and the map (typology-map.js, issue #25). The map's own loads
-// (outline + centroids) start first and do not need a definition: a direct visit still shows the area
-// outline with neutral dots. Deliberately minimal - the loading/error/empty-state UI and the shared page
-// state belong to the orchestration sub-issue (#27); until then the panel's status line carries the
-// outcome, and window.digiTypologyView holds the DTO and the selection for the other panels.
+// left panel renderer (typology-panel.js), the map (typology-map.js, issue #25) and the right panel
+// inspector (typology-inspector.js, issue #26). The map's own loads (outline + centroids) start first and
+// do not need a definition: a direct visit still shows the area outline with neutral dots. Deliberately
+// minimal - the loading/error/empty-state UI and the shared page state belong to the orchestration
+// sub-issue (#27); until then the panel's status line carries the outcome, and window.digiTypologyView
+// holds the DTO and the selection for the other panels.
 (function initSolve() {
     const shell = document.querySelector('.typology-shell');
     if (!shell || typeof digiTypologyPanel === 'undefined') {
@@ -220,6 +241,9 @@
                     digiTypologyPanel.render(viewModel);
                     if (typeof digiTypologyMap !== 'undefined') {
                         digiTypologyMap.render(viewModel);
+                    }
+                    if (typeof digiTypologyInspector !== 'undefined') {
+                        digiTypologyInspector.render(viewModel, definition);
                     }
                 });
             }

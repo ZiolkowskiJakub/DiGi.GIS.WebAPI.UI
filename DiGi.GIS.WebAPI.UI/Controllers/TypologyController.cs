@@ -313,7 +313,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NotFound();
             }
 
-            // Build the column projection: the definition's chain columns + reference.
+            // Build the column projection: the definition's chain columns + reference + database identifier.
             List<string> columnUniqueIds = [];
             DiGi.Typology.Visual.Classes.VisualColumnTypologyFilter<DiGi.Core.IO.Table.Classes.Column>? level = filter;
             while (level is not null)
@@ -338,6 +338,13 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 columnUniqueIds.Add(referenceColumn.UniqueId);
             }
 
+            // The database identifier is the Building2DReference.Id the details and 3D viewer links address (issue #26); one long per row, and a catalog without it simply leaves the DTO's Id at 0.
+            DiGi.PostgreSQL.Table.Classes.Column? databaseIdColumn = columns.FirstOrDefault(c => string.Equals(c.UniqueId, "database_id", System.StringComparison.OrdinalIgnoreCase));
+            if (databaseIdColumn is not null && !string.IsNullOrWhiteSpace(databaseIdColumn.UniqueId))
+            {
+                columnUniqueIds.Add(databaseIdColumn.UniqueId);
+            }
+
             // A municipality or subdivision is a subset of its county, so its county's buildings are clipped to the area boundary; the clip reads each row's internal point, which must therefore be projected.
             bool clip = typologySolveParameter.AdministrativeArealType.Value >= AdministrativeArealType.Municipality;
             if (clip)
@@ -359,6 +366,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             // but every part failing is the upstream answering nothing, which is a 503, not the 404 a genuinely empty area earns.
             DiGi.Core.IO.Table.Classes.Table? table = null;
             Dictionary<string, int> countyId_ByReference = [];
+            Dictionary<string, long> id_ByReference = [];
             int parts_Fetched = 0;
 
             for (int i = 0; i < countyParts.Count; i++)
@@ -375,15 +383,32 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 parts_Fetched++;
                 table = Modify.Append(table, partTable);
 
-                // Track the county part for each reference in this page.
+                // Track the county part and the database identifier for each reference in this page.
                 int index_Reference = partTable.GetColumnIndex(Constants.BuildingData.ReferenceName);
+                int index_Id = partTable.GetColumnIndex(Constants.BuildingData.DatabaseIdName);
                 if (index_Reference != -1)
                 {
                     foreach (DiGi.Core.IO.Table.Classes.Row row in partTable.Rows)
                     {
-                        if (row[index_Reference] is string reference)
+                        if (row[index_Reference] is not string reference)
                         {
-                            countyId_ByReference[reference] = countyParts[i];
+                            continue;
+                        }
+
+                        countyId_ByReference[reference] = countyParts[i];
+
+                        // The table converter types the cell by the declared column (long); an int is a defensive fallback.
+                        if (index_Id != -1)
+                        {
+                            object? value_Id = row[index_Id];
+                            if (value_Id is long databaseId)
+                            {
+                                id_ByReference[reference] = databaseId;
+                            }
+                            else if (value_Id is int databaseId_Int)
+                            {
+                                id_ByReference[reference] = databaseId_Int;
+                            }
                         }
                     }
                 }
@@ -432,7 +457,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             }
 
             // Flatten to the view DTO.
-            ViewModels.TypologyBuildingsViewModel? viewModel = visualTypology.TypologyBuildingsViewModel(countyId_ByReference);
+            ViewModels.TypologyBuildingsViewModel? viewModel = visualTypology.TypologyBuildingsViewModel(countyId_ByReference, id_ByReference);
             if (viewModel is null)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);

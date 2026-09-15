@@ -1092,6 +1092,8 @@ One building entry of the Typology area view: the reference that identifies it i
 
 Coordinates are intentionally absent: the dot positions come from the area-scoped centroid endpoint in `DiGi.GIS.WebAPI`, joined in the view by `(Reference, CountyId)`. The [Path](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.Path 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingViewModel\.Path') is the filing index chain of the typology bucket, one integer per level, which the view uses to locate the node in the tree for the centroid join.
 
+The [Id](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.Id 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingViewModel\.Id') is the building's database identifier, read from the building data table's `Database Id` column. It serves the links to the 2D details page and the 3D viewer, which address a building by that identifier - it takes no part in the centroid join.
+
 ```csharp
 public class TypologyBuildingViewModel
 ```
@@ -1109,30 +1111,36 @@ Initializes a new instance of the [TypologyBuildingViewModel](DiGi.GIS.WebAPI.UI
 public TypologyBuildingViewModel();
 ```
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.TypologyBuildingViewModel(string,int,System.Collections.Generic.List_int_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.TypologyBuildingViewModel(string,long,int,System.Collections.Generic.List_int_)'></a>
 
-## TypologyBuildingViewModel\(string, int, List\<int\>\) Constructor
+## TypologyBuildingViewModel\(string, long, int, List\<int\>\) Constructor
 
 Initializes a new instance of the [TypologyBuildingViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingViewModel') class\.
 
 ```csharp
-public TypologyBuildingViewModel(string reference, int countyId, System.Collections.Generic.List<int> path);
+public TypologyBuildingViewModel(string reference, long id, int countyId, System.Collections.Generic.List<int> path);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.TypologyBuildingViewModel(string,int,System.Collections.Generic.List_int_).reference'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.TypologyBuildingViewModel(string,long,int,System.Collections.Generic.List_int_).reference'></a>
 
 `reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The building reference key\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.TypologyBuildingViewModel(string,int,System.Collections.Generic.List_int_).countyId'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.TypologyBuildingViewModel(string,long,int,System.Collections.Generic.List_int_).id'></a>
+
+`id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The building's database identifier, or 0 when unknown\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.TypologyBuildingViewModel(string,long,int,System.Collections.Generic.List_int_).countyId'></a>
 
 `countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The county part identifier the building was fetched from\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.TypologyBuildingViewModel(string,int,System.Collections.Generic.List_int_).path'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.TypologyBuildingViewModel(string,long,int,System.Collections.Generic.List_int_).path'></a>
 
 `path` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
 
@@ -1151,6 +1159,19 @@ public int CountyId { get; set; }
 
 #### Property Value
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.Id'></a>
+
+## TypologyBuildingViewModel\.Id Property
+
+Gets the building's database identifier \- the `Building2DReference.Id` the 2D details and the 3D viewer routes address \- or 0 when the column was not projected or the row carried none\.
+
+```csharp
+public long Id { get; set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.Path'></a>
 

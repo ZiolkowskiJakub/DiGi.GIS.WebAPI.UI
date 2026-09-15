@@ -18,6 +18,19 @@ public static class BuildingData
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → BuildingData
 ### Fields
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.BuildingData.DatabaseIdName'></a>
+
+## BuildingData\.DatabaseIdName Field
+
+The name of the building data table's database identifier column: the `Building2DReference.Id` the 2D details and the 3D viewer routes address a building by\.
+
+```csharp
+public const string DatabaseIdName = "Database Id";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.BuildingData.InternalPointXName'></a>
 
 ## BuildingData\.InternalPointXName Field

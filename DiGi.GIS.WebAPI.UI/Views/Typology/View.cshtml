@@ -90,11 +90,60 @@
             @* Right resizer *@
             <div id="typology-resizer" class="typology-resizer" role="separator" aria-orientation="vertical" aria-label="Resize right panel"></div>
 
-            @* Right side panel (closed by default). The properties content is a later sub-issue of #21. *@
+            @* Right side panel (closed by default; issue #26). Three cards filled by wwwroot/js/typology-inspector.js:
+               the selected typology node's properties, the windowed grid of its buildings, and the info of the
+               building picked from the grid or the map. The inspector opens the panel on the first tree selection
+               and closes it when the selection clears. *@
             <aside id="typology-side-panel" class="typology-side-panel">
-                <div class="gis-card">
-                    <h3 class="typology-card-title">Properties</h3>
-                    <p class="typology-muted">Building properties appear here when selected.</p>
+                <div class="gis-card gltf-card typology-inspector-card">
+                    <h3 class="typology-card-title"><span>Typology</span></h3>
+                    <p id="typology-inspector-empty" class="typology-muted">Select a typology in the tree to inspect it.</p>
+                    <div id="typology-inspector" class="typology-inspector" hidden>
+                        <div class="typology-inspector-head">
+                            <span id="typology-inspector-swatch" class="typology-tree-swatch" aria-hidden="true"></span>
+                            <span id="typology-inspector-name" class="typology-inspector-name"></span>
+                        </div>
+                        <nav id="typology-inspector-breadcrumb" class="typology-inspector-breadcrumb" aria-label="Typology path"></nav>
+                        <dl class="typology-area-list">
+                            <div class="typology-area-item"><dt class="typology-area-label typology-info-label">Buildings</dt><dd id="typology-inspector-count" class="typology-area-value"></dd></div>
+                            <div class="typology-area-item"><dt class="typology-area-label typology-info-label">Share</dt><dd id="typology-inspector-share" class="typology-area-value"></dd></div>
+                        </dl>
+                        <p id="typology-inspector-description" class="typology-muted typology-inspector-description" hidden></p>
+                    </div>
+                </div>
+
+                @* Building grid: a text filter over the reference and a windowed list - only the visible slice of
+                   rows is in the DOM, the spacer keeps the scroll height of the whole list. *@
+                <div class="gis-card gltf-card typology-grid-card">
+                    <h3 class="typology-card-title"><span>Buildings</span><span id="typology-grid-count" class="typology-muted"></span></h3>
+                    <input type="search" id="typology-grid-filter" class="gis-column-filter typology-grid-filter" placeholder="Filter by reference" aria-label="Filter buildings by reference" autocomplete="off" disabled />
+                    <p id="typology-grid-empty" class="typology-muted">No typology selected.</p>
+                    <div id="typology-grid" class="typology-grid" role="listbox" aria-label="Buildings of the selected typology" tabindex="0" hidden>
+                        <div id="typology-grid-spacer" class="typology-grid-spacer">
+                            <div id="typology-grid-slice" class="typology-grid-slice"></div>
+                        </div>
+                    </div>
+                </div>
+
+                @* Building info: the DTO entry plus the centroid, and links to the existing 2D details page and
+                   the 3D viewer. No per-building request is made. *@
+                <div class="gis-card gltf-card typology-building-card">
+                    <h3 class="typology-card-title"><span>Building</span></h3>
+                    <p id="typology-building-empty" class="typology-muted">Select a building in the list or on the map.</p>
+                    <div id="typology-building" class="typology-building" hidden>
+                        <dl class="typology-area-list">
+                            <div class="typology-area-item"><dt class="typology-area-label typology-info-label">Reference</dt><dd id="typology-building-reference" class="typology-area-value typology-mono"></dd></div>
+                            <div class="typology-area-item"><dt class="typology-area-label typology-info-label">Id</dt><dd id="typology-building-id" class="typology-area-value"></dd></div>
+                            <div class="typology-area-item"><dt class="typology-area-label typology-info-label">County id</dt><dd id="typology-building-county" class="typology-area-value"></dd></div>
+                            <div class="typology-area-item"><dt class="typology-area-label typology-info-label">X</dt><dd id="typology-building-x" class="typology-area-value"></dd></div>
+                            <div class="typology-area-item"><dt class="typology-area-label typology-info-label">Y</dt><dd id="typology-building-y" class="typology-area-value"></dd></div>
+                            <div class="typology-area-item"><dt class="typology-area-label typology-info-label">Typology</dt><dd id="typology-building-typology" class="typology-area-value"></dd></div>
+                        </dl>
+                        <div class="typology-building-links">
+                            <a id="typology-building-details" class="gis-button gis-button-secondary" target="_blank" rel="noopener">Details</a>
+                            <a id="typology-building-model" class="gis-button gis-button-secondary" target="_blank" rel="noopener" hidden>3D Viewer</a>
+                        </div>
+                    </div>
                 </div>
             </aside>
         </div>
@@ -103,8 +152,9 @@
 
 @section Scripts {
     @* Classic scripts (no module imports), loaded after the page body so the targets they wire exist.
-       The panel and map renderers come first: the view script's solve bootstrap calls both. *@
+       The panel, map and inspector renderers come first: the view script's solve bootstrap calls all three. *@
     <script src="~/js/typology-panel.js" asp-append-version="true"></script>
     <script src="~/js/typology-map.js" asp-append-version="true"></script>
+    <script src="~/js/typology-inspector.js" asp-append-version="true"></script>
     <script src="~/js/typology-view.js" asp-append-version="true"></script>
 }

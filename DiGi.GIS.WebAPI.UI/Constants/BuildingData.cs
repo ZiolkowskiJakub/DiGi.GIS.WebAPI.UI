@@ -12,6 +12,11 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const string ReferenceName = "Reference";
 
         /// <summary>
+        /// The name of the building data table's database identifier column: the <c>Building2DReference.Id</c> the 2D details and the 3D viewer routes address a building by.
+        /// </summary>
+        public const string DatabaseIdName = "Database Id";
+
+        /// <summary>
         /// The name of the building data table's internal point X column, read by the clip when the area is below county level.
         /// </summary>
         public const string InternalPointXName = "Internal Point X";
