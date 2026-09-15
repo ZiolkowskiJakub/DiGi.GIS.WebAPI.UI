@@ -250,8 +250,8 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
         /// <summary>
         /// Solves the Typology definition for the selected administrative area: joins the building data to the definition, runs the solver, and answers the view DTO the area view renders.
-        /// <para>The pipeline: validate the definition against the live column catalog, resolve the area to county part identifiers, fetch building data per part (sequential, with a single retry on a cold partition), clip to the area when it is below county, solve, and flatten to the view DTO. The page arrives already in the solver's table type - the deployed GIS Web API's own <c>Create.Table</c> shape - so the join needs no bridge. The browser never spells a <c>_type</c> or a rule name; the join and the solve run server-side.</para>
-        /// <para><see cref="AdministrativeArealType"/> is bound nullable and rejected when absent: the <c>Undefined</c> sentinel is -1 and not 0, so a non-nullable binding would silently keep <c>Country</c> for an omitted parameter (Coding - WebAPI Contracts, section 2).</para>
+        /// <para>The pipeline: validate the definition against the live column catalog, resolve the area to county part identifiers, count the parts' rows and refuse an area above the ceiling before a page is read, fetch the building data per part (sequential, one retry on a cold partition, stopped at the ceiling), clip to the area when it is below county, solve, and flatten to the view DTO. The page arrives already in the solver's table type - the deployed GIS Web API's own <c>Create.Table</c> shape - so the join needs no bridge. The browser never spells a <c>_type</c> or a rule name; the join and the solve run server-side.</para>
+        /// <para><see cref="AdministrativeArealType"/> is bound nullable and rejected when absent: the <c>Undefined</c> sentinel is -1 and not 0, so a non-nullable binding would silently keep <c>Country</c> for an omitted parameter (Coding - WebAPI Contracts, section 2). A country is refused outright as above the ceiling: it is every part there is, not an empty area.</para>
         /// </summary>
         /// <param name="typologySolveParameter">The request body: the definition to solve and the area it is solved for.</param>
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
@@ -269,12 +269,14 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return BadRequest(new List<string>() { "The area identifier is missing or invalid." });
             }
 
-            if (typologySolveParameter.AdministrativeArealType is null || typologySolveParameter.AdministrativeArealType.Value == AdministrativeArealType.Undefined)
+            AdministrativeArealType? administrativeArealType = typologySolveParameter.AdministrativeArealType;
+            if (administrativeArealType is null || administrativeArealType.Value == AdministrativeArealType.Undefined)
             {
                 return BadRequest(new List<string>() { "The administrative area type is missing or undefined." });
             }
 
-            if (typologySolveParameter.Definition is null)
+            Classes.TypologyDefinitionParameter? definition = typologySolveParameter.Definition;
+            if (definition is null)
             {
                 return BadRequest(new List<string>() { "The request carries no definition levels." });
             }
@@ -288,21 +290,26 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return StatusCode(StatusCodes.Status503ServiceUnavailable);
             }
 
-            List<string> errors = Query.TypologyDefinitionErrors(typologySolveParameter.Definition, columns);
+            List<string> errors = Query.TypologyDefinitionErrors(definition, columns);
             if (errors.Count != 0)
             {
                 return BadRequest(errors);
             }
 
-            DiGi.Typology.Visual.Classes.VisualColumnTypologyFilter? filter = Create.VisualColumnTypologyFilter(typologySolveParameter.Definition, columns);
+            DiGi.Typology.Visual.Classes.VisualColumnTypologyFilter? filter = Create.VisualColumnTypologyFilter(definition, columns);
             if (filter is null)
             {
                 return BadRequest(new List<string>() { "The definition could not be resolved to a filter chain." });
             }
 
+            // A country is every part there is - refused as above the ceiling before any part is resolved or counted.
+            if (administrativeArealType.Value == AdministrativeArealType.Country)
+            {
+                return PayloadTooLarge(null);
+            }
+
             // Resolve the area to county part identifiers.
-            string code = typologySolveParameter.Code ?? "";
-            List<int>? countyParts = await httpClient.CountyPartsAsync(code, typologySolveParameter.AdministrativeArealType.Value, cancellationToken);
+            List<int>? countyParts = await httpClient.CountyPartsAsync(typologySolveParameter.Code ?? "", administrativeArealType.Value, cancellationToken);
             if (countyParts is null)
             {
                 return StatusCode(StatusCodes.Status503ServiceUnavailable);
@@ -313,110 +320,31 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NotFound();
             }
 
-            // Build the column projection: the definition's chain columns + reference + database identifier.
-            List<string> columnUniqueIds = [];
-            DiGi.Typology.Visual.Classes.VisualColumnTypologyFilter<DiGi.Core.IO.Table.Classes.Column>? level = filter;
-            while (level is not null)
+            // The pre-flight: the parts' row counts are one cheap query each, so an area above the ceiling is refused
+            // in seconds rather than after minutes of paging. An unknown count lets the fetch decide - it stops at the
+            // ceiling on its own.
+            long? rowCount = await httpClient.BuildingDataCountAsync(countyParts, cancellationToken);
+            if (rowCount > Constants.Default.BuildingSolveCeiling)
             {
-                DiGi.Core.IO.Table.Classes.Column? column = level.Value;
-                if (column is not null && !string.IsNullOrWhiteSpace(column.Name))
-                {
-                    DiGi.PostgreSQL.Table.Classes.Column? catalogColumn = columns.FirstOrDefault(c => string.Equals(c.Name, column.Name, System.StringComparison.Ordinal));
-                    if (catalogColumn is not null && !string.IsNullOrWhiteSpace(catalogColumn.UniqueId))
-                    {
-                        columnUniqueIds.Add(catalogColumn.UniqueId);
-                    }
-                }
-
-                level = level.Filter;
+                return PayloadTooLarge(rowCount);
             }
 
-            // The reference column is always needed: it names the buildings the solve files into buckets, and it is the keyset cursor that pages a part.
-            DiGi.PostgreSQL.Table.Classes.Column? referenceColumn = columns.FirstOrDefault(c => string.Equals(c.UniqueId, "reference", System.StringComparison.OrdinalIgnoreCase));
-            if (referenceColumn is not null && !string.IsNullOrWhiteSpace(referenceColumn.UniqueId))
-            {
-                columnUniqueIds.Add(referenceColumn.UniqueId);
-            }
+            // A municipality or subdivision is a subset of its county, so its county's buildings are clipped to the area
+            // boundary; the clip reads each row's internal point, which must therefore be projected.
+            bool clip = administrativeArealType.Value >= AdministrativeArealType.Municipality;
+            List<string> columnUniqueIds = Query.TypologySolveColumnUniqueIds(definition, columns, clip);
 
-            // The database identifier is the Building2DReference.Id the details and 3D viewer links address (issue #26); one long per row, and a catalog without it simply leaves the DTO's Id at 0.
-            DiGi.PostgreSQL.Table.Classes.Column? databaseIdColumn = columns.FirstOrDefault(c => string.Equals(c.UniqueId, "database_id", System.StringComparison.OrdinalIgnoreCase));
-            if (databaseIdColumn is not null && !string.IsNullOrWhiteSpace(databaseIdColumn.UniqueId))
-            {
-                columnUniqueIds.Add(databaseIdColumn.UniqueId);
-            }
-
-            // A municipality or subdivision is a subset of its county, so its county's buildings are clipped to the area boundary; the clip reads each row's internal point, which must therefore be projected.
-            bool clip = typologySolveParameter.AdministrativeArealType.Value >= AdministrativeArealType.Municipality;
-            if (clip)
-            {
-                DiGi.PostgreSQL.Table.Classes.Column? internalPointXColumn = columns.FirstOrDefault(c => string.Equals(c.UniqueId, "internal_point_x", System.StringComparison.OrdinalIgnoreCase));
-                if (internalPointXColumn is not null && !string.IsNullOrWhiteSpace(internalPointXColumn.UniqueId))
-                {
-                    columnUniqueIds.Add(internalPointXColumn.UniqueId);
-                }
-
-                DiGi.PostgreSQL.Table.Classes.Column? internalPointYColumn = columns.FirstOrDefault(c => string.Equals(c.UniqueId, "internal_point_y", System.StringComparison.OrdinalIgnoreCase));
-                if (internalPointYColumn is not null && !string.IsNullOrWhiteSpace(internalPointYColumn.UniqueId))
-                {
-                    columnUniqueIds.Add(internalPointYColumn.UniqueId);
-                }
-            }
-
-            // Fetch building data per part, sequentially. One part failing does not fail the area - the rest are collected;
-            // but every part failing is the upstream answering nothing, which is a 503, not the 404 a genuinely empty area earns.
-            DiGi.Core.IO.Table.Classes.Table? table = null;
-            Dictionary<string, int> countyId_ByReference = [];
-            Dictionary<string, long> id_ByReference = [];
-            int parts_Fetched = 0;
-
-            for (int i = 0; i < countyParts.Count; i++)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // A lambda rather than a method group: LogInformation is an extension method, which cannot convert to the Action<string> the fetch takes.
-                DiGi.Core.IO.Table.Classes.Table? partTable = await httpClient.BuildingDataTableAsync(countyParts[i], columnUniqueIds, message => this.logger.LogInformation(message), cancellationToken: cancellationToken);
-                if (partTable is null)
-                {
-                    continue;
-                }
-
-                parts_Fetched++;
-                table = Modify.Append(table, partTable);
-
-                // Track the county part and the database identifier for each reference in this page.
-                int index_Reference = partTable.GetColumnIndex(Constants.BuildingData.ReferenceName);
-                int index_Id = partTable.GetColumnIndex(Constants.BuildingData.DatabaseIdName);
-                if (index_Reference != -1)
-                {
-                    foreach (DiGi.Core.IO.Table.Classes.Row row in partTable.Rows)
-                    {
-                        if (row[index_Reference] is not string reference)
-                        {
-                            continue;
-                        }
-
-                        countyId_ByReference[reference] = countyParts[i];
-
-                        // The table converter types the cell by the declared column (long); an int is a defensive fallback.
-                        if (index_Id != -1)
-                        {
-                            object? value_Id = row[index_Id];
-                            if (value_Id is long databaseId)
-                            {
-                                id_ByReference[reference] = databaseId;
-                            }
-                            else if (value_Id is int databaseId_Int)
-                            {
-                                id_ByReference[reference] = databaseId_Int;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (parts_Fetched == 0)
+            // A lambda rather than a method group: LogInformation is an extension method, which cannot convert to the Action<string> the fetch takes.
+            DiGi.Core.IO.Table.Classes.Table? table = await httpClient.BuildingDataTableAsync(countyParts, columnUniqueIds, message => this.logger.LogInformation(message), Constants.Default.BuildingSolveCeiling, cancellationToken: cancellationToken);
+            if (table is null)
             {
                 return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            // The backstop of the pre-flight: the fetch stops as soon as the merged rows pass the ceiling.
+            if (table.RowCount > Constants.Default.BuildingSolveCeiling)
+            {
+                return PayloadTooLarge(rowCount ?? table.RowCount);
             }
 
             if (clip)
@@ -435,35 +363,36 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NotFound();
             }
 
-            // Guardrail: an area above the ceiling is refused with an actionable answer instead of timing out the solve (issue #22, scope step 8).
-            if (table.RowCount > Constants.Default.BuildingSolveCeiling)
-            {
-                return StatusCode(StatusCodes.Status413PayloadTooLarge, new List<string>() { $"The area carries {table.RowCount} buildings; a solve classifies at most {Constants.Default.BuildingSolveCeiling}. Select a smaller area." });
-            }
-
-            // Find the reference column for the solver: it names the buildings the solve files into buckets.
-            int index_Reference_Solver = table.GetColumnIndex(referenceColumn?.Name);
-            DiGi.Core.IO.Table.Classes.Column? referenceCoreColumn = index_Reference_Solver == -1 ? null : table.GetColumn(index_Reference_Solver);
-            if (referenceCoreColumn is null)
+            // The reference column names the buildings the solve files into buckets.
+            int index_Reference = table.GetColumnIndex(Constants.BuildingData.ReferenceName);
+            DiGi.Core.IO.Table.Classes.Column? column_Reference = index_Reference == -1 ? null : table.GetColumn(index_Reference);
+            if (column_Reference is null)
             {
                 return BadRequest(new List<string>() { "The reference column is not present in the fetched data." });
             }
 
-            // Solve.
-            DiGi.Typology.Visual.Classes.VisualTypology? visualTypology = table.VisualTypology(filter, referenceCoreColumn, includeReferences: true);
+            DiGi.Typology.Visual.Classes.VisualTypology? visualTypology = table.VisualTypology(filter, column_Reference, includeReferences: true);
             if (visualTypology is null)
             {
                 return BadRequest(new List<string>() { "The definition could not be solved: a column named by the chain is absent from the table, or a level carries no rule." });
             }
 
-            // Flatten to the view DTO.
-            ViewModels.TypologyBuildingsViewModel? viewModel = visualTypology.TypologyBuildingsViewModel(countyId_ByReference, id_ByReference);
+            ViewModels.TypologyBuildingsViewModel? viewModel = visualTypology.TypologyBuildingsViewModel(table);
             if (viewModel is null)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
             return Ok(viewModel);
+
+            // The one actionable answer for every area above the ceiling, with the count when one is known.
+            IActionResult PayloadTooLarge(long? count)
+            {
+                string message = count.HasValue
+                    ? $"The area carries {count.Value} buildings; a solve classifies at most {Constants.Default.BuildingSolveCeiling}. Select a smaller area."
+                    : $"The area is above the {Constants.Default.BuildingSolveCeiling} buildings a solve classifies. Select a smaller area.";
+                return StatusCode(StatusCodes.Status413PayloadTooLarge, new List<string>() { message });
+            }
         }
     }
 }

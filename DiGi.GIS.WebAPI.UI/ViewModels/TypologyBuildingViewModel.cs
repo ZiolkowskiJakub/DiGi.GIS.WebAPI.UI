@@ -4,7 +4,7 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
 {
     /// <summary>
     /// One building entry of the Typology area view: the reference that identifies it in the GIS Web API, the county part it was fetched from, and the path of the typology bucket it was solved into.
-    /// <para>Coordinates are intentionally absent: the dot positions come from the area-scoped centroid endpoint in <c>DiGi.GIS.WebAPI</c>, joined in the view by <c>(Reference, CountyId)</c>. The <see cref="Path"/> is the filing index chain of the typology bucket, one integer per level, which the view uses to locate the node in the tree for the centroid join.</para>
+    /// <para>Coordinates are intentionally absent: the dot positions come from the area-scoped centroid endpoint in <c>DiGi.GIS.WebAPI</c>, joined in the view by <c>(Reference, CountyId)</c>. The <see cref="Path"/> is the filing index chain of the deepest typology bucket holding the building, one integer per level - a leaf's path, or a bucket's own path for a row its next level dropped - which the view uses to locate the node in the tree for the centroid join, the dimming and the grid.</para>
     /// <para>The <see cref="Id"/> is the building's database identifier, read from the building data table's <c>Database Id</c> column. It serves the links to the 2D details page and the 3D viewer, which address a building by that identifier - it takes no part in the centroid join.</para>
     /// </summary>
     public class TypologyBuildingViewModel
@@ -45,7 +45,7 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
         public int CountyId { get; set; }
 
         /// <summary>
-        /// Gets the typology path, one filing index per level, identifying the bucket the building was solved into.
+        /// Gets the typology path, one filing index per level, identifying the deepest bucket the building was solved into.
         /// </summary>
         public List<int> Path { get; set; } = [];
     }

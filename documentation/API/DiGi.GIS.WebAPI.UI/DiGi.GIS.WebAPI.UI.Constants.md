@@ -7,9 +7,9 @@
 
 ## BuildingData Class
 
-Provides the canonical names of the building data table's built\-in columns, as the deployed GIS Web API carries them on the wire\.
+Provides the canonical names and unique identifiers of the building data table's built\-in columns, as the deployed GIS Web API carries them on the wire\.
 
-The names are the `Name` of the columns the GIS Web API's own `DiGi.GIS.IO.Constants.Column` defines (reference, internal point), and are the keys the client addresses them by - the projection slugs (`reference`, `internal_point_x`, ...) are the catalog's `UniqueId`s and name the same columns.
+The names are the `Name` of the columns the GIS Web API's own `DiGi.GIS.IO.Constants.Column` defines (reference, county, database identifier, internal point), and are the keys a fetched table is addressed by. The unique identifiers are the catalog's `UniqueId` slugs of the same columns - the keys a projection is requested by, and what a Typology definition level names. Both are spelled here, once, because this application reaches the GIS Web API over the wire only and cannot reference `DiGi.GIS.IO` for them.
 
 ```csharp
 public static class BuildingData
@@ -17,6 +17,19 @@ public static class BuildingData
 
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → BuildingData
 ### Fields
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.BuildingData.CountyIdName'></a>
+
+## BuildingData\.CountyIdName Field
+
+The name of the building data table's county part column: the partition the row is filed under, always projected by the upstream paging endpoint whether asked for or not\.
+
+```csharp
+public const string CountyIdName = "County Id";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 <a name='DiGi.GIS.WebAPI.UI.Constants.BuildingData.DatabaseIdName'></a>
 
@@ -26,6 +39,19 @@ The name of the building data table's database identifier column: the `Building2
 
 ```csharp
 public const string DatabaseIdName = "Database Id";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.BuildingData.DatabaseIdUniqueId'></a>
+
+## BuildingData\.DatabaseIdUniqueId Field
+
+The unique identifier \(projection slug\) of the [DatabaseIdName](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.BuildingData.DatabaseIdName 'DiGi\.GIS\.WebAPI\.UI\.Constants\.BuildingData\.DatabaseIdName') column\.
+
+```csharp
+public const string DatabaseIdUniqueId = "database_id";
 ```
 
 #### Field Value
@@ -44,6 +70,19 @@ public const string InternalPointXName = "Internal Point X";
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.BuildingData.InternalPointXUniqueId'></a>
+
+## BuildingData\.InternalPointXUniqueId Field
+
+The unique identifier \(projection slug\) of the [InternalPointXName](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.BuildingData.InternalPointXName 'DiGi\.GIS\.WebAPI\.UI\.Constants\.BuildingData\.InternalPointXName') column\.
+
+```csharp
+public const string InternalPointXUniqueId = "internal_point_x";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.BuildingData.InternalPointYName'></a>
 
 ## BuildingData\.InternalPointYName Field
@@ -57,14 +96,40 @@ public const string InternalPointYName = "Internal Point Y";
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.BuildingData.InternalPointYUniqueId'></a>
+
+## BuildingData\.InternalPointYUniqueId Field
+
+The unique identifier \(projection slug\) of the [InternalPointYName](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.BuildingData.InternalPointYName 'DiGi\.GIS\.WebAPI\.UI\.Constants\.BuildingData\.InternalPointYName') column\.
+
+```csharp
+public const string InternalPointYUniqueId = "internal_point_y";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.BuildingData.ReferenceName'></a>
 
 ## BuildingData\.ReferenceName Field
 
-The name of the building data table's reference column: it names the buildings the solve files into buckets, and it is the keyset cursor that pages a part\.
+The name of the building data table's reference column: it names the buildings the solve files into buckets, and it is the keyset cursor that pages a part\. Always projected by the upstream paging endpoint whether asked for or not\.
 
 ```csharp
 public const string ReferenceName = "Reference";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.BuildingData.ReferenceUniqueId'></a>
+
+## BuildingData\.ReferenceUniqueId Field
+
+The unique identifier \(projection slug\) of the [ReferenceName](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.BuildingData.ReferenceName 'DiGi\.GIS\.WebAPI\.UI\.Constants\.BuildingData\.ReferenceName') column\.
+
+```csharp
+public const string ReferenceUniqueId = "reference";
 ```
 
 #### Field Value

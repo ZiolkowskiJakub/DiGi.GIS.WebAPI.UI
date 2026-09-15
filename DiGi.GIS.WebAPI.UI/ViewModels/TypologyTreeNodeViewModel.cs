@@ -6,7 +6,7 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
     /// One node of the solved Typology tree as rendered by the area view: the bucket name, description, color and children.
     /// <para>The <see cref="Color"/> is a CSS hex string (<c>#rrggbb</c>) read from the node's <c>TypologyAppearance</c> via <see cref="Query.Color(DiGi.Typology.Visual.Classes.TypologyAppearance?)"/>, not a <c>System.Drawing.Color</c> — the view paints CSS, and a serialized color type would add a dependency the page does not need.</para>
     /// <para>The <see cref="Path"/> is the filing index chain of this node, one integer per level from the root. The view uses it to locate the node in the tree for the centroid join with the building dot positions.</para>
-    /// <para>The <see cref="Count"/> is the number of buildings filed under this node (issue #24). A bucket node counts its own reference set - every row that matched it, including rows that resolved to no bucket at a lower level - so a parent's count can exceed the sum of its children's counts; the root, which the solver never files references on, counts the sum of its children.</para>
+    /// <para>The <see cref="Count"/> is the number of buildings filed under this node (issue #24). A bucket node counts its own reference set - every row that matched it, including rows that resolved to no bucket at a lower level - so a parent's count can exceed the sum of its children's counts; the root, which the solver never files references on, counts the sum of its children. Every building the count includes is listed in the flat building list under this node or one below it, so the count always equals the buildings the view can show for the node.</para>
     /// </summary>
     public class TypologyTreeNodeViewModel
     {

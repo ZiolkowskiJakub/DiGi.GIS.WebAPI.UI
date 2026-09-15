@@ -1015,7 +1015,7 @@ public DiGi.PostgreSQL.Table.Classes.Table? Table { get; }
 
 The response of `POST /typology/buildings`: the solved Typology tree and the flat building list the view renders as dots\.
 
-The [Root](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel.Root 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingsViewModel\.Root') is the recursive tree the view renders as the typology panel: each node carries its name, description, color and children. The [Buildings](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel.Buildings 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingsViewModel\.Buildings') is the flat list of building entries, one per reference solved into a leaf bucket; the view joins each entry to its dot position by `(Reference, CountyId)` against the area-scoped centroid endpoint.
+The [Root](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel.Root 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingsViewModel\.Root') is the recursive tree the view renders as the typology panel: each node carries its name, description, color and children. The [Buildings](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel.Buildings 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingsViewModel\.Buildings') is the flat list of building entries, one per reference the solve classified, each filed under the deepest node holding it - a leaf bucket, or the bucket whose next level dropped the row; the view joins each entry to its dot position by `(Reference, CountyId)` against the area-scoped centroid endpoint.
 
 ```csharp
 public class TypologyBuildingsViewModel
@@ -1055,14 +1055,14 @@ The root of the solved typology tree, or null when the solve produced no nodes\.
 
 `buildings` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[TypologyBuildingViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingViewModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
 
-The flat list of building entries, one per reference solved into a leaf bucket\.
+The flat list of building entries, one per classified reference, filed under the deepest node holding it\.
 ### Properties
 
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel.Buildings'></a>
 
 ## TypologyBuildingsViewModel\.Buildings Property
 
-Gets the flat list of building entries, one per reference solved into a leaf bucket\.
+Gets the flat list of building entries, one per classified reference, filed under the deepest node holding it\.
 
 ```csharp
 public System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel> Buildings { get; set; }
@@ -1090,7 +1090,7 @@ public DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel? Root { get; set;
 
 One building entry of the Typology area view: the reference that identifies it in the GIS Web API, the county part it was fetched from, and the path of the typology bucket it was solved into\.
 
-Coordinates are intentionally absent: the dot positions come from the area-scoped centroid endpoint in `DiGi.GIS.WebAPI`, joined in the view by `(Reference, CountyId)`. The [Path](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.Path 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingViewModel\.Path') is the filing index chain of the typology bucket, one integer per level, which the view uses to locate the node in the tree for the centroid join.
+Coordinates are intentionally absent: the dot positions come from the area-scoped centroid endpoint in `DiGi.GIS.WebAPI`, joined in the view by `(Reference, CountyId)`. The [Path](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.Path 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingViewModel\.Path') is the filing index chain of the deepest typology bucket holding the building, one integer per level - a leaf's path, or a bucket's own path for a row its next level dropped - which the view uses to locate the node in the tree for the centroid join, the dimming and the grid.
 
 The [Id](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel.Id 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingViewModel\.Id') is the building's database identifier, read from the building data table's `Database Id` column. It serves the links to the 2D details page and the 3D viewer, which address a building by that identifier - it takes no part in the centroid join.
 
@@ -1177,7 +1177,7 @@ public long Id { get; set; }
 
 ## TypologyBuildingViewModel\.Path Property
 
-Gets the typology path, one filing index per level, identifying the bucket the building was solved into\.
+Gets the typology path, one filing index per level, identifying the deepest bucket the building was solved into\.
 
 ```csharp
 public System.Collections.Generic.List<int> Path { get; set; }
@@ -1328,7 +1328,7 @@ The [Color](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.Typol
 
 The [Path](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.Path 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyTreeNodeViewModel\.Path') is the filing index chain of this node, one integer per level from the root. The view uses it to locate the node in the tree for the centroid join with the building dot positions.
 
-The [Count](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.Count 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyTreeNodeViewModel\.Count') is the number of buildings filed under this node (issue #24). A bucket node counts its own reference set - every row that matched it, including rows that resolved to no bucket at a lower level - so a parent's count can exceed the sum of its children's counts; the root, which the solver never files references on, counts the sum of its children.
+The [Count](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.Count 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyTreeNodeViewModel\.Count') is the number of buildings filed under this node (issue #24). A bucket node counts its own reference set - every row that matched it, including rows that resolved to no bucket at a lower level - so a parent's count can exceed the sum of its children's counts; the root, which the solver never files references on, counts the sum of its children. Every building the count includes is listed in the flat building list under this node or one below it, so the count always equals the buildings the view can show for the node.
 
 ```csharp
 public class TypologyTreeNodeViewModel

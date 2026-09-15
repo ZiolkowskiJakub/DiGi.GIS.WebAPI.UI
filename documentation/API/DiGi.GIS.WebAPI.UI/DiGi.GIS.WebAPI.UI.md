@@ -150,6 +150,35 @@ The wire JSON of the page\. This value can be null, in which case null is return
 [DiGi\.Core\.IO\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.table 'DiGi\.Core\.IO\.Table\.Classes\.Table')  
 The page as the solver's table, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the input is null or not a table\.
 
+<a name='DiGi.GIS.WebAPI.UI.Create.TableAsync(System.IO.Stream,System.Threading.CancellationToken)'></a>
+
+## Create\.TableAsync\(Stream, CancellationToken\) Method
+
+Asynchronously creates the building data table one page of `POST /gis/BuildingData/tablebybuildingdatabypagingparameter` answers, read straight from the response stream\.
+
+The variant the page fetch uses: a 10 000-row page is 600 KB of JSON, and reading it into a string first only doubles the bytes held before the same converter parses them. Same converter, same options and same result as [Table\(string\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.Table(string) 'DiGi\.GIS\.WebAPI\.UI\.Create\.Table\(string\)').
+
+```csharp
+public static System.Threading.Tasks.Task<DiGi.Core.IO.Table.Classes.Table?> TableAsync(System.IO.Stream? stream, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TableAsync(System.IO.Stream,System.Threading.CancellationToken).stream'></a>
+
+`stream` [System\.IO\.Stream](https://learn.microsoft.com/en-us/dotnet/api/system.io.stream 'System\.IO\.Stream')
+
+The response stream of the page\. This value can be null, in which case null is returned\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TableAsync(System.IO.Stream,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.Core\.IO\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.table 'DiGi\.Core\.IO\.Table\.Classes\.Table')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The page as the solver's table, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the input is null or not a table\.
+
 <a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNode(thisDiGi.GLTF.Classes.GLTFNode,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.Geometry.Planar.Classes.BoundingBox2D,double,double)'></a>
 
 ## Create\.TerrainGLTFNode\(this GLTFNode, IEnumerable\<BuildingModel\>, BoundingBox2D, double, double\) Method
@@ -454,17 +483,46 @@ The bucket color\.
 [DiGi\.Typology\.Visual\.Classes\.TypologyAppearance](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.typologyappearance 'DiGi\.Typology\.Visual\.Classes\.TypologyAppearance')  
 The appearance\.
 
+<a name='DiGi.GIS.WebAPI.UI.Create.TypologyBuildingsViewModel(thisDiGi.Typology.Visual.Classes.VisualTypology,DiGi.Core.IO.Table.Classes.Table)'></a>
+
+## Create\.TypologyBuildingsViewModel\(this VisualTypology, Table\) Method
+
+Flattens a solved [DiGi\.Typology\.Visual\.Classes\.VisualTypology](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.visualtypology 'DiGi\.Typology\.Visual\.Classes\.VisualTypology') tree into the view DTO, reading each building's county part and database identifier from the table the tree was solved over\.
+
+The overload the solve action uses: the merged building data table carries the `Reference`, `County Id` and `Database Id` columns of every row (the first two the upstream projects whether asked for or not), so the two maps the other overload takes are read from it in one pass over its live rows and the caller keeps no bookkeeping of its own. A column the table does not carry leaves the corresponding value at 0 for every building.
+
+```csharp
+public static DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel? TypologyBuildingsViewModel(this DiGi.Typology.Visual.Classes.VisualTypology? visualTypology, DiGi.Core.IO.Table.Classes.Table? table);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TypologyBuildingsViewModel(thisDiGi.Typology.Visual.Classes.VisualTypology,DiGi.Core.IO.Table.Classes.Table).visualTypology'></a>
+
+`visualTypology` [DiGi\.Typology\.Visual\.Classes\.VisualTypology](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.visualtypology 'DiGi\.Typology\.Visual\.Classes\.VisualTypology')
+
+The solved typology tree\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TypologyBuildingsViewModel(thisDiGi.Typology.Visual.Classes.VisualTypology,DiGi.Core.IO.Table.Classes.Table).table'></a>
+
+`table` [DiGi\.Core\.IO\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.table 'DiGi\.Core\.IO\.Table\.Classes\.Table')
+
+The building data table the tree was solved over\. This value can be null, in which case no part or identifier is known\.
+
+#### Returns
+[TypologyBuildingsViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingsViewModel')  
+The view DTO, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the tree is null\.
+
 <a name='DiGi.GIS.WebAPI.UI.Create.TypologyBuildingsViewModel(thisDiGi.Typology.Visual.Classes.VisualTypology,System.Collections.Generic.Dictionary_string,int_,System.Collections.Generic.Dictionary_string,long_)'></a>
 
 ## Create\.TypologyBuildingsViewModel\(this VisualTypology, Dictionary\<string,int\>, Dictionary\<string,long\>\) Method
 
 Flattens a solved [DiGi\.Typology\.Visual\.Classes\.VisualTypology](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.visualtypology 'DiGi\.Typology\.Visual\.Classes\.VisualTypology') tree into the view DTO the area view renders: the recursive node tree and the flat building list\.
 
-The tree is walked depth-first. Each node carries its name, description, color (read from the [DiGi\.Typology\.Visual\.Classes\.VisualTypologyItem\.Appearance](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.visualtypologyitem.appearance 'DiGi\.Typology\.Visual\.Classes\.VisualTypologyItem\.Appearance') via [Color\(this TypologyAppearance\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Color(thisDiGi.Typology.Visual.Classes.TypologyAppearance) 'DiGi\.GIS\.WebAPI\.UI\.Query\.Color\(this DiGi\.Typology\.Visual\.Classes\.TypologyAppearance\)')), the count of its reference set and its children. A leaf node's references become [TypologyBuildingViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingViewModel') entries in the flat list, each carrying the node's path so the view can join it to the dot position by `(Reference, CountyId)`.
+The tree is walked depth-first, children before their parent. Each node carries its name, description, color (read from the [DiGi\.Typology\.Visual\.Classes\.VisualTypologyItem\.Appearance](https://learn.microsoft.com/en-us/dotnet/api/digi.typology.visual.classes.visualtypologyitem.appearance 'DiGi\.Typology\.Visual\.Classes\.VisualTypologyItem\.Appearance') via [Color\(this TypologyAppearance\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Color(thisDiGi.Typology.Visual.Classes.TypologyAppearance) 'DiGi\.GIS\.WebAPI\.UI\.Query\.Color\(this DiGi\.Typology\.Visual\.Classes\.TypologyAppearance\)')), the count of its reference set and its children. Every reference becomes one [TypologyBuildingViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyBuildingViewModel') entry, filed under the <b>deepest</b> node that holds it: a leaf's references are its own, and a bucket's references that none of its children holds - the rows the solver dropped at the next level because their value resolved to no bucket there - are filed under the bucket itself. So a building the tree counts under a node is always listed under that node or one below it, and the map, the grid and the building card agree with the tree; the pie still charts what the children hold against the node's own count.
 
-The [countyId\_ByReference](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.TypologyBuildingsViewModel(thisDiGi.Typology.Visual.Classes.VisualTypology,System.Collections.Generic.Dictionary_string,int_,System.Collections.Generic.Dictionary_string,long_).countyId_ByReference 'DiGi\.GIS\.WebAPI\.UI\.Create\.TypologyBuildingsViewModel\(this DiGi\.Typology\.Visual\.Classes\.VisualTypology, System\.Collections\.Generic\.Dictionary\<string,int\>, System\.Collections\.Generic\.Dictionary\<string,long\>\)\.countyId\_ByReference') maps a building reference to the county part it was fetched from, so the flat entry carries the correct `CountyId`. When the map is null or a reference is absent from it, the entry's `CountyId` is 0 — the view treats that as "part unknown" and skips the centroid join for that building.
+The [countyId\_ByReference](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.TypologyBuildingsViewModel(thisDiGi.Typology.Visual.Classes.VisualTypology,System.Collections.Generic.Dictionary_string,int_,System.Collections.Generic.Dictionary_string,long_).countyId_ByReference 'DiGi\.GIS\.WebAPI\.UI\.Create\.TypologyBuildingsViewModel\(this DiGi\.Typology\.Visual\.Classes\.VisualTypology, System\.Collections\.Generic\.Dictionary\<string,int\>, System\.Collections\.Generic\.Dictionary\<string,long\>\)\.countyId\_ByReference') maps a building reference to the county part it was fetched from, so the flat entry carries the correct `CountyId`. When the map is null or a reference is absent from it, the entry's `CountyId` is 0 - the view treats that as "part unknown" and skips the centroid join for that building.
 
-The [id\_ByReference](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.TypologyBuildingsViewModel(thisDiGi.Typology.Visual.Classes.VisualTypology,System.Collections.Generic.Dictionary_string,int_,System.Collections.Generic.Dictionary_string,long_).id_ByReference 'DiGi\.GIS\.WebAPI\.UI\.Create\.TypologyBuildingsViewModel\(this DiGi\.Typology\.Visual\.Classes\.VisualTypology, System\.Collections\.Generic\.Dictionary\<string,int\>, System\.Collections\.Generic\.Dictionary\<string,long\>\)\.id\_ByReference') maps a building reference to its database identifier, so the flat entry carries the `Id` the details and 3D viewer links address. When the map is null or a reference is absent from it, the entry's `Id` is 0 — the view treats that as "identifier unknown" and hides the links that need it.
+The [id\_ByReference](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.TypologyBuildingsViewModel(thisDiGi.Typology.Visual.Classes.VisualTypology,System.Collections.Generic.Dictionary_string,int_,System.Collections.Generic.Dictionary_string,long_).id_ByReference 'DiGi\.GIS\.WebAPI\.UI\.Create\.TypologyBuildingsViewModel\(this DiGi\.Typology\.Visual\.Classes\.VisualTypology, System\.Collections\.Generic\.Dictionary\<string,int\>, System\.Collections\.Generic\.Dictionary\<string,long\>\)\.id\_ByReference') maps a building reference to its database identifier, so the flat entry carries the `Id` the details and 3D viewer links address. When the map is null or a reference is absent from it, the entry's `Id` is 0 - the view treats that as "identifier unknown" and hides the links that need it.
 
 ```csharp
 public static DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel? TypologyBuildingsViewModel(this DiGi.Typology.Visual.Classes.VisualTypology? visualTypology, System.Collections.Generic.Dictionary<string,int>? countyId_ByReference=null, System.Collections.Generic.Dictionary<string,long>? id_ByReference=null);
@@ -591,6 +649,8 @@ Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system
 Appends every row of one building data table to another, aligning the columns by name\.
 
 The two tables carry the same column set (the same projection), but a page's column order is not guaranteed to repeat - the upstream does not promise the columns arrive in the same positions on every page - so each appended row is re-aligned by column name rather than trusted to its position on the page. A cell the canonical table does not carry, or that holds no value, is not filed: the solver's `row[column.Index]` answers null for it, the same answer a range rule gives for a missing value.
+
+The page is read through its live enumeration, never through `Rows`, which clones every row it hands out; the merge is the one reader of a page, and the page is discarded once merged. The rows are filed by value rather than handed over: `AddRow(Row)` keeps a row's own index when the table has room for it, so a page row, indexed from 0, would overwrite the canonical table's row of the same index instead of being appended.
 
 When [into](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Modify.Append(thisDiGi.Core.IO.Table.Classes.Table,DiGi.Core.IO.Table.Classes.Table).into 'DiGi\.GIS\.WebAPI\.UI\.Modify\.Append\(this DiGi\.Core\.IO\.Table\.Classes\.Table, DiGi\.Core\.IO\.Table\.Classes\.Table\)\.into') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') the [page](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Modify.Append(thisDiGi.Core.IO.Table.Classes.Table,DiGi.Core.IO.Table.Classes.Table).page 'DiGi\.GIS\.WebAPI\.UI\.Modify\.Append\(this DiGi\.Core\.IO\.Table\.Classes\.Table, DiGi\.Core\.IO\.Table\.Classes\.Table\)\.page') is returned as the new table - it is the caller's own page, freshly parsed, so nothing needs cloning.
 
@@ -910,56 +970,134 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.PostgreSQL\.Table\.Classes\.Column](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.column 'DiGi\.PostgreSQL\.Table\.Classes\.Column')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The columns, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the GIS Web API answers nothing or cannot be reached\.
 
-<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,int,System.Collections.Generic.List_string_,System.Action_string_,int,System.Threading.CancellationToken)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataCountAsync(thisSystem.Net.Http.HttpClient,int,System.Threading.CancellationToken)'></a>
 
-## Query\.BuildingDataTableAsync\(this HttpClient, int, List\<string\>, Action\<string\>, int, CancellationToken\) Method
+## Query\.BuildingDataCountAsync\(this HttpClient, int, CancellationToken\) Method
 
-Fetches every building data row for one county part from the GIS Web API, following the keyset cursor until the part is exhausted\.
+Asynchronously reads the number of building data rows one county part holds from the GIS Web API\.
 
-The upstream `tablebybuildingdatabypagingparameter` caps a single page at 10 000 rows, and a county part routinely holds more - part 76453 of code 2404 holds 100 543, part 16580 of code 0620 holds 93 672 - so one request would silently return only the first 10 000 buildings of such a part. The part is therefore read page by page: the page arrives ordered ascending by `Reference`, its last row is the next cursor, and the read ends when a page comes back short of the page size.
-
-Each page is parsed by [Table\(string\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.Table(string) 'DiGi\.GIS\.WebAPI\.UI\.Create\.Table\(string\)'), so the columns arrive as the solver's [DiGi\.Core\.IO\.Table\.Classes\.Column](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.column 'DiGi\.Core\.IO\.Table\.Classes\.Column') and every cell typed to the column's declared type - the table is already the type the Typology solver classifies, no bridge needed.
-
-Each page request retries once on a failure status: the known cause is a command timeout on a cold partition, and the retry succeeds because the partition is warm by then. A second failure is not retried - it is a genuine defect, not a cold start (Coding - Deployed WebAPI, section 4).
-
-A page's column order is not guaranteed to repeat, so successive pages are merged by column name, not by index ([Append\(this Table, Table\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Modify.Append(thisDiGi.Core.IO.Table.Classes.Table,DiGi.Core.IO.Table.Classes.Table) 'DiGi\.GIS\.WebAPI\.UI\.Modify\.Append\(this DiGi\.Core\.IO\.Table\.Classes\.Table, DiGi\.Core\.IO\.Table\.Classes\.Table\)')).
+The cheapest question the table answers (`GET gis/BuildingData/countbycountyid`, an exact count on one partition - 0.15 s on the largest parts), asked before a single page is fetched so that an area above the solve ceiling is refused in seconds rather than after minutes of paging. The upstream answers 404 for a county part that has no building data partition at all; that is a part holding nothing, not a failure, so it counts as zero. [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') is every other way of not getting a number: a failure status, an unreachable service, a body that is not an integer.
 
 ```csharp
-public static System.Threading.Tasks.Task<DiGi.Core.IO.Table.Classes.Table?> BuildingDataTableAsync(this System.Net.Http.HttpClient? httpClient, int countyId, System.Collections.Generic.List<string> columnUniqueIds, System.Action<string>? log=null, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+public static System.Threading.Tasks.Task<System.Nullable<long>> BuildingDataCountAsync(this System.Net.Http.HttpClient? httpClient, int countyId, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,int,System.Collections.Generic.List_string_,System.Action_string_,int,System.Threading.CancellationToken).httpClient'></a>
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataCountAsync(thisSystem.Net.Http.HttpClient,int,System.Threading.CancellationToken).httpClient'></a>
 
 `httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
 
 The HTTP client used for the request\. This value can be null\.
 
-<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,int,System.Collections.Generic.List_string_,System.Action_string_,int,System.Threading.CancellationToken).countyId'></a>
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataCountAsync(thisSystem.Net.Http.HttpClient,int,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The county part identifier whose rows are counted\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataCountAsync(thisSystem.Net.Http.HttpClient,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The row count, 0 when the part has no partition, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the upstream answered nothing usable\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataCountAsync(thisSystem.Net.Http.HttpClient,System.Collections.Generic.IEnumerable_int_,System.Threading.CancellationToken)'></a>
+
+## Query\.BuildingDataCountAsync\(this HttpClient, IEnumerable\<int\>, CancellationToken\) Method
+
+Asynchronously reads the number of building data rows a set of county parts holds together, one part at a time\.
+
+The pre-flight of a solve: the parts are counted sequentially (the deployed host is queried one request at a time, never fanned out) and summed. A part whose count cannot be read makes the sum unknown - [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') - rather than an understatement, so a caller comparing it with a ceiling does not let an area through on a partial figure; the fetch itself still stops at the ceiling.
+
+```csharp
+public static System.Threading.Tasks.Task<System.Nullable<long>> BuildingDataCountAsync(this System.Net.Http.HttpClient? httpClient, System.Collections.Generic.IEnumerable<int>? countyIds, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataCountAsync(thisSystem.Net.Http.HttpClient,System.Collections.Generic.IEnumerable_int_,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataCountAsync(thisSystem.Net.Http.HttpClient,System.Collections.Generic.IEnumerable_int_,System.Threading.CancellationToken).countyIds'></a>
+
+`countyIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The county part identifiers whose rows are counted; a part listed twice is counted once\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataCountAsync(thisSystem.Net.Http.HttpClient,System.Collections.Generic.IEnumerable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The row count over every part, 0 for no parts, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when any part could not be counted\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,int,System.Collections.Generic.List_string_,System.Action_string_,int,int,System.Threading.CancellationToken)'></a>
+
+## Query\.BuildingDataTableAsync\(this HttpClient, int, List\<string\>, Action\<string\>, int, int, CancellationToken\) Method
+
+Fetches every building data row for one county part from the GIS Web API, following the keyset cursor until the part is exhausted\.
+
+The upstream `tablebybuildingdatabypagingparameter` caps a single page at 10 000 rows, and a county part routinely holds more - part 76453 of code 2404 holds 100 543, part 16580 of code 0620 holds 93 672 - so one request would silently return only the first 10 000 buildings of such a part. The part is therefore read page by page: the page arrives ordered ascending by `Reference`, its last row is the next cursor, and the read ends when a page comes back short of the page size.
+
+Each page is parsed by [TableAsync\(Stream, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.TableAsync(System.IO.Stream,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Create\.TableAsync\(System\.IO\.Stream, System\.Threading\.CancellationToken\)') straight from the response stream, so the columns arrive as the solver's [DiGi\.Core\.IO\.Table\.Classes\.Column](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.column 'DiGi\.Core\.IO\.Table\.Classes\.Column') and every cell typed to the column's declared type - the table is already the type the Typology solver classifies, no bridge needed. The pages are read through their live enumeration, never through `Rows`, which clones every row it hands out.
+
+An upstream 404 is the part holding no building data partition, not a failure: it answers an empty table at once, so a county with nothing stored reads as "no buildings" rather than "service unavailable". Every other failure status, and a transient exception, is retried once: the known cause is a command timeout on a cold partition, and the retry succeeds because the partition is warm by then. A second failure is not retried - it is a genuine defect, not a cold start (Coding - Deployed WebAPI, section 4).
+
+The read stops early once the rows fetched so far exceed [maxRowCount](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,int,System.Collections.Generic.List_string_,System.Action_string_,int,int,System.Threading.CancellationToken).maxRowCount 'DiGi\.GIS\.WebAPI\.UI\.Query\.BuildingDataTableAsync\(this System\.Net\.Http\.HttpClient, int, System\.Collections\.Generic\.List\<string\>, System\.Action\<string\>, int, int, System\.Threading\.CancellationToken\)\.maxRowCount'): the caller refuses such a part anyway, so the remaining pages would only cost time. The table returned then carries more rows than the ceiling, which is how the caller tells.
+
+A page's column order is not guaranteed to repeat, so successive pages are merged by column name, not by index ([Append\(this Table, Table\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Modify.Append(thisDiGi.Core.IO.Table.Classes.Table,DiGi.Core.IO.Table.Classes.Table) 'DiGi\.GIS\.WebAPI\.UI\.Modify\.Append\(this DiGi\.Core\.IO\.Table\.Classes\.Table, DiGi\.Core\.IO\.Table\.Classes\.Table\)')).
+
+```csharp
+public static System.Threading.Tasks.Task<DiGi.Core.IO.Table.Classes.Table?> BuildingDataTableAsync(this System.Net.Http.HttpClient? httpClient, int countyId, System.Collections.Generic.List<string> columnUniqueIds, System.Action<string>? log=null, int maxRowCount=int.MaxValue, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,int,System.Collections.Generic.List_string_,System.Action_string_,int,int,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,int,System.Collections.Generic.List_string_,System.Action_string_,int,int,System.Threading.CancellationToken).countyId'></a>
 
 `countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The county part identifier that scopes the building data\.
 
-<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,int,System.Collections.Generic.List_string_,System.Action_string_,int,System.Threading.CancellationToken).columnUniqueIds'></a>
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,int,System.Collections.Generic.List_string_,System.Action_string_,int,int,System.Threading.CancellationToken).columnUniqueIds'></a>
 
 `columnUniqueIds` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
 
 The column slugs to project: the definition's chain columns plus `reference`\.
 
-<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,int,System.Collections.Generic.List_string_,System.Action_string_,int,System.Threading.CancellationToken).log'></a>
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,int,System.Collections.Generic.List_string_,System.Action_string_,int,int,System.Threading.CancellationToken).log'></a>
 
 `log` [System\.Action&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.action-1 'System\.Action\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.action-1 'System\.Action\`1')
 
 The callback that receives the part's progress: its page count and row count on success, its failure on the way out\. This value can be null, in which case nothing is logged\.
 
-<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,int,System.Collections.Generic.List_string_,System.Action_string_,int,System.Threading.CancellationToken).commandTimeout'></a>
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,int,System.Collections.Generic.List_string_,System.Action_string_,int,int,System.Threading.CancellationToken).maxRowCount'></a>
+
+`maxRowCount` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of rows above which the read stops early\. Defaults to no limit\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,int,System.Collections.Generic.List_string_,System.Action_string_,int,int,System.Threading.CancellationToken).commandTimeout'></a>
 
 `commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The upstream command timeout in seconds\. Defaults to 600\.
 
-<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,int,System.Collections.Generic.List_string_,System.Action_string_,int,System.Threading.CancellationToken).cancellationToken'></a>
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,int,System.Collections.Generic.List_string_,System.Action_string_,int,int,System.Threading.CancellationToken).cancellationToken'></a>
 
 `cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
 
@@ -967,7 +1105,68 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.Core\.IO\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.table 'DiGi\.Core\.IO\.Table\.Classes\.Table')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-The part's complete table, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when a page fails even after its retry, when the part cannot be paged, or when the upstream is unreachable\.
+The part's complete table \(empty when the part holds no building data\), or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when a page fails even after its retry, when the part cannot be paged, or when the upstream is unreachable\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.List_string_,System.Action_string_,int,int,System.Threading.CancellationToken)'></a>
+
+## Query\.BuildingDataTableAsync\(this HttpClient, IEnumerable\<int\>, List\<string\>, Action\<string\>, int, int, CancellationToken\) Method
+
+Fetches the building data rows of every county part of an area into one table, one part after another\.
+
+The parts are read sequentially - the deployed host is queried one request at a time, never fanned out (Coding - Deployed WebAPI, section 4) - and merged by column name through [Append\(this Table, Table\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Modify.Append(thisDiGi.Core.IO.Table.Classes.Table,DiGi.Core.IO.Table.Classes.Table) 'DiGi\.GIS\.WebAPI\.UI\.Modify\.Append\(this DiGi\.Core\.IO\.Table\.Classes\.Table, DiGi\.Core\.IO\.Table\.Classes\.Table\)'). A part listed twice is read once. One part failing does not fail the area: the rest are collected and the failure is logged; every part failing is the upstream answering nothing, which the caller reads as unavailable. A part holding no building data contributes nothing and still counts as read, so an area whose parts are all empty answers an empty table rather than [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null').
+
+The read stops as soon as the merged rows exceed [maxRowCount](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.List_string_,System.Action_string_,int,int,System.Threading.CancellationToken).maxRowCount 'DiGi\.GIS\.WebAPI\.UI\.Query\.BuildingDataTableAsync\(this System\.Net\.Http\.HttpClient, System\.Collections\.Generic\.IEnumerable\<int\>, System\.Collections\.Generic\.List\<string\>, System\.Action\<string\>, int, int, System\.Threading\.CancellationToken\)\.maxRowCount') - the returned table then carries more rows than the ceiling and the caller refuses it - so an area far above the ceiling costs one part and a page, not the whole area.
+
+```csharp
+public static System.Threading.Tasks.Task<DiGi.Core.IO.Table.Classes.Table?> BuildingDataTableAsync(this System.Net.Http.HttpClient? httpClient, System.Collections.Generic.IEnumerable<int>? countyIds, System.Collections.Generic.List<string> columnUniqueIds, System.Action<string>? log=null, int maxRowCount=int.MaxValue, int commandTimeout=600, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.List_string_,System.Action_string_,int,int,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.List_string_,System.Action_string_,int,int,System.Threading.CancellationToken).countyIds'></a>
+
+`countyIds` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The county part identifiers that scope the building data\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.List_string_,System.Action_string_,int,int,System.Threading.CancellationToken).columnUniqueIds'></a>
+
+`columnUniqueIds` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+The column slugs to project: the definition's chain columns plus `reference`\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.List_string_,System.Action_string_,int,int,System.Threading.CancellationToken).log'></a>
+
+`log` [System\.Action&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.action-1 'System\.Action\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.action-1 'System\.Action\`1')
+
+The callback that receives each part's progress and the area's summary\. This value can be null, in which case nothing is logged\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.List_string_,System.Action_string_,int,int,System.Threading.CancellationToken).maxRowCount'></a>
+
+`maxRowCount` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of merged rows above which the read stops early\. Defaults to no limit\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.List_string_,System.Action_string_,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The upstream command timeout in seconds\. Defaults to 600\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataTableAsync(thisSystem.Net.Http.HttpClient,System.Collections.Generic.IEnumerable_int_,System.Collections.Generic.List_string_,System.Action_string_,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.Core\.IO\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.table 'DiGi\.Core\.IO\.Table\.Classes\.Table')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The merged table \(empty when every part read holds nothing\), or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there are no parts or none could be read\.
 
 <a name='DiGi.GIS.WebAPI.UI.Query.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,System.Threading.CancellationToken)'></a>
 
@@ -1047,36 +1246,32 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The stored [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel'), or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') if the building could not be found\.
 
-<a name='DiGi.GIS.WebAPI.UI.Query.ClipByPolygon(thisDiGi.Core.IO.Table.Classes.Table,DiGi.Geometry.Planar.Classes.PolygonalFace2D,double)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Query.ClipByPolygon(thisDiGi.Core.IO.Table.Classes.Table,DiGi.Geometry.Planar.Classes.PolygonalFace2D)'></a>
 
-## Query\.ClipByPolygon\(this Table, PolygonalFace2D, double\) Method
+## Query\.ClipByPolygon\(this Table, PolygonalFace2D\) Method
 
 Returns a new building data table carrying only the rows whose internal point falls inside the given boundary polygon, leaving the input table untouched\.
 
 The row's `Internal Point X`/`Internal Point Y` are read by their column names, so the test holds whatever order the columns arrived in, and a row missing either coordinate is dropped: a building that cannot be located cannot be filed inside the area. A table that carries neither column is returned unchanged instead: dropping every such row would report an area as empty for a gap in the projection rather than in the data.
 
+The county's rows are many and the boundary's vertices are many, so the test is not the polygon's own `Inside` - that copies the vertex list and ray-casts every edge on every call. Each point is first compared with the boundary's bounding box, which settles most of a county in a few comparisons, and the rest are answered by a prepared NetTopologySuite geometry, whose edge index makes the containment test logarithmic in the vertex count. A point exactly on the boundary is not contained, where `Inside` would refuse it within its tolerance instead - the same answer for every building that is not sitting on the line.
+
 ```csharp
-public static DiGi.Core.IO.Table.Classes.Table? ClipByPolygon(this DiGi.Core.IO.Table.Classes.Table? table, DiGi.Geometry.Planar.Classes.PolygonalFace2D? polygonalFace2D, double tolerance=1E-06);
+public static DiGi.Core.IO.Table.Classes.Table? ClipByPolygon(this DiGi.Core.IO.Table.Classes.Table? table, DiGi.Geometry.Planar.Classes.PolygonalFace2D? polygonalFace2D);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Query.ClipByPolygon(thisDiGi.Core.IO.Table.Classes.Table,DiGi.Geometry.Planar.Classes.PolygonalFace2D,double).table'></a>
+<a name='DiGi.GIS.WebAPI.UI.Query.ClipByPolygon(thisDiGi.Core.IO.Table.Classes.Table,DiGi.Geometry.Planar.Classes.PolygonalFace2D).table'></a>
 
 `table` [DiGi\.Core\.IO\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.table 'DiGi\.Core\.IO\.Table\.Classes\.Table')
 
 The building data table to clip\. This value can be null, in which case it is returned unchanged\.
 
-<a name='DiGi.GIS.WebAPI.UI.Query.ClipByPolygon(thisDiGi.Core.IO.Table.Classes.Table,DiGi.Geometry.Planar.Classes.PolygonalFace2D,double).polygonalFace2D'></a>
+<a name='DiGi.GIS.WebAPI.UI.Query.ClipByPolygon(thisDiGi.Core.IO.Table.Classes.Table,DiGi.Geometry.Planar.Classes.PolygonalFace2D).polygonalFace2D'></a>
 
 `polygonalFace2D` [DiGi\.Geometry\.Planar\.Classes\.PolygonalFace2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.polygonalface2d 'DiGi\.Geometry\.Planar\.Classes\.PolygonalFace2D')
 
 The area boundary the rows are kept inside\. This value can be null, in which case the table is returned unchanged\.
-
-<a name='DiGi.GIS.WebAPI.UI.Query.ClipByPolygon(thisDiGi.Core.IO.Table.Classes.Table,DiGi.Geometry.Planar.Classes.PolygonalFace2D,double).tolerance'></a>
-
-`tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-The distance tolerance applied by the point\-in\-polygon test\.
 
 #### Returns
 [DiGi\.Core\.IO\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.table 'DiGi\.Core\.IO\.Table\.Classes\.Table')  
@@ -1368,50 +1563,6 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The response body, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there is none\.
-
-<a name='DiGi.GIS.WebAPI.UI.Query.RequestPageAsync(System.Net.Http.HttpClient,string,int,System.Collections.Generic.List_string_,int,string,System.Threading.CancellationToken)'></a>
-
-## Query\.RequestPageAsync\(HttpClient, string, int, List\<string\>, int, string, CancellationToken\) Method
-
-Requests one keyset page of building data and returns it parsed, retrying once on a failure status or transient exception\.
-
-The retry targets the known cold-partition timeout: the first attempt exceeds the upstream command timeout, the second succeeds because the partition is warm. A second failure is not retried - it is a genuine defect.
-
-```csharp
-private static System.Threading.Tasks.Task<DiGi.Core.IO.Table.Classes.Table?> RequestPageAsync(System.Net.Http.HttpClient httpClient, string requestUri, int countyId, System.Collections.Generic.List<string> columnUniqueIds, int pageSize, string? cursor, System.Threading.CancellationToken cancellationToken);
-```
-#### Parameters
-
-<a name='DiGi.GIS.WebAPI.UI.Query.RequestPageAsync(System.Net.Http.HttpClient,string,int,System.Collections.Generic.List_string_,int,string,System.Threading.CancellationToken).httpClient'></a>
-
-`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
-
-<a name='DiGi.GIS.WebAPI.UI.Query.RequestPageAsync(System.Net.Http.HttpClient,string,int,System.Collections.Generic.List_string_,int,string,System.Threading.CancellationToken).requestUri'></a>
-
-`requestUri` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
-
-<a name='DiGi.GIS.WebAPI.UI.Query.RequestPageAsync(System.Net.Http.HttpClient,string,int,System.Collections.Generic.List_string_,int,string,System.Threading.CancellationToken).countyId'></a>
-
-`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
-
-<a name='DiGi.GIS.WebAPI.UI.Query.RequestPageAsync(System.Net.Http.HttpClient,string,int,System.Collections.Generic.List_string_,int,string,System.Threading.CancellationToken).columnUniqueIds'></a>
-
-`columnUniqueIds` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
-
-<a name='DiGi.GIS.WebAPI.UI.Query.RequestPageAsync(System.Net.Http.HttpClient,string,int,System.Collections.Generic.List_string_,int,string,System.Threading.CancellationToken).pageSize'></a>
-
-`pageSize` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
-
-<a name='DiGi.GIS.WebAPI.UI.Query.RequestPageAsync(System.Net.Http.HttpClient,string,int,System.Collections.Generic.List_string_,int,string,System.Threading.CancellationToken).cursor'></a>
-
-`cursor` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
-
-<a name='DiGi.GIS.WebAPI.UI.Query.RequestPageAsync(System.Net.Http.HttpClient,string,int,System.Collections.Generic.List_string_,int,string,System.Threading.CancellationToken).cancellationToken'></a>
-
-`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
-
-#### Returns
-[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.Core\.IO\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.table 'DiGi\.Core\.IO\.Table\.Classes\.Table')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')
 
 <a name='DiGi.GIS.WebAPI.UI.Query.ResponseAsync(thisSystem.Net.Http.HttpClient,System.Net.Http.HttpMethod,string,string,System.Threading.CancellationToken)'></a>
 
@@ -1816,3 +1967,40 @@ The live column catalog of the building data table\. This value can be null\.
 #### Returns
 [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
 The errors, empty when the document can be shown by the page\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TypologySolveColumnUniqueIds(DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_,bool)'></a>
+
+## Query\.TypologySolveColumnUniqueIds\(TypologyDefinitionParameter, IEnumerable\<Column\>, bool\) Method
+
+Lists the building data columns a Typology solve projects, by unique identifier: the definition's chain columns, then the built\-in columns the solve and the view read\.
+
+Every level of the definition names its column by the catalog's unique identifier, so the chain contributes its levels' identifiers in chain order, once each. The reference column is always added: it names the buildings the solve files into buckets, and it is the keyset cursor that pages a part. The database identifier is added for the details and 3D viewer links the view offers per building. With [clip](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TypologySolveColumnUniqueIds(DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_,bool).clip 'DiGi\.GIS\.WebAPI\.UI\.Query\.TypologySolveColumnUniqueIds\(DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionParameter, System\.Collections\.Generic\.IEnumerable\<DiGi\.PostgreSQL\.Table\.Classes\.Column\>, bool\)\.clip') set, the internal point columns are added too, because a municipality or subdivision is cut out of its county's rows by each row's internal point. The county part column is never asked for - the upstream projects it on its own.
+
+Only identifiers the catalog lists are asked for: an identifier the upstream does not know would be a projection the fetch cannot honour, and a catalog missing a built-in column simply leaves the view without what that column carries (an identifier of 0, no clip).
+
+```csharp
+public static System.Collections.Generic.List<string> TypologySolveColumnUniqueIds(DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter? typologyDefinitionParameter, System.Collections.Generic.IEnumerable<DiGi.PostgreSQL.Table.Classes.Column>? columns, bool clip);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TypologySolveColumnUniqueIds(DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_,bool).typologyDefinitionParameter'></a>
+
+`typologyDefinitionParameter` [TypologyDefinitionParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionParameter')
+
+The definition to solve, as the page holds it\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TypologySolveColumnUniqueIds(DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_,bool).columns'></a>
+
+`columns` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.PostgreSQL\.Table\.Classes\.Column](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.column 'DiGi\.PostgreSQL\.Table\.Classes\.Column')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The live column catalog of the building data table\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TypologySolveColumnUniqueIds(DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_,bool).clip'></a>
+
+`clip` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+A value indicating whether the rows are clipped to an area boundary, which needs the internal point columns\.
+
+#### Returns
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
+The unique identifiers to project, in chain order followed by the built\-in columns; empty when the definition or the catalog is null\.
