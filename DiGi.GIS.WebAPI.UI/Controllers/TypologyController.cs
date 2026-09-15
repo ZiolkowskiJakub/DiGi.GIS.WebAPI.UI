@@ -50,22 +50,31 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         // Named AreaView rather than View: Controller.View() is already taken, and the action is the
         // Load modal's redirect target, not a generic view resolver.
         /// <summary>
-        /// Renders the stub navigation target the Typology Load modal redirects to: the colour-coded building typology of one administrative area is out of scope (#18), so the page shows only the area context carried on the query.
+        /// Renders the Typology area view the Load modal redirects to: the colour-coded building typology of one administrative area, with the area context (name, type, code, id) in the Administrative Area card.
         /// <para>The type is bound nullable and rejected when absent: a non-nullable <see cref="AdministrativeArealType"/> binding keeps <c>Country</c> for an omitted parameter, because the <c>Undefined</c> sentinel is -1 and not 0 - see Coding - WebAPI Contracts, section 2.</para>
+        /// <para>The name is the one thing the query does not carry; it is read by the identifier, and a lookup that answers nothing leaves it blank rather than failing the page.</para>
         /// </summary>
         /// <param name="id">The unique identifier of the selected administrative area.</param>
         /// <param name="code">The optional code of the selected administrative area.</param>
         /// <param name="administrativeArealType">The type of the selected administrative area, as the integer the Load modal carried.</param>
-        /// <returns>An <see cref="IActionResult"/> result that renders the stub view, or a 400 Bad Request response when the identifier or the area type is missing.</returns>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> that renders the view, or a 400 Bad Request response when the identifier or the area type is missing.</returns>
         [HttpGet("view")]
-        public IActionResult AreaView([FromQuery(Name = "id")] int id, [FromQuery(Name = "code")] string? code = null, [FromQuery(Name = "administrativearealtype")] AdministrativeArealType? administrativeArealType = null)
+        public async Task<IActionResult> AreaViewAsync([FromQuery(Name = "id")] int id, [FromQuery(Name = "code")] string? code = null, [FromQuery(Name = "administrativearealtype")] AdministrativeArealType? administrativeArealType = null, CancellationToken cancellationToken = default)
         {
             if (id <= 0 || administrativeArealType is null || administrativeArealType.Value == AdministrativeArealType.Undefined)
             {
                 return BadRequest();
             }
 
-            return View("View", new TypologyViewViewModel(id, code, administrativeArealType.Value));
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            UrlBuilder urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/administrativeareal2D/administrativeareal2Dreferencebyid");
+            urlBuilder = urlBuilder.AddParameter("id", id);
+
+            PostgreSQL.Classes.AdministrativeAreal2DReference? administrativeAreal2DReference = await httpClient.ItemAsync<PostgreSQL.Classes.AdministrativeAreal2DReference>(urlBuilder.ToString(), cancellationToken);
+
+            return View("View", new TypologyViewViewModel(id, code, administrativeArealType.Value, administrativeAreal2DReference?.Name));
         }
 
         /// <summary>

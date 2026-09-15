@@ -1990,40 +1990,48 @@ The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/do
 The logger the solve action reports each county part's page count and row count to \(issue \#22 Definition of Done: "upstream page count logged per part"\)\.
 ### Methods
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.AreaView(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.AreaViewAsync(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken)'></a>
 
-## TypologyController\.AreaView\(int, string, Nullable\<AdministrativeArealType\>\) Method
+## TypologyController\.AreaViewAsync\(int, string, Nullable\<AdministrativeArealType\>, CancellationToken\) Method
 
-Renders the stub navigation target the Typology Load modal redirects to: the colour\-coded building typology of one administrative area is out of scope \(\#18\), so the page shows only the area context carried on the query\.
+Renders the Typology area view the Load modal redirects to: the colour\-coded building typology of one administrative area, with the area context \(name, type, code, id\) in the Administrative Area card\.
 
 The type is bound nullable and rejected when absent: a non-nullable [DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.enums.administrativearealtype 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType') binding keeps `Country` for an omitted parameter, because the `Undefined` sentinel is -1 and not 0 - see Coding - WebAPI Contracts, section 2.
 
+The name is the one thing the query does not carry; it is read by the identifier, and a lookup that answers nothing leaves it blank rather than failing the page.
+
 ```csharp
-public Microsoft.AspNetCore.Mvc.IActionResult AreaView(int id, string? code=null, System.Nullable<DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType> administrativeArealType=null);
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> AreaViewAsync(int id, string? code=null, System.Nullable<DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType> administrativeArealType=null, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.AreaView(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_).id'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.AreaViewAsync(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken).id'></a>
 
 `id` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The unique identifier of the selected administrative area\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.AreaView(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_).code'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.AreaViewAsync(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken).code'></a>
 
 `code` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The optional code of the selected administrative area\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.AreaView(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_).administrativeArealType'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.AreaViewAsync(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken).administrativeArealType'></a>
 
 `administrativeArealType` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.enums.administrativearealtype 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The type of the selected administrative area, as the integer the Load modal carried\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.AreaViewAsync(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
 #### Returns
-[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
-An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') result that renders the stub view, or a 400 Bad Request response when the identifier or the area type is missing\.
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') that renders the view, or a 400 Bad Request response when the identifier or the area type is missing\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.ExportDefinitionAsync(DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Threading.CancellationToken)'></a>
 

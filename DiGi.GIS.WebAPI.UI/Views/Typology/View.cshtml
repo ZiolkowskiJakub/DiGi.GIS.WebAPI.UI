@@ -8,28 +8,33 @@
 }
 
 @* The 3-column shell (issue #23): left panel open, right panel closed, a flexing centre viewport holding
-   the SVG map, and the area-context strip on top. The left panel (issue #24) renders the solved typology
-   tree over a pie of the current selection; the centre (issue #25) draws the outline and the buildings as
-   dots coloured by their typology; the right panel is a later sub-issue of #21. The layout is definition-agnostic, so a visit with no carried definition still
-   shows the area context. The data-area-* attributes carry the solve request's area to the script;
-   the type travels as the integer the wire binds, never a name. *@
+   the SVG map. The left panel opens with the Administrative Area card (the area context and the way back
+   to the definition page), then the solved typology tree over a pie of the current selection (issue #24);
+   the centre (issue #25) draws the outline and the buildings as dots coloured by their typology; the
+   right panel is a later sub-issue of #21. The layout is definition-agnostic, so a visit with no carried
+   definition still shows the area context. The data-area-* attributes carry the solve request's area to
+   the script; the type travels as the integer the wire binds, never a name. *@
 <div class="gis-panel gis-panel-full">
     <div class="typology-shell" data-area-id="@Model.Id" data-area-code="@Model.Code" data-area-type="@((int)Model.AdministrativeArealType)">
-        @* Header strip: the area context (type + code + id). Always rendered. *@
-        <div class="typology-context">
-            <span class="typology-context-item"><span class="typology-context-label">Type</span><span class="typology-context-value">@Model.AdministrativeArealTypeName</span></span>
-            <span class="typology-context-item"><span class="typology-context-label">Code</span><span class="typology-context-value">@Model.Code</span></span>
-            <span class="typology-context-item"><span class="typology-context-label">Id</span><span class="typology-context-value">@Model.Id</span></span>
-            <a href="~/typology" class="gis-button typology-context-back">Back to the definition page</a>
-        </div>
-
         @* Inverted default vs the 3D viewer: the right panel is CLOSED (typology-panel-collapsed on the
            row) and the left panel is OPEN (no typology-left-panel-collapsed). *@
         <div class="typology-layout typology-panel-collapsed">
-            @* Left side panel (open by default): the typology tree over the distribution pie (issue #24).
-               Both are filled by wwwroot/js/typology-panel.js once the solve answers; until then the
-               status line reads. *@
+            @* Left side panel (open by default): the area card, then the typology tree over the
+               distribution pie (issue #24). Tree and pie are filled by wwwroot/js/typology-panel.js once
+               the solve answers; until then the status line reads. *@
             <aside id="typology-left-panel" class="typology-left-panel">
+                @* Area card: the context the page was opened with. Always rendered; the name is blank when
+                   the lookup answered nothing. *@
+                <div class="gis-card gltf-card typology-area-card">
+                    <h3 class="typology-card-title"><span>Administrative Area</span></h3>
+                    <dl class="typology-area-list">
+                        <div class="typology-area-item"><dt class="typology-area-label">Name</dt><dd class="typology-area-value">@Model.Name</dd></div>
+                        <div class="typology-area-item"><dt class="typology-area-label">Type</dt><dd class="typology-area-value">@Model.AdministrativeArealTypeName</dd></div>
+                        <div class="typology-area-item"><dt class="typology-area-label">Code</dt><dd class="typology-area-value">@Model.Code</dd></div>
+                        <div class="typology-area-item"><dt class="typology-area-label">Id</dt><dd class="typology-area-value">@Model.Id</dd></div>
+                    </dl>
+                    <a href="~/typology" class="gis-button typology-area-back">Back to the definition page</a>
+                </div>
                 <div class="gis-card gltf-card typology-tree-card">
                     <h3 class="typology-card-title">
                         <span>Typology</span>

@@ -1456,9 +1456,7 @@ public System.Collections.Generic.List<int> Path { get; set; }
 
 ## TypologyViewViewModel Class
 
-Represents the administrative\-area context the Typology Load modal redirected with: the area the colour\-coded building typology will be solved for\.
-
-The colour-coded view itself is out of scope (#18); the stub page shows only this context.
+Represents the administrative\-area context the Typology Load modal redirected with: the area the colour\-coded building typology is solved for, shown in the Administrative Area card of the area view\.
 
 ```csharp
 public class TypologyViewViewModel
@@ -1477,34 +1475,40 @@ Initializes a new instance of the [TypologyViewViewModel](DiGi.GIS.WebAPI.UI.Vie
 public TypologyViewViewModel();
 ```
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyViewViewModel.TypologyViewViewModel(int,string,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType)'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyViewViewModel.TypologyViewViewModel(int,string,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,string)'></a>
 
-## TypologyViewViewModel\(int, string, AdministrativeArealType\) Constructor
+## TypologyViewViewModel\(int, string, AdministrativeArealType, string\) Constructor
 
 Initializes a new instance of the [TypologyViewViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyViewViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyViewViewModel') class from the query context of the Load modal redirect\.
 
 ```csharp
-public TypologyViewViewModel(int id, string? code, DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType administrativeArealType);
+public TypologyViewViewModel(int id, string? code, DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType administrativeArealType, string? name);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyViewViewModel.TypologyViewViewModel(int,string,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType).id'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyViewViewModel.TypologyViewViewModel(int,string,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,string).id'></a>
 
 `id` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The unique identifier of the administrative area\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyViewViewModel.TypologyViewViewModel(int,string,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType).code'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyViewViewModel.TypologyViewViewModel(int,string,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,string).code'></a>
 
 `code` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The code of the administrative area\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyViewViewModel.TypologyViewViewModel(int,string,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType).administrativeArealType'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyViewViewModel.TypologyViewViewModel(int,string,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,string).administrativeArealType'></a>
 
 `administrativeArealType` [DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.enums.administrativearealtype 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType')
 
 The type of the administrative area\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyViewViewModel.TypologyViewViewModel(int,string,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,string).name'></a>
+
+`name` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The name of the administrative area, or null when it could not be read\.
 ### Properties
 
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyViewViewModel.AdministrativeArealType'></a>
@@ -1558,6 +1562,19 @@ public int Id { get; }
 
 #### Property Value
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyViewViewModel.Name'></a>
+
+## TypologyViewViewModel\.Name Property
+
+Gets the name of the administrative area, read from the GIS Web API by the area identifier, or null when the lookup answered nothing \- the page then shows the context it carries on the query alone\.
+
+```csharp
+public string? Name { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.YearBuiltDataViewModel'></a>
 

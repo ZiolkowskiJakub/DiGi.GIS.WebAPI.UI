@@ -2049,8 +2049,8 @@ h1.gis-title-large {
 }
 
 /* Typology area view shell (#23): the 3D viewer's 3-column resizable split with inverted defaults
-   (left open / right closed). The .typology-shell column wrapper keeps the area-context strip on top
-   and the flexing 3-column row below, within one viewport-height budget. */
+   (left open / right closed). The .typology-shell column wrapper holds the flexing 3-column row within
+   one viewport-height budget; the area context lives in the left panel's Administrative Area card. */
 .typology-shell {
     display: flex;
     flex-direction: column;
@@ -2059,32 +2059,50 @@ h1.gis-title-large {
     min-height: 480px;
 }
 
-    /* Header strip: the area context (type + code + id) across the top. */
-    .typology-context {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 16px;
+    /* Administrative Area card: name / type / code / id as a definition list, the way back beneath it
+       stretched to the card width. Natural height; the tree card below takes the free height. */
+    .typology-area-card {
+        flex: 0 0 auto;
+        margin-bottom: 0;
+        padding-left: 14px;
+        padding-right: 14px;
     }
 
-    .typology-context-item {
+    .typology-area-list {
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 6px;
+        margin: 0 0 12px 0;
     }
 
-    .typology-context-label {
+    .typology-area-item {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+    }
+
+    .typology-area-label {
+        flex: 0 0 48px;
         font-size: 0.75rem;
         color: var(--text-muted);
     }
 
-    .typology-context-value {
+    .typology-area-value {
+        flex: 1 1 auto;
+        min-width: 0;
+        margin: 0;
         font-weight: 600;
         color: var(--text-dark);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
-    .typology-context-back {
-        margin-left: auto;
+    .typology-area-back {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        text-align: center;
     }
 
 /* The 3-column row (the flexing child of the shell). */
@@ -2186,9 +2204,10 @@ h1.gis-title-large {
         font-weight: 600;
     }
 
-/* Docked side panels (identical metrics to .gltf-side-panel / .gltf-left-panel). */
+/* Docked side panels (metrics of .gltf-side-panel / .gltf-left-panel; the left default is 1.2x the 3D
+   viewer's 280 px so the area card, the tree and the taller pie sit comfortably). */
 .typology-left-panel {
-    flex: 0 0 280px;
+    flex: 0 0 336px;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -2304,7 +2323,9 @@ h1.gis-title-large {
    its natural size below it. Both are compact gltf-cards inside the column flex of .typology-left-panel. */
 .typology-tree-card {
     flex: 1 1 auto;
-    min-height: 0;
+    /* Keeps a few rows visible when the area card and the taller pie would otherwise squeeze the tree to
+       its title; the panel scrolls beyond that. */
+    min-height: 220px;
     display: flex;
     flex-direction: column;
     margin-bottom: 0;
@@ -2444,12 +2465,12 @@ h1.gis-title-large {
     margin-left: auto;
 }
 
-/* The pie scales with the panel width (150-500 px) and never exceeds a quarter of the view height. */
+/* The pie scales with the panel width (150-500 px), capped at 330 px (1.5x the original cap). */
 .typology-pie svg {
     display: block;
     width: 100%;
     height: auto;
-    max-height: 220px;
+    max-height: 330px;
     margin: 0 auto;
 }
 
