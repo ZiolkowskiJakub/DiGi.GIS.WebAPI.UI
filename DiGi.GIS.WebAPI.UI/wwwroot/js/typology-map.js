@@ -242,7 +242,11 @@ const digiTypologyMap = (function () {
     }
 
     function setSelection(path) {
-        selectedPath = path === null || path === undefined ? null : pathKey(path);
+        // The root ('') is the whole area: dimming exists to contrast a bucket against the rest, and the root
+        // has no rest, so a root selection dims nothing - the neutral group included (issue #28). This is the
+        // inspector's reading of the root: isUnder there scopes every bucket under '' (typology-inspector.js).
+        const key = path === null || path === undefined ? null : pathKey(path);
+        selectedPath = key === '' ? null : key;
         applyDimming();
     }
 
