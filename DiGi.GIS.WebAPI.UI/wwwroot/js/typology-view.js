@@ -157,3 +157,72 @@
         window.dispatchEvent(new Event('resize'));
     });
 })();
+
+// Solve bootstrap (issue #24): the definition the Load modal filed in sessionStorage is posted with the
+// area from the shell's data-* attributes to POST /typology/buildings, and the answer is handed to the
+// left panel renderer (typology-panel.js). Deliberately minimal - the loading/error/empty-state UI and
+// the shared page state belong to the orchestration sub-issue (#27); until then the panel's status line
+// carries the outcome, and window.digiTypologyView holds the DTO and the selection for the other panels.
+(function initSolve() {
+    const shell = document.querySelector('.typology-shell');
+    if (!shell || typeof digiTypologyPanel === 'undefined') {
+        return;
+    }
+
+    window.digiTypologyView = { viewModel: null, selection: null };
+
+    // The same key typology.js writes in confirmLoadSelection. A blocked store reads as no definition.
+    let definition = null;
+    try {
+        definition = JSON.parse(window.sessionStorage.getItem('digiTypology.definition'));
+    } catch (error) {
+        definition = null;
+    }
+
+    if (definition === null || typeof definition !== 'object' || !Array.isArray(definition.levels) || definition.levels.length === 0) {
+        digiTypologyPanel.showStatus('No definition was carried to this page. Go back to the definition page and press Load.');
+        return;
+    }
+
+    const base = (window.AppBaseUrl || '/').replace(/\/$/, '');
+    const areaId = parseInt(shell.getAttribute('data-area-id'), 10);
+    const areaType = parseInt(shell.getAttribute('data-area-type'), 10);
+    const areaCode = shell.getAttribute('data-area-code') || null;
+
+    function statusText(status) {
+        if (status === 404) {
+            return 'The area has no buildings.';
+        }
+        if (status === 503) {
+            return 'The building data service is unavailable.';
+        }
+        return 'The typology could not be solved (HTTP ' + status + ').';
+    }
+
+    fetch(base + '/typology/buildings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ definition: definition, id: areaId, code: areaCode, administrativeArealType: areaType })
+    })
+        .then(function (response) {
+            if (response.ok) {
+                return response.json().then(function (viewModel) {
+                    window.digiTypologyView.viewModel = viewModel;
+                    digiTypologyPanel.setSelectionCallback(function (path, node) {
+                        window.digiTypologyView.selection = path === null ? null : { path: path, node: node };
+                    });
+                    digiTypologyPanel.render(viewModel);
+                });
+            }
+
+            // 400 and 413 answer a list of messages; anything else is described by its status.
+            return response.json()
+                .catch(function () { return null; })
+                .then(function (body) {
+                    digiTypologyPanel.showStatus(Array.isArray(body) && body.length > 0 ? body.join(' ') : statusText(response.status));
+                });
+        })
+        .catch(function () {
+            digiTypologyPanel.showStatus('The request could not be sent.');
+        });
+})();

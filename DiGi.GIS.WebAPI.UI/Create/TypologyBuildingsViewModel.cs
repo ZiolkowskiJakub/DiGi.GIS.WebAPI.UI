@@ -9,7 +9,7 @@ namespace DiGi.GIS.WebAPI.UI
     {
         /// <summary>
         /// Flattens a solved <see cref="VisualTypology"/> tree into the view DTO the area view renders: the recursive node tree and the flat building list.
-        /// <para>The tree is walked depth-first. Each node carries its name, description, color (read from the <see cref="VisualTypologyItem.Appearance"/> via <see cref="Query.Color(TypologyAppearance?)"/>) and its children. A leaf node's references become <see cref="ViewModels.TypologyBuildingViewModel"/> entries in the flat list, each carrying the node's path so the view can join it to the dot position by <c>(Reference, CountyId)</c>.</para>
+        /// <para>The tree is walked depth-first. Each node carries its name, description, color (read from the <see cref="VisualTypologyItem.Appearance"/> via <see cref="Query.Color(TypologyAppearance?)"/>), the count of its reference set and its children. A leaf node's references become <see cref="ViewModels.TypologyBuildingViewModel"/> entries in the flat list, each carrying the node's path so the view can join it to the dot position by <c>(Reference, CountyId)</c>.</para>
         /// <para>The <paramref name="countyId_ByReference"/> maps a building reference to the county part it was fetched from, so the flat entry carries the correct <c>CountyId</c>. When the map is null or a reference is absent from it, the entry's <c>CountyId</c> is 0 — the view treats that as "part unknown" and skips the centroid join for that building.</para>
         /// </summary>
         /// <param name="visualTypology">The solved typology tree. This value can be null.</param>
@@ -36,6 +36,9 @@ namespace DiGi.GIS.WebAPI.UI
             string? color = Query.Hex(Query.Color(item?.Appearance));
             List<int> path = visualTypology.TypologyPath?.Values?.ToList() ?? [];
 
+            // The solver files a reference on the bucket node that matched it at every level, so a bucket's reference set is its own membership - including rows dropped at a lower level. The root is no bucket and stores nothing, so it is counted as the sum of its children; taking the larger of the two covers both without understating either.
+            int count = visualTypology.References?.Count ?? 0;
+
             List<VisualTypology>? subTypologies = visualTypology.SubTypologies;
 
             if (subTypologies is null || subTypologies.Count == 0)
@@ -51,10 +54,11 @@ namespace DiGi.GIS.WebAPI.UI
                     }
                 }
 
-                return new TypologyTreeNodeViewModel(name, description, color, path, null);
+                return new TypologyTreeNodeViewModel(name, description, color, path, count, null);
             }
 
             List<TypologyTreeNodeViewModel> children = [];
+            int count_Children = 0;
             foreach (VisualTypology subTypology in subTypologies)
             {
                 if (subTypology is null)
@@ -66,10 +70,11 @@ namespace DiGi.GIS.WebAPI.UI
                 if (child is not null)
                 {
                     children.Add(child);
+                    count_Children += child.Count;
                 }
             }
 
-            return new TypologyTreeNodeViewModel(name, description, color, path, children.Count == 0 ? null : children);
+            return new TypologyTreeNodeViewModel(name, description, color, path, System.Math.Max(count, count_Children), children.Count == 0 ? null : children);
         }
     }
 }

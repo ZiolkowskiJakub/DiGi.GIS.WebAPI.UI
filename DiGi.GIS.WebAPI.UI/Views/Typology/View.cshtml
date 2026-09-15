@@ -8,11 +8,13 @@
 }
 
 @* The 3-column shell (issue #23): left panel open, right panel closed, a flexing centre viewport as the
-   SVG mount point, and the area-context strip on top. The colouring itself and the panel content are
-   later sub-issues of #21; this page renders the resizable/toggleable shell that mounts to them. The
-   layout is definition-agnostic, so a visit with no carried definition still shows the area context. *@
+   SVG mount point, and the area-context strip on top. The left panel (issue #24) renders the solved
+   typology tree over a pie of the current selection; the colouring and the right panel are later
+   sub-issues of #21. The layout is definition-agnostic, so a visit with no carried definition still
+   shows the area context. The data-area-* attributes carry the solve request's area to the script;
+   the type travels as the integer the wire binds, never a name. *@
 <div class="gis-panel gis-panel-full">
-    <div class="typology-shell">
+    <div class="typology-shell" data-area-id="@Model.Id" data-area-code="@Model.Code" data-area-type="@((int)Model.AdministrativeArealType)">
         @* Header strip: the area context (type + code + id). Always rendered. *@
         <div class="typology-context">
             <span class="typology-context-item"><span class="typology-context-label">Type</span><span class="typology-context-value">@Model.AdministrativeArealTypeName</span></span>
@@ -24,11 +26,23 @@
         @* Inverted default vs the 3D viewer: the right panel is CLOSED (typology-panel-collapsed on the
            row) and the left panel is OPEN (no typology-left-panel-collapsed). *@
         <div class="typology-layout typology-panel-collapsed">
-            @* Left side panel (open by default). The legend content is a later sub-issue of #21. *@
+            @* Left side panel (open by default): the typology tree over the distribution pie (issue #24).
+               Both are filled by wwwroot/js/typology-panel.js once the solve answers; until then the
+               status line reads. *@
             <aside id="typology-left-panel" class="typology-left-panel">
-                <div class="gis-card">
-                    <h3 class="typology-card-title">Definition</h3>
-                    <p class="typology-muted">The typology legend appears here.</p>
+                <div class="gis-card gltf-card typology-tree-card">
+                    <h3 class="typology-card-title">
+                        <span>Typology</span>
+                        <button type="button" id="typology-tree-clear" class="gis-button gis-button-icon gis-button-secondary" title="Clear selection" aria-label="Clear selection" disabled>&times;</button>
+                    </h3>
+                    <p id="typology-tree-status" class="typology-muted">Solving the typology for the area&hellip;</p>
+                    <div id="typology-tree" class="typology-tree" role="tree" aria-label="Typology tree" hidden></div>
+                </div>
+                <div class="gis-card gltf-card typology-pie-card">
+                    <h3 class="typology-card-title" id="typology-pie-title"><span>Distribution</span><span id="typology-pie-focus" class="typology-muted"></span></h3>
+                    <div id="typology-pie" class="typology-pie" aria-labelledby="typology-pie-title"></div>
+                    <p id="typology-pie-empty" class="typology-muted" hidden></p>
+                    <ul id="typology-pie-legend" class="typology-pie-legend"></ul>
                 </div>
             </aside>
 
@@ -72,6 +86,8 @@
 </div>
 
 @section Scripts {
-    @* A classic script (no module imports), loaded after the page body so the targets it wires exist. *@
+    @* Classic scripts (no module imports), loaded after the page body so the targets they wire exist.
+       The panel renderer comes first: the view script's solve bootstrap calls digiTypologyPanel. *@
+    <script src="~/js/typology-panel.js" asp-append-version="true"></script>
     <script src="~/js/typology-view.js" asp-append-version="true"></script>
 }

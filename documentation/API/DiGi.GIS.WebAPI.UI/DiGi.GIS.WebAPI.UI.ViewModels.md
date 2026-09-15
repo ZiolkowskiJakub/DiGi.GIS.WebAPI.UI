@@ -1192,6 +1192,8 @@ The [Color](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.Typol
 
 The [Path](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.Path 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyTreeNodeViewModel\.Path') is the filing index chain of this node, one integer per level from the root. The view uses it to locate the node in the tree for the centroid join with the building dot positions.
 
+The [Count](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.Count 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyTreeNodeViewModel\.Count') is the number of buildings filed under this node (issue #24). A bucket node counts its own reference set - every row that matched it, including rows that resolved to no bucket at a lower level - so a parent's count can exceed the sum of its children's counts; the root, which the solver never files references on, counts the sum of its children.
+
 ```csharp
 public class TypologyTreeNodeViewModel
 ```
@@ -1209,42 +1211,48 @@ Initializes a new instance of the [TypologyTreeNodeViewModel](DiGi.GIS.WebAPI.UI
 public TypologyTreeNodeViewModel();
 ```
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.TypologyTreeNodeViewModel(string,string,string,System.Collections.Generic.List_int_,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.TypologyTreeNodeViewModel(string,string,string,System.Collections.Generic.List_int_,int,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel_)'></a>
 
-## TypologyTreeNodeViewModel\(string, string, string, List\<int\>, List\<TypologyTreeNodeViewModel\>\) Constructor
+## TypologyTreeNodeViewModel\(string, string, string, List\<int\>, int, List\<TypologyTreeNodeViewModel\>\) Constructor
 
 Initializes a new instance of the [TypologyTreeNodeViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyTreeNodeViewModel') class\.
 
 ```csharp
-public TypologyTreeNodeViewModel(string? name, string? description, string? color, System.Collections.Generic.List<int> path, System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel>? children);
+public TypologyTreeNodeViewModel(string? name, string? description, string? color, System.Collections.Generic.List<int> path, int count, System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel>? children);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.TypologyTreeNodeViewModel(string,string,string,System.Collections.Generic.List_int_,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel_).name'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.TypologyTreeNodeViewModel(string,string,string,System.Collections.Generic.List_int_,int,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel_).name'></a>
 
 `name` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The bucket name, as the solver named it\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.TypologyTreeNodeViewModel(string,string,string,System.Collections.Generic.List_int_,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel_).description'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.TypologyTreeNodeViewModel(string,string,string,System.Collections.Generic.List_int_,int,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel_).description'></a>
 
 `description` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The bucket description, or null when the column carries none\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.TypologyTreeNodeViewModel(string,string,string,System.Collections.Generic.List_int_,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel_).color'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.TypologyTreeNodeViewModel(string,string,string,System.Collections.Generic.List_int_,int,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel_).color'></a>
 
 `color` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The bucket color as a CSS hex string, or null when the rule maps none for this bucket\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.TypologyTreeNodeViewModel(string,string,string,System.Collections.Generic.List_int_,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel_).path'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.TypologyTreeNodeViewModel(string,string,string,System.Collections.Generic.List_int_,int,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel_).path'></a>
 
 `path` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
 
 The typology path, one filing index per level from the root\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.TypologyTreeNodeViewModel(string,string,string,System.Collections.Generic.List_int_,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel_).children'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.TypologyTreeNodeViewModel(string,string,string,System.Collections.Generic.List_int_,int,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel_).count'></a>
+
+`count` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of buildings filed under this node\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.TypologyTreeNodeViewModel(string,string,string,System.Collections.Generic.List_int_,int,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel_).children'></a>
 
 `children` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[TypologyTreeNodeViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyTreeNodeViewModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
 
@@ -1276,6 +1284,19 @@ public string? Color { get; set; }
 
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.Count'></a>
+
+## TypologyTreeNodeViewModel\.Count Property
+
+Gets the number of buildings filed under this node: a bucket's own reference set \(every row that matched it, including rows dropped at a lower level, so a parent can exceed the sum of its children\), or the sum of the children for the root\.
+
+```csharp
+public int Count { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.Description'></a>
 
