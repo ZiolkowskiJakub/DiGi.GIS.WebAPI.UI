@@ -64,11 +64,12 @@
             @* Centre viewport: the SVG mount point. The two panel toggles dock in its corners, exactly
                like the 3D viewer container. *@
             <div id="typology-viewport" class="typology-viewport">
-                @* The 2D map (issue #25): a fixed viewBox the browser scales with the viewport, so every panel
-                   drag or toggle refits it with no script. Three layers in paint order - the area outline, the
-                   building dots grouped per typology path, the selected-building marker - all filled by
-                   wwwroot/js/typology-map.js. The status line beneath is the placeholder until the outline
-                   draws, then only an empty or unavailable message. *@
+                @* The 2D map (issue #25): a viewBox the browser scales with the viewport, so every panel drag or
+                   toggle refits it with no script; the wheel zooms it about the pointer, a drag pans it and a
+                   double click fits the outline again (typology-map.js). Three layers in paint order - the area
+                   outline, the building dots grouped per typology path, the selected-building marker - all
+                   filled by wwwroot/js/typology-map.js. The status line beneath is the placeholder until the
+                   outline draws, then only an empty or unavailable message. *@
                 <svg id="typology-map" class="typology-map" viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Buildings of the area coloured by typology">
                     <g id="typology-map-outline"></g>
                     <g id="typology-map-points"></g>
@@ -147,8 +148,8 @@
                             <div class="typology-area-item"><dt class="typology-area-label typology-info-label">Typology</dt><dd id="typology-building-typology" class="typology-area-value"></dd></div>
                         </dl>
                         <div class="typology-building-links">
-                            <a id="typology-building-details" class="gis-button gis-button-secondary" target="_blank" rel="noopener">Details</a>
-                            <a id="typology-building-model" class="gis-button gis-button-secondary" target="_blank" rel="noopener" hidden>3D Viewer</a>
+                            <a id="typology-building-details" class="gis-button" target="_blank" rel="noopener">Details</a>
+                            <a id="typology-building-model" class="gis-button" target="_blank" rel="noopener" hidden>3D Viewer</a>
                         </div>
                     </div>
                 </div>

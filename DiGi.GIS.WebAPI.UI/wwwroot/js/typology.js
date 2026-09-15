@@ -250,9 +250,10 @@ const digiTypology = (function () {
         }
     }
 
-    // Validation of the closed intervals the solver walks by Min (ZiolkowskiJakub/DiGi.Gis#5 §4.5.3):
-    // both bounds present (whole numbers on an integer rule), Min <= Max, and every row starting after
-    // the previous valid row ends — two closed intervals meeting at one value overlap there. Returns
+    // Validation of the intervals the solver walks by Min (ZiolkowskiJakub/DiGi.Gis#5 §4.5.3): both
+    // bounds present (whole numbers on an integer rule), Min <= Max, and every row starting where or
+    // after the previous valid row ends — a shared boundary is not an overlap, the solver hands it to
+    // the later row ([min, max) for every row another one follows on, [min, max] for the last). Returns
     // the messages to list and the "row:field" keys of the boxes to outline. No auto-sort: the issue
     // asks for an inline error, and silently reordering typed rows would hide a mistake.
     function rangeErrors(level) {
@@ -287,8 +288,8 @@ const digiTypology = (function () {
                 invalid[i + ':max'] = true;
                 continue;
             }
-            if (previous !== null && range.min <= previous.max) {
-                errors.push('Row ' + row + ' overlaps row ' + (previousIndex + 1) + ': ranges must be ascending, and closed intervals meeting at ' + previous.max + ' share that value.');
+            if (previous !== null && range.min < previous.max) {
+                errors.push('Row ' + row + ' overlaps row ' + (previousIndex + 1) + ': ranges must be ascending; a row may start at ' + previous.max + ', where the previous one ends.');
                 invalid[i + ':min'] = true;
             }
             previous = range;
@@ -380,10 +381,6 @@ const digiTypology = (function () {
     // The number of ranges a Load generates for a range rule, splitting the span of the loaded
     // values into equal-width intervals.
     const generatedRangeCount = 4;
-
-    function uniqueValuesScopeName() {
-        return uniqueValuesScope === null ? 'No area selected' : uniqueValuesScope.name;
-    }
 
     // "Load" of either editor: the Load Area modal picks the scope, and a chosen area loads at once.
     // A unique-value rule merges every answer into its rows as it arrives (capped at
@@ -622,19 +619,13 @@ const digiTypology = (function () {
         });
     }
 
-    function clearUniqueValuesScope() {
-        abortUniqueValuesLoad();
-        uniqueValuesScope = null;
-        uniqueValuesMessage = null;
-        renderProperties();
-        focusPropertiesField('button[data-action="load"]');
-    }
 
-    // Splits [min, max] of the collected values into generatedRangeCount equal-width closed ranges
-    // covering every value. The validation of the editor (and of the export) rejects closed intervals
-    // that share a value, so consecutive ranges are kept strictly apart: whole-number bounds stepping
-    // by one on an integer rule, a relative epsilon on a double rule — the epsilon gap is a billionth
-    // of the span, so no real value falls between the ranges.
+    // Splits the span of the collected values into generatedRangeCount equal-width ranges that meet
+    // at their boundaries: each row starts exactly where the previous one ends, and the solver hands
+    // the shared value to the later row, so every value is covered once. On a double rule the bounds
+    // are rounded to two decimals — the first Min down and the last Max up, so the span still covers
+    // every value — and on an integer rule they are whole numbers. A narrow span yields fewer than
+    // generatedRangeCount rows: a row that would be empty under [min, max) is dropped.
     function generatedRanges(values, integer) {
         let min = Infinity;
         let max = -Infinity;
@@ -651,36 +642,30 @@ const digiTypology = (function () {
             return { ranges: [], min: null, max: null };
         }
 
+        // Two decimals through a hundredth-scaled integer, with a hair of slack so a value already at two
+        // decimals is not pushed a hundredth further by the floating-point product (72470.74 * 100 is not 7247074).
+        const first = integer ? min : Math.floor(min * 100 + 1e-6) / 100;
+        const last = integer ? max : Math.ceil(max * 100 - 1e-6) / 100;
+
+        const boundaries = [first];
+        for (let i = 1; i < generatedRangeCount; i++) {
+            const boundary = first + (last - first) * i / generatedRangeCount;
+            boundaries.push(integer ? Math.round(boundary) : Math.round(boundary * 100) / 100);
+        }
+        boundaries.push(last);
+
         const ranges = [];
-        if (integer) {
-            const boundaries = [min];
-            for (let i = 1; i < generatedRangeCount; i++) {
-                boundaries.push(Math.ceil(min + (max - min) * i / generatedRangeCount));
-            }
-            for (let i = 0; i < generatedRangeCount; i++) {
-                const rangeMin = boundaries[i];
-                const rangeMax = i === generatedRangeCount - 1 ? max : boundaries[i + 1] - 1;
-                if (rangeMax >= rangeMin) { // a narrow span yields fewer than four non-empty ranges
-                    ranges.push({ min: rangeMin, max: rangeMax, color: nextColor(ranges.length) });
-                }
-            }
-        } else {
-            if (max === min) {
-                ranges.push({ min: min, max: max, color: nextColor(0) });
-            } else {
-                const width = (max - min) / generatedRangeCount;
-                const gap = (max - min) * 1e-9;
-                for (let i = 0; i < generatedRangeCount; i++) {
-                    ranges.push({
-                        min: i === 0 ? min : min + width * i + gap,
-                        max: i === generatedRangeCount - 1 ? max : min + width * (i + 1),
-                        color: nextColor(i)
-                    });
-                }
+        for (let i = 0; i < generatedRangeCount; i++) {
+            const rangeMin = boundaries[i];
+            const rangeMax = boundaries[i + 1];
+            const isLast = i === generatedRangeCount - 1;
+            // [min, max) holds nothing when the bounds coincide; the last row is [min, max] and may be a single value.
+            if (rangeMax > rangeMin || (isLast && rangeMax === rangeMin)) {
+                ranges.push({ min: rangeMin, max: rangeMax, color: nextColor(ranges.length) });
             }
         }
 
-        return { ranges: ranges, min: min, max: max };
+        return { ranges: ranges, min: first, max: last };
     }
 
     function abortUniqueValuesLoad() {
@@ -817,11 +802,15 @@ const digiTypology = (function () {
         const rangeRuleType = rangeRuleTypeFor(level);
         const kind = level.ruleType === ruleType_UniqueValue ? 'unique' : (isRangeRuleType(level.ruleType) ? 'range' : '');
 
-        // A text-based column offers unique values only: the Ranges option is absent rather than
+        // The name, the catalog's description of the column (when it carries one), then the rule type on
+        // one row. A text-based column offers unique values only: the Ranges option is absent rather than
         // disabled, so the choice the select shows is exactly the choice the column admits.
+        const column = columnByUniqueId(level.uniqueId);
+        const description = column !== undefined && typeof column.description === 'string' ? column.description.trim() : '';
         let html =
             '<p class="gis-typology-properties-name">' + escapeHtml(level.name || level.uniqueId || '') + '</p>' +
-            '<label class="gis-field-label">Rule type' +
+            (description !== '' ? '<p class="gis-typology-properties-description">' + escapeHtml(description) + '</p>' : '') +
+            '<label class="gis-field-label gis-field-inline"><span>Rule type</span>' +
             '<select data-field="ruleType" class="gis-select">' +
             '<option value=""' + (kind === '' ? ' selected' : '') + '>— choose —</option>' +
             '<option value="unique"' + (kind === 'unique' ? ' selected' : '') + '>Unique values</option>' +
@@ -841,18 +830,10 @@ const digiTypology = (function () {
         renderRangeValidation(level);
     }
 
-    // The chrome both editors share: the scope line and the Add / Load / Clear row — the same three
-    // actions in the same order for both rule kinds, so switching a level's kind never moves the
-    // buttons under the pointer. Add and Load wait out a running load; Clear waits out an empty list.
-    function renderScopeLine() {
-        const scopeName = uniqueValuesScopeName();
-        return '<div class="gis-typology-scope">' +
-            '<span class="gis-typology-scope-label">Values from</span>' +
-            '<span class="gis-typology-scope-name" title="' + escapeHtml(scopeName) + '">' + escapeHtml(scopeName) + '</span>' +
-            (uniqueValuesScope !== null ? '<button type="button" class="gis-button gis-button-icon gis-button-secondary" data-action="clear-scope" title="No area" aria-label="Clear the selected area">&times;</button>' : '') +
-            '</div>';
-    }
-
+    // The chrome both editors share: the Add / Load / Clear row — the same three actions in the same
+    // order for both rule kinds, so switching a level's kind never moves the buttons under the pointer.
+    // Add and Load wait out a running load; Clear waits out an empty list. Load picks its area in the
+    // Load Area modal every time, so no scope line is shown.
     function renderEditorActions(loading, listEmpty) {
         return '<div class="gis-typology-actions">' +
             '<button type="button" class="gis-button" data-action="add"' + (loading ? ' disabled' : '') + '>Add</button>' +
@@ -891,12 +872,11 @@ const digiTypology = (function () {
             }
         }
 
-        return renderScopeLine() +
-            renderEditorActions(loading, level.ranges.length === 0) +
+        return renderEditorActions(loading, level.ranges.length === 0) +
             '<div class="gis-typology-ranges" aria-describedby="typology-range-errors">' + rows + '</div>' +
             '<ul id="typology-range-errors" class="gis-typology-errors" role="alert"></ul>' +
-            '<p class="gis-typology-hint">Closed intervals' + (integer ? ' of whole numbers' : '') + ', ascending and non-overlapping — the solver walks them by Min and a disordered list matches nothing. ' +
-            'Load divides the values of an area into four ranges covering their span. ' +
+            '<p class="gis-typology-hint">Ascending, non-overlapping intervals' + (integer ? ' of whole numbers' : '') + '; a row may start where the previous one ends, and that value belongs to the later row — [min, max) for every row but the last, which includes its Max. ' +
+            'Load divides the values of an area into four such ranges covering their span' + (integer ? '' : ', rounded to two decimals') + '. ' +
             'Rows with no value in this column fall out of this level. For an open end use a sentinel (for years, 0 and 9999).</p>';
     }
 
@@ -922,8 +902,7 @@ const digiTypology = (function () {
             }
         }
 
-        return renderScopeLine() +
-            renderEditorActions(loading, level.uniqueValueColors.length === 0) +
+        return renderEditorActions(loading, level.uniqueValueColors.length === 0) +
             '<div class="gis-typology-values">' + rows + '</div>' +
             '<p class="gis-typology-hint">Each distinct value is its own bucket; a missing value is bucketed as (null). ' +
             'Values load a county at a time — a municipality loads its whole county, a voivodeship every county in it.</p>';
@@ -1277,8 +1256,6 @@ const digiTypology = (function () {
                 } else {
                     clearUniqueValues(level);
                 }
-            } else if (action === 'clear-scope') {
-                clearUniqueValuesScope();
             } else if (action === 'remove-range') {
                 removeRange(level, rowIndex(button));
             } else if (action === 'remove-value') {
@@ -1814,7 +1791,7 @@ const digiTypology = (function () {
         const integer = level.ruleType === ruleType_IntegerRange;
         const previous = level.ranges.length > 0 ? level.ranges[level.ranges.length - 1] : null;
         const previousMax = previous !== null && typeof previous.max === 'number' && Number.isFinite(previous.max) ? previous.max : null;
-        const start = previousMax !== null ? previousMax + (integer ? 1 : 0) : null;
+        const start = previousMax;
 
         openPromptModal({
             title: 'Add Range',
@@ -1837,8 +1814,8 @@ const digiTypology = (function () {
                     error('Min exceeds Max.');
                     return false;
                 }
-                if (previousMax !== null && min <= previousMax) {
-                    error('Min must exceed ' + previousMax + ' — ranges ascend and must not overlap.');
+                if (previousMax !== null && min < previousMax) {
+                    error('Min must be at least ' + previousMax + ', where the previous range ends — ranges ascend and must not overlap.');
                     return false;
                 }
 

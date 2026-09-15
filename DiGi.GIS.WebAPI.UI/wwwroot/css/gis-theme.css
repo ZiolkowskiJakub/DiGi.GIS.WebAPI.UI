@@ -2154,11 +2154,24 @@ h1.gis-title-large {
         fill: rgba(255, 255, 255, 0.04);
         stroke: #4da3ff;
         stroke-width: 1;
+        vector-effect: non-scaling-stroke;
         pointer-events: none;
+    }
+
+    /* Wheel zoom (typology-map.js) narrows the viewBox; the dots and the marker keep a readable size on screen
+       because their radius shrinks with the zoom through --typology-point-scale, set on the SVG. */
+    .typology-map {
+        --typology-point-scale: 1;
+        cursor: grab;
+    }
+
+    .typology-map.typology-map-panning {
+        cursor: grabbing;
     }
 
     .typology-point {
         cursor: pointer;
+        r: calc(0.7px * var(--typology-point-scale));
     }
 
     .typology-point-group {
@@ -2177,7 +2190,9 @@ h1.gis-title-large {
         fill: none;
         stroke: #ffffff;
         stroke-width: 1.5;
+        vector-effect: non-scaling-stroke;
         pointer-events: none;
+        r: calc(4px * var(--typology-point-scale));
     }
 
     .typology-map-label {
@@ -2669,6 +2684,7 @@ h1.gis-title-large {
 
     .typology-building-links .gis-button {
         flex: 1 1 0;
+        justify-content: center;
         text-align: center;
     }
 
@@ -2890,10 +2906,35 @@ h1.gis-title-large {
             outline: none;
         }
 
-    /* The section's own name line, so the editor says which level it edits. */
+    /* The section's own name line, so the editor says which level it edits, and the catalog's description
+       of the column beneath it. */
     .gis-typology-properties-name {
         font-weight: 600;
+        margin: 0 0 6px 0;
+    }
+
+    .gis-typology-properties-description {
         margin: 0 0 10px 0;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+/* A label and its field on one row (the rule type select): the text keeps its width, the field takes the
+   rest. Declared after the stacked .gis-field-label so the row wins. */
+.gis-field-label.gis-field-inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .gis-field-label.gis-field-inline > span {
+        flex: 0 0 auto;
+    }
+
+    .gis-field-label.gis-field-inline .gis-select {
+        flex: 1 1 auto;
+        min-width: 0;
+        margin: 0;
     }
 
 /* One range or unique-value row: bounds/value, colour swatch, remove button. */
@@ -2967,30 +3008,6 @@ h1.gis-title-large {
         border-radius: 4px;
         box-sizing: border-box;
         font-family: var(--font-sans);
-    }
-
-/* The area the unique values are loaded from: label, area name, and the x that returns to the whole
-   table. The name ellipsises so a long breadcrumb never widens the column. */
-.gis-typology-scope {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 8px 0 0 0;
-    font-size: 0.85rem;
-}
-
-    .gis-typology-scope-label {
-        flex-shrink: 0;
-        color: var(--text-muted);
-    }
-
-    .gis-typology-scope-name {
-        flex: 1 1 auto;
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        font-weight: 600;
     }
 
 /* Inline validation errors, announced as an alert; one line per offending row. */

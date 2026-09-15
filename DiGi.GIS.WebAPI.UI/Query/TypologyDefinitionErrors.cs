@@ -11,7 +11,7 @@ namespace DiGi.GIS.WebAPI.UI
     {
         /// <summary>
         /// Lists everything that stops a Typology definition page state from becoming a document.
-        /// <para>Every level must name a column of <paramref name="columns"/> exactly once and carry a rule type the column admits: <c>VisualIntegerRangeFilterRule</c> needs an integer column, <c>VisualDoubleRangeFilterRule</c> a floating point one (the split <c>typology.js</c> makes), <c>VisualUniqueValueFilterRule</c> any column. Range rows need both bounds (whole numbers on an integer rule), an ascending order that does not overlap - closed intervals keyed by their minimum, so two rows sharing a minimum would silently replace each other in the rule - and a parseable color; unique-value rows need a value the column type admits, listed once, and a parseable color. The rule kind is never inferred from the column: a numeric column may be classified by unique value.</para>
+        /// <para>Every level must name a column of <paramref name="columns"/> exactly once and carry a rule type the column admits: <c>VisualIntegerRangeFilterRule</c> needs an integer column, <c>VisualDoubleRangeFilterRule</c> a floating point one (the split <c>typology.js</c> makes), <c>VisualUniqueValueFilterRule</c> any column. Range rows need both bounds (whole numbers on an integer rule), an ascending order that does not overlap - a row may start exactly where the previous one ends, since the solver hands that value to the later range (<c>[min, max)</c>), but the rows are keyed by their minimum, so two rows sharing a minimum would silently replace each other in the rule - and a parseable color; unique-value rows need a value the column type admits, listed once, and a parseable color. The rule kind is never inferred from the column: a numeric column may be classified by unique value.</para>
         /// <para>Messages name the level and the row so the page can show them as they are.</para>
         /// </summary>
         /// <param name="typologyDefinitionParameter">The page state to check. This value can be null.</param>
@@ -147,7 +147,7 @@ namespace DiGi.GIS.WebAPI.UI
                     {
                         errors.Add(prefix + string.Format(CultureInfo.InvariantCulture, "two ranges start at {0}.", Typology.Visual.Query.Key(ranges[i].Min!.Value)));
                     }
-                    else if (ranges[i - 1].Max!.Value >= ranges[i].Min!.Value)
+                    else if (ranges[i - 1].Max!.Value > ranges[i].Min!.Value)
                     {
                         errors.Add(prefix + string.Format(CultureInfo.InvariantCulture, "ranges {0} and {1} overlap.", RangeKey(ranges[i - 1]), RangeKey(ranges[i])));
                     }
@@ -195,7 +195,7 @@ namespace DiGi.GIS.WebAPI.UI
 
         /// <summary>
         /// Lists everything that stops a Typology definition document from being loaded into the page.
-        /// <para>Beyond the checks of the page state overload, a document may carry what the page cannot show: a level whose column is not in <paramref name="columns"/> (resolved by <c>Core.IO.Query.UniqueId</c>, the slug of the column name, exactly as the solver resolves it), a rule class the page has no editor for, a range without a color, an appearance filed under a key that matches no range (the orphan a client spelling the key itself would produce), an appearance carrying no color, or a unique-value key the column type cannot hold. The rule keeps its ranges sorted by minimum but rejects no overlap, so the overlap check is repeated here. A chain linking back on itself is refused.</para>
+        /// <para>Beyond the checks of the page state overload, a document may carry what the page cannot show: a level whose column is not in <paramref name="columns"/> (resolved by <c>Core.IO.Query.UniqueId</c>, the slug of the column name, exactly as the solver resolves it), a rule class the page has no editor for, a range without a color, an appearance filed under a key that matches no range (the orphan a client spelling the key itself would produce), an appearance carrying no color, or a unique-value key the column type cannot hold. The rule keeps its ranges sorted by minimum but rejects no overlap, so the overlap check is repeated here; two ranges meeting at one value are not an overlap, the solver hands the value to the upper range. A chain linking back on itself is refused.</para>
         /// </summary>
         /// <param name="visualColumnTypologyFilter">The root of the document chain. This value can be null.</param>
         /// <param name="columns">The live column catalog of the building data table. This value can be null.</param>
@@ -313,7 +313,7 @@ namespace DiGi.GIS.WebAPI.UI
                     string key = Typology.Visual.Query.Key(range);
                     keys.Add(key);
 
-                    if (i > 0 && ranges_Temp[i - 1].Max.CompareTo(range.Min) >= 0)
+                    if (i > 0 && ranges_Temp[i - 1].Max.CompareTo(range.Min) > 0)
                     {
                         errors.Add(prefix + string.Format(CultureInfo.InvariantCulture, "ranges {0} and {1} overlap.", Typology.Visual.Query.Key(ranges_Temp[i - 1]), key));
                     }

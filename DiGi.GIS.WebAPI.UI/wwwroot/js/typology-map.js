@@ -2,10 +2,12 @@
  * Typology area view - center panel (issue #25): the administrative outline with every building of the
  * area drawn as a dot coloured by its solved typology, dimmed outside the tree selection.
  *
- * The 2D stack of Views/AdministrativeAreal2D (administrative.js): one SVG with a fixed 500x500 viewBox,
- * fitted once from the outline's bounding box (y flipped), scaled by the browser through
- * preserveAspectRatio - so a panel drag, a panel toggle or the header/footer collapse refits the map with
- * no script. Buildings are dots only, never polygons: positions come from the UI proxy of the area-scoped
+ * The 2D stack of Views/AdministrativeAreal2D (administrative.js): one SVG with a 500x500 viewBox, fitted
+ * once from the outline's bounding box (y flipped), scaled by the browser through preserveAspectRatio - so
+ * a panel drag, a panel toggle or the header/footer collapse refits the map with no script. The wheel zooms
+ * the viewBox about the pointer, a drag pans it and a double click fits the outline again; the dots and the
+ * marker keep a readable size through the --typology-point-scale custom property the CSS radii follow.
+ * Buildings are dots only, never polygons: positions come from the UI proxy of the area-scoped
  * centroid endpoint (DiGi.GIS.WebAPI#34), joined with the solve DTO by (reference, countyId) because a
  * reference is unique only per county partition - and, when that key misses, by the reference alone when
  * the DTO lists it once: the building data and the building_2d rows of a multi-part county can be filed
@@ -37,6 +39,13 @@ const digiTypologyMap = (function () {
     const pointRadius = 0.7;
     const markerRadius = 4;
 
+    // Wheel zoom: one notch scales the view by this factor, up to zoomMaximum times the fit (a county's 40 km
+    // becomes ~150 m across the viewport); below the fit there is nothing to see, so 1 is the floor. A drag
+    // shorter than dragThreshold pixels is a click, not a pan.
+    const zoomStep = 1.25;
+    const zoomMaximum = 256;
+    const dragThreshold = 3;
+
     let scaleParameters = null;
     let centroids = null;
     let centroidsByKey = new Map();
@@ -46,6 +55,9 @@ const digiTypologyMap = (function () {
     let buildingsByReference = new Map();
     let selectedPath = null;
     let selectedBuildingKey = null;
+
+    // The viewBox: the fit is (0, 0, 500, 500); zooming narrows it, panning moves it, both within the canvas.
+    let view = { x: 0, y: 0, size: canvasSize };
 
     // ----- helpers -----
 
@@ -117,6 +129,7 @@ const digiTypologyMap = (function () {
 
         const scale = Math.min((canvasSize - 2 * padding) / (maxX - minX), (canvasSize - 2 * padding) / (maxY - minY));
         scaleParameters = { minX: minX, minY: minY, scale: scale };
+        resetView();
 
         const fragment = document.createDocumentFragment();
         for (let i = 0; i < outlines.length; i++) {
@@ -280,6 +293,133 @@ const digiTypologyMap = (function () {
         renderMarker();
     }
 
+    // ----- viewport: wheel zoom, drag pan, double-click fit -----
+
+    function applyView() {
+        const svg = element('typology-map');
+        if (svg === null) {
+            return;
+        }
+        svg.setAttribute('viewBox', view.x.toFixed(3) + ' ' + view.y.toFixed(3) + ' ' + view.size.toFixed(3) + ' ' + view.size.toFixed(3));
+        // The radius shrinks with the square root of the zoom: a dot grows on screen as the map expands, but far
+        // slower than the map, so a town centre separates into buildings instead of one blob.
+        const zoom = canvasSize / view.size;
+        svg.style.setProperty('--typology-point-scale', (1 / Math.sqrt(zoom)).toFixed(4));
+    }
+
+    function resetView() {
+        view = { x: 0, y: 0, size: canvasSize };
+        applyView();
+    }
+
+    // Keeps the view inside the canvas, so the outline can never be panned out of sight.
+    function clampView() {
+        view.size = Math.min(canvasSize, Math.max(canvasSize / zoomMaximum, view.size));
+        view.x = Math.min(canvasSize - view.size, Math.max(0, view.x));
+        view.y = Math.min(canvasSize - view.size, Math.max(0, view.y));
+    }
+
+    // The point under a client position in viewBox units, through the SVG's own screen transform (which
+    // includes the letterboxing of preserveAspectRatio).
+    function userPoint(svg, clientX, clientY) {
+        const matrix = svg.getScreenCTM();
+        if (matrix === null) {
+            return null;
+        }
+        return new DOMPoint(clientX, clientY).matrixTransform(matrix.inverse());
+    }
+
+    // Scales the view by the factor about the given client position: the map point under the pointer stays
+    // under it, so the wheel zooms into what is looked at.
+    function zoomAt(svg, factor, clientX, clientY) {
+        const anchor = userPoint(svg, clientX, clientY);
+        if (anchor === null) {
+            return;
+        }
+        const size = Math.min(canvasSize, Math.max(canvasSize / zoomMaximum, view.size / factor));
+        const ratio = size / view.size;
+        view = {
+            x: anchor.x - (anchor.x - view.x) * ratio,
+            y: anchor.y - (anchor.y - view.y) * ratio,
+            size: size
+        };
+        clampView();
+        applyView();
+    }
+
+    function setupViewport() {
+        const svg = element('typology-map');
+        if (svg === null) {
+            return;
+        }
+
+        svg.addEventListener('wheel', function (event) {
+            event.preventDefault();
+            zoomAt(svg, event.deltaY < 0 ? zoomStep : 1 / zoomStep, event.clientX, event.clientY);
+        }, { passive: false });
+
+        svg.addEventListener('dblclick', function (event) {
+            event.preventDefault();
+            resetView();
+        });
+
+        // Pan: the primary button dragged on the map. A press that never travels dragThreshold pixels stays a
+        // click (on a dot, or on nothing); one that does pans, and the click that follows the release is
+        // swallowed so lifting the pointer over a dot does not select it.
+        let drag = null;
+        svg.addEventListener('pointerdown', function (event) {
+            if (event.button !== 0 || view.size >= canvasSize) {
+                return;
+            }
+            drag = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, view: { x: view.x, y: view.y, size: view.size }, panning: false };
+            svg.setPointerCapture(event.pointerId);
+        });
+
+        svg.addEventListener('pointermove', function (event) {
+            if (drag === null || event.pointerId !== drag.pointerId) {
+                return;
+            }
+            const deltaX = event.clientX - drag.startX;
+            const deltaY = event.clientY - drag.startY;
+            if (!drag.panning) {
+                if (Math.abs(deltaX) < dragThreshold && Math.abs(deltaY) < dragThreshold) {
+                    return;
+                }
+                drag.panning = true;
+                svg.classList.add('typology-map-panning');
+            }
+            const start = userPoint(svg, drag.startX, drag.startY);
+            const current = userPoint(svg, event.clientX, event.clientY);
+            if (start === null || current === null) {
+                return;
+            }
+            view = { x: drag.view.x - (current.x - start.x), y: drag.view.y - (current.y - start.y), size: drag.view.size };
+            clampView();
+            applyView();
+        });
+
+        function endDrag(event) {
+            if (drag === null || event.pointerId !== drag.pointerId) {
+                return;
+            }
+            const panned = drag.panning;
+            drag = null;
+            svg.classList.remove('typology-map-panning');
+            if (svg.hasPointerCapture(event.pointerId)) {
+                svg.releasePointerCapture(event.pointerId);
+            }
+            if (panned) {
+                suppressClick = true;
+            }
+        }
+
+        svg.addEventListener('pointerup', endDrag);
+        svg.addEventListener('pointercancel', endDrag);
+    }
+
+    // Set by a pan on release and consumed by the click that follows it.
+    let suppressClick = false;
+
     // ----- hover label and clicks -----
 
     // The hover label of the 3D viewer: one positioned element in the viewport, shown while a dot is under
@@ -322,6 +462,10 @@ const digiTypologyMap = (function () {
         });
 
         layer.addEventListener('click', function (event) {
+            if (suppressClick) {
+                suppressClick = false;
+                return;
+            }
             const centroid = centroidOfTarget(event.target);
             if (centroid === null) {
                 return;
@@ -405,9 +549,11 @@ const digiTypologyMap = (function () {
     }
 
     setupEvents();
+    setupViewport();
 
     return {
         setOutline: setOutline,
+        resetView: resetView,
         setCentroids: setCentroids,
         render: render,
         setSelection: setSelection,
