@@ -2118,6 +2118,41 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the JSON array of county part identifiers \(empty for a country\), a 204 No Content response when the upstream service answers nothing, or a 400 Bad Request response when the code is blank or the type is missing\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetHistogramSummaryAsync(string,System.Nullable_int_,System.Threading.CancellationToken)'></a>
+
+## TypologyController\.GetHistogramSummaryAsync\(string, Nullable\<int\>, CancellationToken\) Method
+
+Relays the value distribution histogram of one building\-data column for one county part, so the Column Properties Load splits the buildings of the chosen area into ranges of comparable size \(issue \#30\)\.
+
+The upstream `gis/BuildingData/histogramsummary` takes its criteria in the body (POST) and filters by a single county part at a time, so the page asks per part and merges the answers — the same county-by-county pattern as [GetUniqueValuesAsync\(string, Nullable&lt;int&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetUniqueValuesAsync(string,System.Nullable_int_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TypologyController\.GetUniqueValuesAsync\(string, System\.Nullable\<int\>, System\.Threading\.CancellationToken\)'). Each answer is the `{bucket, rangeStart, rangeEnd, count}` array the page inverts into the 25/50/75 % boundaries of the area's buildings. The bucket count is fixed to [HistogramBucketCount](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.HistogramBucketCount 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.HistogramBucketCount') — it is the boundary resolution, and 1000 is the upstream cap. Every non-success collapses to 204 No Content the same way, so the page degrades rather than errors.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetHistogramSummaryAsync(string columnUniqueId, System.Nullable<int> countyId, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetHistogramSummaryAsync(string,System.Nullable_int_,System.Threading.CancellationToken).columnUniqueId'></a>
+
+`columnUniqueId` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The unique identifier \(slug\) of the column, as listed by [GetColumnsAsync\(CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetColumnsAsync(System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TypologyController\.GetColumnsAsync\(System\.Threading\.CancellationToken\)')\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetHistogramSummaryAsync(string,System.Nullable_int_,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional county part identifier scoping the histogram; absent asks for the whole table\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetHistogramSummaryAsync(string,System.Nullable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the upstream JSON array of bucket rows, a 204 No Content response when the upstream service answers nothing, or a 400 Bad Request response when the column identifier is blank\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetUniqueValuesAsync(string,System.Nullable_int_,System.Threading.CancellationToken)'></a>
 
 ## TypologyController\.GetUniqueValuesAsync\(string, Nullable\<int\>, CancellationToken\) Method

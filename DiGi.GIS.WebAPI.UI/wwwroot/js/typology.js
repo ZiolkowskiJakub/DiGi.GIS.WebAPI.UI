@@ -378,16 +378,20 @@ const digiTypology = (function () {
     // the load is refused with a message instead of rendering the values.
     const uniqueValuesLimit = 100;
 
-    // The number of ranges a Load generates for a range rule, splitting the span of the loaded
-    // values into equal-width intervals.
+    // The number of ranges a Load generates for a range rule: the 25/50/75 % quantiles of the area's
+    // buildings split their span into this many equal-count ranges (issue #30).
     const generatedRangeCount = 4;
 
     // "Load" of either editor: the Load Area modal picks the scope, and a chosen area loads at once.
     // A unique-value rule merges every answer into its rows as it arrives (capped at
-    // uniqueValuesLimit); a range rule collects the answers and, at the end, replaces its rows with
-    // generatedRangeCount ranges covering the span of the values.
+    // uniqueValuesLimit); a range rule collects each part's value-distribution histogram and, at the
+    // end, replaces its rows with generatedRangeCount ranges that split the area's buildings by count
+    // (issue #30) — one comparable share per range, instead of equal widths over a span set by outliers.
     function loadColumnValues(level) {
         const forRanges = isRangeRuleType(level.ruleType);
+        // A range load asks each part for its histogram (issue #30); a unique-value load asks for its
+        // distinct values. Both answer null for 204 and every failure, so the worker chain is shared.
+        const fetchOne = forRanges ? fetchHistogram : fetchValues;
         abortUniqueValuesLoad();
 
         const abortController = new AbortController();
@@ -425,18 +429,16 @@ const digiTypology = (function () {
         }
 
         // What one answer does: a unique-value load merges it (refusing past the limit, which stops
-        // the worker chain); a range load only collects it — the ranges need every value before the
-        // span is known. Answers false when the load was refused.
-        function accept(values) {
+        // the worker chain); a range load collects the part's histogram rows — the quantiles need
+        // every part before the distribution is known. Answers false when the load was refused.
+        function accept(payload) {
             if (forRanges) {
-                for (let i = 0; i < values.length; i++) {
-                    if (typeof values[i] === 'number' && Number.isFinite(values[i])) {
-                        collectedValues.push(values[i]);
-                    }
+                for (let i = 0; i < payload.length; i++) {
+                    collectedBuckets.push(payload[i]);
                 }
                 return true;
             }
-            mergeUniqueValues(level, values);
+            mergeUniqueValues(level, payload);
             if (level.uniqueValueColors.length > uniqueValuesLimit) {
                 exceedLimit();
                 return false;
@@ -444,18 +446,44 @@ const digiTypology = (function () {
             return true;
         }
 
-        const collectedValues = [];
+        const collectedBuckets = [];
 
         function finishRanges(missedCounties) {
-            if (collectedValues.length === 0) {
+            const generated = quantileRanges(collectedBuckets, level.ruleType === ruleType_IntegerRange);
+            if (generated.ranges.length === 0) {
                 finish('No values returned.');
                 return;
             }
-            const generated = generatedRanges(collectedValues, level.ruleType === ruleType_IntegerRange);
             level.ranges = generated.ranges;
-            finish('Generated ' + generated.ranges.length + ' ranges from ' + collectedValues.length + ' values (' +
+            finish('Generated ' + generated.ranges.length + ' ranges from ' + generated.total + ' buildings (' +
                 displayValue(generated.min) + ' – ' + displayValue(generated.max) + ')' +
                 (missedCounties > 0 ? '; ' + missedCounties + ' counties answered nothing.' : '.'));
+        }
+
+        // One histogramsummary request per county part (issue #30); resolves to the bucket rows, or
+        // null for 204 and every failure — 204 from the relay covers an empty column and an upstream
+        // timeout alike, so a part that answers nothing is simply missed by the merge.
+        function fetchHistogram(countyId) {
+            let url = baseUrl() + '/typology/histogramsummary?columnuniqueid=' + encodeURIComponent(level.uniqueId);
+            if (countyId !== null) {
+                url += '&countyid=' + encodeURIComponent(String(countyId));
+            }
+            return fetch(url, { signal: abortController.signal })
+                .then(function (response) {
+                    if (response.status === 204 || !response.ok) {
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(function (buckets) {
+                    return Array.isArray(buckets) ? buckets : null;
+                })
+                .catch(function (error) {
+                    if (error !== null && error !== undefined && error.name === 'AbortError') {
+                        throw error;
+                    }
+                    return null;
+                });
         }
 
         // One uniquevalues request; resolves to the value array, or null for 204 and every failure —
@@ -484,7 +512,7 @@ const digiTypology = (function () {
         }
 
         function loadWholeTable() {
-            return fetchValues(null).then(function (values) {
+            return fetchOne(null).then(function (values) {
                 if (!current()) {
                     return;
                 }
@@ -520,7 +548,7 @@ const digiTypology = (function () {
                     return Promise.resolve();
                 }
                 const countyId = countyIds[next++];
-                return fetchValues(countyId).then(function (values) {
+                return fetchOne(countyId).then(function (values) {
                     if (!current()) {
                         return;
                     }
@@ -620,52 +648,224 @@ const digiTypology = (function () {
     }
 
 
-    // Splits the span of the collected values into generatedRangeCount equal-width ranges that meet
-    // at their boundaries: each row starts exactly where the previous one ends, and the solver hands
-    // the shared value to the later row, so every value is covered once. On a double rule the bounds
-    // are rounded to two decimals — the first Min down and the last Max up, so the span still covers
-    // every value — and on an integer rule they are whole numbers. A narrow span yields fewer than
-    // generatedRangeCount rows: a row that would be empty under [min, max) is dropped.
-    function generatedRanges(values, integer) {
-        let min = Infinity;
-        let max = -Infinity;
-        for (let i = 0; i < values.length; i++) {
-            if (values[i] < min) {
-                min = values[i];
-            }
-            if (values[i] > max) {
-                max = values[i];
-            }
-        }
-
-        if (max < min) {
-            return { ranges: [], min: null, max: null };
-        }
-
+    // Splits the area's buildings into generatedRangeCount ranges of comparable size (issue #30).
+    //
+    // The parts answered with their histograms — one {rangeStart, rangeEnd, count} row per equal-width
+    // bucket: the bucket's actual min/max and its building count. The parts' buckets sit on their own
+    // local min/max grids, so the rows are modelled as masses rather than summed by bucket index: a
+    // bucket is its count spread over [rangeStart, rangeEnd] (a point mass when they coincide —
+    // including the bucket 0 "overflow" row width_bucket files a part's max into). The sum is a
+    // piecewise-linear cumulative distribution, and the boundaries are the 25/50/75 % points of it,
+    // inverted exactly inside the segment that crosses the level — the same uniform-within-bucket
+    // interpolation the histogram_quantile implementations use.
+    //
+    // Then the rounding: double rules snap the interior bounds to the nearest 1/2/5 x 10^n (Heckbert's
+    // "nice numbers"), falling back to the two-decimal grid; integer rules round to whole numbers.
+    // The first Min floors and the last Max ceils the observed span, so every value is covered; the
+    // rows touch — [min, max) except the last, which includes its Max, the DiGi.Typology boundary rule;
+    // and a row that would be empty is dropped, so a narrow span or a sparse integer column yields
+    // fewer than generatedRangeCount rows, down to the single value [v, v].
+    function quantileRanges(buckets, integer) {
         // Two decimals through a hundredth-scaled integer, with a hair of slack so a value already at two
         // decimals is not pushed a hundredth further by the floating-point product (72470.74 * 100 is not 7247074).
-        const first = integer ? min : Math.floor(min * 100 + 1e-6) / 100;
-        const last = integer ? max : Math.ceil(max * 100 - 1e-6) / 100;
-
-        const boundaries = [first];
-        for (let i = 1; i < generatedRangeCount; i++) {
-            const boundary = first + (last - first) * i / generatedRangeCount;
-            boundaries.push(integer ? Math.round(boundary) : Math.round(boundary * 100) / 100);
+        function floor2(value) {
+            return Math.floor(value * 100 + 1e-6) / 100;
         }
-        boundaries.push(last);
 
-        const ranges = [];
-        for (let i = 0; i < generatedRangeCount; i++) {
-            const rangeMin = boundaries[i];
-            const rangeMax = boundaries[i + 1];
-            const isLast = i === generatedRangeCount - 1;
-            // [min, max) holds nothing when the bounds coincide; the last row is [min, max] and may be a single value.
-            if (rangeMax > rangeMin || (isLast && rangeMax === rangeMin)) {
-                ranges.push({ min: rangeMin, max: rangeMax, color: nextColor(ranges.length) });
+        function ceil2(value) {
+            return Math.ceil(value * 100 - 1e-6) / 100;
+        }
+
+        function round2(value) {
+            return Math.round(value * 100) / 100;
+        }
+
+        // The nearest of 1, 2, 2.5, 5 or 10 times a power of ten — the "nice numbers" a reader expects on
+        // a break or an axis (Heckbert's family, as refined by Wilkinson).
+        function nice(value) {
+            if (value <= 0) {
+                return Math.round(value);
+            }
+            const magnitude = Math.pow(10, Math.floor(Math.log10(value)));
+            const fraction = value / magnitude;
+            const candidates = [1, 2, 2.5, 5, 10];
+            let best = candidates[0];
+            let bestDistance = Infinity;
+            for (let i = 0; i < candidates.length; i++) {
+                const distance = Math.abs(fraction - candidates[i]);
+                if (distance < bestDistance) {
+                    bestDistance = distance;
+                    best = candidates[i];
+                }
+            }
+            return best * magnitude;
+        }
+
+        // One event per edge: the point-mass jump, and the slope delta — a spread bucket adds its
+        // count/(stop - start) at its start edge and removes it at its stop edge.
+        const events = new Map();
+
+        function addEvent(edge, jump, slopeDelta) {
+            let entry = events.get(edge);
+            if (entry === undefined) {
+                entry = { jump: 0, slope: 0 };
+                events.set(edge, entry);
+            }
+            entry.jump += jump;
+            entry.slope += slopeDelta;
+        }
+
+        let min = Infinity;
+        let max = -Infinity;
+        let total = 0;
+
+        for (let i = 0; i < buckets.length; i++) {
+            const bucket = buckets[i];
+            if (bucket === null || typeof bucket !== 'object') {
+                continue;
+            }
+            // A row without usable numeric bounds is dropped: Number(null) is 0, which would file the
+            // bucket's mass at zero instead of skipping the row. The upstream JSON may answer null for
+            // rangeStart or rangeEnd — an all-NULL partition 500s today (ZiolkowskiJakub/DiGi.PostgreSQL#6),
+            // and a fixed upstream must not turn the absence of values into a value of zero here.
+            const count = bucket.count;
+            const start = bucket.rangeStart;
+            const stop = bucket.rangeEnd;
+            if (typeof count !== 'number' || !Number.isFinite(count) || count <= 0 ||
+                typeof start !== 'number' || !Number.isFinite(start) ||
+                typeof stop !== 'number' || !Number.isFinite(stop)) {
+                continue;
+            }
+            const lo = Math.min(start, stop);
+            const hi = Math.max(start, stop);
+            if (lo < min) {
+                min = lo;
+            }
+            if (hi > max) {
+                max = hi;
+            }
+            total += count;
+            if (hi === lo) {
+                addEvent(lo, count, 0); // a bucket holding one value, including the bucket 0 overflow row
+                continue;
+            }
+            const slope = count / (hi - lo);
+            addEvent(lo, 0, slope);
+            addEvent(hi, 0, -slope);
+        }
+
+        if (total === 0 || min === Infinity) {
+            return { ranges: [], min: null, max: null, total: 0 };
+        }
+
+        // Sweep the edges in order: integrate the running slope over the previous segment, apply this
+        // edge's point-mass jump, record the CDF, then apply the edge's slope delta for the next
+        // segment. The CDF is piecewise-linear with a break at every edge, ending at the total.
+        const edges = Array.from(events.keys()).sort(function (a, b) {
+            return a - b;
+        });
+        const cumulative = new Array(edges.length);
+        let running = 0;
+        let slope = 0;
+        for (let i = 0; i < edges.length; i++) {
+            if (i > 0) {
+                running += slope * (edges[i] - edges[i - 1]);
+            }
+            const entry = events.get(edges[i]);
+            running += entry.jump;
+            cumulative[i] = running;
+            slope += entry.slope;
+        }
+
+        // The first edge whose CDF reaches the level; when the level is crossed strictly inside the
+        // previous segment (positive slope), invert that segment exactly. A crossing reached only by a
+        // point-mass jump sits at the edge itself.
+        function quantile(fraction) {
+            const target = fraction * total;
+            for (let i = 0; i < edges.length; i++) {
+                if (cumulative[i] < target) {
+                    continue;
+                }
+                if (i === 0) {
+                    return edges[i];
+                }
+                const span = edges[i] - edges[i - 1];
+                const rise = cumulative[i] - cumulative[i - 1];
+                if (span > 0 && rise > 0 && cumulative[i - 1] < target && cumulative[i] > target) {
+                    return edges[i - 1] + (target - cumulative[i - 1]) * (span / rise);
+                }
+                return edges[i];
+            }
+            return edges[edges.length - 1];
+        }
+
+        const rawBounds = [quantile(0.25), quantile(0.5), quantile(0.75)];
+
+        let first;
+        let last;
+        let interior;
+        if (integer) {
+            first = Math.round(min);
+            last = Math.round(max);
+            interior = rawBounds.map(function (bound) {
+                return Math.min(Math.max(Math.round(bound), first + 1), last - 1);
+            });
+        } else {
+            first = floor2(min);
+            last = ceil2(max);
+            // The readable bound for a raw quantile, given the bound kept before it: the nearest nice
+            // number when it stays in range, stays strictly above the previous bound, and moves the
+            // quantile by at most a fifth (a larger move would shift the share the range holds); the
+            // two-decimal value otherwise. Two quantiles that snap to the same nice number therefore
+            // keep their two ranges at their two-decimal values.
+            interior = [];
+            let keptBound = first;
+            for (let i = 0; i < rawBounds.length; i++) {
+                const bound = rawBounds[i];
+                const snapped = nice(bound);
+                let candidate;
+                if (bound > 0 && snapped > keptBound && snapped < last && Math.abs(snapped - bound) / bound <= 0.2) {
+                    candidate = snapped;
+                } else {
+                    const rounded = round2(bound);
+                    candidate = (rounded > keptBound && rounded < last) ? rounded : Math.min(Math.max(rounded, first), last);
+                }
+                if (candidate > keptBound) {
+                    interior.push(candidate);
+                    keptBound = candidate;
+                }
             }
         }
 
-        return { ranges: ranges, min: first, max: last };
+        // Keep only the bounds that stay strictly increasing — a snapped or rounded bound that lands on
+        // its neighbour drops the range between them, the same empty-row rule the old split used.
+        const bounds = [first];
+        for (let i = 0; i < interior.length; i++) {
+            if (interior[i] > bounds[bounds.length - 1]) {
+                bounds.push(interior[i]);
+            }
+        }
+        if (last > bounds[bounds.length - 1]) {
+            bounds.push(last);
+        }
+
+        const ranges = [];
+        if (bounds.length === 1) {
+            // The span rounds to a single value; one closed row covers it.
+            ranges.push({ min: first, max: last, color: nextColor(0) });
+        } else {
+            for (let i = 0; i < bounds.length - 1; i++) {
+                const rangeMin = bounds[i];
+                const rangeMax = bounds[i + 1];
+                const isLast = i === bounds.length - 2;
+                // [min, max) holds nothing when the bounds coincide; the last row is [min, max] and may be a single value.
+                if (rangeMax > rangeMin || (isLast && rangeMax === rangeMin)) {
+                    ranges.push({ min: rangeMin, max: rangeMax, color: nextColor(ranges.length) });
+                }
+            }
+        }
+
+        return { ranges: ranges, min: first, max: last, total: total };
     }
 
     function abortUniqueValuesLoad() {
@@ -877,7 +1077,7 @@ const digiTypology = (function () {
             '<ul id="typology-range-errors" class="gis-typology-errors" role="alert"></ul>' +
             '<p class="gis-typology-hint">Ascending, non-overlapping intervals' + (integer ? ' of whole numbers' : '') + '; a row may start where the previous one ends, and that value belongs to the later row — [min, max) for every row but the last, which includes its Max. ' +
             'Add files the new range by its Min, so a gap between two rows can be filled. ' +
-            'Load divides the values of an area into four such ranges covering their span' + (integer ? '' : ', rounded to two decimals') + '. ' +
+            'Load divides the buildings of an area into four such ranges by count — each holds a comparable share, so the outlier tail stops setting the split' + (integer ? '' : ', bounds on a 1/2/2.5/5 nice grid with a two-decimal fallback') + '. ' +
             'Rows with no value in this column fall out of this level. For an open end use a sentinel (for years, 0 and 9999).</p>';
     }
 

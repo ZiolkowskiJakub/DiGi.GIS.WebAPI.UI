@@ -425,6 +425,60 @@ public object? Value { get; set; }
 #### Property Value
 [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object')
 
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyHistogramParameter'></a>
+
+## TypologyHistogramParameter Class
+
+The body the `histogramsummary` relay posts to the upstream `gis/BuildingData/histogramsummary` endpoint\.
+
+The property names are the wire contract: the upstream binds its own `HistogramRequestParameter` from the body, and `Query.PostJsonAsync` sends the declared names as-is (`JsonSerializerOptions.Default`), so nothing relies on the receiver binding names case-insensitively (see Coding - WebAPI Contracts, section 2). The upstream's `FilterGroup` is deliberately absent — the definition page never filters a histogram.
+
+```csharp
+public class TypologyHistogramParameter
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → TypologyHistogramParameter
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyHistogramParameter.BucketCount'></a>
+
+## TypologyHistogramParameter\.BucketCount Property
+
+Gets or sets the number of equal\-width buckets; the relay fixes it to [HistogramBucketCount](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.HistogramBucketCount 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.HistogramBucketCount')\.
+
+```csharp
+public int BucketCount { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyHistogramParameter.ColumnUniqueId'></a>
+
+## TypologyHistogramParameter\.ColumnUniqueId Property
+
+Gets or sets the unique identifier \(slug\) of the column to histogram, as listed by the `columns` endpoint\.
+
+```csharp
+public string ColumnUniqueId { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyHistogramParameter.CountyId'></a>
+
+## TypologyHistogramParameter\.CountyId Property
+
+Gets or sets the county part identifier scoping the histogram; [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') asks for the whole table\.
+
+```csharp
+public System.Nullable<int> CountyId { get; set; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
 <a name='DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter'></a>
 
 ## TypologySolveParameter Class

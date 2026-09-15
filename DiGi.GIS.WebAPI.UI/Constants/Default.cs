@@ -27,6 +27,17 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const string BuildingDataTableUri = GISWebAPIUri + "/gis/BuildingData/tablebybuildingdatabypagingparameter";
 
         /// <summary>
+        /// URI of the GIS Web API endpoint answering the value distribution histogram (bucket, actual bucket min/max, building count) of one building data column inside a county part, which the Typology definition Load reads to split an area's buildings into equal-count ranges (issue #30).
+        /// </summary>
+        public const string BuildingDataHistogramUri = GISWebAPIUri + "/gis/BuildingData/histogramsummary";
+
+        /// <summary>
+        /// The number of equal-width buckets the histogram relay asks for; 1000 is the upstream cap and gives the Load's quantile boundaries a resolution of one part in a thousand buildings.
+        /// <para>The cost is the group count (at most 1000 rows back), not the row count — the partition scan behind a 4-bucket request already takes the measured 0.38 s, so the 1000-bucket request costs the same order (issue #30).</para>
+        /// </summary>
+        public const int HistogramBucketCount = 1000;
+
+        /// <summary>
         /// The ceiling on the total number of buildings one Typology solve classifies; an area above it is refused with a 413 and an actionable message instead of timing out the fetch and the solve.
         /// <para>Chosen above the largest county verified live (code 1465 with 154 529 buildings) and below any voivodeship, so a county still solves while a voivodeship or country scope degrades gracefully (issue #22 guardrail).</para>
         /// </summary>

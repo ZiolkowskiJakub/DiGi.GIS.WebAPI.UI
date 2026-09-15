@@ -161,6 +161,19 @@ public const string BuildingDataColumnsUri = "https://api.digiproject.uk/gis/Bui
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingDataHistogramUri'></a>
+
+## Default\.BuildingDataHistogramUri Field
+
+URI of the GIS Web API endpoint answering the value distribution histogram \(bucket, actual bucket min/max, building count\) of one building data column inside a county part, which the Typology definition Load reads to split an area's buildings into equal\-count ranges \(issue \#30\)\.
+
+```csharp
+public const string BuildingDataHistogramUri = "https://api.digiproject.uk/gis/BuildingData/histogramsummary";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingDataTableUri'></a>
 
 ## Default\.BuildingDataTableUri Field
@@ -300,6 +313,21 @@ public const string GISWebAPIUri_Development = "https://api.digiproject.uk";
 
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.HistogramBucketCount'></a>
+
+## Default\.HistogramBucketCount Field
+
+The number of equal\-width buckets the histogram relay asks for; 1000 is the upstream cap and gives the Load's quantile boundaries a resolution of one part in a thousand buildings\.
+
+The cost is the group count (at most 1000 rows back), not the row count — the partition scan behind a 4-bucket request already takes the measured 0.38 s, so the 1000-bucket request costs the same order (issue #30).
+
+```csharp
+public const int HistogramBucketCount = 1000;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.PolygonMinimumPointCount'></a>
 

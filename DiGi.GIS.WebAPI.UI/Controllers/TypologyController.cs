@@ -166,6 +166,43 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
 
         /// <summary>
+        /// Relays the value distribution histogram of one building-data column for one county part, so the Column Properties Load splits the buildings of the chosen area into ranges of comparable size (issue #30).
+        /// <para>The upstream <c>gis/BuildingData/histogramsummary</c> takes its criteria in the body (POST) and filters by a single county part at a time, so the page asks per part and merges the answers — the same county-by-county pattern as <see cref="GetUniqueValuesAsync"/>. Each answer is the <c>{bucket, rangeStart, rangeEnd, count}</c> array the page inverts into the 25/50/75 % boundaries of the area's buildings. The bucket count is fixed to <see cref="Constants.Default.HistogramBucketCount"/> — it is the boundary resolution, and 1000 is the upstream cap. Every non-success collapses to 204 No Content the same way, so the page degrades rather than errors.</para>
+        /// </summary>
+        /// <param name="columnUniqueId">The unique identifier (slug) of the column, as listed by <see cref="GetColumnsAsync"/>.</param>
+        /// <param name="countyId">The optional county part identifier scoping the histogram; absent asks for the whole table.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> containing the upstream JSON array of bucket rows, a 204 No Content response when the upstream service answers nothing, or a 400 Bad Request response when the column identifier is blank.</returns>
+        [HttpGet("histogramsummary")]
+        public async Task<IActionResult> GetHistogramSummaryAsync([FromQuery(Name = "columnuniqueid")] string columnUniqueId, [FromQuery(Name = "countyid")] int? countyId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(columnUniqueId))
+            {
+                return BadRequest();
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            // The body property names are the contract (see the parameter type): PostJsonAsync sends them as declared,
+            // so the upstream binding never depends on case-insensitivity. The relay fixes the bucket count — the
+            // page asks for the quantile resolution, not a tunable chart.
+            Classes.TypologyHistogramParameter parameter = new()
+            {
+                ColumnUniqueId = columnUniqueId,
+                CountyId = countyId,
+                BucketCount = Constants.Default.HistogramBucketCount
+            };
+
+            string? json = await httpClient.PostJsonAsync(Constants.Default.BuildingDataHistogramUri, parameter, cancellationToken);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return NoContent();
+            }
+
+            return Content(json, "application/json");
+        }
+
+        /// <summary>
         /// Turns the page state of the Typology definition page into its document: the DiGi JSON of a <see cref="DiGi.Typology.Visual.Classes.VisualColumnTypologyFilter"/> chain, which is what the page downloads on Export and what <see cref="ValidateDefinitionAsync"/> reads back on Import.
         /// <para>The state is resolved against the live column catalog and checked by <see cref="Query.TypologyDefinitionErrors(Classes.TypologyDefinitionParameter, IEnumerable{DiGi.PostgreSQL.Table.Classes.Column})"/>; the document is composed here so that the browser never spells a <c>_type</c> or an appearance key. Unlike the read actions above, a rejected state answers 400 with the error list as a JSON string array - the page shows it as it is - because the visitor can act on it; an unreachable catalog is not the visitor's fault and answers 503.</para>
         /// </summary>
