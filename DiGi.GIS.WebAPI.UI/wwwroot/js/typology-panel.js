@@ -306,14 +306,8 @@ const digiTypologyPanel = (function () {
         });
 
         tree.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape') {
-                if (selectedKey !== null) {
-                    event.preventDefault();
-                    clear();
-                }
-                return;
-            }
-
+            // Escape is owned by the view (issue #27): one document-level chain closes the error modal,
+            // then clears the selection. This tree only answers Enter and Space.
             if (event.key !== 'Enter' && event.key !== ' ') {
                 return;
             }
@@ -330,10 +324,8 @@ const digiTypologyPanel = (function () {
             }
         });
 
-        const clearButton = element('typology-tree-clear');
-        if (clearButton !== null) {
-            clearButton.addEventListener('click', clear);
-        }
+        // #typology-tree-clear is wired by the view (issue #27) so the selection has one clear owner;
+        // this module only keeps the button's disabled state in sync (updateClearButton).
     }
 
     // ----- pie -----

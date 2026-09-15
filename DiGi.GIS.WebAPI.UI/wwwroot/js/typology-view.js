@@ -178,25 +178,26 @@ const digiTypologyLayout = (function () {
     });
 })();
 
-// Solve bootstrap (issue #24): the definition the Load modal filed in sessionStorage is posted with the
-// area from the shell's data-* attributes to POST /typology/buildings, and the answer is handed to the
-// left panel renderer (typology-panel.js), the map (typology-map.js, issue #25) and the right panel
-// inspector (typology-inspector.js, issue #26). The map's own loads (outline + centroids) start first and
-// do not need a definition: a direct visit still shows the area outline with neutral dots. Deliberately
-// minimal - the loading/error/empty-state UI and the shared page state belong to the orchestration
-// sub-issue (#27); until then the panel's status line carries the outcome, and window.digiTypologyView
-// holds the DTO and the selection for the other panels.
-(function initSolve() {
+// Page orchestration (issue #27): the single owner of the area view's page state. It fires the three
+// fetches (outline, centroids, the solve) in parallel, routes each answer to its pure renderer - the
+// map, the left panel and the inspector - and owns the selection's cross-cutting controls: the clear
+// button and the Escape chain (error modal first, then the typology selection). The panels stay
+// renderers: they draw the data handed to them and react to the one 'typology:selectionchange' event.
+// This replaces issue #24's deliberately-minimal bootstrap; its window.digiTypologyView global is
+// retired with it (no reader outside this file).
+const digiTypologyView = (function () {
+    'use strict';
+
     const shell = document.querySelector('.typology-shell');
-    if (!shell || typeof digiTypologyPanel === 'undefined') {
+    if (shell === null || typeof digiTypologyPanel === 'undefined') {
         return;
     }
 
-    window.digiTypologyView = { viewModel: null, selection: null };
-
-    if (typeof digiTypologyMap !== 'undefined') {
-        digiTypologyMap.load(shell.getAttribute('data-area-id'));
-    }
+    const area = {
+        id: parseInt(shell.getAttribute('data-area-id'), 10),
+        code: shell.getAttribute('data-area-code') || null,
+        type: parseInt(shell.getAttribute('data-area-type'), 10)
+    };
 
     // The same key typology.js writes in confirmLoadSelection. A blocked store reads as no definition.
     let definition = null;
@@ -205,57 +206,245 @@ const digiTypologyLayout = (function () {
     } catch (error) {
         definition = null;
     }
-
     if (definition === null || typeof definition !== 'object' || !Array.isArray(definition.levels) || definition.levels.length === 0) {
-        digiTypologyPanel.showStatus('No definition was carried to this page. Go back to the definition page and press Load.');
+        definition = null;
+    }
+
+    let activePath = null;
+    let modalOpen = false;
+    let errorModal = null;
+
+    // ----- helpers -----
+
+    function element(id) {
+        return document.getElementById(id);
+    }
+
+    function baseUrl() {
+        return (window.AppBaseUrl || '/').replace(/\/$/, '');
+    }
+
+    function escapeHtml(text) {
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    // Never rejects: a network failure or a non-JSON body resolves to a null body, so the caller routes
+    // on {ok, status} and a failed fetch degrades to its surface's "unavailable" line, not a console error.
+    function fetchJson(url, options) {
+        return fetch(url, options)
+            .then(function (response) {
+                return Promise.resolve(response.json())
+                    .then(
+                        function (body) { return { ok: response.ok, status: response.status, body: body }; },
+                        function () { return { ok: response.ok, status: response.status, body: null }; }
+                    );
+            })
+            .catch(function () {
+                return { ok: false, status: 0, body: null };
+            });
+    }
+
+    // 400 and 413 answer a JSON array of server messages; anything else is described by the fallback line.
+    function messagesFromBody(body, fallback) {
+        if (Array.isArray(body) && body.length > 0) {
+            const messages = [];
+            for (let i = 0; i < body.length; i++) {
+                messages.push(String(body[i]));
+            }
+            return messages;
+        }
+        return [fallback];
+    }
+
+    // ----- loading state: the loader and the tree status line never show at once -----
+
+    function showLoader() {
+        const loader = element('typology-tree-loader');
+        const status = element('typology-tree-status');
+        if (loader !== null) {
+            loader.hidden = false;
+        }
+        if (status !== null) {
+            status.hidden = true;
+        }
+    }
+
+    function hideLoader() {
+        const loader = element('typology-tree-loader');
+        if (loader !== null) {
+            loader.hidden = true;
+        }
+    }
+
+    // ----- error modal: the typology.js pattern, created on demand -----
+
+    function ensureErrorModal() {
+        if (errorModal !== null) {
+            return errorModal;
+        }
+
+        errorModal = document.createElement('div');
+        errorModal.className = 'gis-modal-overlay';
+        errorModal.style.display = 'none';
+        errorModal.innerHTML =
+            '<div class="gis-card gis-modal gis-dialog-card" role="dialog" aria-modal="true" aria-labelledby="typology-solve-error-title">' +
+            '<h3 class="gis-title gis-dialog-title-error" id="typology-solve-error-title"></h3>' +
+            '<ul class="gis-dialog-message gis-typology-error-list"></ul>' +
+            '<div class="gis-modal-buttons">' +
+            '<button type="button" id="typology-solve-error-close" class="gis-button">Close</button>' +
+            '</div></div>';
+        document.body.appendChild(errorModal);
+
+        errorModal.querySelector('#typology-solve-error-close').addEventListener('click', closeErrorModal);
+        errorModal.addEventListener('click', function (event) {
+            if (event.target === errorModal) {
+                closeErrorModal();
+            }
+        });
+        return errorModal;
+    }
+
+    function showErrorModal(lines) {
+        const modal = ensureErrorModal();
+        modal.querySelector('#typology-solve-error-title').textContent = 'The typology could not be solved';
+        let html = '';
+        for (let i = 0; i < lines.length; i++) {
+            html += '<li>' + escapeHtml(lines[i]) + '</li>';
+        }
+        modal.querySelector('.gis-typology-error-list').innerHTML = html;
+        modal.style.display = 'flex';
+        modalOpen = true;
+        modal.querySelector('#typology-solve-error-close').focus();
+    }
+
+    function closeErrorModal() {
+        if (errorModal !== null) {
+            errorModal.style.display = 'none';
+        }
+        modalOpen = false;
+    }
+
+    // ----- selection ownership: one clear, one Escape chain -----
+
+    function clearSelection() {
+        digiTypologyPanel.clear();
+    }
+
+    const clearButton = element('typology-tree-clear');
+    if (clearButton !== null) {
+        clearButton.addEventListener('click', clearSelection);
+    }
+
+    digiTypologyPanel.setSelectionCallback(function (path, node) {
+        activePath = path === null ? null : path;
+    });
+
+    // One Escape chain, owned here: the error modal closes first, then the typology selection. The grid
+    // claims the key itself only while a building is selected (typology-inspector.js), and the panel's
+    // own branch is retired, so nothing else on the page answers Escape.
+    document.addEventListener('keydown', function (event) {
+        if (event.key !== 'Escape') {
+            return;
+        }
+        if (modalOpen) {
+            event.preventDefault();
+            closeErrorModal();
+            return;
+        }
+        if (event.defaultPrevented) {
+            return; // the grid already claimed the key (it cleared its building)
+        }
+        if (activePath !== null) {
+            event.preventDefault();
+            clearSelection();
+        }
+    });
+
+    // ----- context: the two read-only fetches the page degrades to without a definition -----
+
+    function loadContext() {
+        if (typeof digiTypologyMap === 'undefined') {
+            return;
+        }
+
+        fetchJson(baseUrl() + '/administrativeareal2D/svg/polygonsbyid?id=' + area.id)
+            .then(function (result) {
+                digiTypologyMap.setOutline(result.ok && Array.isArray(result.body) ? result.body : null);
+            });
+
+        fetchJson(baseUrl() + '/building2D/point2dsbyadministrativeareal2Did?administrativeareal2Did=' + area.id)
+            .then(function (result) {
+                // A 204 is the API's upstream-failure answer; only a 200 with an array is a real list.
+                digiTypologyMap.setCentroids(result.status === 200 && Array.isArray(result.body) ? result.body : null);
+            });
+    }
+
+    // ----- the solve: one POST, routed on its status -----
+
+    function solve() {
+        showLoader();
+
+        fetchJson(baseUrl() + '/typology/buildings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ definition: definition, id: area.id, code: area.code, administrativeArealType: area.type })
+        })
+            .then(function (result) {
+                hideLoader();
+
+                if (result.ok) {
+                    const viewModel = result.body !== null && typeof result.body === 'object' && !Array.isArray(result.body) ? result.body : null;
+                    if (viewModel !== null && viewModel.root !== null && viewModel.root !== undefined) {
+                        // The happy path: the one DTO routed to its three renderers.
+                        if (typeof digiTypologyMap !== 'undefined') {
+                            digiTypologyMap.render(viewModel);
+                        }
+                        digiTypologyPanel.render(viewModel);
+                        if (typeof digiTypologyInspector !== 'undefined') {
+                            digiTypologyInspector.render(viewModel, definition);
+                        }
+                        return;
+                    }
+                    // 200 with a null root: the panel carries the "answered no typology" empty state.
+                    digiTypologyPanel.render(viewModel !== null ? viewModel : { root: null, buildings: [] });
+                    return;
+                }
+
+                if (result.status === 404) {
+                    digiTypologyPanel.showStatus('The area has no buildings to solve for.');
+                    return;
+                }
+                if (result.status === 400 || result.status === 413) {
+                    showErrorModal(messagesFromBody(result.body, 'The typology could not be solved.'));
+                    return;
+                }
+                if (result.status === 503) {
+                    showErrorModal(['The building data service is unavailable. The area outline is shown; the typology could not be solved.']);
+                    return;
+                }
+                showErrorModal(['The typology could not be solved (HTTP ' + result.status + ').']);
+            });
+    }
+
+    // ----- start -----
+
+    if (!(area.id > 0)) {
+        digiTypologyPanel.showStatus('The page was opened without an area.');
         return;
     }
 
-    const base = (window.AppBaseUrl || '/').replace(/\/$/, '');
-    const areaId = parseInt(shell.getAttribute('data-area-id'), 10);
-    const areaType = parseInt(shell.getAttribute('data-area-type'), 10);
-    const areaCode = shell.getAttribute('data-area-code') || null;
+    loadContext();
 
-    function statusText(status) {
-        if (status === 404) {
-            return 'The area has no buildings.';
-        }
-        if (status === 503) {
-            return 'The building data service is unavailable.';
-        }
-        return 'The typology could not be solved (HTTP ' + status + ').';
+    if (definition === null) {
+        // No definition carried: degrade to the area context; no solve is fired.
+        digiTypologyPanel.showStatus('No definition was carried to this page. Define one on the typology page and press Load.');
+        return;
     }
 
-    fetch(base + '/typology/buildings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ definition: definition, id: areaId, code: areaCode, administrativeArealType: areaType })
-    })
-        .then(function (response) {
-            if (response.ok) {
-                return response.json().then(function (viewModel) {
-                    window.digiTypologyView.viewModel = viewModel;
-                    digiTypologyPanel.setSelectionCallback(function (path, node) {
-                        window.digiTypologyView.selection = path === null ? null : { path: path, node: node };
-                    });
-                    digiTypologyPanel.render(viewModel);
-                    if (typeof digiTypologyMap !== 'undefined') {
-                        digiTypologyMap.render(viewModel);
-                    }
-                    if (typeof digiTypologyInspector !== 'undefined') {
-                        digiTypologyInspector.render(viewModel, definition);
-                    }
-                });
-            }
-
-            // 400 and 413 answer a list of messages; anything else is described by its status.
-            return response.json()
-                .catch(function () { return null; })
-                .then(function (body) {
-                    digiTypologyPanel.showStatus(Array.isArray(body) && body.length > 0 ? body.join(' ') : statusText(response.status));
-                });
-        })
-        .catch(function () {
-            digiTypologyPanel.showStatus('The request could not be sent.');
-        });
+    solve();
 })();

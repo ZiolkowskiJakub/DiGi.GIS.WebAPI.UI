@@ -51,10 +51,6 @@ const digiTypologyMap = (function () {
         return document.getElementById(id);
     }
 
-    function baseUrl() {
-        return (window.AppBaseUrl || '/').replace(/\/$/, '');
-    }
-
     function pathKey(path) {
         return Array.isArray(path) ? path.join('.') : '';
     }
@@ -351,7 +347,7 @@ const digiTypologyMap = (function () {
         });
     }
 
-    // ----- loading -----
+    // ----- data in (issue #27): the view owns the fetches; the map only receives the data it draws -----
 
     function statusAfterCentroids() {
         if (centroidsFailed) {
@@ -361,46 +357,35 @@ const digiTypologyMap = (function () {
         }
     }
 
-    // Two parallel fetches: the outline draws on arrival; the dots draw once both the fit and the centroids
-    // are in. A failed outline leaves the placeholder standing (there is no fit to draw dots into).
-    function load(areaId) {
-        const id = parseInt(areaId, 10);
-        if (!(id > 0)) {
-            return;
+    // The outline draws on arrival; the dots draw once both the fit and the centroids are in. A failed
+    // outline leaves the placeholder standing (there is no fit to draw dots into).
+    function setOutline(outlines) {
+        if (renderOutline(outlines)) {
+            hideStatus();
+            statusAfterCentroids();
+            renderPoints();
+        } else {
+            showStatus('The area outline is unavailable.');
         }
+    }
 
-        fetch(baseUrl() + '/administrativeareal2D/svg/polygonsbyid?id=' + id)
-            .then(function (response) { return response.ok ? response.json() : null; })
-            .catch(function () { return null; })
-            .then(function (outlines) {
-                if (renderOutline(outlines)) {
-                    hideStatus();
-                    statusAfterCentroids();
-                    renderPoints();
-                } else {
-                    showStatus('The area outline is unavailable.');
-                }
-            });
-
-        fetch(baseUrl() + '/building2D/point2dsbyadministrativeareal2Did?administrativeareal2Did=' + id)
-            .then(function (response) { return response.status === 200 ? response.json() : null; })
-            .catch(function () { return null; })
-            .then(function (items) {
-                if (!Array.isArray(items)) {
-                    centroidsFailed = true;
-                    centroids = null;
-                } else {
-                    centroids = items;
-                    centroidsByKey = new Map();
-                    for (let i = 0; i < items.length; i++) {
-                        centroidsByKey.set(buildingKey(items[i].reference, items[i].countyId), items[i]);
-                    }
-                }
-                if (scaleParameters !== null) {
-                    statusAfterCentroids();
-                    renderPoints();
-                }
-            });
+    // A failed or missing centroid fetch arrives as null: the unavailable line stands until a solve can
+    // colour the dots.
+    function setCentroids(items) {
+        if (!Array.isArray(items)) {
+            centroidsFailed = true;
+            centroids = null;
+        } else {
+            centroids = items;
+            centroidsByKey = new Map();
+            for (let i = 0; i < items.length; i++) {
+                centroidsByKey.set(buildingKey(items[i].reference, items[i].countyId), items[i]);
+            }
+        }
+        if (scaleParameters !== null) {
+            statusAfterCentroids();
+            renderPoints();
+        }
     }
 
     // The solve DTO: indexes the tree by path and the buildings by (reference, countyId), then redraws the
@@ -423,7 +408,8 @@ const digiTypologyMap = (function () {
     setupEvents();
 
     return {
-        load: load,
+        setOutline: setOutline,
+        setCentroids: setCentroids,
         render: render,
         setSelection: setSelection,
         selectBuilding: selectBuilding,

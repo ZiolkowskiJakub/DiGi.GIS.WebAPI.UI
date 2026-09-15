@@ -508,8 +508,12 @@ const digiTypologyInspector = (function () {
                         }
                         return;
                     case 'Escape':
-                        event.preventDefault();
-                        clearBuilding();
+                        // Claim Escape only while a building is selected (issue #27); otherwise let it
+                        // bubble to the view's chain, which clears the typology selection.
+                        if (selectedBuildingIndex !== null) {
+                            event.preventDefault();
+                            clearBuilding();
+                        }
                         return;
                     default:
                         return;

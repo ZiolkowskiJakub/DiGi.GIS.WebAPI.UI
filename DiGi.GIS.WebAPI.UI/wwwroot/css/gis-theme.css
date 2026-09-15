@@ -2672,6 +2672,12 @@ h1.gis-title-large {
         text-align: center;
     }
 
+/* The tree card's solve loader (issue #27): .gis-loader is already centred by its own margin, so the
+   card only needs the vertical padding of the box. */
+.typology-tree-loader {
+    padding: 8px 0 4px;
+}
+
 /* Responsive stacking below ~1100 px, like the definition page. */
 @media (max-width: 1100px) {
     .typology-shell {

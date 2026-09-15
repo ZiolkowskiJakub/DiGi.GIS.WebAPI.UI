@@ -20,8 +20,9 @@
            row) and the left panel is OPEN (no typology-left-panel-collapsed). *@
         <div class="typology-layout typology-panel-collapsed">
             @* Left side panel (open by default): the area card, then the typology tree over the
-               distribution pie (issue #24). Tree and pie are filled by wwwroot/js/typology-panel.js once
-               the solve answers; until then the status line reads. *@
+               distribution pie (issue #24), with the solve's loader and the empty-state lines (issue #27).
+               Tree and pie are filled by wwwroot/js/typology-panel.js once the solve answers; until then
+               the loader or the status line reads. *@
             <aside id="typology-left-panel" class="typology-left-panel">
                 @* Area card: the context the page was opened with. Always rendered; the name is blank when
                    the lookup answered nothing. *@
@@ -41,6 +42,12 @@
                         <button type="button" id="typology-tree-clear" class="gis-button gis-button-icon gis-button-secondary" title="Clear selection" aria-label="Clear selection" disabled>&times;</button>
                     </h3>
                     <p id="typology-tree-status" class="typology-muted">Solving the typology for the area&hellip;</p>
+                    @* The solve's loader (issue #27): shown while the POST is in flight, hidden on settle;
+                       never at the same time as the status line or the tree. *@
+                    <div id="typology-tree-loader" class="typology-tree-loader" hidden>
+                        <div class="gis-loader"></div>
+                        <p class="gis-loader-text">Solving the typology for the area&hellip;</p>
+                    </div>
                     <div id="typology-tree" class="typology-tree" role="tree" aria-label="Typology tree" hidden></div>
                 </div>
                 <div class="gis-card gltf-card typology-pie-card">
