@@ -2116,6 +2116,65 @@ h1.gis-title-large {
         justify-content: center;
     }
 
+    /* The status overlay covers the map, so hiding it must win over its own display: flex (as the nav
+       toggle's [hidden] rule does) - otherwise it keeps intercepting the dots' hover and click. */
+    .typology-viewport-empty[hidden] {
+        display: none;
+    }
+
+    /* The 2D map (issue #25). The SVG fills the viewport and scales its fixed viewBox, so a resize is a
+       refit with no script; the outline is the single polygon, the buildings are dots grouped per typology
+       path so dimming is one class per group. The marker ring sits in its own top layer above every group,
+       so it stays at full opacity whatever the dimming does. */
+    .typology-map {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .typology-outline {
+        fill: rgba(255, 255, 255, 0.04);
+        stroke: #4da3ff;
+        stroke-width: 1;
+        pointer-events: none;
+    }
+
+    .typology-point {
+        cursor: pointer;
+    }
+
+    .typology-point-group {
+        transition: opacity 0.15s ease;
+    }
+
+    .typology-point-group.typology-point-unclassified {
+        fill: #9e9e9e;
+    }
+
+    .typology-point-group.typology-point-dimmed {
+        opacity: 0.15;
+    }
+
+    .typology-point-marker {
+        fill: none;
+        stroke: #ffffff;
+        stroke-width: 1.5;
+        pointer-events: none;
+    }
+
+    .typology-map-label {
+        position: absolute;
+        padding: 4px 8px;
+        background: rgba(0, 0, 0, 0.75);
+        color: #ffffff;
+        font-family: monospace;
+        font-size: 12px;
+        border-radius: 4px;
+        pointer-events: none;
+        white-space: nowrap;
+        z-index: 2;
+    }
+
     .typology-muted {
         color: var(--text-muted);
         font-size: 0.85rem;

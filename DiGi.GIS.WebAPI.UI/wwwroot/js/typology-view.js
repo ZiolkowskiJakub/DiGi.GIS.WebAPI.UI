@@ -160,9 +160,11 @@
 
 // Solve bootstrap (issue #24): the definition the Load modal filed in sessionStorage is posted with the
 // area from the shell's data-* attributes to POST /typology/buildings, and the answer is handed to the
-// left panel renderer (typology-panel.js). Deliberately minimal - the loading/error/empty-state UI and
-// the shared page state belong to the orchestration sub-issue (#27); until then the panel's status line
-// carries the outcome, and window.digiTypologyView holds the DTO and the selection for the other panels.
+// left panel renderer (typology-panel.js) and the map (typology-map.js, issue #25). The map's own loads
+// (outline + centroids) start first and do not need a definition: a direct visit still shows the area
+// outline with neutral dots. Deliberately minimal - the loading/error/empty-state UI and the shared page
+// state belong to the orchestration sub-issue (#27); until then the panel's status line carries the
+// outcome, and window.digiTypologyView holds the DTO and the selection for the other panels.
 (function initSolve() {
     const shell = document.querySelector('.typology-shell');
     if (!shell || typeof digiTypologyPanel === 'undefined') {
@@ -170,6 +172,10 @@
     }
 
     window.digiTypologyView = { viewModel: null, selection: null };
+
+    if (typeof digiTypologyMap !== 'undefined') {
+        digiTypologyMap.load(shell.getAttribute('data-area-id'));
+    }
 
     // The same key typology.js writes in confirmLoadSelection. A blocked store reads as no definition.
     let definition = null;
@@ -212,6 +218,9 @@
                         window.digiTypologyView.selection = path === null ? null : { path: path, node: node };
                     });
                     digiTypologyPanel.render(viewModel);
+                    if (typeof digiTypologyMap !== 'undefined') {
+                        digiTypologyMap.render(viewModel);
+                    }
                 });
             }
 

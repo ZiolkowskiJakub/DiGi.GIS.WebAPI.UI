@@ -7,10 +7,10 @@
     ViewData["Robots"] = "noindex, follow";
 }
 
-@* The 3-column shell (issue #23): left panel open, right panel closed, a flexing centre viewport as the
-   SVG mount point, and the area-context strip on top. The left panel (issue #24) renders the solved
-   typology tree over a pie of the current selection; the colouring and the right panel are later
-   sub-issues of #21. The layout is definition-agnostic, so a visit with no carried definition still
+@* The 3-column shell (issue #23): left panel open, right panel closed, a flexing centre viewport holding
+   the SVG map, and the area-context strip on top. The left panel (issue #24) renders the solved typology
+   tree over a pie of the current selection; the centre (issue #25) draws the outline and the buildings as
+   dots coloured by their typology; the right panel is a later sub-issue of #21. The layout is definition-agnostic, so a visit with no carried definition still
    shows the area context. The data-area-* attributes carry the solve request's area to the script;
    the type travels as the integer the wire binds, never a name. *@
 <div class="gis-panel gis-panel-full">
@@ -52,6 +52,17 @@
             @* Centre viewport: the SVG mount point. The two panel toggles dock in its corners, exactly
                like the 3D viewer container. *@
             <div id="typology-viewport" class="typology-viewport">
+                @* The 2D map (issue #25): a fixed viewBox the browser scales with the viewport, so every panel
+                   drag or toggle refits it with no script. Three layers in paint order - the area outline, the
+                   building dots grouped per typology path, the selected-building marker - all filled by
+                   wwwroot/js/typology-map.js. The status line beneath is the placeholder until the outline
+                   draws, then only an empty or unavailable message. *@
+                <svg id="typology-map" class="typology-map" viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Buildings of the area coloured by typology">
+                    <g id="typology-map-outline"></g>
+                    <g id="typology-map-points"></g>
+                    <g id="typology-map-marker"></g>
+                </svg>
+                <div id="typology-map-label" class="typology-map-label" hidden></div>
                 <div id="typology-viewport-empty" class="typology-viewport-empty">
                     <p class="typology-muted">Buildings will be drawn here in the colours of the defined typology.</p>
                 </div>
@@ -87,7 +98,8 @@
 
 @section Scripts {
     @* Classic scripts (no module imports), loaded after the page body so the targets they wire exist.
-       The panel renderer comes first: the view script's solve bootstrap calls digiTypologyPanel. *@
+       The panel and map renderers come first: the view script's solve bootstrap calls both. *@
     <script src="~/js/typology-panel.js" asp-append-version="true"></script>
+    <script src="~/js/typology-map.js" asp-append-version="true"></script>
     <script src="~/js/typology-view.js" asp-append-version="true"></script>
 }

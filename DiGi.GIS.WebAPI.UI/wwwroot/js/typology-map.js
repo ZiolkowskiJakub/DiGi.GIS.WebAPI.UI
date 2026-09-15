@@ -24,7 +24,9 @@ const digiTypologyMap = (function () {
     // The fit of administrative.js: a 500-unit canvas, the outline scaled into 450 with a 25 margin.
     const canvasSize = 500;
     const padding = 25;
-    const pointRadius = 1.2;
+    // Small on purpose: a county fits ~40 km into the canvas, so one unit is tens of metres and dots of a
+    // town centre overlap whatever the radius; the browser scales them with the panel.
+    const pointRadius = 0.7;
     const markerRadius = 4;
 
     // The panel's neutral colour, so an unclassified dot reads as its remainder slice.
@@ -35,6 +37,7 @@ const digiTypologyMap = (function () {
 
     let scaleParameters = null;
     let centroids = null;
+    let centroidsByKey = new Map();
     let centroidsFailed = false;
     let viewModel = null;
     let nodesByKey = new Map();
@@ -203,17 +206,23 @@ const digiTypologyMap = (function () {
             group.appendChild(circle);
         }
 
-        // The neutral group first so classified dots paint over it.
+        // The neutral group first so classified dots paint over it, then the buckets in path order so the
+        // paint order (which colour wins where dots overlap) does not depend on the centroid row order.
         const fragment = document.createDocumentFragment();
         const unclassified = groups.get(null);
         if (unclassified !== undefined) {
             fragment.appendChild(unclassified);
         }
+        const groupKeys = [];
         groups.forEach(function (group, groupKey) {
             if (groupKey !== null) {
-                fragment.appendChild(group);
+                groupKeys.push(groupKey);
             }
         });
+        groupKeys.sort();
+        for (let i = 0; i < groupKeys.length; i++) {
+            fragment.appendChild(groups.get(groupKeys[i]));
+        }
         layer.replaceChildren(fragment);
 
         applyDimming();
@@ -287,8 +296,6 @@ const digiTypologyMap = (function () {
         selectedBuildingKey = null;
         renderMarker();
     }
-
-    let centroidsByKey = new Map();
 
     // ----- hover label -----
 
