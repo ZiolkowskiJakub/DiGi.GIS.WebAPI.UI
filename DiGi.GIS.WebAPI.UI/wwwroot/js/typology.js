@@ -1433,9 +1433,16 @@ const digiTypology = (function () {
     // Replaces the page state with what validate answered. Reached only on 200, so a rejected or
     // malformed file never touches the levels the visitor has.
     function applyDefinition(definition) {
-        if (definition === null || typeof definition !== 'object' || !Array.isArray(definition.levels)) {
+        if (!replaceDefinition(definition)) {
             showDefinitionErrors('Import', ['The definition could not be read.']);
-            return;
+        }
+    }
+
+    // The one place the page state is replaced wholesale: by an imported file (applyDefinition) and by the
+    // definition the last Load filed (restoreDefinition). Answers whether the shape was a definition at all.
+    function replaceDefinition(definition) {
+        if (definition === null || typeof definition !== 'object' || !Array.isArray(definition.levels)) {
+            return false;
         }
 
         abortUniqueValuesLoad();
@@ -1444,6 +1451,9 @@ const digiTypology = (function () {
         const levels = [];
         for (let i = 0; i < definition.levels.length; i++) {
             const level = definition.levels[i];
+            if (level === null || typeof level !== 'object') {
+                continue;
+            }
             levels.push({
                 uniqueId: level.uniqueId,
                 name: level.name,
@@ -1458,6 +1468,24 @@ const digiTypology = (function () {
         state.levels = levels;
         state.selectedIndex = -1;
         renderAll();
+        return true;
+    }
+
+    // The definition the last Load filed for the area view comes back when the page is revisited in the
+    // same tab - "Back to the definition page" and the browser's back button included - so the levels the
+    // visitor built are not lost to the round trip. Silent: an absent, blocked or malformed entry simply
+    // leaves the page empty, as a first visit is.
+    function restoreDefinition() {
+        let definition = null;
+        try {
+            definition = JSON.parse(window.sessionStorage.getItem(loadDefinitionStorageKey));
+        } catch (error) {
+            return;
+        }
+        if (definition === null || typeof definition !== 'object' || !Array.isArray(definition.levels) || definition.levels.length === 0) {
+            return;
+        }
+        replaceDefinition(definition);
     }
 
     // ----- modals -----
@@ -1904,8 +1932,8 @@ const digiTypology = (function () {
     const loadResultCap = 50;
 
     // The definition travels to the redirect target in sessionStorage rather than the query string: a
-    // chain of levels with ranges and colours would bloat the URL past every reasonable limit. The stub
-    // page does not read it; the colour-coded view will.
+    // chain of levels with ranges and colours would bloat the URL past every reasonable limit. The area
+    // view reads it to solve, and this page reads it back on its next visit in the tab (restoreDefinition).
     const loadDefinitionStorageKey = 'digiTypology.definition';
 
     // AdministrativeArealType on the wire: 1 Voivodeship, 2 County, 3 Municipality, 4 Subdivision. The
@@ -2283,6 +2311,7 @@ const digiTypology = (function () {
         setupLoadEvents();
         renderSelected(); // the empty state, until the columns arrive
         renderProperties();
+        restoreDefinition();
         loadAvailableColumns();
     }
 
