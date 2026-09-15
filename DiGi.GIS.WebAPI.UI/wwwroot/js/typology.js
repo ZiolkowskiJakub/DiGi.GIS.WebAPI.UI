@@ -876,6 +876,7 @@ const digiTypology = (function () {
             '<div class="gis-typology-ranges" aria-describedby="typology-range-errors">' + rows + '</div>' +
             '<ul id="typology-range-errors" class="gis-typology-errors" role="alert"></ul>' +
             '<p class="gis-typology-hint">Ascending, non-overlapping intervals' + (integer ? ' of whole numbers' : '') + '; a row may start where the previous one ends, and that value belongs to the later row — [min, max) for every row but the last, which includes its Max. ' +
+            'Add files the new range by its Min, so a gap between two rows can be filled. ' +
             'Load divides the values of an area into four such ranges covering their span' + (integer ? '' : ', rounded to two decimals') + '. ' +
             'Rows with no value in this column fall out of this level. For an open end use a sentinel (for years, 0 and 9999).</p>';
     }
@@ -1785,13 +1786,15 @@ const digiTypology = (function () {
     }
 
     // "Add" of the range editor: the prompt asks for both bounds up front, the start prefilled where
-    // the last row ended — the carry-over the inline editor's Add used to make. The checks mirror the
-    // inline validation, so a row the list would outline red never enters it.
+    // the last row ended — the carry-over the inline editor's Add used to make. The new row is filed by
+    // its Min among the existing rows, not appended, so a gap can be filled ([1, 2) and [6, 7) take
+    // [2, 3) between them); it must fit between its neighbours - start where or after the row before
+    // it ends, end where or before the row after it starts. The checks mirror the inline validation,
+    // so a row the list would outline red never enters it.
     function openAddRangePrompt(level) {
         const integer = level.ruleType === ruleType_IntegerRange;
-        const previous = level.ranges.length > 0 ? level.ranges[level.ranges.length - 1] : null;
-        const previousMax = previous !== null && typeof previous.max === 'number' && Number.isFinite(previous.max) ? previous.max : null;
-        const start = previousMax;
+        const last = level.ranges.length > 0 ? level.ranges[level.ranges.length - 1] : null;
+        const start = last !== null && isBound(last.max) ? last.max : null;
 
         openPromptModal({
             title: 'Add Range',
@@ -1814,16 +1817,39 @@ const digiTypology = (function () {
                     error('Min exceeds Max.');
                     return false;
                 }
-                if (previousMax !== null && min < previousMax) {
-                    error('Min must be at least ' + previousMax + ', where the previous range ends — ranges ascend and must not overlap.');
+
+                // The slot: after every row whose Min is below the new one. Rows with a bound still empty or
+                // unparseable are not neighbours the new row can be checked against; the list outlines them.
+                let index = 0;
+                while (index < level.ranges.length && isBound(level.ranges[index].min) && level.ranges[index].min < min) {
+                    index++;
+                }
+                const previous = index > 0 ? level.ranges[index - 1] : null;
+                const next = index < level.ranges.length ? level.ranges[index] : null;
+
+                if (next !== null && isBound(next.min) && next.min === min) {
+                    error('A range already starts at ' + min + '.');
+                    return false;
+                }
+                if (previous !== null && isBound(previous.max) && min < previous.max) {
+                    error('Min must be at least ' + previous.max + ', where the range before it ends — ranges ascend and must not overlap.');
+                    return false;
+                }
+                if (next !== null && isBound(next.min) && max > next.min) {
+                    error('Max must be at most ' + next.min + ', where the range after it starts — ranges ascend and must not overlap.');
                     return false;
                 }
 
-                level.ranges.push({ min: min, max: max, color: nextColor(level.ranges.length) });
+                // A colour no row uses yet: the rows carry the palette by position, so the next one after the count is free.
+                level.ranges.splice(index, 0, { min: min, max: max, color: nextColor(level.ranges.length) });
                 renderProperties();
                 return true;
             }
         });
+    }
+
+    function isBound(value) {
+        return typeof value === 'number' && Number.isFinite(value);
     }
 
     // '' to null — an empty or unparseable box never enters the list as NaN.
