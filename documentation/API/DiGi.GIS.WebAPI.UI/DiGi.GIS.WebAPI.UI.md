@@ -787,6 +787,49 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.Geometry\.Planar\.Classes\.PolygonalFace2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.polygonalface2d 'DiGi\.Geometry\.Planar\.Classes\.PolygonalFace2D')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The area's boundary polygon, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the upstream is unreachable or the area carries no geometry\.
 
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DCentroidsAsync(thisSystem.Net.Http.HttpClient,int,int,System.Threading.CancellationToken)'></a>
+
+## Query\.Building2DCentroidsAsync\(this HttpClient, int, int, CancellationToken\) Method
+
+Asynchronously reads the bounding\-box centres of every building of an administrative area from the GIS Web API, keyed by reference and county part\.
+
+The request retries once with a doubled command timeout when the first attempt answers nothing: the known cause is a command timeout on a cold partition (DiGi.GIS.WebAPI issue #27 precedent), and the retry succeeds because the partition is warm by then. A second failure is not retried - it is a genuine defect, not a cold start.
+
+An area the upstream resolves to no subdivision answers an empty list, not [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null'); [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') means the upstream failed or could not be reached, for the reasons given on [JsonAsync\(this HttpClient, string, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.JsonAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.JsonAsync\(this System\.Net\.Http\.HttpClient, string, System\.Threading\.CancellationToken\)').
+
+```csharp
+public static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.Building2DCentroid>?> Building2DCentroidsAsync(this System.Net.Http.HttpClient? httpClient, int administrativeAreal2DId, int commandTimeout=30, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DCentroidsAsync(thisSystem.Net.Http.HttpClient,int,int,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DCentroidsAsync(thisSystem.Net.Http.HttpClient,int,int,System.Threading.CancellationToken).administrativeAreal2DId'></a>
+
+`administrativeAreal2DId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The unique identifier of the administrative area\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DCentroidsAsync(thisSystem.Net.Http.HttpClient,int,int,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The upstream command timeout in seconds for the first attempt; the retry doubles it\. Defaults to 30\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DCentroidsAsync(thisSystem.Net.Http.HttpClient,int,int,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.PostgreSQL\.Classes\.Building2DCentroid](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.classes.building2dcentroid 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DCentroid')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The centroids of the area, an empty list when the area holds none, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the upstream failed even after the retry\.
+
 <a name='DiGi.GIS.WebAPI.UI.Query.Building2DReferenceAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Threading.CancellationToken)'></a>
 
 ## Query\.Building2DReferenceAsync\(this HttpClient, string, Nullable\<int\>, CancellationToken\) Method

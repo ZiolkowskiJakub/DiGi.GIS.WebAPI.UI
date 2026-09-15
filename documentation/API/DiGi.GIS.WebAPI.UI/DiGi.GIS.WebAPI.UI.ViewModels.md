@@ -114,6 +114,121 @@ public System.Collections.Generic.List<DiGi.GIS.PostgreSQL.Classes.Administrativ
 #### Property Value
 [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DReference](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.classes.administrativeareal2dreference 'DiGi\.GIS\.PostgreSQL\.Classes\.AdministrativeAreal2DReference')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
 
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.Building2DCentroidViewModel'></a>
+
+## Building2DCentroidViewModel Class
+
+One building dot of a 2D area view: the bounding\-box centre of a `building_2d` row, keyed by the reference and the county part the row is filed under\.
+
+A building reference is unique only per county partition - a reference is stored once per county part it was imported under - so the county identifier travels with the reference for any caller-side join, such as the Typology area view's join with the solved typology assignment. [X](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.Building2DCentroidViewModel.X 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.Building2DCentroidViewModel\.X') and [Y](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.Building2DCentroidViewModel.Y 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.Building2DCentroidViewModel\.Y') are the centre of the row's bounding-box columns in the same coordinate reference system the `point2dsbyreferences` endpoint answers in (PL-1992, EPSG:2180, metres). Row order is not contractual.
+
+A relay of `DiGi.GIS.PostgreSQL.Classes.Building2DCentroid` without its `_type` discriminator: the browser never spells a type name, and the discriminator alone is most of the upstream payload for a county-sized area.
+
+```csharp
+public class Building2DCentroidViewModel
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → Building2DCentroidViewModel
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.Building2DCentroidViewModel.Building2DCentroidViewModel()'></a>
+
+## Building2DCentroidViewModel\(\) Constructor
+
+Initializes a new instance of the [Building2DCentroidViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.Building2DCentroidViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.Building2DCentroidViewModel') class\.
+
+```csharp
+public Building2DCentroidViewModel();
+```
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.Building2DCentroidViewModel.Building2DCentroidViewModel(string,int,double,double)'></a>
+
+## Building2DCentroidViewModel\(string, int, double, double\) Constructor
+
+Initializes a new instance of the [Building2DCentroidViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.Building2DCentroidViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.Building2DCentroidViewModel') class\.
+
+```csharp
+public Building2DCentroidViewModel(string reference, int countyId, double x, double y);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.Building2DCentroidViewModel.Building2DCentroidViewModel(string,int,double,double).reference'></a>
+
+`reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The building reference key\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.Building2DCentroidViewModel.Building2DCentroidViewModel(string,int,double,double).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The county part identifier the building row is filed under\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.Building2DCentroidViewModel.Building2DCentroidViewModel(string,int,double,double).x'></a>
+
+`x` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The X coordinate of the bounding\-box centre\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.Building2DCentroidViewModel.Building2DCentroidViewModel(string,int,double,double).y'></a>
+
+`y` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The Y coordinate of the bounding\-box centre\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.Building2DCentroidViewModel.CountyId'></a>
+
+## Building2DCentroidViewModel\.CountyId Property
+
+Gets the county part identifier the building row is filed under\.
+
+```csharp
+public int CountyId { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.Building2DCentroidViewModel.Reference'></a>
+
+## Building2DCentroidViewModel\.Reference Property
+
+Gets the building reference key, as addressed by the GIS Web API\.
+
+```csharp
+public string Reference { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.Building2DCentroidViewModel.X'></a>
+
+## Building2DCentroidViewModel\.X Property
+
+Gets the X coordinate of the bounding\-box centre, in PL\-1992 \(EPSG:2180\) metres\.
+
+```csharp
+public double X { get; set; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.Building2DCentroidViewModel.Y'></a>
+
+## Building2DCentroidViewModel\.Y Property
+
+Gets the Y coordinate of the bounding\-box centre, in PL\-1992 \(EPSG:2180\) metres\.
+
+```csharp
+public double Y { get; set; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.Building2DOccupancyDataViewModel'></a>
 
 ## Building2DOccupancyDataViewModel Class

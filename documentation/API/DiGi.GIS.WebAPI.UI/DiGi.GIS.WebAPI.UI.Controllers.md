@@ -492,6 +492,41 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation, containing the [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') result\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetPoint2DsByAdministrativeAreal2DIdAsync(int,System.Nullable_int_,System.Threading.CancellationToken)'></a>
+
+## Building2DController\.GetPoint2DsByAdministrativeAreal2DIdAsync\(int, Nullable\<int\>, CancellationToken\) Method
+
+Retrieves the bounding\-box centres of every building of an administrative area, keyed by reference and county part, for the 2D dot rendering of the Typology area view\.
+
+A relay of the GIS Web API's `gis/building2D/point2dsbyadministrativeareal2Did` (DiGi.GIS.WebAPI issue #34) without the `_type` discriminator, which alone is most of the upstream payload for a county-sized area. The area is resolved upstream through its subdivision children, so a county part identifier answers the buildings of every part sharing the code, each row carrying the county part it is actually filed under - a reference is unique only per county partition, so the view joins by `(reference, countyId)`. An area resolving to no subdivision answers an empty list, which is "nothing to draw"; an upstream failure, after one retry with a doubled command timeout for a cold partition, answers [Microsoft\.AspNetCore\.Http\.StatusCodes\.Status204NoContent](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.statuscodes.status204nocontent 'Microsoft\.AspNetCore\.Http\.StatusCodes\.Status204NoContent') so the outline still renders without its dots.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetPoint2DsByAdministrativeAreal2DIdAsync(int administrativeAreal2DId, System.Nullable<int> commandTimeout=null, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetPoint2DsByAdministrativeAreal2DIdAsync(int,System.Nullable_int_,System.Threading.CancellationToken).administrativeAreal2DId'></a>
+
+`administrativeAreal2DId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The unique identifier of the administrative area\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetPoint2DsByAdministrativeAreal2DIdAsync(int,System.Nullable_int_,System.Threading.CancellationToken).commandTimeout'></a>
+
+`commandTimeout` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional upstream command timeout in seconds for the first attempt\. When omitted, 30 seconds is applied\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetPoint2DsByAdministrativeAreal2DIdAsync(int,System.Nullable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') carrying the centroids as [Building2DCentroidViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.Building2DCentroidViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.Building2DCentroidViewModel') items, a 400 Bad Request response for an invalid identifier or timeout, or a 204 No Content response when the upstream answered nothing\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetPolygonByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_,System.Threading.CancellationToken)'></a>
 
 ## Building2DController\.GetPolygonByIdAsync\(long, Nullable\<int\>, Nullable\<double\>, Nullable\<int\>, CancellationToken\) Method

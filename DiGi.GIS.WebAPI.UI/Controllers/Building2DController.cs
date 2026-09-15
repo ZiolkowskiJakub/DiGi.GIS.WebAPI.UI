@@ -3,6 +3,7 @@ using DiGi.GIS.PostgreSQL.Classes;
 using DiGi.GIS.PostgreSQL.Enums;
 using DiGi.GIS.WebAPI.UI.ViewModels;
 using DiGi.WebAPI.Classes;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -230,6 +231,50 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             string result = point2Ds is null ? string.Empty : string.Join(" ", point2Ds.ConvertAll(point2D => $"{point2D.X} {point2D.Y}"));
 
             return Content(result, "text/plain");
+        }
+
+        /// <summary>
+        /// Retrieves the bounding-box centres of every building of an administrative area, keyed by reference and county part, for the 2D dot rendering of the Typology area view.
+        /// <para>A relay of the GIS Web API's <c>gis/building2D/point2dsbyadministrativeareal2Did</c> (DiGi.GIS.WebAPI issue #34) without the <c>_type</c> discriminator, which alone is most of the upstream payload for a county-sized area. The area is resolved upstream through its subdivision children, so a county part identifier answers the buildings of every part sharing the code, each row carrying the county part it is actually filed under - a reference is unique only per county partition, so the view joins by <c>(reference, countyId)</c>. An area resolving to no subdivision answers an empty list, which is "nothing to draw"; an upstream failure, after one retry with a doubled command timeout for a cold partition, answers <see cref="StatusCodes.Status204NoContent"/> so the outline still renders without its dots.</para>
+        /// </summary>
+        /// <param name="administrativeAreal2DId">The unique identifier of the administrative area.</param>
+        /// <param name="commandTimeout">The optional upstream command timeout in seconds for the first attempt. When omitted, 30 seconds is applied.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> carrying the centroids as <see cref="Building2DCentroidViewModel"/> items, a 400 Bad Request response for an invalid identifier or timeout, or a 204 No Content response when the upstream answered nothing.</returns>
+        [HttpGet("point2dsbyadministrativeareal2Did")]
+        public async Task<IActionResult> GetPoint2DsByAdministrativeAreal2DIdAsync([FromQuery(Name = "administrativeareal2Did")] int administrativeAreal2DId, [FromQuery(Name = "commandtimeout")] int? commandTimeout = null, CancellationToken cancellationToken = default)
+        {
+            if (administrativeAreal2DId <= 0)
+            {
+                return BadRequest();
+            }
+
+            if (commandTimeout.HasValue && commandTimeout.Value < 0)
+            {
+                return BadRequest();
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            List<Building2DCentroid>? building2DCentroids = await httpClient.Building2DCentroidsAsync(administrativeAreal2DId, commandTimeout ?? 30, cancellationToken);
+            if (building2DCentroids is null)
+            {
+                return NoContent();
+            }
+
+            // A row without a county part or a reference cannot be joined by the view, so it is skipped rather than defaulted to a key no building has.
+            List<Building2DCentroidViewModel> result = new(building2DCentroids.Count);
+            foreach (Building2DCentroid building2DCentroid in building2DCentroids)
+            {
+                if (!building2DCentroid.CountyId.HasValue || string.IsNullOrWhiteSpace(building2DCentroid.Reference))
+                {
+                    continue;
+                }
+
+                result.Add(new Building2DCentroidViewModel(building2DCentroid.Reference, building2DCentroid.CountyId.Value, building2DCentroid.X, building2DCentroid.Y));
+            }
+
+            return Ok(result);
         }
 
         // This action will trigger for: gis.digiproject.uk/building2D
