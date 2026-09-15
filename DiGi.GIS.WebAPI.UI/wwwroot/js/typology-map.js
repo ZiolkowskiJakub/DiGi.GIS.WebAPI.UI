@@ -7,17 +7,25 @@
  * preserveAspectRatio - so a panel drag, a panel toggle or the header/footer collapse refits the map with
  * no script. Buildings are dots only, never polygons: positions come from the UI proxy of the area-scoped
  * centroid endpoint (DiGi.GIS.WebAPI#34), joined with the solve DTO by (reference, countyId) because a
- * reference is unique only per county partition.
+ * reference is unique only per county partition - and, when that key misses, by the reference alone when
+ * the DTO lists it once: the building data and the building_2d rows of a multi-part county can be filed
+ * under different parts, and a solved building must not read as unclassified for that.
  *
  * Dots are grouped in one <g> per typology path, plus one neutral group for buildings the typology could
  * not classify (or every building, while no definition is solved). Dimming toggles a class on the groups
  * - a class toggle per bucket rather than a style write per point - and the selected building is marked
  * by a ring in a top layer instead of reparenting a dot, so it stays emphasised and on top whatever the
  * dimming does. The selection follows the left panel's 'typology:selectionchange' event; a dot click
- * reports 'typology:buildingselect' on document for the right panel (#26). Classic script, no imports.
+ * reports 'typology:buildingselect' on document for the right panel (#26). Shared helpers and event names
+ * come from typology-common.js, loaded first. Classic script, no imports.
  */
 const digiTypologyMap = (function () {
     'use strict';
+
+    const common = digiTypologyCommon;
+    const element = common.element;
+    const pathKey = common.pathKey;
+    const buildingKey = common.buildingKey;
 
     const svgNamespace = 'http://www.w3.org/2000/svg';
 
@@ -29,39 +37,17 @@ const digiTypologyMap = (function () {
     const pointRadius = 0.7;
     const markerRadius = 4;
 
-    // The panel's neutral colour, so an unclassified dot reads as its remainder slice.
-    const unclassifiedColor = '#9e9e9e';
-
-    const selectionEventName = 'typology:selectionchange';
-    const buildingSelectEventName = 'typology:buildingselect';
-
     let scaleParameters = null;
     let centroids = null;
     let centroidsByKey = new Map();
     let centroidsFailed = false;
-    let viewModel = null;
     let nodesByKey = new Map();
     let buildingsByKey = new Map();
+    let buildingsByReference = new Map();
     let selectedPath = null;
     let selectedBuildingKey = null;
 
     // ----- helpers -----
-
-    function element(id) {
-        return document.getElementById(id);
-    }
-
-    function pathKey(path) {
-        return Array.isArray(path) ? path.join('.') : '';
-    }
-
-    function buildingKey(reference, countyId) {
-        return String(reference) + '|' + String(countyId);
-    }
-
-    function isUnder(key, selectedKey) {
-        return key === selectedKey || key.indexOf(selectedKey + '.') === 0;
-    }
 
     function project(x, y) {
         return {
@@ -72,24 +58,13 @@ const digiTypologyMap = (function () {
 
     function colorOfPath(key) {
         const node = nodesByKey.get(key);
-        if (node === undefined) {
-            return unclassifiedColor;
-        }
-        if (typeof digiTypologyPanel !== 'undefined' && typeof digiTypologyPanel.colorOf === 'function') {
-            return digiTypologyPanel.colorOf(node);
-        }
-        return typeof node.color === 'string' && node.color !== '' ? node.color : unclassifiedColor;
+        return node === undefined ? common.unclassifiedColor : common.colorOf(node);
     }
 
-    function indexNodes(node) {
-        if (node === null || node === undefined) {
-            return;
-        }
-        nodesByKey.set(pathKey(node.path), node);
-        const children = Array.isArray(node.children) ? node.children : [];
-        for (let i = 0; i < children.length; i++) {
-            indexNodes(children[i]);
-        }
+    // The DTO entry of a dot: by the full key first, then by the reference alone when the DTO lists it once.
+    function buildingOf(reference, countyId) {
+        const building = buildingsByKey.get(buildingKey(reference, countyId));
+        return building !== undefined ? building : buildingsByReference.get(String(reference));
     }
 
     // ----- status -----
@@ -167,7 +142,8 @@ const digiTypologyMap = (function () {
 
     // Draws every centroid once the fit and the centroids are both known; the DTO is optional. One pass:
     // centroids bucketed by the path their assignment names (or the neutral bucket), one <g> per bucket
-    // with its fill, the circles inside, all into a fragment and one insertion.
+    // with its fill, the circles inside, all into a fragment and one insertion. A circle carries only its
+    // index into the centroid list; the reference and the county part are read from there on click or hover.
     function renderPoints() {
         const layer = element('typology-map-points');
         if (layer === null || scaleParameters === null || centroids === null) {
@@ -177,8 +153,7 @@ const digiTypologyMap = (function () {
         const groups = new Map();
         for (let i = 0; i < centroids.length; i++) {
             const centroid = centroids[i];
-            const key = buildingKey(centroid.reference, centroid.countyId);
-            const building = buildingsByKey.get(key);
+            const building = buildingOf(centroid.reference, centroid.countyId);
             const groupKey = building === undefined ? null : building.pathKey;
             let group = groups.get(groupKey);
             if (group === undefined) {
@@ -197,8 +172,7 @@ const digiTypologyMap = (function () {
             circle.setAttribute('cx', point.x.toFixed(2));
             circle.setAttribute('cy', point.y.toFixed(2));
             circle.setAttribute('r', pointRadius);
-            circle.setAttribute('data-reference', centroid.reference);
-            circle.setAttribute('data-county', centroid.countyId);
+            circle.setAttribute('data-i', i);
             group.appendChild(circle);
         }
 
@@ -225,6 +199,16 @@ const digiTypologyMap = (function () {
         renderMarker();
     }
 
+    // The centroid a circle stands for, or null for anything else under the pointer.
+    function centroidOfTarget(target) {
+        const circle = target !== null && target.closest !== undefined ? target.closest('.typology-point') : null;
+        if (circle === null || centroids === null) {
+            return null;
+        }
+        const centroid = centroids[parseInt(circle.getAttribute('data-i'), 10)];
+        return centroid === undefined ? null : centroid;
+    }
+
     // ----- selection -----
 
     function applyDimming() {
@@ -236,15 +220,14 @@ const digiTypologyMap = (function () {
         for (let i = 0; i < groups.length; i++) {
             const group = groups[i];
             const key = group.getAttribute('data-path');
-            const dimmed = selectedPath !== null && (key === null || !isUnder(key, selectedPath));
+            const dimmed = selectedPath !== null && (key === null || !common.isUnder(key, selectedPath));
             group.classList.toggle('typology-point-dimmed', dimmed);
         }
     }
 
     function setSelection(path) {
         // The root ('') is the whole area: dimming exists to contrast a bucket against the rest, and the root
-        // has no rest, so a root selection dims nothing - the neutral group included (issue #28). This is the
-        // inspector's reading of the root: isUnder there scopes every bucket under '' (typology-inspector.js).
+        // has no rest, so a root selection dims nothing - the neutral group included (issue #28).
         const key = path === null || path === undefined ? null : pathKey(path);
         selectedPath = key === '' ? null : key;
         applyDimming();
@@ -277,7 +260,7 @@ const digiTypologyMap = (function () {
         if (centroid === undefined) {
             return null;
         }
-        const building = buildingsByKey.get(key);
+        const building = buildingOf(centroid.reference, centroid.countyId);
         return { x: centroid.x, y: centroid.y, path: building === undefined ? null : building.path };
     }
 
@@ -297,24 +280,29 @@ const digiTypologyMap = (function () {
         renderMarker();
     }
 
-    // ----- hover label -----
+    // ----- hover label and clicks -----
 
     // The hover label of the 3D viewer: one positioned element in the viewport, shown while a dot is under
-    // the pointer. One delegated listener pair on the layer rather than one per dot.
+    // the pointer. One delegated listener set on the layer rather than one per dot.
     function setupEvents() {
         const layer = element('typology-map-points');
         const viewport = element('typology-viewport');
         const label = element('typology-map-label');
+
+        document.addEventListener(common.selectionEventName, function (event) {
+            setSelection(event.detail !== null && event.detail !== undefined ? event.detail.path : null);
+        });
+
         if (layer === null || viewport === null) {
             return;
         }
 
         layer.addEventListener('mouseover', function (event) {
-            const circle = event.target.closest !== undefined ? event.target.closest('.typology-point') : null;
-            if (circle === null || label === null) {
+            const centroid = centroidOfTarget(event.target);
+            if (centroid === null || label === null) {
                 return;
             }
-            label.textContent = circle.getAttribute('data-reference') || '';
+            label.textContent = centroid.reference || '';
             label.hidden = false;
         });
 
@@ -328,26 +316,21 @@ const digiTypologyMap = (function () {
         });
 
         layer.addEventListener('mouseout', function (event) {
-            const circle = event.target.closest !== undefined ? event.target.closest('.typology-point') : null;
-            if (circle !== null && label !== null) {
+            if (label !== null && centroidOfTarget(event.target) !== null) {
                 label.hidden = true;
             }
         });
 
         layer.addEventListener('click', function (event) {
-            const circle = event.target.closest !== undefined ? event.target.closest('.typology-point') : null;
-            if (circle === null) {
+            const centroid = centroidOfTarget(event.target);
+            if (centroid === null) {
                 return;
             }
-            const reference = circle.getAttribute('data-reference');
-            const countyId = parseInt(circle.getAttribute('data-county'), 10);
-            selectBuilding(reference, countyId);
-            const entry = pointOf(reference, countyId);
-            document.dispatchEvent(new CustomEvent(buildingSelectEventName, { detail: { reference: reference, countyId: countyId, path: entry === null ? null : entry.path } }));
-        });
-
-        document.addEventListener(selectionEventName, function (event) {
-            setSelection(event.detail !== null && event.detail !== undefined ? event.detail.path : null);
+            selectBuilding(centroid.reference, centroid.countyId);
+            const entry = pointOf(centroid.reference, centroid.countyId);
+            document.dispatchEvent(new CustomEvent(common.buildingSelectEventName, {
+                detail: { reference: centroid.reference, countyId: centroid.countyId, path: entry === null ? null : entry.path }
+            }));
         });
     }
 
@@ -392,19 +375,31 @@ const digiTypologyMap = (function () {
         }
     }
 
-    // The solve DTO: indexes the tree by path and the buildings by (reference, countyId), then redraws the
-    // dots in their colours if the centroids are already in; otherwise they draw coloured on arrival.
+    // The solve DTO: indexes the tree by path and the buildings by (reference, countyId) - and by reference
+    // alone where that is unambiguous - then redraws the dots in their colours if the centroids are already
+    // in; otherwise they draw coloured on arrival.
     function render(model) {
-        viewModel = model !== null && model !== undefined ? model : null;
         nodesByKey = new Map();
         buildingsByKey = new Map();
-        if (viewModel !== null) {
-            indexNodes(viewModel.root);
-            const buildings = Array.isArray(viewModel.buildings) ? viewModel.buildings : [];
+        buildingsByReference = new Map();
+        if (model !== null && model !== undefined) {
+            nodesByKey = common.indexNodes(model.root);
+            const buildings = Array.isArray(model.buildings) ? model.buildings : [];
+            const ambiguous = new Set();
             for (let i = 0; i < buildings.length; i++) {
                 const building = buildings[i];
-                buildingsByKey.set(buildingKey(building.reference, building.countyId), { path: building.path, pathKey: pathKey(building.path) });
+                const entry = { path: building.path, pathKey: pathKey(building.path) };
+                buildingsByKey.set(buildingKey(building.reference, building.countyId), entry);
+                const reference = String(building.reference);
+                if (buildingsByReference.has(reference)) {
+                    ambiguous.add(reference);
+                } else {
+                    buildingsByReference.set(reference, entry);
+                }
             }
+            ambiguous.forEach(function (reference) {
+                buildingsByReference.delete(reference);
+            });
         }
         renderPoints();
     }

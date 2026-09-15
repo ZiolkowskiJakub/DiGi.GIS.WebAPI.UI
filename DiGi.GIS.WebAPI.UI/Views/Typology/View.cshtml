@@ -158,8 +158,11 @@
 </div>
 
 @section Scripts {
-    @* Classic scripts (no module imports), loaded after the page body so the targets they wire exist.
-       The panel, map and inspector renderers come first: the view script's solve bootstrap calls all three. *@
+    @* Classic scripts (no module imports), loaded after the page body so the targets they wire exist, in
+       dependency order: the shared helpers, the shell (resizers and toggles), the three renderers (panel,
+       map, inspector), then the view script whose solve bootstrap calls all three. *@
+    <script src="~/js/typology-common.js" asp-append-version="true"></script>
+    <script src="~/js/typology-layout.js" asp-append-version="true"></script>
     <script src="~/js/typology-panel.js" asp-append-version="true"></script>
     <script src="~/js/typology-map.js" asp-append-version="true"></script>
     <script src="~/js/typology-inspector.js" asp-append-version="true"></script>

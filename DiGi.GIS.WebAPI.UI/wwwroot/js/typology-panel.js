@@ -3,33 +3,29 @@
  * hand-rolled SVG pie of the current selection's children.
  *
  * A pure renderer of the POST /typology/buildings DTO ({ root, buildings }): it draws the tree, holds
- * the selected node, redraws the pie on every selection change and reports the selection outward -
- * through the callback the page registers and through a 'typology:selectionchange' event on document,
- * so the centre viewport (#25) and the right panel (#26) can follow it without a reference to this
- * module. The page state itself belongs to the orchestration sub-issue (#27).
- *
- * One object rather than loose globals, as typology.js and user.js: names such as render() or select()
- * are too general to own at window scope. Classic script, no module imports.
+ * the selected node, redraws the pie on every selection change and reports the selection outward through
+ * the 'typology:selectionchange' event on document (digiTypologyCommon.selectionEventName), so the view,
+ * the centre viewport (#25) and the right panel (#26) follow it without a reference to this module. The
+ * page state itself belongs to the view (#27). Shared helpers, palette and event names come from
+ * typology-common.js, loaded first. Classic script, no module imports.
  */
 const digiTypologyPanel = (function () {
     'use strict';
 
-    // Default bucket colours (the definition page's palette, typology.js) for a node whose rule maps no
-    // appearance: the DTO's color is then null, and every node still needs a swatch and a slice. Indexed
-    // by the node's last path index so siblings never share a fallback and the choice is deterministic
-    // across the tree, the pie and the map dots.
-    const palette = [
-        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b',
-        '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', '#393b79', '#e7ba52'
-    ];
+    const common = digiTypologyCommon;
+    const element = common.element;
+    const escapeHtml = common.escapeHtml;
+    const pathKey = common.pathKey;
+    const nodeName = common.nodeName;
+    const nodeCount = common.nodeCount;
+    const nodeChildren = common.nodeChildren;
+    const colorOf = common.colorOf;
+    const formatCount = common.formatCount;
+    const formatPercent = common.formatPercent;
 
     // The remainder slice: what the selected node counts but none of its children does - rows the solver
     // dropped at the next level. Neutral, so it never competes with a bucket colour.
-    const remainderColor = '#9e9e9e';
     const remainderName = 'Not classified at the next level';
-
-    const rootName = 'Whole area';
-    const selectionEventName = 'typology:selectionchange';
 
     // Pie geometry: a 200x200 viewBox scales with any panel width the shell allows.
     const pieSize = 200;
@@ -38,59 +34,6 @@ const digiTypologyPanel = (function () {
     let root = null;
     let nodesByKey = new Map();
     let selectedKey = null;
-    let selectionCallback = null;
-
-    // ----- helpers -----
-
-    function escapeHtml(text) {
-        return String(text)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
-
-    function pathKey(path) {
-        return Array.isArray(path) ? path.join('.') : '';
-    }
-
-    function nodeName(node) {
-        if (node === null || node === undefined) {
-            return '';
-        }
-        const path = Array.isArray(node.path) ? node.path : [];
-        return path.length === 0 ? rootName : (node.name || '');
-    }
-
-    function nodeCount(node) {
-        return node !== null && node !== undefined && typeof node.count === 'number' ? node.count : 0;
-    }
-
-    function nodeChildren(node) {
-        return node !== null && node !== undefined && Array.isArray(node.children) ? node.children : [];
-    }
-
-    function formatCount(count) {
-        return count.toLocaleString();
-    }
-
-    function formatPercent(count, total) {
-        return (total > 0 ? (count / total * 100) : 0).toFixed(1) + ' %';
-    }
-
-    function colorOf(node) {
-        if (node !== null && node !== undefined && typeof node.color === 'string' && node.color !== '') {
-            return node.color;
-        }
-        const path = node !== null && node !== undefined && Array.isArray(node.path) ? node.path : [];
-        const index = path.length === 0 ? 0 : path[path.length - 1];
-        return palette[Math.abs(index) % palette.length];
-    }
-
-    function element(id) {
-        return document.getElementById(id);
-    }
 
     // ----- status -----
 
@@ -109,17 +52,6 @@ const digiTypologyPanel = (function () {
     }
 
     // ----- tree -----
-
-    function indexNodes(node, map) {
-        if (node === null || node === undefined) {
-            return;
-        }
-        map.set(pathKey(node.path), node);
-        const children = nodeChildren(node);
-        for (let i = 0; i < children.length; i++) {
-            indexNodes(children[i], map);
-        }
-    }
 
     // One row per node, its children in a role="group" sibling. Every row is in the tab order and takes
     // Enter/Space (the Load modal result-row pattern); the chevron is a real button so expand/collapse is
@@ -181,7 +113,7 @@ const digiTypologyPanel = (function () {
             return;
         }
 
-        indexNodes(root, nodesByKey);
+        nodesByKey = common.indexNodes(root);
 
         // One pass into a fragment, then one DOM insertion.
         const template = document.createElement('template');
@@ -246,12 +178,9 @@ const digiTypologyPanel = (function () {
         const current = selection();
         renderPie(current !== null ? current.node : root);
 
-        const path = current !== null ? current.path : null;
-        const node = current !== null ? current.node : null;
-        if (typeof selectionCallback === 'function') {
-            selectionCallback(path, node);
-        }
-        document.dispatchEvent(new CustomEvent(selectionEventName, { detail: { path: path, node: node } }));
+        document.dispatchEvent(new CustomEvent(common.selectionEventName, {
+            detail: { path: current !== null ? current.path : null, node: current !== null ? current.node : null }
+        }));
     }
 
     function select(path) {
@@ -343,7 +272,7 @@ const digiTypologyPanel = (function () {
         }
         const remainder = nodeCount(node) - childrenTotal;
         if (children.length > 0 && remainder > 0) {
-            slices.push({ name: remainderName, count: remainder, color: remainderColor, path: null });
+            slices.push({ name: remainderName, count: remainder, color: common.unclassifiedColor, path: null });
         }
         return slices;
     }
@@ -442,10 +371,6 @@ const digiTypologyPanel = (function () {
         legend.appendChild(legendTemplate.content);
     }
 
-    function setSelectionCallback(callback) {
-        selectionCallback = typeof callback === 'function' ? callback : null;
-    }
-
     setupEvents();
 
     return {
@@ -453,8 +378,6 @@ const digiTypologyPanel = (function () {
         select: select,
         clear: clear,
         selection: selection,
-        colorOf: colorOf,
-        setSelectionCallback: setSelectionCallback,
         showStatus: showStatus
     };
 })();

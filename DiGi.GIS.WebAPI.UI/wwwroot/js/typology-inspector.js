@@ -13,10 +13,24 @@
  * opens the panel; a null selection resets and closes it) and the map's 'typology:buildingselect' (a dot
  * click: selects the bucket in the tree when the building is outside the current selection, then the
  * row). It never dispatches 'typology:buildingselect' itself - the map is driven directly through
- * digiTypologyMap.selectBuilding/clearBuilding, so no event loop can form. Classic script, no imports.
+ * digiTypologyMap.selectBuilding/clearBuilding, so no event loop can form. A dot is matched to its DTO
+ * entry by (reference, countyId), then by the reference alone when the DTO lists it once - the same
+ * fallback the map applies. Shared helpers and event names come from typology-common.js, loaded first.
+ * Classic script, no imports.
  */
 const digiTypologyInspector = (function () {
     'use strict';
+
+    const common = digiTypologyCommon;
+    const element = common.element;
+    const escapeHtml = common.escapeHtml;
+    const pathKey = common.pathKey;
+    const buildingKey = common.buildingKey;
+    const isUnder = common.isUnder;
+    const nodeName = common.nodeName;
+    const nodeCount = common.nodeCount;
+    const formatCount = common.formatCount;
+    const formatPercent = common.formatPercent;
 
     // The row height of the windowed grid; must equal the .typology-grid-row height in gis-theme.css.
     const rowHeight = 26;
@@ -24,12 +38,7 @@ const digiTypologyInspector = (function () {
     const overscan = 10;
     const filterDebounceMs = 150;
 
-    const rootName = 'Whole area';
-    const unclassifiedName = 'Not classified';
     const unknownText = '–';
-
-    const selectionEventName = 'typology:selectionchange';
-    const buildingSelectEventName = 'typology:buildingselect';
 
     let definition = null;
     let root = null;
@@ -38,6 +47,7 @@ const digiTypologyInspector = (function () {
     let pathKeys = [];
     let referencesLower = [];
     let indexByKey = new Map();
+    let indexByReference = new Map();
 
     let selectedKey = null;
     let scoped = [];
@@ -50,69 +60,12 @@ const digiTypologyInspector = (function () {
 
     // ----- helpers -----
 
-    function element(id) {
-        return document.getElementById(id);
-    }
-
     function baseUrl() {
         return (window.AppBaseUrl || '/').replace(/\/$/, '');
     }
 
-    function escapeHtml(text) {
-        return String(text)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
-
-    function pathKey(path) {
-        return Array.isArray(path) ? path.join('.') : '';
-    }
-
-    function buildingKey(reference, countyId) {
-        return String(reference) + '|' + String(countyId);
-    }
-
-    // The root's key is empty and every building is under it; a bucket's key prefixes its descendants'.
-    function isUnder(key, parentKey) {
-        return parentKey === '' || key === parentKey || key.indexOf(parentKey + '.') === 0;
-    }
-
-    function nodeName(node) {
-        if (node === null || node === undefined) {
-            return '';
-        }
-        const path = Array.isArray(node.path) ? node.path : [];
-        return path.length === 0 ? rootName : (node.name || '');
-    }
-
-    function nodeCount(node) {
-        return node !== null && node !== undefined && typeof node.count === 'number' ? node.count : 0;
-    }
-
-    function formatCount(count) {
-        return count.toLocaleString();
-    }
-
-    function formatPercent(count, total) {
-        return (total > 0 ? (count / total * 100) : 0).toFixed(1) + ' %';
-    }
-
     function formatMetre(value) {
         return typeof value === 'number' && isFinite(value) ? value.toFixed(2) : unknownText;
-    }
-
-    function indexNodes(node) {
-        if (node === null || node === undefined) {
-            return;
-        }
-        nodesByKey.set(pathKey(node.path), node);
-        const children = Array.isArray(node.children) ? node.children : [];
-        for (let i = 0; i < children.length; i++) {
-            indexNodes(children[i]);
-        }
     }
 
     function setHidden(id, hidden) {
@@ -127,6 +80,12 @@ const digiTypologyInspector = (function () {
         if (target !== null) {
             target.textContent = text;
         }
+    }
+
+    // The DTO index of a dot: by the full key first, then by the reference alone when the DTO lists it once.
+    function indexOf(reference, countyId) {
+        const index = indexByKey.get(buildingKey(reference, countyId));
+        return index !== undefined ? index : indexByReference.get(String(reference));
     }
 
     function openPanel() {
@@ -149,7 +108,7 @@ const digiTypologyInspector = (function () {
         const swatch = element('typology-inspector-swatch');
         if (swatch !== null) {
             swatch.hidden = path.length === 0;
-            swatch.style.backgroundColor = typeof digiTypologyPanel !== 'undefined' ? digiTypologyPanel.colorOf(node) : '';
+            swatch.style.backgroundColor = common.colorOf(node);
         }
 
         setText('typology-inspector-name', nodeName(node));
@@ -337,18 +296,20 @@ const digiTypologyInspector = (function () {
         setText('typology-building-county', countyId > 0 ? String(countyId) : unknownText);
         setText('typology-building-x', point !== null ? formatMetre(point.x) : unknownText);
         setText('typology-building-y', point !== null ? formatMetre(point.y) : unknownText);
-        setText('typology-building-typology', node === undefined ? unclassifiedName : nodeName(node));
+        setText('typology-building-typology', node === undefined ? common.unclassifiedName : nodeName(node));
 
-        // The details page resolves the county part from the coordinates when the id is not carried.
+        // The details page resolves the county part from the coordinates when the id is not carried; with
+        // neither, the page could not find the building, so the link is not offered.
         const details = element('typology-building-details');
         if (details !== null) {
-            let href = baseUrl() + '/building2D/detailsbyreference?reference=' + encodeURIComponent(reference);
+            let href = null;
             if (countyId > 0) {
-                href += '&countyid=' + countyId;
+                href = baseUrl() + '/building2D/detailsbyreference?reference=' + encodeURIComponent(reference) + '&countyid=' + countyId;
             } else if (point !== null) {
-                href += '&x=' + point.x + '&y=' + point.y;
+                href = baseUrl() + '/building2D/detailsbyreference?reference=' + encodeURIComponent(reference) + '&x=' + point.x + '&y=' + point.y;
             }
-            details.href = href;
+            details.hidden = href === null;
+            details.href = href === null ? '' : href;
         }
 
         const model = element('typology-building-model');
@@ -378,7 +339,7 @@ const digiTypologyInspector = (function () {
     }
 
     function selectBuilding(reference, countyId) {
-        const index = indexByKey.get(buildingKey(reference, countyId));
+        const index = indexOf(reference, countyId);
         if (index !== undefined) {
             selectBuildingByIndex(index);
         }
@@ -437,7 +398,7 @@ const digiTypologyInspector = (function () {
             return;
         }
 
-        const index = indexByKey.get(buildingKey(detail.reference, detail.countyId));
+        const index = indexOf(detail.reference, detail.countyId);
         if (index === undefined) {
             selectedBuildingIndex = null;
             focusPosition = -1;
@@ -454,6 +415,16 @@ const digiTypologyInspector = (function () {
         }
 
         selectBuildingByIndex(index);
+
+        // A dot matched by the reference alone was drawn under another county part than the DTO entry names:
+        // the marker and the plan coordinates follow the dot that was clicked, not the entry's key.
+        if (typeof digiTypologyMap !== 'undefined' && detail.countyId !== buildings[index].countyId) {
+            digiTypologyMap.selectBuilding(detail.reference, detail.countyId);
+            const point = digiTypologyMap.pointOf(detail.reference, detail.countyId);
+            setText('typology-building-x', point !== null ? formatMetre(point.x) : unknownText);
+            setText('typology-building-y', point !== null ? formatMetre(point.y) : unknownText);
+        }
+
         ensureVisible(focusPosition);
         openPanel();
     }
@@ -461,11 +432,11 @@ const digiTypologyInspector = (function () {
     // ----- events -----
 
     function setupEvents() {
-        document.addEventListener(selectionEventName, function (event) {
+        document.addEventListener(common.selectionEventName, function (event) {
             applySelection(event.detail !== null && event.detail !== undefined ? event.detail.path : null);
         });
 
-        document.addEventListener(buildingSelectEventName, function (event) {
+        document.addEventListener(common.buildingSelectEventName, function (event) {
             onBuildingSelect(event.detail);
         });
 
@@ -551,17 +522,27 @@ const digiTypologyInspector = (function () {
         root = viewModel !== null && viewModel !== undefined ? viewModel.root : null;
         buildings = viewModel !== null && viewModel !== undefined && Array.isArray(viewModel.buildings) ? viewModel.buildings : [];
 
-        nodesByKey = new Map();
-        indexNodes(root);
+        nodesByKey = common.indexNodes(root);
 
         pathKeys = new Array(buildings.length);
         referencesLower = new Array(buildings.length);
         indexByKey = new Map();
+        indexByReference = new Map();
+        const ambiguous = new Set();
         for (let i = 0; i < buildings.length; i++) {
+            const reference = String(buildings[i].reference);
             pathKeys[i] = pathKey(buildings[i].path);
-            referencesLower[i] = String(buildings[i].reference).toLowerCase();
+            referencesLower[i] = reference.toLowerCase();
             indexByKey.set(buildingKey(buildings[i].reference, buildings[i].countyId), i);
+            if (indexByReference.has(reference)) {
+                ambiguous.add(reference);
+            } else {
+                indexByReference.set(reference, i);
+            }
         }
+        ambiguous.forEach(function (reference) {
+            indexByReference.delete(reference);
+        });
 
         selectedBuildingIndex = null;
         focusPosition = -1;
