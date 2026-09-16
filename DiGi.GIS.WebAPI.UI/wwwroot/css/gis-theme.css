@@ -2777,6 +2777,9 @@ h1.gis-title-large {
     width: 100%;
     box-sizing: border-box;
     margin-top: 12px;
+    /* .gis-button is inline-flex with no justify-content, so a full-width button left-aligns its
+       label — centre it here, scoped to the stretch modifier (the Load button is the only user). */
+    justify-content: center;
 }
 
 /* The shared list surface the Available/Selected Columns sections render into (#14, #15). */
