@@ -1062,7 +1062,7 @@ The flat list of building entries, one per classified reference, filed under the
 
 ## TypologyBuildingsViewModel\.Buildings Property
 
-Gets the flat list of building entries, one per classified reference, filed under the deepest node holding it\.
+Gets the flat list of building entries, one per classified reference, filed under the deepest node holding it, emitted in the sorted tree's order\.
 
 ```csharp
 public System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingViewModel> Buildings { get; set; }
@@ -1392,14 +1392,14 @@ The number of buildings filed under this node\.
 
 `children` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[TypologyTreeNodeViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyTreeNodeViewModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
 
-The sub\-typology nodes, or null when this node is a leaf\.
+The sub\-typology nodes in ascending bucket value, or null when this node is a leaf\.
 ### Properties
 
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel.Children'></a>
 
 ## TypologyTreeNodeViewModel\.Children Property
 
-Gets the sub\-typology nodes, or null when this node is a leaf\.
+Gets the sub\-typology nodes in ascending bucket value \- a range by its Min, a unique value by the value itself \- or null when this node is a leaf\.
 
 ```csharp
 public System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel>? Children { get; set; }

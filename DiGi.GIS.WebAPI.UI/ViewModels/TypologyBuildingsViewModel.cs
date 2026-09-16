@@ -30,7 +30,7 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
         public TypologyTreeNodeViewModel? Root { get; set; }
 
         /// <summary>
-        /// Gets the flat list of building entries, one per classified reference, filed under the deepest node holding it.
+        /// Gets the flat list of building entries, one per classified reference, filed under the deepest node holding it, emitted in the sorted tree's order.
         /// </summary>
         public List<TypologyBuildingViewModel> Buildings { get; set; } = [];
     }

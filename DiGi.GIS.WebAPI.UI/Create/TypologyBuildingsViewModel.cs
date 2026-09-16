@@ -2,6 +2,7 @@ using DiGi.Core.IO.Table.Classes;
 using DiGi.GIS.WebAPI.UI.ViewModels;
 using DiGi.Typology.Visual.Classes;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace DiGi.GIS.WebAPI.UI
@@ -11,6 +12,7 @@ namespace DiGi.GIS.WebAPI.UI
         /// <summary>
         /// Flattens a solved <see cref="VisualTypology"/> tree into the view DTO the area view renders: the recursive node tree and the flat building list.
         /// <para>The tree is walked depth-first, children before their parent. Each node carries its name, description, color (read from the <see cref="VisualTypologyItem.Appearance"/> via <see cref="Query.Color(TypologyAppearance?)"/>), the count of its reference set and its children. Every reference becomes one <see cref="ViewModels.TypologyBuildingViewModel"/> entry, filed under the <b>deepest</b> node that holds it: a leaf's references are its own, and a bucket's references that none of its children holds - the rows the solver dropped at the next level because their value resolved to no bucket there - are filed under the bucket itself. So a building the tree counts under a node is always listed under that node or one below it, and the map, the grid and the building card agree with the tree; the pie still charts what the children hold against the node's own count.</para>
+        /// <para>The siblings of every node come back sorted ascending by bucket value - a range by its Min, a unique value by the value itself, a multi-word string value by its whole text - read from the name the solver gives the node, and the building list is emitted in that same tree order, so the view renders the buckets in value order rather than in the solver's data-encounter order (issue #36).</para>
         /// <para>The <paramref name="countyId_ByReference"/> maps a building reference to the county part it was fetched from, so the flat entry carries the correct <c>CountyId</c>. When the map is null or a reference is absent from it, the entry's <c>CountyId</c> is 0 - the view treats that as "part unknown" and skips the centroid join for that building.</para>
         /// <para>The <paramref name="id_ByReference"/> maps a building reference to its database identifier, so the flat entry carries the <c>Id</c> the details and 3D viewer links address. When the map is null or a reference is absent from it, the entry's <c>Id</c> is 0 - the view treats that as "identifier unknown" and hides the links that need it.</para>
         /// </summary>
@@ -43,6 +45,16 @@ namespace DiGi.GIS.WebAPI.UI
                 List<TypologyTreeNodeViewModel>? children = null;
                 int count_Children = 0;
                 List<VisualTypology>? subTypologies = visualTypology_Node.SubTypologies;
+                if (subTypologies is not null && subTypologies.Count > 1)
+                {
+                    // Siblings in ascending bucket value - a range by its Min, a unique value by the value itself - read
+                    // from the name the solver gives the node ("column name + rule data text"). A local copy, so the
+                    // solved tree stays unmodified; the key is a comparable tuple - a numeric kind before a text kind,
+                    // then the number, then the name - and OrderBy is stable, so two siblings with an equal key keep
+                    // their solved order.
+                    subTypologies = [.. subTypologies.OrderBy(subTypology => SortKey(subTypology?.TypologyItem?.Name))];
+                }
+
                 if (subTypologies is not null && subTypologies.Count != 0)
                 {
                     children = [];
@@ -90,6 +102,66 @@ namespace DiGi.GIS.WebAPI.UI
                 }
 
                 return new TypologyTreeNodeViewModel(name, description, color, path, System.Math.Max(count, count_Children), children);
+            }
+
+            // The sort key, comparable by its default comparer: the kind first (0 = a numeric key, 1 = a text key, so
+            // a numeric key precedes a text one), then the number, then the name for the text compare.
+            (int kind, double numeric, string text) SortKey(string? name)
+            {
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    return (1, 0.0, string.Empty);
+                }
+
+                int index_Bracket = name.LastIndexOf('[');
+                if (index_Bracket != -1)
+                {
+                    // "[min, max)" / "[min, max]": the Min is what follows the last bracket.
+                    int index_End = name.IndexOfAny([',', ' ', ']'], index_Bracket + 1);
+                    string token_Min = name[(index_Bracket + 1)..(index_End == -1 ? name.Length : index_End)].Trim();
+                    if (TrySortValue(token_Min, out double min))
+                    {
+                        return (0, min, string.Empty);
+                    }
+
+                    return (1, 0.0, name[index_Bracket..]);
+                }
+
+                int index_Space = name.LastIndexOf(' ');
+                if (index_Space != -1)
+                {
+                    string token_Value = name[(index_Space + 1)..].Trim();
+                    if (TrySortValue(token_Value, out double value))
+                    {
+                        return (0, value, string.Empty);
+                    }
+                }
+
+                // A value the number parse does not take is text, possibly multi-word: the whole name is the key,
+                // because every sibling shares the column prefix, so comparing the names orders the values.
+                return (1, 0.0, name);
+            }
+
+            bool TrySortValue(string token, out double value)
+            {
+                value = 0.0;
+
+                // A non-finite parse is the value text "NaN" or "Infinity" - text, not a number.
+                if (double.TryParse(token, NumberStyles.Float, CultureInfo.InvariantCulture, out double result) && double.IsFinite(result))
+                {
+                    value = result;
+                    return true;
+                }
+
+                // The name is rendered with the server's current culture (Coding - General, ToString is not a key):
+                // a comma decimal separator still means a number.
+                if (double.TryParse(token.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out double result_Comma) && double.IsFinite(result_Comma))
+                {
+                    value = result_Comma;
+                    return true;
+                }
+
+                return false;
             }
         }
 

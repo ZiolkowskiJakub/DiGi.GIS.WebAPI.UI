@@ -23,7 +23,7 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
         /// <param name="color">The bucket color as a CSS hex string, or null when the rule maps none for this bucket.</param>
         /// <param name="path">The typology path, one filing index per level from the root.</param>
         /// <param name="count">The number of buildings filed under this node.</param>
-        /// <param name="children">The sub-typology nodes, or null when this node is a leaf.</param>
+        /// <param name="children">The sub-typology nodes in ascending bucket value, or null when this node is a leaf.</param>
         public TypologyTreeNodeViewModel(string? name, string? description, string? color, List<int> path, int count, List<TypologyTreeNodeViewModel>? children)
         {
             Name = name;
@@ -60,7 +60,7 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
         public int Count { get; set; }
 
         /// <summary>
-        /// Gets the sub-typology nodes, or null when this node is a leaf.
+        /// Gets the sub-typology nodes in ascending bucket value - a range by its Min, a unique value by the value itself - or null when this node is a leaf.
         /// </summary>
         public List<TypologyTreeNodeViewModel>? Children { get; set; }
     }
