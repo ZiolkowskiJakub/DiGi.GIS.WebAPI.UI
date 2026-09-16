@@ -2,8 +2,10 @@
  * Typology area view - left panel (issue #24): the solved typology tree with calculated counts over a
  * hand-rolled SVG pie of the current selection's children.
  *
- * A pure renderer of the POST /typology/buildings DTO ({ root, buildings }): it draws the tree, holds
- * the selected node, redraws the pie on every selection change and reports the selection outward through
+ * A pure renderer of the POST /typology/buildings DTO ({ root, buildings }): it draws the tree - from the
+ * first typology level down, the root staying in the data model as the pie's no-selection state and the
+ * '' path-key, never a row (issue #31) - holds the selected node, redraws the pie on every selection
+ * change and reports the selection outward through
  * the 'typology:selectionchange' event on document (digiTypologyCommon.selectionEventName), so the view,
  * the centre viewport (#25) and the right panel (#26) follow it without a reference to this module. The
  * page state itself belongs to the view (#27). Shared helpers, palette and event names come from
@@ -60,7 +62,6 @@ const digiTypologyPanel = (function () {
         const children = nodeChildren(node);
         const key = pathKey(node.path);
         const name = nodeName(node);
-        const isRoot = key === '';
         const hasChildren = children.length > 0;
 
         let html =
@@ -77,9 +78,7 @@ const digiTypologyPanel = (function () {
             html += '<span class="typology-tree-toggle typology-tree-toggle-spacer" aria-hidden="true"></span>';
         }
 
-        if (!isRoot) {
-            html += '<span class="typology-tree-swatch" style="background:' + escapeHtml(colorOf(node)) + '" aria-hidden="true"></span>';
-        }
+        html += '<span class="typology-tree-swatch" style="background:' + escapeHtml(colorOf(node)) + '" aria-hidden="true"></span>';
 
         html += '<span class="typology-tree-name">' + escapeHtml(name) + '</span>' +
             '<span class="typology-tree-count">' + escapeHtml(formatCount(nodeCount(node))) + '</span>' +
@@ -115,9 +114,16 @@ const digiTypologyPanel = (function () {
 
         nodesByKey = common.indexNodes(root);
 
-        // One pass into a fragment, then one DOM insertion.
+        // One pass into a fragment, then one DOM insertion. The root stays in the data model (the pie's
+        // no-selection state, the '' path-key, isUnder) but is not a row: the tree's first rows are the
+        // first typology level (the root's children), at aria-level="1" (issue #31).
         const template = document.createElement('template');
-        template.innerHTML = rowHtml(root, 1);
+        const top = common.nodeChildren(root);
+        let treeHtml = '';
+        for (let i = 0; i < top.length; i++) {
+            treeHtml += rowHtml(top[i], 1);
+        }
+        template.innerHTML = treeHtml;
         const fragment = document.createDocumentFragment();
         fragment.appendChild(template.content);
         tree.replaceChildren(fragment);

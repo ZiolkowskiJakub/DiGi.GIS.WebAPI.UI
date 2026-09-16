@@ -145,7 +145,11 @@
                             <div class="typology-area-item"><dt class="typology-area-label typology-info-label">County id</dt><dd id="typology-building-county" class="typology-area-value"></dd></div>
                             <div class="typology-area-item"><dt class="typology-area-label typology-info-label">X</dt><dd id="typology-building-x" class="typology-area-value"></dd></div>
                             <div class="typology-area-item"><dt class="typology-area-label typology-info-label">Y</dt><dd id="typology-building-y" class="typology-area-value"></dd></div>
-                            <div class="typology-area-item"><dt class="typology-area-label typology-info-label">Typology</dt><dd id="typology-building-typology" class="typology-area-value"></dd></div>
+                            @* One row per typology level of the building's path (the level's column name as the
+                               label, the corresponding node name as the value), filled by
+                               wwwroot/js/typology-inspector.js fillBuildingTypologyRows; a single "Not classified"
+                               row when the building has no path (issue #31). *@
+                            <div id="typology-building-typology"></div>
                         </dl>
                         <div class="typology-building-links">
                             <a id="typology-building-details" class="gis-button" target="_blank" rel="noopener">Details</a>

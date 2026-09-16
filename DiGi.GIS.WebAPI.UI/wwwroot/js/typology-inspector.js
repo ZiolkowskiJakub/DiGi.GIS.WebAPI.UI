@@ -232,9 +232,10 @@ const digiTypologyInspector = (function () {
             const building = buildings[index];
             const selected = index === selectedBuildingIndex;
             const focused = position === focusPosition;
+            // Reference only: the county id is an internal partition key, kept in the DTO and in
+            // buildingKey/details-link resolution but not shown (issue #31).
             html += '<div class="typology-grid-row' + (selected ? ' typology-grid-row-selected' : '') + (focused ? ' typology-grid-row-focus' : '') + '" role="option" id="typology-grid-row-' + index + '" data-index="' + index + '" aria-selected="' + (selected ? 'true' : 'false') + '">' +
                 '<span class="typology-grid-reference">' + escapeHtml(building.reference) + '</span>' +
-                '<span class="typology-grid-county">' + (building.countyId > 0 ? building.countyId : '') + '</span>' +
                 '</div>';
         }
 
@@ -287,16 +288,53 @@ const digiTypologyInspector = (function () {
 
     // ----- building card -----
 
+    // One row of the card's value list: the same typology-area-item shape the other rows use, so a
+    // per-level typology list reads like the rest of the card.
+    function typologyRow(label, value) {
+        return '<div class="typology-area-item">' +
+            '<dt class="typology-area-label typology-info-label">' + escapeHtml(label) + '</dt>' +
+            '<dd class="typology-area-value">' + escapeHtml(value) + '</dd>' +
+            '</div>';
+    }
+
+    // The card's typology block: one row per level of the building's path, the last (deepest) level last,
+    // the level's column name as the label and the corresponding node's name as the value - the same
+    // ancestor/level walk as fillInspector's breadcrumb. An unclassified building (no path) keeps the
+    // single "Not classified" value (issue #31).
+    function fillBuildingTypologyRows(path) {
+        const container = element('typology-building-typology');
+        if (container === null) {
+            return;
+        }
+
+        const node = path === null ? undefined : nodesByKey.get(pathKey(path));
+        if (node === undefined) {
+            container.innerHTML = typologyRow('Typology', common.unclassifiedName);
+            return;
+        }
+
+        const levels = definition !== null && Array.isArray(definition.levels) ? definition.levels : [];
+        const buildingPath = Array.isArray(path) ? path : [];
+        let html = '';
+        for (let depth = 1; depth <= buildingPath.length; depth++) {
+            const ancestor = nodesByKey.get(pathKey(buildingPath.slice(0, depth)));
+            const level = depth - 1 < levels.length ? levels[depth - 1] : null;
+            const label = level !== null && typeof level.name === 'string' ? level.name : 'Level ' + depth;
+            const value = ancestor !== undefined ? nodeName(ancestor) : '';
+            html += typologyRow(label, value);
+        }
+        container.innerHTML = html;
+    }
+
     function fillBuildingCard(reference, countyId, id, path) {
         const point = typeof digiTypologyMap !== 'undefined' ? digiTypologyMap.pointOf(reference, countyId) : null;
-        const node = path === null ? undefined : nodesByKey.get(pathKey(path));
 
         setText('typology-building-reference', reference);
         setText('typology-building-id', id > 0 ? String(id) : unknownText);
         setText('typology-building-county', countyId > 0 ? String(countyId) : unknownText);
         setText('typology-building-x', point !== null ? formatMetre(point.x) : unknownText);
         setText('typology-building-y', point !== null ? formatMetre(point.y) : unknownText);
-        setText('typology-building-typology', node === undefined ? common.unclassifiedName : nodeName(node));
+        fillBuildingTypologyRows(path);
 
         // The details page resolves the county part from the coordinates when the id is not carried; with
         // neither, the page could not find the building, so the link is not offered.
