@@ -189,6 +189,10 @@
             return;
         }
 
+        // The wire type (1-4), set before the fetches so the empty-dots line can name the cause for a
+        // Subdivision whose buildings are filed under the parts of its parent area.
+        digiTypologyMap.setAreaType(area.type);
+
         fetchJson(baseUrl() + '/administrativeareal2D/svg/polygonsbyid?id=' + area.id)
             .then(function (result) {
                 digiTypologyMap.setOutline(result.ok && Array.isArray(result.body) ? result.body : null);

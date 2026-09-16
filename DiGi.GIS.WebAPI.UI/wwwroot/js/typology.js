@@ -2256,10 +2256,9 @@ const digiTypology = (function () {
     const loadDefinitionStorageKey = 'digiTypology.definition';
 
     // AdministrativeArealType on the wire: 1 Voivodeship, 2 County, 3 Municipality, 4 Subdivision. The
-    // modal selects among the first three; a Subdivision match folds onto its parent municipality - the
-    // entry before it in the path, which shares its code, because a subdivision has no page of its own.
+    // modal selects among all four; a Subdivision loads its own area (the district), not the municipality
+    // or county before it in the path.
     const loadTypeNames = { 1: 'Voivodeship', 2: 'County', 3: 'Municipality', 4: 'Subdivision' };
-    const loadType_Subdivision = 4;
 
     let loadSearchTimer = null;
     let loadSearchController = null;
@@ -2413,19 +2412,11 @@ const digiTypology = (function () {
                 continue;
             }
 
-            // The path runs from the country down to the matched area, so the last entry is the match. A
-            // subdivision match folds onto the municipality before it - the row keeps its full breadcrumb
-            // so the typed name stays visible, but the redirect carries the municipality's context.
-            let target = references[references.length - 1];
-            if (target.AdministrativeArealType === loadType_Subdivision) {
-                if (references.length < 2) {
-                    continue;
-                }
-                target = references[references.length - 2];
-            }
-
-            const matched = references[references.length - 1];
-            const matchedTypeName = loadTypeNames[matched.AdministrativeArealType] || 'Area';
+            // The path runs from the country down to the matched area, so the last entry is the match - and it
+            // is the target: a Subdivision loads its own district, not the municipality or county before it in
+            // the path. The row keeps its full breadcrumb, and the redirect carries the subdivision's own id/code/type.
+            const target = references[references.length - 1];
+            const matchedTypeName = loadTypeNames[target.AdministrativeArealType] || 'Area';
 
             const breadcrumb =
                 '<span class="gis-path-breadcrumb">' +

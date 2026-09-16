@@ -50,6 +50,7 @@ const digiTypologyMap = (function () {
     let centroids = null;
     let centroidsByKey = new Map();
     let centroidsFailed = false;
+    let areaType = 0; // the wire type of the area (1-4): the empty-dots line names the cause only for a Subdivision (4)
     let nodesByKey = new Map();
     let buildingsByKey = new Map();
     let buildingsByReference = new Map();
@@ -480,11 +481,23 @@ const digiTypologyMap = (function () {
 
     // ----- data in (issue #27): the view owns the fetches; the map only receives the data it draws -----
 
+    // The area's wire type (1 Voivodeship, 2 County, 3 Municipality, 4 Subdivision); the view sets it before
+    // the fetches so the empty-dots line can name the cause for a Subdivision whose buildings are filed under
+    // the parts of its parent area (the centroid endpoint answers none for them).
+    function setAreaType(type) {
+        areaType = type | 0;
+    }
+
     function statusAfterCentroids() {
         if (centroidsFailed) {
             showStatus('Building positions are unavailable.');
         } else if (centroids !== null && centroids.length === 0) {
-            showStatus('The area has no buildings to draw.');
+            // A Subdivision's buildings are filed under the parts of its parent area, so the centroid endpoint
+            // (building_2d.subdivision_id membership) answers none - the solve still holds them, clipped to the
+            // district. Name the cause rather than reading as an empty area; other types keep the plain line.
+            showStatus(areaType === 4
+                ? 'The buildings of this subdivision are filed under the parts of its parent area, so no positions are drawn here - the tree and the inspector still hold them.'
+                : 'The area has no buildings to draw.');
         }
     }
 
@@ -554,6 +567,7 @@ const digiTypologyMap = (function () {
     return {
         setOutline: setOutline,
         resetView: resetView,
+        setAreaType: setAreaType,
         setCentroids: setCentroids,
         render: render,
         setSelection: setSelection,
