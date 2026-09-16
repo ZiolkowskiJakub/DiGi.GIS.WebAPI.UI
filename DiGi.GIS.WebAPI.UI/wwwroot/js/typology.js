@@ -378,9 +378,18 @@ const digiTypology = (function () {
     // the load is refused with a message instead of rendering the values.
     const uniqueValuesLimit = 100;
 
-    // The number of ranges a Load generates for a range rule: the 25/50/75 % quantiles of the area's
-    // buildings split their span into this many equal-count ranges (issue #30).
+    // The BASE number of ranges a Load generates for a range rule (issue #30). The count is adaptive
+    // (issue #34): a Load keeps splitting until every range holds fewer than generatedRangeMaxBuildings
+    // buildings, and never generates more than generatedRangeMaxCount ranges. The base is a floor, not a
+    // ceiling — the repair pass may raise the count above it (up to the cap) to clear the ceiling.
     const generatedRangeCount = 4;
+
+    // The per-range ceiling on building count and the total cap on the range count a Load generates
+    // (issue #34). The generated count is n = min( max( base, ceil( total / ceiling ) ), cap ) — so a
+    // Load stops as soon as the split can give every range fewer than generatedRangeMaxBuildings, and
+    // never generates more than generatedRangeMaxCount ranges.
+    const generatedRangeMaxBuildings = 500;
+    const generatedRangeMaxCount = 50;
 
     // "Load" of either editor: the Load Area modal picks the scope, and a chosen area loads at once.
     // A unique-value rule merges every answer into its rows as it arrives (capped at
@@ -455,9 +464,15 @@ const digiTypology = (function () {
                 return;
             }
             level.ranges = generated.ranges;
-            finish('Generated ' + generated.ranges.length + ' ranges from ' + generated.total + ' buildings (' +
-                displayValue(generated.min) + ' – ' + displayValue(generated.max) + ')' +
-                (missedCounties > 0 ? '; ' + missedCounties + ' counties answered nothing.' : '.'));
+            const messageParts = ['Generated ' + generated.ranges.length + ' ranges from ' + generated.total + ' buildings (' +
+                displayValue(generated.min) + ' – ' + displayValue(generated.max) + ')'];
+            if (generated.capped) {
+                messageParts.push(generatedRangeMaxCount + ' is the maximum — the ranges still hold more than ' + generatedRangeMaxBuildings + ' each');
+            }
+            if (missedCounties > 0) {
+                messageParts.push(missedCounties + ' counties answered nothing');
+            }
+            finish(messageParts.join('; ') + '.');
         }
 
         // One histogramsummary request per county part (issue #30); resolves to the bucket rows, or
@@ -777,13 +792,13 @@ const digiTypology = (function () {
             slope += entry.slope;
         }
 
-        // The first edge whose CDF reaches the level; when the level is crossed strictly inside the
-        // previous segment (positive slope), invert that segment exactly. A crossing reached only by a
-        // point-mass jump sits at the edge itself.
-        function quantile(fraction) {
-            const target = fraction * total;
+        // The first edge whose CDF reaches the absolute building level; when the level is crossed
+        // strictly inside the previous segment (positive slope), invert that segment exactly. A crossing
+        // reached only by a point-mass jump sits at the edge itself — a point mass is smeared into the
+        // preceding segment, the continuous piecewise-linear model the CDF is built from (issue #30).
+        function valueAtCDF(level) {
             for (let i = 0; i < edges.length; i++) {
-                if (cumulative[i] < target) {
+                if (cumulative[i] < level) {
                     continue;
                 }
                 if (i === 0) {
@@ -791,81 +806,182 @@ const digiTypology = (function () {
                 }
                 const span = edges[i] - edges[i - 1];
                 const rise = cumulative[i] - cumulative[i - 1];
-                if (span > 0 && rise > 0 && cumulative[i - 1] < target && cumulative[i] > target) {
-                    return edges[i - 1] + (target - cumulative[i - 1]) * (span / rise);
+                if (span > 0 && rise > 0 && cumulative[i - 1] < level && cumulative[i] > level) {
+                    return edges[i - 1] + (level - cumulative[i - 1]) * (span / rise);
                 }
                 return edges[i];
             }
             return edges[edges.length - 1];
         }
 
-        const rawBounds = [quantile(0.25), quantile(0.5), quantile(0.75)];
+        function quantile(fraction) {
+            return valueAtCDF(fraction * total);
+        }
+
+        // The forward of valueAtCDF: the piecewise-linear CDF — buildings with value <= v, the linear
+        // interpolation through the (edges, cumulative) points; 0 below the first edge, the total above
+        // the last. The exact forward of valueAtCDF, so the row counts and the repair-pass median below
+        // (issue #34) stay consistent with how the split placed its bounds.
+        function cdfAtValue(v) {
+            if (v < edges[0]) {
+                return 0;
+            }
+            if (v >= edges[edges.length - 1]) {
+                return total;
+            }
+            for (let i = 0; i < edges.length - 1; i++) {
+                if (v <= edges[i + 1]) {
+                    const span = edges[i + 1] - edges[i];
+                    if (span === 0) {
+                        return cumulative[i + 1];
+                    }
+                    return cumulative[i] + (v - edges[i]) * ((cumulative[i + 1] - cumulative[i]) / span);
+                }
+            }
+            return total;
+        }
+
+        // The adaptive count (issue #34): the least of the cap that still clears the per-range ceiling,
+        // with the base count as the floor — total <= base*ceiling keeps the base (4); the ceiling binds
+        // for base*ceiling < total <= cap*ceiling; the cap (50) binds for total > cap*ceiling.
+        const rangeCount = Math.min(
+            Math.max(generatedRangeCount, Math.ceil(total / generatedRangeMaxBuildings)),
+            generatedRangeMaxCount);
+
+        // rangeCount - 1 interior levels, evenly spaced across the CDF (issue #30 placed 25/50/75 % — the
+        // 3 levels of the base count of 4 — here generalised to i / n for i = 1 .. n - 1).
+        const rawBounds = [];
+        for (let i = 1; i < rangeCount; i++) {
+            rawBounds.push(quantile(i / rangeCount));
+        }
 
         let first;
         let last;
-        let interior;
         if (integer) {
             first = Math.round(min);
             last = Math.round(max);
-            interior = rawBounds.map(function (bound) {
-                return Math.min(Math.max(Math.round(bound), first + 1), last - 1);
-            });
         } else {
             first = floor2(min);
             last = ceil2(max);
-            // The readable bound for a raw quantile, given the bound kept before it: the nearest nice
-            // number when it stays in range, stays strictly above the previous bound, and moves the
-            // quantile by at most a fifth (a larger move would shift the share the range holds); the
-            // two-decimal value otherwise. Two quantiles that snap to the same nice number therefore
-            // keep their two ranges at their two-decimal values.
-            interior = [];
+        }
+
+        // Snap a sorted list of raw interior bounds to readable values, strictly increasing, each above
+        // the previous kept bound. Integer rules round to whole numbers clamped inside the span; double
+        // rules take the nearest nice number when it stays in range, stays strictly above the previous
+        // bound, and moves the bound by at most a fifth (a larger move would shift the share the range
+        // holds), the two-decimal value otherwise. A bound that lands on its neighbour is dropped — the
+        // same empty-row rule the old split used. Reused by the repair pass below (issue #34).
+        function snap(rawList) {
+            if (integer) {
+                return rawList.map(function (bound) {
+                    return Math.min(Math.max(Math.round(bound), first + 1), last - 1);
+                });
+            }
+            const snapped = [];
             let keptBound = first;
-            for (let i = 0; i < rawBounds.length; i++) {
-                const bound = rawBounds[i];
-                const snapped = nice(bound);
+            for (let i = 0; i < rawList.length; i++) {
+                const bound = rawList[i];
+                const niceBound = nice(bound);
                 let candidate;
-                if (bound > 0 && snapped > keptBound && snapped < last && Math.abs(snapped - bound) / bound <= 0.2) {
-                    candidate = snapped;
+                if (bound > 0 && niceBound > keptBound && niceBound < last && Math.abs(niceBound - bound) / bound <= 0.2) {
+                    candidate = niceBound;
                 } else {
                     const rounded = round2(bound);
                     candidate = (rounded > keptBound && rounded < last) ? rounded : Math.min(Math.max(rounded, first), last);
                 }
                 if (candidate > keptBound) {
-                    interior.push(candidate);
+                    snapped.push(candidate);
                     keptBound = candidate;
                 }
             }
+            return snapped;
         }
 
-        // Keep only the bounds that stay strictly increasing — a snapped or rounded bound that lands on
-        // its neighbour drops the range between them, the same empty-row rule the old split used.
-        const bounds = [first];
-        for (let i = 0; i < interior.length; i++) {
-            if (interior[i] > bounds[bounds.length - 1]) {
-                bounds.push(interior[i]);
-            }
-        }
-        if (last > bounds[bounds.length - 1]) {
-            bounds.push(last);
-        }
-
-        const ranges = [];
-        if (bounds.length === 1) {
-            // The span rounds to a single value; one closed row covers it.
-            ranges.push({ min: first, max: last, color: nextColor(0) });
-        } else {
-            for (let i = 0; i < bounds.length - 1; i++) {
-                const rangeMin = bounds[i];
-                const rangeMax = bounds[i + 1];
-                const isLast = i === bounds.length - 2;
-                // [min, max) holds nothing when the bounds coincide; the last row is [min, max] and may be a single value.
-                if (rangeMax > rangeMin || (isLast && rangeMax === rangeMin)) {
-                    ranges.push({ min: rangeMin, max: rangeMax, color: nextColor(ranges.length) });
+        // Keep only the strictly-increasing bounds and build the touching [min, max) rows (the last
+        // includes its Max — the DiGi.Typology boundary rule); a row whose bounds coincide is dropped,
+        // down to the single closed value [v, v]. Reused by the repair pass below (issue #34).
+        function toRows(snapped) {
+            const bounds = [first];
+            for (let i = 0; i < snapped.length; i++) {
+                if (snapped[i] > bounds[bounds.length - 1]) {
+                    bounds.push(snapped[i]);
                 }
             }
+            if (last > bounds[bounds.length - 1]) {
+                bounds.push(last);
+            }
+            const rows = [];
+            if (bounds.length === 1) {
+                // The span rounds to a single value; one closed row covers it.
+                rows.push({ min: first, max: last, color: nextColor(0) });
+            } else {
+                for (let i = 0; i < bounds.length - 1; i++) {
+                    const rangeMin = bounds[i];
+                    const rangeMax = bounds[i + 1];
+                    const isLast = i === bounds.length - 2;
+                    // [min, max) holds nothing when the bounds coincide; the last row is [min, max] and may be a single value.
+                    if (rangeMax > rangeMin || (isLast && rangeMax === rangeMin)) {
+                        rows.push({ min: rangeMin, max: rangeMax, color: nextColor(rows.length) });
+                    }
+                }
+            }
+            return rows;
         }
 
-        return { ranges: ranges, min: first, max: last, total: total };
+        // The adaptive count is a planning estimate: snapping moves a bound by up to a fifth of its value,
+        // so a range planned at <= the ceiling can land above it. The repair pass splits each offender at
+        // its CDF median and re-snaps, until every range holds fewer than generatedRangeMaxBuildings or
+        // is unsplittable or the cap is reached (issue #34; owner-confirmed: split on > the ceiling, the
+        // base count is a floor).
+        //
+        // Termination: an iteration is progress only when the surviving row count strictly increases
+        // (bounded by the cap); a split whose median snaps onto an existing bound nets no new row and is
+        // blocked by its bounds, never re-picked — so the point-mass and width-1 rows stop on first
+        // attempt. A hard iteration cap is a backstop against any thrash (monotone-insert is the
+        // documented fallback if the function-level harness shows one).
+        let raw = rawBounds;
+        const blocked = [];
+        let ranges = toRows(snap(raw));
+        let iterations = 0;
+        while (ranges.length < generatedRangeMaxCount && iterations < generatedRangeMaxCount * generatedRangeMaxCount) {
+            iterations++;
+            // The first row holding more than the ceiling that is not already blocked.
+            let offender = -1;
+            for (let r = 0; r < ranges.length; r++) {
+                if (blocked.indexOf(ranges[r].min + '|' + ranges[r].max) !== -1) {
+                    continue;
+                }
+                if (cdfAtValue(ranges[r].max) - cdfAtValue(ranges[r].min) > generatedRangeMaxBuildings) {
+                    offender = r;
+                    break;
+                }
+            }
+            if (offender === -1) {
+                break;
+            }
+            // Split at the CDF median — the value dividing the row's mass in half — and re-snap the whole set.
+            const median = valueAtCDF((cdfAtValue(ranges[offender].min) + cdfAtValue(ranges[offender].max)) / 2);
+            const nextRaw = raw.concat([median]).sort(function (a, b) { return a - b; });
+            const nextRanges = toRows(snap(nextRaw));
+            if (nextRanges.length > ranges.length) {
+                // Progress: the median survived as a new bound. Re-check every row next — a re-snap can
+                // move a neighbour above the ceiling.
+                raw = nextRaw;
+                ranges = nextRanges;
+            } else {
+                // No progress: the median snapped onto an existing bound (a point mass or a width-1/2 row).
+                // Block it so it is never re-picked.
+                blocked.push(ranges[offender].min + '|' + ranges[offender].max);
+            }
+        }
+
+        // The cap bound the split when the count reached it and a range still holds more than the
+        // ceiling — the message names that (issue #34, owner-confirmed condition).
+        const capped = ranges.length === generatedRangeMaxCount && ranges.some(function (range) {
+            return cdfAtValue(range.max) - cdfAtValue(range.min) > generatedRangeMaxBuildings;
+        });
+
+        return { ranges: ranges, min: first, max: last, total: total, capped: capped };
     }
 
     function abortUniqueValuesLoad() {
@@ -1077,7 +1193,7 @@ const digiTypology = (function () {
             '<ul id="typology-range-errors" class="gis-typology-errors" role="alert"></ul>' +
             '<p class="gis-typology-hint">Ascending, non-overlapping intervals' + (integer ? ' of whole numbers' : '') + '; a row may start where the previous one ends, and that value belongs to the later row — [min, max) for every row but the last, which includes its Max. ' +
             'Add files the new range by its Min, so a gap between two rows can be filled. ' +
-            'Load divides the buildings of an area into four such ranges by count — each holds a comparable share, so the outlier tail stops setting the split' + (integer ? '' : ', bounds on a 1/2/2.5/5 nice grid with a two-decimal fallback') + '. ' +
+            'Load divides the buildings of an area into as many such ranges as it takes so that each holds fewer than ' + generatedRangeMaxBuildings + ' buildings — up to ' + generatedRangeMaxCount + ' — each holding a comparable share, so the outlier tail stops setting the split' + (integer ? '' : ', bounds on a 1/2/2.5/5 nice grid with a two-decimal fallback') + '. ' +
             'Rows with no value in this column fall out of this level. For an open end use a sentinel (for years, 0 and 9999).</p>';
     }
 
