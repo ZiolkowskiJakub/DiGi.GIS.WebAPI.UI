@@ -1213,7 +1213,7 @@ const digiTypology = (function () {
             '<ul id="typology-range-errors" class="gis-typology-errors" role="alert"></ul>' +
             '<p class="gis-typology-hint">Ascending, non-overlapping intervals' + (integer ? ' of whole numbers' : '') + '; a row may start where the previous one ends, and that value belongs to the later row — [min, max) for every row but the last, which includes its Max. ' +
             'Add files the new range by its Min, so a gap between two rows can be filled. ' +
-            'Load divides the buildings of an area into the number of ranges set beside it, each holding about the same number of buildings (a municipality loads its whole county, a voivodeship every county in it); ' +
+            'Load divides the buildings of an area into the number of ranges set beside it, each holding about the same number of buildings (a municipality or subdivision loads its whole county, a voivodeship every county in it); ' +
             'bounds are rounded to readable' + (integer ? ' whole' : '') + ' numbers only as far as that keeps the shares, and a value that repeats too much to split yields fewer ranges. ' +
             'Rows with no value in this column fall out of this level. For an open end use a sentinel (for years, 0 and 9999).</p>';
     }
@@ -1243,7 +1243,7 @@ const digiTypology = (function () {
         return renderEditorActions(loading, level.uniqueValueColors.length === 0) +
             '<div class="gis-typology-values">' + rows + '</div>' +
             '<p class="gis-typology-hint">Each distinct value is its own bucket; a missing value is bucketed as (null). ' +
-            'Values load a county at a time — a municipality loads its whole county, a voivodeship every county in it.</p>';
+            'Values load a county at a time — a municipality or subdivision loads its whole county, a voivodeship every county in it.</p>';
     }
 
     // Refreshes the error list and the outlined boxes of the range editor in place — called after a
