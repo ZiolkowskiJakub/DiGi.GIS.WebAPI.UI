@@ -167,7 +167,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
         /// <summary>
         /// Relays the value distribution histogram of one building-data column for one county part, so the Column Properties Load splits the buildings of the chosen area into ranges of comparable size (issue #30).
-        /// <para>The upstream <c>gis/BuildingData/histogramsummary</c> takes its criteria in the body (POST) and filters by a single county part at a time, so the page asks per part and merges the answers — the same county-by-county pattern as <see cref="GetUniqueValuesAsync"/>. Each answer is the <c>{bucket, rangeStart, rangeEnd, count}</c> array the page inverts into the 25/50/75 % boundaries of the area's buildings. The bucket count is fixed to <see cref="Constants.Default.HistogramBucketCount"/> — it is the boundary resolution, and 1000 is the upstream cap. Every non-success collapses to 204 No Content the same way, so the page degrades rather than errors.</para>
+        /// <para>The upstream <c>gis/BuildingData/histogramsummary</c> takes its criteria in the body (POST) and filters by a single county part at a time, so the page asks per part and merges the answers — the same county-by-county pattern as <see cref="GetUniqueValuesAsync"/>. Each answer is the <c>{bucket, rangeStart, rangeEnd, count}</c> array the page inverts into the equal-count boundaries of the area's buildings. The bucket count is fixed to <see cref="Constants.Default.HistogramBucketCount"/> — it is the boundary resolution, and 1000 is the upstream cap — and the buckets are asked for as equal-count (<see cref="DiGi.PostgreSQL.Table.Enums.HistogramBucketing.EqualCount"/>, issue #37), so the resolution follows the buildings rather than a value span set by outliers; a host without ZiolkowskiJakub/DiGi.GIS.WebAPI#35 ignores that property and answers equal-width buckets, which the page still inverts. Every non-success collapses to 204 No Content the same way, so the page degrades rather than errors.</para>
         /// </summary>
         /// <param name="columnUniqueId">The unique identifier (slug) of the column, as listed by <see cref="GetColumnsAsync"/>.</param>
         /// <param name="countyId">The optional county part identifier scoping the histogram; absent asks for the whole table.</param>
@@ -190,7 +190,8 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             {
                 ColumnUniqueId = columnUniqueId,
                 CountyId = countyId,
-                BucketCount = Constants.Default.HistogramBucketCount
+                BucketCount = Constants.Default.HistogramBucketCount,
+                HistogramBucketing = DiGi.PostgreSQL.Table.Enums.HistogramBucketing.EqualCount
             };
 
             string? json = await httpClient.PostJsonAsync(Constants.Default.BuildingDataHistogramUri, parameter, cancellationToken);

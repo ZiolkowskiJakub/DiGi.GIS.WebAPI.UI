@@ -32,8 +32,8 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const string BuildingDataHistogramUri = GISWebAPIUri + "/gis/BuildingData/histogramsummary";
 
         /// <summary>
-        /// The number of equal-width buckets the histogram relay asks for; 1000 is the upstream cap and gives the Load's quantile boundaries a resolution of one part in a thousand buildings.
-        /// <para>The cost is the group count (at most 1000 rows back), not the row count — the partition scan behind a 4-bucket request already takes the measured 0.38 s, so the 1000-bucket request costs the same order (issue #30).</para>
+        /// The number of buckets the histogram relay asks for; 1000 is the upstream cap and, with the equal-count bucketing the relay asks for (issue #37), gives the Load's quantile boundaries a resolution of one part in a thousand of every county part's buildings whatever the value distribution.
+        /// <para>The cost is one sort of the part's values and at most 1000 rows back — the same order as the 0.38 s partition scan measured for the equal-width request (issue #30).</para>
         /// </summary>
         public const int HistogramBucketCount = 1000;
 

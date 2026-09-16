@@ -3007,6 +3007,21 @@ h1.gis-title-large {
         font-family: var(--font-sans);
     }
 
+    /* The range count a Load generates (typology #37): a short labelled number field at the end of the action row. */
+    .gis-typology-actions .gis-typology-range-count {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+        .gis-typology-actions .gis-typology-range-count input[type="number"] {
+            width: 64px;
+            margin: 0;
+        }
+
 /* Inline validation errors, announced as an alert; one line per offending row. */
 .gis-typology-errors {
     margin: 8px 0 0 0;

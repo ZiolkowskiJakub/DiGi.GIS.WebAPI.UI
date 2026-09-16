@@ -431,7 +431,7 @@ public object? Value { get; set; }
 
 The body the `histogramsummary` relay posts to the upstream `gis/BuildingData/histogramsummary` endpoint\.
 
-The property names are the wire contract: the upstream binds its own `HistogramRequestParameter` from the body, and `Query.PostJsonAsync` sends the declared names as-is (`JsonSerializerOptions.Default`), so nothing relies on the receiver binding names case-insensitively (see Coding - WebAPI Contracts, section 2). The upstream's `FilterGroup` is deliberately absent — the definition page never filters a histogram.
+The property names are the wire contract: the upstream binds its own `HistogramRequestParameter` from the body, and `Query.PostJsonAsync` sends the declared names as-is (`JsonSerializerOptions.Default`), so nothing relies on the receiver binding names case-insensitively (see Coding - WebAPI Contracts, section 2). The upstream's `FilterGroup` is deliberately absent — the definition page never filters a histogram (the county-part scope is #38).
 
 ```csharp
 public class TypologyHistogramParameter
@@ -444,7 +444,7 @@ Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system
 
 ## TypologyHistogramParameter\.BucketCount Property
 
-Gets or sets the number of equal\-width buckets; the relay fixes it to [HistogramBucketCount](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.HistogramBucketCount 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.HistogramBucketCount')\.
+Gets or sets the number of buckets; the relay fixes it to [HistogramBucketCount](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.HistogramBucketCount 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.HistogramBucketCount')\.
 
 ```csharp
 public int BucketCount { get; set; }
@@ -478,6 +478,19 @@ public System.Nullable<int> CountyId { get; set; }
 
 #### Property Value
 [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyHistogramParameter.HistogramBucketing'></a>
+
+## TypologyHistogramParameter\.HistogramBucketing Property
+
+Gets or sets the bucketing rule, sent as its integer value; the relay asks for [DiGi\.PostgreSQL\.Table\.Enums\.HistogramBucketing\.EqualCount](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.enums.histogrambucketing.equalcount 'DiGi\.PostgreSQL\.Table\.Enums\.HistogramBucketing\.EqualCount') \(issue \#37\), so every bucket holds the same number of buildings and the Load's quantile bounds follow the buildings rather than the value span\. A host without ZiolkowskiJakub/DiGi\.GIS\.WebAPI\#35 ignores the property and answers equal\-width buckets\.
+
+```csharp
+public DiGi.PostgreSQL.Table.Enums.HistogramBucketing HistogramBucketing { get; set; }
+```
+
+#### Property Value
+[DiGi\.PostgreSQL\.Table\.Enums\.HistogramBucketing](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.enums.histogrambucketing 'DiGi\.PostgreSQL\.Table\.Enums\.HistogramBucketing')
 
 <a name='DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter'></a>
 

@@ -7,7 +7,8 @@
  * inline validation, unique values loaded through the /typology/uniquevalues proxy, a colour per
  * bucket; #17 Import/Export — the page state posted to the server, which alone composes and parses
  * the DiGi document; #18 the Load modal — live administrative-area search and the redirect to the
- * stub view. One object rather than loose globals:
+ * stub view; #30/#37 the range Load — equal-count ranges from the area's histogram, the count the
+ * visitor's. One object rather than loose globals:
  * names such as import() or load() are too general to own at window scope (same reasoning as user.js).
  */
 const digiTypology = (function () {
@@ -250,6 +251,17 @@ const digiTypology = (function () {
         }
     }
 
+    // The range count the next Load generates (#37): a whole number clamped to the allowed span; a blank
+    // or unparseable field keeps the current count, so a half-typed value never resets it.
+    function setGeneratedRangeCount(rawValue) {
+        const trimmed = String(rawValue).trim();
+        const parsed = trimmed === '' ? NaN : Number(trimmed);
+        if (!Number.isFinite(parsed)) {
+            return;
+        }
+        generatedRangeCount = Math.min(Math.max(Math.round(parsed), generatedRangeCountMin), generatedRangeCountMax);
+    }
+
     // Validation of the intervals the solver walks by Min (ZiolkowskiJakub/DiGi.Gis#5 §4.5.3): both
     // bounds present (whole numbers on an integer rule), Min <= Max, and every row starting where or
     // after the previous valid row ends — a shared boundary is not an overlap, the solver hands it to
@@ -378,18 +390,20 @@ const digiTypology = (function () {
     // the load is refused with a message instead of rendering the values.
     const uniqueValuesLimit = 100;
 
-    // The BASE number of ranges a Load generates for a range rule (issue #30). The count is adaptive
-    // (issue #34): a Load keeps splitting until every range holds fewer than generatedRangeMaxBuildings
-    // buildings, and never generates more than generatedRangeMaxCount ranges. The base is a floor, not a
-    // ceiling — the repair pass may raise the count above it (up to the cap) to clear the ceiling.
-    const generatedRangeCount = 4;
+    // The number of ranges a Load generates for a range rule — the visitor's choice in the range editor
+    // (issue #37; #30 fixed it at 4, #34 grew it with the building count up to 50, which gave 50 uneven
+    // ranges on any county). A Load setting like the area, not part of the definition, so it is page
+    // state rather than level state and survives a level switch.
+    const generatedRangeCountDefault = 10;
+    const generatedRangeCountMin = 2;
+    const generatedRangeCountMax = 50;
+    let generatedRangeCount = generatedRangeCountDefault;
 
-    // The per-range ceiling on building count and the total cap on the range count a Load generates
-    // (issue #34). The generated count is n = min( max( base, ceil( total / ceiling ) ), cap ) — so a
-    // Load stops as soon as the split can give every range fewer than generatedRangeMaxBuildings, and
-    // never generates more than generatedRangeMaxCount ranges.
-    const generatedRangeMaxBuildings = 500;
-    const generatedRangeMaxCount = 50;
+    // The drift count-aware rounding accepts (issue #37): a rounded bound may move its position on the
+    // merged CDF by at most this fraction of one range's share — a tenth of a tenth is one percentage
+    // point of the buildings. A candidate that moves more is refused, so a readable bound never empties
+    // its neighbour the way the old value-relative snap (a fifth of the value) did.
+    const generatedRangeShareTolerance = 0.1;
 
     // "Load" of either editor: the Load Area modal picks the scope, and a chosen area loads at once.
     // A unique-value rule merges every answer into its rows as it arrives (capped at
@@ -458,7 +472,8 @@ const digiTypology = (function () {
         const collectedBuckets = [];
 
         function finishRanges(missedCounties) {
-            const generated = quantileRanges(collectedBuckets, level.ruleType === ruleType_IntegerRange);
+            const rangeCount = generatedRangeCount;
+            const generated = quantileRanges(collectedBuckets, level.ruleType === ruleType_IntegerRange, rangeCount);
             if (generated.ranges.length === 0) {
                 finish('No values returned.');
                 return;
@@ -466,8 +481,11 @@ const digiTypology = (function () {
             level.ranges = generated.ranges;
             const messageParts = ['Generated ' + generated.ranges.length + ' ranges from ' + generated.total + ' buildings (' +
                 displayValue(generated.min) + ' – ' + displayValue(generated.max) + ')'];
-            if (generated.capped) {
-                messageParts.push(generatedRangeMaxCount + ' is the maximum — the ranges still hold more than ' + generatedRangeMaxBuildings + ' each');
+            if (generated.ranges.length > 1) {
+                messageParts.push('each holds ' + displayShare(generated.shareMin) + ' – ' + displayShare(generated.shareMax) + ' of them');
+            }
+            if (generated.ranges.length < rangeCount) {
+                messageParts.push(rangeCount + ' were asked — the rest fell on the same bound, the values repeat too much to split further');
             }
             if (missedCounties > 0) {
                 messageParts.push(missedCounties + ' counties answered nothing');
@@ -663,24 +681,30 @@ const digiTypology = (function () {
     }
 
 
-    // Splits the area's buildings into generatedRangeCount ranges of comparable size (issue #30).
+    // Splits the area's buildings into rangeCount ranges of comparable size (issues #30, #37) — the
+    // cartographic "quantile" (equal count) classification.
     //
-    // The parts answered with their histograms — one {rangeStart, rangeEnd, count} row per equal-width
-    // bucket: the bucket's actual min/max and its building count. The parts' buckets sit on their own
-    // local min/max grids, so the rows are modelled as masses rather than summed by bucket index: a
-    // bucket is its count spread over [rangeStart, rangeEnd] (a point mass when they coincide —
-    // including the bucket 0 "overflow" row width_bucket files a part's max into). The sum is a
-    // piecewise-linear cumulative distribution, and the boundaries are the 25/50/75 % points of it,
-    // inverted exactly inside the segment that crosses the level — the same uniform-within-bucket
+    // The parts answered with their histograms — one {rangeStart, rangeEnd, count} row per bucket: the
+    // bucket's actual min/max and its building count. The relay asks for equal-COUNT buckets (ntile), so
+    // every bucket holds a thousandth of its part's buildings and the resolution follows the buildings
+    // rather than the value span (#37: equal-width buckets over a span set by outliers put 44 % of a
+    // county in one bucket, and every bound placed inside it was interpolation). The parts' buckets sit
+    // on their own grids, so the rows are modelled as masses rather than summed by bucket index: a bucket
+    // is its count spread over [rangeStart, rangeEnd] (a point mass when they coincide — a tie, or the
+    // overflow row width_bucket files a part's max into when an older host still answers equal width).
+    // The sum is a piecewise-linear cumulative distribution, and the boundaries are its i / rangeCount
+    // points, inverted exactly inside the segment that crosses the level — the same uniform-within-bucket
     // interpolation the histogram_quantile implementations use.
     //
-    // Then the rounding: double rules snap the interior bounds to the nearest 1/2/5 x 10^n (Heckbert's
-    // "nice numbers"), falling back to the two-decimal grid; integer rules round to whole numbers.
-    // The first Min floors and the last Max ceils the observed span, so every value is covered; the
-    // rows touch — [min, max) except the last, which includes its Max, the DiGi.Typology boundary rule;
-    // and a row that would be empty is dropped, so a narrow span or a sparse integer column yields
-    // fewer than generatedRangeCount rows, down to the single value [v, v].
-    function quantileRanges(buckets, integer) {
+    // Then the rounding, count-aware (#37): each interior bound takes the coarsest readable candidate
+    // (1/2/2.5/5 x 10^n, then one, two and three significant digits, then the two-decimal grid; whole
+    // numbers for integer rules) that stays strictly above the previous bound and moves the bound's
+    // position on the CDF by no more than generatedRangeShareTolerance of one range's share. The first
+    // Min floors and the last Max ceils the observed span, so every value is covered; the rows touch —
+    // [min, max) except the last, which includes its Max, the DiGi.Typology boundary rule; and a row that
+    // would be empty is dropped, so a narrow span or a column of repeating values (Storeys: half the
+    // buildings have one) yields fewer than rangeCount rows, down to the single value [v, v].
+    function quantileRanges(buckets, integer, rangeCount) {
         // Two decimals through a hundredth-scaled integer, with a hair of slack so a value already at two
         // decimals is not pushed a hundredth further by the floating-point product (72470.74 * 100 is not 7247074).
         function floor2(value) {
@@ -695,25 +719,51 @@ const digiTypology = (function () {
             return Math.round(value * 100) / 100;
         }
 
-        // The nearest of 1, 2, 2.5, 5 or 10 times a power of ten — the "nice numbers" a reader expects on
-        // a break or an axis (Heckbert's family, as refined by Wilkinson).
-        function nice(value) {
-            if (value <= 0) {
-                return Math.round(value);
+        // The readable candidates for a bound, coarsest first: the 1/2/2.5/5 x 10^n "nice numbers" a reader
+        // expects on a break or an axis (Heckbert's family, as refined by Wilkinson) at the value's own and
+        // the next lower magnitude, then the value at one, two and three significant digits, then the grid
+        // the rule lives on (whole numbers, or two decimals). Sorted by significant-digit count and, within
+        // a count, by distance from the value, so the first acceptable candidate is the most readable one.
+        // Integer rules keep whole numbers only.
+        function candidates(value) {
+            const fine = integer ? Math.round(value) : round2(value);
+            if (!(Math.abs(value) > 0)) {
+                return [fine];
             }
-            const magnitude = Math.pow(10, Math.floor(Math.log10(value)));
-            const fraction = value / magnitude;
-            const candidates = [1, 2, 2.5, 5, 10];
-            let best = candidates[0];
-            let bestDistance = Infinity;
-            for (let i = 0; i < candidates.length; i++) {
-                const distance = Math.abs(fraction - candidates[i]);
-                if (distance < bestDistance) {
-                    bestDistance = distance;
-                    best = candidates[i];
+            const sign = value < 0 ? -1 : 1;
+            const magnitude = Math.pow(10, Math.floor(Math.log10(Math.abs(value))));
+            const found = new Map();
+
+            function add(candidate) {
+                const normalised = integer ? Math.round(candidate) : round2(candidate);
+                if (Number.isFinite(normalised) && !found.has(normalised)) {
+                    found.set(normalised, significantDigits(normalised));
                 }
             }
-            return best * magnitude;
+
+            const niceFractions = [1, 2, 2.5, 5, 10];
+            for (let i = 0; i < niceFractions.length; i++) {
+                add(sign * niceFractions[i] * magnitude);
+                add(sign * niceFractions[i] * magnitude / 10);
+            }
+            for (let digits = 1; digits <= 3; digits++) {
+                add(Number(Math.abs(value).toPrecision(digits)) * sign);
+            }
+            add(0); // the most readable bound of all, for a level that sits near zero on a signed column
+            add(fine);
+
+            const list = Array.from(found.keys());
+            list.sort(function (a, b) {
+                const byDigits = found.get(a) - found.get(b);
+                return byDigits !== 0 ? byDigits : Math.abs(a - value) - Math.abs(b - value);
+            });
+            return list;
+        }
+
+        // The count of significant digits of a candidate — its readability: 100 has one, 120 two, 116 three, 0 none.
+        function significantDigits(value) {
+            const digits = Math.abs(value).toPrecision(12).replace('.', '').replace(/^0+/, '').replace(/0+$/, '');
+            return digits.length;
         }
 
         // One event per edge: the point-mass jump, and the slope delta — a spread bucket adds its
@@ -775,11 +825,13 @@ const digiTypology = (function () {
 
         // Sweep the edges in order: integrate the running slope over the previous segment, apply this
         // edge's point-mass jump, record the CDF, then apply the edge's slope delta for the next
-        // segment. The CDF is piecewise-linear with a break at every edge, ending at the total.
+        // segment. The CDF is piecewise-linear between the edges with a jump at every tie, ending at
+        // the total; jumps[i] is the mass sitting exactly at edges[i], and cumulative[i] includes it.
         const edges = Array.from(events.keys()).sort(function (a, b) {
             return a - b;
         });
         const cumulative = new Array(edges.length);
+        const jumps = new Array(edges.length);
         let running = 0;
         let slope = 0;
         for (let i = 0; i < edges.length; i++) {
@@ -789,13 +841,16 @@ const digiTypology = (function () {
             const entry = events.get(edges[i]);
             running += entry.jump;
             cumulative[i] = running;
+            jumps[i] = entry.jump;
             slope += entry.slope;
         }
 
         // The first edge whose CDF reaches the absolute building level; when the level is crossed
-        // strictly inside the previous segment (positive slope), invert that segment exactly. A crossing
-        // reached only by a point-mass jump sits at the edge itself — a point mass is smeared into the
-        // preceding segment, the continuous piecewise-linear model the CDF is built from (issue #30).
+        // strictly inside the sloped part of the previous segment, invert that segment exactly. A level
+        // reached only by the jump at an edge — a tie: the equal-count buckets of a repeating value are
+        // point masses — sits at the edge itself, so a bound placed there files the whole tie into the
+        // row starting at it (the [min, max) rule), not a made-up fraction of it (issue #37; #30 smeared
+        // a jump into the preceding segment, which put the bounds of a tied column short of the value).
         function valueAtCDF(level) {
             for (let i = 0; i < edges.length; i++) {
                 if (cumulative[i] < level) {
@@ -805,8 +860,8 @@ const digiTypology = (function () {
                     return edges[i];
                 }
                 const span = edges[i] - edges[i - 1];
-                const rise = cumulative[i] - cumulative[i - 1];
-                if (span > 0 && rise > 0 && cumulative[i - 1] < level && cumulative[i] > level) {
+                const rise = cumulative[i] - cumulative[i - 1] - jumps[i];
+                if (span > 0 && rise > 0 && cumulative[i - 1] < level && level < cumulative[i - 1] + rise) {
                     return edges[i - 1] + (level - cumulative[i - 1]) * (span / rise);
                 }
                 return edges[i];
@@ -818,38 +873,30 @@ const digiTypology = (function () {
             return valueAtCDF(fraction * total);
         }
 
-        // The forward of valueAtCDF: the piecewise-linear CDF — buildings with value <= v, the linear
-        // interpolation through the (edges, cumulative) points; 0 below the first edge, the total above
-        // the last. The exact forward of valueAtCDF, so the row counts and the repair-pass median below
-        // (issue #34) stay consistent with how the split placed its bounds.
-        function cdfAtValue(v) {
-            if (v < edges[0]) {
+        // The forward of valueAtCDF: the buildings with value strictly below v — the linear interpolation
+        // through the sloped part of the segment holding v, without the jump at v when v is an edge, so a
+        // bound at a tie counts the tie into the row starting there, as the [min, max) rule files it. 0 at
+        // or below the first edge, the total above the last. The exact forward of valueAtCDF, so the
+        // count-aware rounding and the reported shares stay consistent with how the split placed its bounds.
+        function countBelow(v) {
+            if (v <= edges[0]) {
                 return 0;
             }
-            if (v >= edges[edges.length - 1]) {
+            if (v > edges[edges.length - 1]) {
                 return total;
             }
             for (let i = 0; i < edges.length - 1; i++) {
                 if (v <= edges[i + 1]) {
                     const span = edges[i + 1] - edges[i];
-                    if (span === 0) {
-                        return cumulative[i + 1];
-                    }
-                    return cumulative[i] + (v - edges[i]) * ((cumulative[i + 1] - cumulative[i]) / span);
+                    const rise = cumulative[i + 1] - cumulative[i] - jumps[i + 1];
+                    return cumulative[i] + (v - edges[i]) * (rise / span);
                 }
             }
             return total;
         }
 
-        // The adaptive count (issue #34): the least of the cap that still clears the per-range ceiling,
-        // with the base count as the floor — total <= base*ceiling keeps the base (4); the ceiling binds
-        // for base*ceiling < total <= cap*ceiling; the cap (50) binds for total > cap*ceiling.
-        const rangeCount = Math.min(
-            Math.max(generatedRangeCount, Math.ceil(total / generatedRangeMaxBuildings)),
-            generatedRangeMaxCount);
-
-        // rangeCount - 1 interior levels, evenly spaced across the CDF (issue #30 placed 25/50/75 % — the
-        // 3 levels of the base count of 4 — here generalised to i / n for i = 1 .. n - 1).
+        // rangeCount - 1 interior levels, evenly spaced across the CDF: i / rangeCount for i = 1 .. rangeCount - 1
+        // (issue #30 placed 25/50/75 %; #37 makes the count the visitor's).
         const rawBounds = [];
         for (let i = 1; i < rangeCount; i++) {
             rawBounds.push(quantile(i / rangeCount));
@@ -865,123 +912,84 @@ const digiTypology = (function () {
             last = ceil2(max);
         }
 
-        // Snap a sorted list of raw interior bounds to readable values, strictly increasing, each above
-        // the previous kept bound. Integer rules round to whole numbers clamped inside the span; double
-        // rules take the nearest nice number when it stays in range, stays strictly above the previous
-        // bound, and moves the bound by at most a fifth (a larger move would shift the share the range
-        // holds), the two-decimal value otherwise. A bound that lands on its neighbour is dropped — the
-        // same empty-row rule the old split used. Reused by the repair pass below (issue #34).
-        function snap(rawList) {
-            if (integer) {
-                return rawList.map(function (bound) {
-                    return Math.min(Math.max(Math.round(bound), first + 1), last - 1);
-                });
-            }
-            const snapped = [];
-            let keptBound = first;
-            for (let i = 0; i < rawList.length; i++) {
-                const bound = rawList[i];
-                const niceBound = nice(bound);
-                let candidate;
-                if (bound > 0 && niceBound > keptBound && niceBound < last && Math.abs(niceBound - bound) / bound <= 0.2) {
-                    candidate = niceBound;
-                } else {
-                    const rounded = round2(bound);
-                    candidate = (rounded > keptBound && rounded < last) ? rounded : Math.min(Math.max(rounded, first), last);
-                }
-                if (candidate > keptBound) {
-                    snapped.push(candidate);
-                    keptBound = candidate;
-                }
-            }
-            return snapped;
-        }
+        // Count-aware rounding (#37): each interior bound, in order, takes the coarsest of its candidates
+        // that stays strictly above the previous kept bound and below the last, and whose position on the
+        // CDF is within the tolerance of the level the bound stands for — so a readable number is taken
+        // only when it keeps the share, and the two-decimal (or whole-number) value otherwise. A bound
+        // whose every candidate collides with its neighbour is dropped: the level falls inside a run of
+        // one repeated value (a tie), and the rows on either side of it are the same row.
+        const tolerance = generatedRangeShareTolerance * total / rangeCount;
 
-        // Keep only the strictly-increasing bounds and build the touching [min, max) rows (the last
-        // includes its Max — the DiGi.Typology boundary rule); a row whose bounds coincide is dropped,
-        // down to the single closed value [v, v]. Reused by the repair pass below (issue #34).
-        function toRows(snapped) {
-            const bounds = [first];
-            for (let i = 0; i < snapped.length; i++) {
-                if (snapped[i] > bounds[bounds.length - 1]) {
-                    bounds.push(snapped[i]);
-                }
-            }
-            if (last > bounds[bounds.length - 1]) {
-                bounds.push(last);
-            }
-            const rows = [];
-            if (bounds.length === 1) {
-                // The span rounds to a single value; one closed row covers it.
-                rows.push({ min: first, max: last, color: nextColor(0) });
-            } else {
-                for (let i = 0; i < bounds.length - 1; i++) {
-                    const rangeMin = bounds[i];
-                    const rangeMax = bounds[i + 1];
-                    const isLast = i === bounds.length - 2;
-                    // [min, max) holds nothing when the bounds coincide; the last row is [min, max] and may be a single value.
-                    if (rangeMax > rangeMin || (isLast && rangeMax === rangeMin)) {
-                        rows.push({ min: rangeMin, max: rangeMax, color: nextColor(rows.length) });
-                    }
-                }
-            }
-            return rows;
-        }
-
-        // The adaptive count is a planning estimate: snapping moves a bound by up to a fifth of its value,
-        // so a range planned at <= the ceiling can land above it. The repair pass splits each offender at
-        // its CDF median and re-snaps, until every range holds fewer than generatedRangeMaxBuildings or
-        // is unsplittable or the cap is reached (issue #34; owner-confirmed: split on > the ceiling, the
-        // base count is a floor).
-        //
-        // Termination: an iteration is progress only when the surviving row count strictly increases
-        // (bounded by the cap); a split whose median snaps onto an existing bound nets no new row and is
-        // blocked by its bounds, never re-picked — so the point-mass and width-1 rows stop on first
-        // attempt. A hard iteration cap is a backstop against any thrash (monotone-insert is the
-        // documented fallback if the function-level harness shows one).
-        let raw = rawBounds;
-        const blocked = [];
-        let ranges = toRows(snap(raw));
-        let iterations = 0;
-        while (ranges.length < generatedRangeMaxCount && iterations < generatedRangeMaxCount * generatedRangeMaxCount) {
-            iterations++;
-            // The first row holding more than the ceiling that is not already blocked.
-            let offender = -1;
-            for (let r = 0; r < ranges.length; r++) {
-                if (blocked.indexOf(ranges[r].min + '|' + ranges[r].max) !== -1) {
+        const snapped = [];
+        let keptBound = first;
+        for (let i = 0; i < rawBounds.length; i++) {
+            const bound = rawBounds[i];
+            const level = (i + 1) / rangeCount * total;
+            const list = candidates(bound);
+            let chosen = null;
+            for (let c = 0; c < list.length; c++) {
+                const candidate = list[c];
+                if (candidate <= keptBound || candidate >= last) {
                     continue;
                 }
-                if (cdfAtValue(ranges[r].max) - cdfAtValue(ranges[r].min) > generatedRangeMaxBuildings) {
-                    offender = r;
+                if (Math.abs(countBelow(candidate) - level) <= tolerance) {
+                    chosen = candidate;
                     break;
                 }
             }
-            if (offender === -1) {
-                break;
+            if (chosen === null) {
+                // No readable candidate keeps the share; the bound on the rule's own grid (a whole number, or
+                // two decimals) is as exact as the rule allows and is kept when it still fits between its
+                // neighbours — a tie collapses it onto the previous bound, and the row is dropped.
+                const fine = integer ? Math.round(bound) : round2(bound);
+                if (fine > keptBound && fine < last) {
+                    chosen = fine;
+                }
             }
-            // Split at the CDF median — the value dividing the row's mass in half — and re-snap the whole set.
-            const median = valueAtCDF((cdfAtValue(ranges[offender].min) + cdfAtValue(ranges[offender].max)) / 2);
-            const nextRaw = raw.concat([median]).sort(function (a, b) { return a - b; });
-            const nextRanges = toRows(snap(nextRaw));
-            if (nextRanges.length > ranges.length) {
-                // Progress: the median survived as a new bound. Re-check every row next — a re-snap can
-                // move a neighbour above the ceiling.
-                raw = nextRaw;
-                ranges = nextRanges;
-            } else {
-                // No progress: the median snapped onto an existing bound (a point mass or a width-1/2 row).
-                // Block it so it is never re-picked.
-                blocked.push(ranges[offender].min + '|' + ranges[offender].max);
+            if (chosen !== null) {
+                snapped.push(chosen);
+                keptBound = chosen;
             }
         }
 
-        // The cap bound the split when the count reached it and a range still holds more than the
-        // ceiling — the message names that (issue #34, owner-confirmed condition).
-        const capped = ranges.length === generatedRangeMaxCount && ranges.some(function (range) {
-            return cdfAtValue(range.max) - cdfAtValue(range.min) > generatedRangeMaxBuildings;
-        });
+        // Build the touching [min, max) rows (the last includes its Max — the DiGi.Typology boundary
+        // rule); the bounds are strictly increasing by construction, and a span that rounds to a single
+        // value is one closed row [v, v].
+        const bounds = [first];
+        for (let i = 0; i < snapped.length; i++) {
+            bounds.push(snapped[i]);
+        }
+        if (last > bounds[bounds.length - 1]) {
+            bounds.push(last);
+        }
 
-        return { ranges: ranges, min: first, max: last, total: total, capped: capped };
+        const ranges = [];
+        let shareMin = 1;
+        let shareMax = 0;
+        if (bounds.length === 1) {
+            ranges.push({ min: first, max: last, color: nextColor(0) });
+            shareMin = 1;
+            shareMax = 1;
+        } else {
+            for (let i = 0; i < bounds.length - 1; i++) {
+                const rangeMin = bounds[i];
+                const rangeMax = bounds[i + 1];
+                ranges.push({ min: rangeMin, max: rangeMax, color: nextColor(ranges.length) });
+                // The share the row holds on the same CDF the split was placed on — [min, max) for every row
+                // but the last, which includes its Max — so the message names the spread and the visitor sees
+                // at once when a tie or a coarse bound has skewed a row.
+                const isLast = i === bounds.length - 2;
+                const share = ((isLast ? total : countBelow(rangeMax)) - countBelow(rangeMin)) / total;
+                if (share < shareMin) {
+                    shareMin = share;
+                }
+                if (share > shareMax) {
+                    shareMax = share;
+                }
+            }
+        }
+
+        return { ranges: ranges, min: first, max: last, total: total, shareMin: shareMin, shareMax: shareMax };
     }
 
     function abortUniqueValuesLoad() {
@@ -1149,13 +1157,25 @@ const digiTypology = (function () {
     // The chrome both editors share: the Add / Load / Clear row — the same three actions in the same
     // order for both rule kinds, so switching a level's kind never moves the buttons under the pointer.
     // Add and Load wait out a running load; Clear waits out an empty list. Load picks its area in the
-    // Load Area modal every time, so no scope line is shown.
-    function renderEditorActions(loading, listEmpty) {
+    // Load Area modal every time, so no scope line is shown. The range editor adds its Load setting —
+    // the number of ranges to generate (#37) — after the buttons; the unique-value editor has none.
+    function renderEditorActions(loading, listEmpty, settings) {
         return '<div class="gis-typology-actions">' +
             '<button type="button" class="gis-button" data-action="add"' + (loading ? ' disabled' : '') + '>Add</button>' +
             '<button type="button" class="gis-button" data-action="load"' + (loading ? ' disabled' : '') + '>Load</button>' +
             '<button type="button" class="gis-button gis-button-secondary" data-action="clear"' + (listEmpty ? ' disabled' : '') + '>Clear</button>' +
+            (settings || '') +
             '</div>';
+    }
+
+    // The range count a Load generates: a short number field on the action row, page state rather than
+    // level state (a Load setting like the area), clamped to generatedRangeCountMin..Max on input.
+    function renderRangeCountField(loading) {
+        return '<label class="gis-typology-range-count" title="How many ranges Load generates, each holding about the same number of buildings">' +
+            '<span>Ranges</span>' +
+            '<input type="number" data-field="generatedRangeCount" min="' + generatedRangeCountMin + '" max="' + generatedRangeCountMax + '" step="1" value="' + generatedRangeCount + '"' +
+            (loading ? ' disabled' : '') + ' aria-label="Number of ranges Load generates" />' +
+            '</label>';
     }
 
     function renderLoading() {
@@ -1188,12 +1208,13 @@ const digiTypology = (function () {
             }
         }
 
-        return renderEditorActions(loading, level.ranges.length === 0) +
+        return renderEditorActions(loading, level.ranges.length === 0, renderRangeCountField(loading)) +
             '<div class="gis-typology-ranges" aria-describedby="typology-range-errors">' + rows + '</div>' +
             '<ul id="typology-range-errors" class="gis-typology-errors" role="alert"></ul>' +
             '<p class="gis-typology-hint">Ascending, non-overlapping intervals' + (integer ? ' of whole numbers' : '') + '; a row may start where the previous one ends, and that value belongs to the later row — [min, max) for every row but the last, which includes its Max. ' +
             'Add files the new range by its Min, so a gap between two rows can be filled. ' +
-            'Load divides the buildings of an area into as many such ranges as it takes so that each holds fewer than ' + generatedRangeMaxBuildings + ' buildings — up to ' + generatedRangeMaxCount + ' — each holding a comparable share, so the outlier tail stops setting the split' + (integer ? '' : ', bounds on a 1/2/2.5/5 nice grid with a two-decimal fallback') + '. ' +
+            'Load divides the buildings of an area into the number of ranges set beside it, each holding about the same number of buildings (a municipality loads its whole county, a voivodeship every county in it); ' +
+            'bounds are rounded to readable' + (integer ? ' whole' : '') + ' numbers only as far as that keeps the shares, and a value that repeats too much to split yields fewer ranges. ' +
             'Rows with no value in this column fall out of this level. For an open end use a sentinel (for years, 0 and 9999).</p>';
     }
 
@@ -1263,6 +1284,11 @@ const digiTypology = (function () {
             return JSON.stringify(value);
         }
         return String(value);
+    }
+
+    // A share of the buildings as a percentage with one decimal ("8.9 %").
+    function displayShare(fraction) {
+        return (Math.round(fraction * 1000) / 10).toFixed(1) + ' %';
     }
 
     function showLoader(container) {
@@ -1546,6 +1572,8 @@ const digiTypology = (function () {
                 setRangeBound(level, rowIndex(target), field, target.value);
             } else if (field === 'color') {
                 setRowColor(level, target); // live preview while the native picker is open; change commits the same value
+            } else if (field === 'generatedRangeCount') {
+                setGeneratedRangeCount(target.value); // a Load setting, read at the next Load; no re-render, the field shows it
             }
         });
 
