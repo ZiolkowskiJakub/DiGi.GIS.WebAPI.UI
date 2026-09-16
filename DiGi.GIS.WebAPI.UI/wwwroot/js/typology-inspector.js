@@ -297,8 +297,15 @@ const digiTypologyInspector = (function () {
             '</div>';
     }
 
+    // The DTO's node names read "column + rule" (e.g. 'Floor area [0, 50)'); the card's row already
+    // carries the column as its label, so the value drops a leading "column " and keeps the rule text
+    // alone. A name that does not start with the label is kept whole.
+    function valueName(name, label) {
+        return name.indexOf(label + ' ') === 0 ? name.slice(label.length + 1) : name;
+    }
+
     // The card's typology block: one row per level of the building's path, the last (deepest) level last,
-    // the level's column name as the label and the corresponding node's name as the value - the same
+    // the level's column name as the label and the corresponding node's rule text as the value - the same
     // ancestor/level walk as fillInspector's breadcrumb. An unclassified building (no path) keeps the
     // single "Not classified" value (issue #31).
     function fillBuildingTypologyRows(path) {
@@ -320,7 +327,7 @@ const digiTypologyInspector = (function () {
             const ancestor = nodesByKey.get(pathKey(buildingPath.slice(0, depth)));
             const level = depth - 1 < levels.length ? levels[depth - 1] : null;
             const label = level !== null && typeof level.name === 'string' ? level.name : 'Level ' + depth;
-            const value = ancestor !== undefined ? nodeName(ancestor) : '';
+            const value = ancestor !== undefined ? valueName(nodeName(ancestor), label) : '';
             html += typologyRow(label, value);
         }
         container.innerHTML = html;

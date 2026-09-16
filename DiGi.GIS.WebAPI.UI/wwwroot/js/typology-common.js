@@ -26,7 +26,10 @@ const digiTypologyCommon = (function () {
         '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', '#393b79', '#e7ba52'
     ];
 
-    const rootName = 'Whole area';
+    // The root group's display name. 'Whole area' is the fallback; the view names it after the
+    // definition's first column (setRootName), so the tree's top group reads as what its children
+    // classify - e.g. 'Floor area', not 'Whole area'.
+    let rootName = 'Whole area';
     const unclassifiedName = 'Not classified';
     // The neutral colour of a building the typology could not classify, and of the pie's remainder slice.
     const unclassifiedColor = '#9e9e9e';
@@ -53,6 +56,14 @@ const digiTypologyCommon = (function () {
 
     function buildingKey(reference, countyId) {
         return String(reference) + '|' + String(countyId);
+    }
+
+    // Names the root group after the definition's first column; a non-string or empty name keeps the
+    // 'Whole area' fallback.
+    function setRootName(name) {
+        if (typeof name === 'string' && name.trim() !== '') {
+            rootName = name.trim();
+        }
     }
 
     // The root's key is empty and every key is under it; a bucket's key prefixes its descendants'. The dot
@@ -113,7 +124,7 @@ const digiTypologyCommon = (function () {
     }
 
     return {
-        rootName: rootName,
+        setRootName: setRootName,
         unclassifiedName: unclassifiedName,
         unclassifiedColor: unclassifiedColor,
         selectionEventName: selectionEventName,

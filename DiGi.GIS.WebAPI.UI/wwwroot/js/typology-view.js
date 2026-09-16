@@ -37,6 +37,12 @@
         definition = null;
     }
 
+    // The tree's root group carries the first column's name, so the group reads as what its children
+    // classify (e.g. 'Floor area') instead of the generic 'Whole area' fallback.
+    if (definition !== null) {
+        common.setRootName(definition.levels[0].name);
+    }
+
     let activePath = null;
     let modalOpen = false;
     let errorModal = null;
