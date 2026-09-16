@@ -118,9 +118,16 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const double StoreyHeight = 3.0;
 
         /// <summary>
-        /// The buffer distance in meters added to spatial terrain queries to guarantee the retrieved elevation lattice spans the target geometric boundary before regular clipping.
+        /// The clip margin in metres added to a terrain query beyond the boundary the surface is clipped to, so that the clipping never runs along the very edge of the surface.
+        /// <para>This covers the clip only. The distance the surface can stop short of the query radius on a coarse lattice is a separate term - see <see cref="TerrainLatticeStepMax"/> - and <see cref="Query.TerrainQueryCircle(Geometry.Planar.Classes.Circle2D?, double, double, double)"/> adds both.</para>
         /// </summary>
         public const double TerrainBuffer = 15.0;
+
+        /// <summary>
+        /// The coarsest lattice, in metres, the counties' elevation points are sampled on (10 m to 100 m - see <see cref="TerrainEnabled"/>).
+        /// <para>The terrain service triangulates only the stored points inside the query circle, so the surface it answers stops short of the query radius by up to one lattice diagonal: a point lies inside the returned surface once all four corners of its lattice cell are inside the query, and the farthest corner is <c>step * sqrt(2)</c> away. Growing a query by <c>TerrainLatticeStepMax * sqrt(2)</c> beyond the display boundary therefore guarantees the boundary is covered on any lattice up to this step, and it is deliberately the worst case rather than the county's own step so that no scene depends on knowing which county it is in. Measured on the deployed 100 m lattice the shortfall reaches 101 m; the bound is 141.4 m.</para>
+        /// </summary>
+        public const double TerrainLatticeStepMax = 100.0;
 
         /// <summary>
         /// The number of segments used to discretize a circular boundary into a regular 2D polygon during terrain clipping.

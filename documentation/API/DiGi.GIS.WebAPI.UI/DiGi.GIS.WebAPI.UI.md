@@ -354,7 +354,7 @@ An optional tolerance for the spatial query, in metres\. When omitted the terrai
 
 `buffer` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
-The query buffer in meters added to the search area to ensure complete boundary coverage before regular geometric clipping\.
+The clip margin in metres added to the query beyond the display boundary\. The query is additionally grown by one worst case lattice diagonal \- see [TerrainQueryCircle\(this Circle2D, double, double, double\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TerrainQueryCircle(thisDiGi.Geometry.Planar.Classes.Circle2D,double,double,double) 'DiGi\.GIS\.WebAPI\.UI\.Query\.TerrainQueryCircle\(this DiGi\.Geometry\.Planar\.Classes\.Circle2D, double, double, double\)') \- so that the surface the service answers contains the display boundary before it is clipped\.
 
 <a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.BoundingBox2D,string,System.Nullable_double_,double,System.Threading.CancellationToken).cancellationToken'></a>
 
@@ -405,7 +405,7 @@ An optional tolerance for the spatial query, in metres\. When omitted the terrai
 
 `buffer` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
-The query buffer in meters added to the search area to ensure complete boundary coverage before regular geometric clipping\.
+The clip margin in metres added to the query beyond the display boundary\. The query is additionally grown by one worst case lattice diagonal \- see [TerrainQueryCircle\(this Circle2D, double, double, double\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TerrainQueryCircle(thisDiGi.Geometry.Planar.Classes.Circle2D,double,double,double) 'DiGi\.GIS\.WebAPI\.UI\.Query\.TerrainQueryCircle\(this DiGi\.Geometry\.Planar\.Classes\.Circle2D, double, double, double\)') \- so that the surface the service answers contains the display boundary before it is clipped\.
 
 <a name='DiGi.GIS.WebAPI.UI.Create.TerrainGLTFNodeAsync(thisSystem.Net.Http.HttpClient,DiGi.Geometry.Planar.Classes.Circle2D,string,System.Nullable_double_,double,System.Threading.CancellationToken).cancellationToken'></a>
 
@@ -1785,6 +1785,82 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The response body, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there is none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainQueryBoundingBox(thisDiGi.Geometry.Planar.Classes.BoundingBox2D,double,double)'></a>
+
+## Query\.TerrainQueryBoundingBox\(this BoundingBox2D, double, double\) Method
+
+Sizes the axis aligned rectangle to ask the GIS Web API terrain service for so that the surface it answers contains the given display rectangle\.
+
+Every side is moved outwards by the clip [buffer](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TerrainQueryBoundingBox(thisDiGi.Geometry.Planar.Classes.BoundingBox2D,double,double).buffer 'DiGi\.GIS\.WebAPI\.UI\.Query\.TerrainQueryBoundingBox\(this DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D, double, double\)\.buffer') plus one lattice diagonal of the coarsest lattice in use, for the reason given on [TerrainQueryCircle\(this Circle2D, double, double, double\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TerrainQueryCircle(thisDiGi.Geometry.Planar.Classes.Circle2D,double,double,double) 'DiGi\.GIS\.WebAPI\.UI\.Query\.TerrainQueryCircle\(this DiGi\.Geometry\.Planar\.Classes\.Circle2D, double, double, double\)'). The ceiling on how large an area may be requested belongs to the terrain service and is not applied here.
+
+```csharp
+public static DiGi.Geometry.Planar.Classes.BoundingBox2D? TerrainQueryBoundingBox(this DiGi.Geometry.Planar.Classes.BoundingBox2D? boundingBox2D, double buffer=15.0, double latticeStep=100.0);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainQueryBoundingBox(thisDiGi.Geometry.Planar.Classes.BoundingBox2D,double,double).boundingBox2D'></a>
+
+`boundingBox2D` [DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')
+
+The rectangle the surface is displayed and clipped to, in PL\-1992 \(EPSG:2180\) metres\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainQueryBoundingBox(thisDiGi.Geometry.Planar.Classes.BoundingBox2D,double,double).buffer'></a>
+
+`buffer` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The clip margin in metres added beyond the display boundary\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainQueryBoundingBox(thisDiGi.Geometry.Planar.Classes.BoundingBox2D,double,double).latticeStep'></a>
+
+`latticeStep` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The coarsest lattice step in metres the stored elevation points may be sampled on; the query grows by its diagonal\.
+
+#### Returns
+[DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.boundingbox2d 'DiGi\.Geometry\.Planar\.Classes\.BoundingBox2D')  
+The rectangle to request, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the display rectangle cannot be requested\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainQueryCircle(thisDiGi.Geometry.Planar.Classes.Circle2D,double,double,double)'></a>
+
+## Query\.TerrainQueryCircle\(this Circle2D, double, double, double\) Method
+
+Sizes the circle to ask the GIS Web API terrain service for so that the surface it answers contains the given display circle\.
+
+The service triangulates only the stored lattice points inside the query circle, so its surface stops short of the query radius by up to one lattice diagonal (see [TerrainLatticeStepMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.TerrainLatticeStepMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.TerrainLatticeStepMax')). The query is therefore grown by that diagonal for the coarsest lattice in use, plus the clip [buffer](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TerrainQueryCircle(thisDiGi.Geometry.Planar.Classes.Circle2D,double,double,double).buffer 'DiGi\.GIS\.WebAPI\.UI\.Query\.TerrainQueryCircle\(this DiGi\.Geometry\.Planar\.Classes\.Circle2D, double, double, double\)\.buffer'), and the result is guaranteed to cover the display circle whenever [maximumRadius](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TerrainQueryCircle(thisDiGi.Geometry.Planar.Classes.Circle2D,double,double,double).maximumRadius 'DiGi\.GIS\.WebAPI\.UI\.Query\.TerrainQueryCircle\(this DiGi\.Geometry\.Planar\.Classes\.Circle2D, double, double, double\)\.maximumRadius') leaves room for the full extension. Where it does not - a display circle within the extension of the service's cap - the query is as large as the service admits, which is still the larger of the two sides to err on.
+
+```csharp
+public static DiGi.Geometry.Planar.Classes.Circle2D? TerrainQueryCircle(this DiGi.Geometry.Planar.Classes.Circle2D? circle2D, double buffer=15.0, double latticeStep=100.0, double maximumRadius=2000.0);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainQueryCircle(thisDiGi.Geometry.Planar.Classes.Circle2D,double,double,double).circle2D'></a>
+
+`circle2D` [DiGi\.Geometry\.Planar\.Classes\.Circle2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.circle2d 'DiGi\.Geometry\.Planar\.Classes\.Circle2D')
+
+The circle the surface is displayed and clipped to, in PL\-1992 \(EPSG:2180\) metres\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainQueryCircle(thisDiGi.Geometry.Planar.Classes.Circle2D,double,double,double).buffer'></a>
+
+`buffer` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The clip margin in metres added beyond the display boundary\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainQueryCircle(thisDiGi.Geometry.Planar.Classes.Circle2D,double,double,double).latticeStep'></a>
+
+`latticeStep` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The coarsest lattice step in metres the stored elevation points may be sampled on; the query grows by its diagonal\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.TerrainQueryCircle(thisDiGi.Geometry.Planar.Classes.Circle2D,double,double,double).maximumRadius'></a>
+
+`maximumRadius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The largest radius the terrain service accepts; both the display radius and the query radius are capped by it\.
+
+#### Returns
+[DiGi\.Geometry\.Planar\.Classes\.Circle2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.circle2d 'DiGi\.Geometry\.Planar\.Classes\.Circle2D')  
+The circle to request, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the display circle cannot be requested\.
 
 <a name='DiGi.GIS.WebAPI.UI.Query.TerrainRequestUri(thisDiGi.Geometry.Planar.Classes.BoundingBox2D,System.Nullable_double_)'></a>
 

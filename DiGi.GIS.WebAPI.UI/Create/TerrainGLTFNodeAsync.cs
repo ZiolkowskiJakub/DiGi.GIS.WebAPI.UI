@@ -44,7 +44,7 @@ namespace DiGi.GIS.WebAPI.UI
         /// <param name="circle2D">The area to show the terrain surface of, in PL-1992 (EPSG:2180) metres. This value can be null.</param>
         /// <param name="name">The name given to the node. This value can be null.</param>
         /// <param name="tolerance">An optional tolerance for the spatial query, in metres. When omitted the terrain service applies its own default.</param>
-        /// <param name="buffer">The query buffer in meters added to the search area to ensure complete boundary coverage before regular geometric clipping.</param>
+        /// <param name="buffer">The clip margin in metres added to the query beyond the display boundary. The query is additionally grown by one worst case lattice diagonal - see <see cref="Query.TerrainQueryCircle(Circle2D?, double, double, double)"/> - so that the surface the service answers contains the display boundary before it is clipped.</param>
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
         /// <returns>The terrain node with a regular circular boundary, or <see langword="null"/> when the area has no surface to show.</returns>
         public static async Task<GLTFNode?> TerrainGLTFNodeAsync(this HttpClient? httpClient, Circle2D? circle2D, string? name = null, double? tolerance = null, double buffer = Constants.Default.TerrainBuffer, CancellationToken cancellationToken = default)
@@ -54,9 +54,11 @@ namespace DiGi.GIS.WebAPI.UI
                 return null;
             }
 
-            double radius_Clamped = System.Math.Min(circle2D.Radius, Constants.Default.TerrainRadiusMax);
-            double buffer_Effective = System.Math.Min(buffer, System.Math.Max(0, Constants.Default.TerrainRadiusMax - radius_Clamped));
-            Circle2D circle2D_Query = buffer_Effective > 0 ? new Circle2D(circle2D.Center, radius_Clamped + buffer_Effective) : new Circle2D(circle2D.Center, radius_Clamped);
+            Circle2D? circle2D_Query = circle2D.TerrainQueryCircle(buffer);
+            if (circle2D_Query is null)
+            {
+                return null;
+            }
 
             GLTFNode? gLTFNode = await httpClient.TerrainGLTFNodeAsync(circle2D_Query.TerrainRequestUri(tolerance), name, cancellationToken);
             if (gLTFNode is null)
@@ -80,7 +82,7 @@ namespace DiGi.GIS.WebAPI.UI
         /// <param name="boundingBox2D">The area to show the terrain surface of, in PL-1992 (EPSG:2180) metres. This value can be null.</param>
         /// <param name="name">The name given to the node. This value can be null.</param>
         /// <param name="tolerance">An optional tolerance for the spatial query, in metres. When omitted the terrain service applies its own default.</param>
-        /// <param name="buffer">The query buffer in meters added to the search area to ensure complete boundary coverage before regular geometric clipping.</param>
+        /// <param name="buffer">The clip margin in metres added to the query beyond the display boundary. The query is additionally grown by one worst case lattice diagonal - see <see cref="Query.TerrainQueryCircle(Circle2D?, double, double, double)"/> - so that the surface the service answers contains the display boundary before it is clipped.</param>
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
         /// <returns>The terrain node with a regular rectangular boundary, or <see langword="null"/> when the area has no surface to show.</returns>
         public static async Task<GLTFNode?> TerrainGLTFNodeAsync(this HttpClient? httpClient, BoundingBox2D? boundingBox2D, string? name = null, double? tolerance = null, double buffer = Constants.Default.TerrainBuffer, CancellationToken cancellationToken = default)
@@ -90,9 +92,11 @@ namespace DiGi.GIS.WebAPI.UI
                 return null;
             }
 
-            BoundingBox2D boundingBox2D_Query = buffer > 0
-                ? new BoundingBox2D(new Point2D(boundingBox2D.Min.X - buffer, boundingBox2D.Min.Y - buffer), new Point2D(boundingBox2D.Max.X + buffer, boundingBox2D.Max.Y + buffer))
-                : boundingBox2D;
+            BoundingBox2D? boundingBox2D_Query = boundingBox2D.TerrainQueryBoundingBox(buffer);
+            if (boundingBox2D_Query is null)
+            {
+                return null;
+            }
 
             GLTFNode? gLTFNode = await httpClient.TerrainGLTFNodeAsync(boundingBox2D_Query.TerrainRequestUri(tolerance), name, cancellationToken);
             if (gLTFNode is null)

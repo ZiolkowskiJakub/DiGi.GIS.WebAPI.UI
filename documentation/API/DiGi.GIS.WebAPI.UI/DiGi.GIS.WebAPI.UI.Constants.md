@@ -439,7 +439,9 @@ public const double StoreyHeight = 3;
 
 ## Default\.TerrainBuffer Field
 
-The buffer distance in meters added to spatial terrain queries to guarantee the retrieved elevation lattice spans the target geometric boundary before regular clipping\.
+The clip margin in metres added to a terrain query beyond the boundary the surface is clipped to, so that the clipping never runs along the very edge of the surface\.
+
+This covers the clip only. The distance the surface can stop short of the query radius on a coarse lattice is a separate term - see [TerrainLatticeStepMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.TerrainLatticeStepMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.TerrainLatticeStepMax') - and [TerrainQueryCircle\(this Circle2D, double, double, double\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.TerrainQueryCircle(thisDiGi.Geometry.Planar.Classes.Circle2D,double,double,double) 'DiGi\.GIS\.WebAPI\.UI\.Query\.TerrainQueryCircle\(this DiGi\.Geometry\.Planar\.Classes\.Circle2D, double, double, double\)') adds both.
 
 ```csharp
 public const double TerrainBuffer = 15;
@@ -477,6 +479,21 @@ public const bool TerrainEnabled = True;
 
 #### Field Value
 [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.TerrainLatticeStepMax'></a>
+
+## Default\.TerrainLatticeStepMax Field
+
+The coarsest lattice, in metres, the counties' elevation points are sampled on \(10 m to 100 m \- see [TerrainEnabled](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.TerrainEnabled 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.TerrainEnabled')\)\.
+
+The terrain service triangulates only the stored points inside the query circle, so the surface it answers stops short of the query radius by up to one lattice diagonal: a point lies inside the returned surface once all four corners of its lattice cell are inside the query, and the farthest corner is `step * sqrt(2)` away. Growing a query by `TerrainLatticeStepMax * sqrt(2)` beyond the display boundary therefore guarantees the boundary is covered on any lattice up to this step, and it is deliberately the worst case rather than the county's own step so that no scene depends on knowing which county it is in. Measured on the deployed 100 m lattice the shortfall reaches 101 m; the bound is 141.4 m.
+
+```csharp
+public const double TerrainLatticeStepMax = 100;
+```
+
+#### Field Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.TerrainName'></a>
 
