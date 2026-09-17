@@ -70,8 +70,13 @@ const digiTypology = (function () {
 
         fetch(`${baseUrl()}/typology/columns`)
             .then(function (response) {
-                if (response.status === 204 || !response.ok) {
+                // 204 is the upstream's empty answer (no columns); !ok is a refusal the page must name (#40).
+                if (response.status === 204) {
                     showEmptyState(container, 'No columns available.');
+                    return null;
+                }
+                if (!response.ok) {
+                    showErrorState(container, 'The column list could not be loaded (the data service did not answer). Try again.');
                     return null;
                 }
                 return response.json();
@@ -84,7 +89,8 @@ const digiTypology = (function () {
                 renderAll();
             })
             .catch(function () {
-                showEmptyState(container, 'No columns available.');
+                // A dead connection is a refusal, not an empty catalog (#40).
+                showErrorState(container, 'The column list could not be loaded (the data service did not answer). Try again.');
             });
     }
 
@@ -348,6 +354,7 @@ const digiTypology = (function () {
         openConfirmModal('Clear Values', 'Remove all ' + level.uniqueValueColors.length + ' values?', function () {
             level.uniqueValueColors = [];
             uniqueValuesMessage = null;
+            uniqueValuesFailed = false;
             renderProperties();
             focusPropertiesField('button[data-action="clear"]');
         });
@@ -357,6 +364,7 @@ const digiTypology = (function () {
         openConfirmModal('Clear Ranges', 'Remove all ' + level.ranges.length + ' ranges?', function () {
             level.ranges = [];
             uniqueValuesMessage = null;
+            uniqueValuesFailed = false;
             renderProperties();
             focusPropertiesField('button[data-action="clear"]');
         });
@@ -381,6 +389,10 @@ const digiTypology = (function () {
     let uniqueValuesLoadingId = null;
     let uniqueValuesProgress = null;
     let uniqueValuesMessage = null;
+    // True while the outcome of the last load is a refusal - a relay 502/503, or a dead connection -
+    // rather than an empty column: the render then styles the outcome in the danger colour so a
+    // service failure is not read as a column with no values (#40). Reset wherever the message is.
+    let uniqueValuesFailed = false;
     // The upstream endpoint filters by one county part at a time and takes several seconds per part,
     // so an area is loaded county by county, a few in flight at once, and every answer is merged as it
     // arrives.
@@ -413,7 +425,8 @@ const digiTypology = (function () {
     function loadColumnValues(level) {
         const forRanges = isRangeRuleType(level.ruleType);
         // A range load asks each part for its histogram (issue #30); a unique-value load asks for its
-        // distinct values. Both answer null for 204 and every failure, so the worker chain is shared.
+        // distinct values. Both resolve to { rows, failed }, so the worker chain is shared: a part is
+        // empty (rows null, failed false) or refused (rows null, failed true), and only the refusal is styled (#40).
         const fetchOne = forRanges ? fetchHistogram : fetchValues;
         abortUniqueValuesLoad();
 
@@ -422,13 +435,14 @@ const digiTypology = (function () {
         uniqueValuesLoadingId = level.uniqueId;
         uniqueValuesProgress = null;
         uniqueValuesMessage = null;
+        uniqueValuesFailed = false;
         renderProperties();
 
         function current() {
             return uniqueValuesAbortController === abortController; // false once superseded by a later load or a level switch
         }
 
-        function finish(message) {
+        function finish(message, failed) {
             if (!current()) {
                 return;
             }
@@ -436,6 +450,7 @@ const digiTypology = (function () {
             uniqueValuesLoadingId = null;
             uniqueValuesProgress = null;
             uniqueValuesMessage = message;
+            uniqueValuesFailed = failed === true;
             renderProperties();
         }
 
@@ -454,14 +469,17 @@ const digiTypology = (function () {
         // What one answer does: a unique-value load merges it (refusing past the limit, which stops
         // the worker chain); a range load collects the part's histogram rows — the quantiles need
         // every part before the distribution is known. Answers false when the load was refused.
-        function accept(payload) {
+        function accept(result) {
+            if (result.rows === null) {
+                return true;   // nothing to merge: the caller counted the empty or the failed part
+            }
             if (forRanges) {
-                for (let i = 0; i < payload.length; i++) {
-                    collectedBuckets.push(payload[i]);
+                for (let i = 0; i < result.rows.length; i++) {
+                    collectedBuckets.push(result.rows[i]);
                 }
                 return true;
             }
-            mergeUniqueValues(level, payload);
+            mergeUniqueValues(level, result.rows);
             if (level.uniqueValueColors.length > uniqueValuesLimit) {
                 exceedLimit();
                 return false;
@@ -471,11 +489,15 @@ const digiTypology = (function () {
 
         const collectedBuckets = [];
 
-        function finishRanges(missedCounties) {
+        function finishRanges(emptyCounties, failedCounties) {
             const rangeCount = generatedRangeCount;
             const generated = quantileRanges(collectedBuckets, level.ruleType === ruleType_IntegerRange, rangeCount);
             if (generated.ranges.length === 0) {
-                finish('No values returned.');
+                if (failedCounties > 0) {
+                    finish('The load failed — the data service did not answer. Try again.', true);
+                } else {
+                    finish('No values — this column has no values in the selected area.');
+                }
                 return;
             }
             level.ranges = generated.ranges;
@@ -487,15 +509,18 @@ const digiTypology = (function () {
             if (generated.ranges.length < rangeCount) {
                 messageParts.push(rangeCount + ' were asked — the rest fell on the same bound, the values repeat too much to split further');
             }
-            if (missedCounties > 0) {
-                messageParts.push(missedCounties + ' counties answered nothing');
+            if (emptyCounties > 0) {
+                messageParts.push(emptyCounties + ' counties answered nothing');
             }
-            finish(messageParts.join('; ') + '.');
+            if (failedCounties > 0) {
+                messageParts.push(failedCounties + ' counties could not be loaded (the data service did not answer) — the ranges may be incomplete');
+            }
+            finish(messageParts.join('; ') + '.', failedCounties > 0);
         }
 
-        // One histogramsummary request per county part (issue #30); resolves to the bucket rows, or
-        // null for 204 and every failure — 204 from the relay covers an empty column and an upstream
-        // timeout alike, so a part that answers nothing is simply missed by the merge.
+        // One histogramsummary request per county part (issue #30); resolves to { rows, failed }: the
+        // bucket rows, or null rows with failed false for the relay's 204 (no values in scope), or null
+        // rows with failed true for a refusal (502/503) or a dead connection — the outcome must name it (#40).
         function fetchHistogram(countyId) {
             let url = baseUrl() + '/typology/histogramsummary?columnuniqueid=' + encodeURIComponent(level.uniqueId);
             if (countyId !== null) {
@@ -503,24 +528,27 @@ const digiTypology = (function () {
             }
             return fetch(url, { signal: abortController.signal })
                 .then(function (response) {
-                    if (response.status === 204 || !response.ok) {
-                        return null;
+                    if (response.status === 204) {
+                        return { rows: null, failed: false };   // the relay's empty answer: no values in scope
                     }
-                    return response.json();
-                })
-                .then(function (buckets) {
-                    return Array.isArray(buckets) ? buckets : null;
+                    if (!response.ok) {
+                        return { rows: null, failed: true };     // 502/503 from the relay: the data service did not answer
+                    }
+                    return response.json().then(function (buckets) {
+                        return Array.isArray(buckets) ? { rows: buckets, failed: false } : { rows: null, failed: true };
+                    });
                 })
                 .catch(function (error) {
                     if (error !== null && error !== undefined && error.name === 'AbortError') {
                         throw error;
                     }
-                    return null;
+                    return { rows: null, failed: true };         // a network error is a failure, not an empty column
                 });
         }
 
-        // One uniquevalues request; resolves to the value array, or null for 204 and every failure —
-        // 204 from the proxy covers an empty column, an unknown column and an upstream timeout alike.
+        // One uniquevalues request; resolves to { rows, failed }: the value array, or null rows with
+        // failed false for the relay's 204 (no values in scope), or null rows with failed true for a
+        // refusal (502/503) or a dead connection — the outcome must name it (#40).
         function fetchValues(countyId) {
             let url = baseUrl() + '/typology/uniquevalues?columnuniqueid=' + encodeURIComponent(level.uniqueId);
             if (countyId !== null) {
@@ -528,39 +556,45 @@ const digiTypology = (function () {
             }
             return fetch(url, { signal: abortController.signal })
                 .then(function (response) {
-                    if (response.status === 204 || !response.ok) {
-                        return null;
+                    if (response.status === 204) {
+                        return { rows: null, failed: false };   // the relay's empty answer: no values in scope
                     }
-                    return response.json();
-                })
-                .then(function (values) {
-                    return Array.isArray(values) ? values : null;
+                    if (!response.ok) {
+                        return { rows: null, failed: true };     // 502/503 from the relay: the data service did not answer
+                    }
+                    return response.json().then(function (values) {
+                        return Array.isArray(values) ? { rows: values, failed: false } : { rows: null, failed: true };
+                    });
                 })
                 .catch(function (error) {
                     if (error !== null && error !== undefined && error.name === 'AbortError') {
                         throw error;
                     }
-                    return null;
+                    return { rows: null, failed: true };         // a network error is a failure, not an empty column
                 });
         }
 
         function loadWholeTable() {
-            return fetchOne(null).then(function (values) {
+            return fetchOne(null).then(function (result) {
                 if (!current()) {
                     return;
                 }
-                if (values === null) {
-                    finish('No values returned — select an area; a load over the whole table can exceed the service timeout.');
+                if (result.rows === null) {
+                    if (result.failed) {
+                        finish('The load failed — the data service did not answer. Try again.', true);
+                    } else {
+                        finish('No values returned — select an area; a load over the whole table can exceed the service timeout.');
+                    }
                     return;
                 }
-                if (!accept(values)) {
+                if (!accept(result)) {
                     return;
                 }
                 if (forRanges) {
-                    finishRanges(0);
+                    finishRanges(0, 0);
                     return;
                 }
-                finish(values.length === 0 ? 'No values returned.' : null);
+                finish(result.rows.length === 0 ? 'No values returned.' : null);
             });
         }
 
@@ -569,6 +603,8 @@ const digiTypology = (function () {
             let next = 0;
             let done = 0;
             let answered = 0;
+            let empty = 0;
+            let failed = 0;
             let added = 0;
 
             function progress() {
@@ -581,15 +617,22 @@ const digiTypology = (function () {
                     return Promise.resolve();
                 }
                 const countyId = countyIds[next++];
-                return fetchOne(countyId).then(function (values) {
+                return fetchOne(countyId).then(function (result) {
                     if (!current()) {
                         return;
                     }
                     done++;
-                    if (values !== null) {
+                    if (result.rows === null) {
+                        // The part answered nothing: count it by cause, so the outcome can name it (#40).
+                        if (result.failed) {
+                            failed++;
+                        } else {
+                            empty++;
+                        }
+                    } else {
                         answered++;
                         const before = level.uniqueValueColors.length;
-                        if (!accept(values)) {
+                        if (!accept(result)) {
                             return;
                         }
                         added += level.uniqueValueColors.length - before;
@@ -609,16 +652,39 @@ const digiTypology = (function () {
                     return;
                 }
                 if (forRanges) {
-                    finishRanges(answered === 0 ? 0 : total - answered);
+                    finishRanges(empty, failed);
+                    return;
+                }
+                if (answered === 0 && failed === 0) {
+                    // Every part answered and every part was empty: the column has no values in the selected area.
+                    finish('No values — this column has no values in the selected area.');
                     return;
                 }
                 if (answered === 0) {
-                    finish('No values returned.');
-                } else if (answered < total) {
-                    finish(added + ' new ' + (added === 1 ? 'value' : 'values') + '; ' + (total - answered) + ' of ' + total + ' counties answered nothing.');
-                } else {
-                    finish(null);
+                    // Nothing loaded, and at least one part was refused: the load failed, the empty parts are the rest.
+                    const parts_Failed = ['The load failed — ' + failed + ' of ' + total + ' counties did not answer (the data service did not answer). Try again.'];
+                    if (empty > 0) {
+                        parts_Failed.push('The other ' + empty + ' counties answered nothing.');
+                    }
+                    finish(parts_Failed.join(' '), true);
+                    return;
                 }
+                if (failed === 0) {
+                    // Every part answered: the empty parts are named, as before the fix.
+                    if (empty > 0) {
+                        finish(added + ' new ' + (added === 1 ? 'value' : 'values') + '; ' + empty + ' of ' + total + ' counties answered nothing.');
+                    } else {
+                        finish(null);
+                    }
+                    return;
+                }
+                // Some parts loaded, some were refused: the values stay, and the outcome names the incompleteness (#40).
+                const parts_Incomplete = [added + ' new ' + (added === 1 ? 'value' : 'values')];
+                if (empty > 0) {
+                    parts_Incomplete.push(empty + ' of ' + total + ' counties answered nothing');
+                }
+                parts_Incomplete.push(failed + ' of ' + total + ' counties could not be loaded (the data service did not answer) — the values may be incomplete.');
+                finish(parts_Incomplete.join('; '), true);
             });
         }
 
@@ -630,8 +696,13 @@ const digiTypology = (function () {
             const url = baseUrl() + '/typology/countyids?code=' + encodeURIComponent(scope.code) + '&administrativearealtype=' + scope.administrativeArealType;
             return fetch(url, { signal: abortController.signal })
                 .then(function (response) {
-                    if (response.status === 204 || !response.ok) {
+                    // 204 is the upstream's empty answer (no parts); !ok is a refusal the page must name (#40).
+                    if (response.status === 204) {
                         return null;
+                    }
+                    if (!response.ok) {
+                        // Throw so the load's catch renders the failure, not the empty area (#40).
+                        throw new Error('The county parts could not be loaded.');
                     }
                     return response.json();
                 })
@@ -662,7 +733,7 @@ const digiTypology = (function () {
             if (error !== null && error !== undefined && error.name === 'AbortError') {
                 return;
             }
-            finish('The load failed — try again.');
+            finish('The load failed — try again.', true);
         });
     }
 
@@ -1115,6 +1186,7 @@ const digiTypology = (function () {
         if (levelId !== renderedPropertiesId) {
             abortUniqueValuesLoad();
             uniqueValuesMessage = null;
+            uniqueValuesFailed = false;
             renderedPropertiesId = levelId;
         }
 
@@ -1186,12 +1258,14 @@ const digiTypology = (function () {
         const loading = uniqueValuesLoadingId === level.uniqueId;
         const integer = level.ruleType === ruleType_IntegerRange;
         const step = integer ? '1' : 'any';
+        // The load-failure modifier (#40): a refused load styles its outcome in the danger colour.
+        const failedClass = uniqueValuesFailed ? ' gis-typology-load-error' : '';
 
         let rows;
         if (loading) {
             rows = renderLoading();
         } else if (level.ranges.length === 0) {
-            rows = '<div class="gis-empty-state">' + escapeHtml(uniqueValuesMessage || 'No ranges — add one or load them from an area.') + '</div>';
+            rows = '<div class="gis-empty-state' + failedClass + '">' + escapeHtml(uniqueValuesMessage || 'No ranges — add one or load them from an area.') + '</div>';
         } else {
             rows = level.ranges.map(function (range, index) {
                 const row = index + 1;
@@ -1204,7 +1278,7 @@ const digiTypology = (function () {
                     '</div>';
             }).join('');
             if (uniqueValuesMessage !== null) {
-                rows += '<p class="gis-typology-hint">' + escapeHtml(uniqueValuesMessage) + '</p>';
+                rows += '<p class="gis-typology-hint' + failedClass + '">' + escapeHtml(uniqueValuesMessage) + '</p>';
             }
         }
 
@@ -1220,12 +1294,14 @@ const digiTypology = (function () {
 
     function renderUniqueValueEditor(level) {
         const loading = uniqueValuesLoadingId === level.uniqueId;
+        // The load-failure modifier (#40): a refused load styles its outcome in the danger colour.
+        const failedClass = uniqueValuesFailed ? ' gis-typology-load-error' : '';
 
         let rows;
         if (loading) {
             rows = renderLoading();
         } else if (level.uniqueValueColors.length === 0) {
-            rows = '<div class="gis-empty-state">' + escapeHtml(uniqueValuesMessage || 'No values yet — add one or load them from an area.') + '</div>';
+            rows = '<div class="gis-empty-state' + failedClass + '">' + escapeHtml(uniqueValuesMessage || 'No values yet — add one or load them from an area.') + '</div>';
         } else {
             rows = level.uniqueValueColors.map(function (entry, index) {
                 const text = displayValue(entry.value);
@@ -1236,7 +1312,7 @@ const digiTypology = (function () {
                     '</div>';
             }).join('');
             if (uniqueValuesMessage !== null) {
-                rows += '<p class="gis-typology-hint">' + escapeHtml(uniqueValuesMessage) + '</p>';
+                rows += '<p class="gis-typology-hint' + failedClass + '">' + escapeHtml(uniqueValuesMessage) + '</p>';
             }
         }
 
@@ -1297,6 +1373,11 @@ const digiTypology = (function () {
 
     function showEmptyState(container, text) {
         container.innerHTML = '<div class="gis-empty-state">' + escapeHtml(text) + '</div>';
+    }
+
+    // A refused load (#40): the same empty state in the danger colour, so a fault is not read as an empty catalog.
+    function showErrorState(container, text) {
+        container.innerHTML = '<div class="gis-empty-state gis-typology-load-error">' + escapeHtml(text) + '</div>';
     }
 
     function escapeHtml(text) {
@@ -1769,6 +1850,7 @@ const digiTypology = (function () {
 
         abortUniqueValuesLoad();
         uniqueValuesMessage = null;
+        uniqueValuesFailed = false;
 
         const levels = [];
         for (let i = 0; i < definition.levels.length; i++) {
@@ -2371,6 +2453,17 @@ const digiTypology = (function () {
         }
     }
 
+    // A refused search (#40): the same message state in the danger colour, so a fault is not read as no matches.
+    function showLoadError(text) {
+        loadRows = [];
+        setLoadSelection(-1);
+
+        const results = document.getElementById('typology-load-results');
+        if (results !== null) {
+            results.innerHTML = '<div class="gis-empty-state gis-typology-load-error">' + escapeHtml(text) + '</div>';
+        }
+    }
+
     function searchLoadAreas(text) {
         abortLoadSearch();
 
@@ -2394,25 +2487,37 @@ const digiTypology = (function () {
                 // The proxy answers an empty 200 for blank text; that path is unreachable through the
                 // minimum-length guard, but an empty body still has to parse as nothing, not throw.
                 return response.text().then(function (responseText) {
-                    if (!response.ok || responseText.trim() === '') {
-                        return null;
+                    // 204 is the upstream's empty answer (no matches); !ok is a refusal the page must name (#40).
+                    if (response.status === 204) {
+                        return { paths: null, failed: false };
+                    }
+                    if (!response.ok) {
+                        return { paths: null, failed: true };
+                    }
+                    if (responseText.trim() === '') {
+                        return { paths: null, failed: false };
                     }
                     try {
-                        return JSON.parse(responseText);
+                        return { paths: JSON.parse(responseText), failed: false };
                     } catch (error) {
-                        return null;
+                        // A 200 that carries no decodable paths is a broken contract - a refusal, not no matches (#40).
+                        return { paths: null, failed: true };
                     }
                 });
             })
-            .then(function (paths) {
+            .then(function (result) {
                 if (sequence !== loadSearchSequence) {
                     return; // superseded by a newer keystroke or by the modal closing
                 }
-                if (paths === null) {
-                    showLoadMessage('The search failed - try again.');
+                if (result.paths === null) {
+                    if (result.failed) {
+                        showLoadError('The search failed — the data service did not answer. Try again.');
+                    } else {
+                        showLoadMessage('No matching areas.');
+                    }
                     return;
                 }
-                renderLoadResults(Array.isArray(paths) ? paths : []);
+                renderLoadResults(Array.isArray(result.paths) ? result.paths : []);
             })
             .catch(function (error) {
                 if (error !== null && error.name === 'AbortError') {
@@ -2421,7 +2526,8 @@ const digiTypology = (function () {
                 if (sequence !== loadSearchSequence) {
                     return;
                 }
-                showLoadMessage('The search failed - try again.');
+                // A dead connection is a refusal, not an empty result (#40).
+                showLoadError('The search failed — the data service did not answer. Try again.');
             });
     }
 

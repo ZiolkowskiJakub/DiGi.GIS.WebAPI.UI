@@ -32,10 +32,11 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
         /// <summary>
         /// Searches for administrative area reference paths by name.
+        /// <para>Status-preserving: an upstream failure (502) or no answer (503) is a refusal the page names, distinct from the empty result (204) (issue #40).</para>
         /// </summary>
         /// <param name="text">The text to search for within the name column.</param>
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
-        /// <returns>A <see cref="Task{IActionResult}"/> representing the asynchronous operation, containing the result of the search.</returns>
+        /// <returns>A <see cref="Task{IActionResult}"/> containing the search result, a 204 No Content response when the upstream answers no matches, a 502 Bad Gateway response when the upstream answers a failure, a 503 Service Unavailable response when it answers nothing at all, or an empty 200 response for a blank search.</returns>
         [HttpPost("administrativeareal2Dreferencepathsbyname")]
         public async Task<IActionResult> GetAdministrativeAreal2DReferencePathsByNameAsync([FromBody] string text, CancellationToken cancellationToken = default)
         {
@@ -47,14 +48,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             HttpClient httpClient = httpClientFactory.CreateClient();
 
             // Relayed verbatim rather than round tripped through the reference path objects: deserializing
-            // and reserializing would produce the very same bytes.
-            string? json = await httpClient.PostJsonAsync($"{Constants.Default.GISWebAPIUri}/gis/administrativeareal2D/administrativeareal2Dreferencepathsbyname", text, cancellationToken);
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return NoContent();
-            }
-
-            return Content(json, "application/json");
+            // and reserializing would produce the very same bytes. Status-preserving rather than the collapsing
+            // PostJsonAsync: the page's outcome must name the cause, so an upstream failure (502) and a no-answer
+            // (503) are distinct from the empty result (204) (issue #40).
+            return Query.RelayUpstream(await httpClient.ResponseAsync(HttpMethod.Post, $"{Constants.Default.GISWebAPIUri}/gis/administrativeareal2D/administrativeareal2Dreferencepathsbyname", null, text, cancellationToken));
         }
 
         /// <summary>

@@ -42,6 +42,8 @@ The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/do
 
 Searches for administrative area reference paths by name\.
 
+Status-preserving: an upstream failure (502) or no answer (503) is a refusal the page names, distinct from the empty result (204) (issue #40).
+
 ```csharp
 public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetAdministrativeAreal2DReferencePathsByNameAsync(string text, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
@@ -61,7 +63,7 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') representing the asynchronous operation, containing the result of the search\.
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the search result, a 204 No Content response when the upstream answers no matches, a 502 Bad Gateway response when the upstream answers a failure, a 503 Service Unavailable response when it answers nothing at all, or an empty 200 response for a blank search\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.AdministrativeAreal2DController.GetAdministrativeAreal2DReferencesByAdministrativeArealTypeAsync(System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Nullable_int_,System.Nullable_bool_,System.Threading.CancellationToken)'></a>
 
@@ -2068,6 +2070,8 @@ A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dot
 
 Retrieves the building\-data columns available for typology grouping, sorted alphabetically by name\.
 
+Status-preserving rather than the collapsing catalog read: an upstream failure is a 502 and a service that answered nothing at all is a 503, so the page's outcome can name the cause instead of reading a fault as an empty catalog (issue #40).
+
 ```csharp
 public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetColumnsAsync(System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
@@ -2081,7 +2085,7 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the sorted column list, or a 204 No Content response when the upstream service answers nothing\.
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the sorted column list, a 204 No Content response when the upstream answers no columns, a 502 Bad Gateway response when the upstream answers a failure, or a 503 Service Unavailable response when it answers nothing at all\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetCountyIdsAsync(string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken)'></a>
 
@@ -2116,7 +2120,7 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the JSON array of county part identifiers \(empty for a country\), a 204 No Content response when the upstream service answers nothing, or a 400 Bad Request response when the code is blank or the type is missing\.
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the JSON array of county part identifiers \(empty for a country\), a 204 No Content response when the upstream answers no parts, a 502 Bad Gateway response when the upstream answers a failure, a 503 Service Unavailable response when it answers nothing at all, or a 400 Bad Request response when the code is blank or the type is missing\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetHistogramSummaryAsync(string,System.Nullable_int_,System.Threading.CancellationToken)'></a>
 
@@ -2124,7 +2128,7 @@ A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dot
 
 Relays the value distribution histogram of one building\-data column for one county part, so the Column Properties Load splits the buildings of the chosen area into ranges of comparable size \(issue \#30\)\.
 
-The upstream `gis/BuildingData/histogramsummary` takes its criteria in the body (POST) and filters by a single county part at a time, so the page asks per part and merges the answers — the same county-by-county pattern as [GetUniqueValuesAsync\(string, Nullable&lt;int&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetUniqueValuesAsync(string,System.Nullable_int_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TypologyController\.GetUniqueValuesAsync\(string, System\.Nullable\<int\>, System\.Threading\.CancellationToken\)'). Each answer is the `{bucket, rangeStart, rangeEnd, count}` array the page inverts into the equal-count boundaries of the area's buildings. The bucket count is fixed to [HistogramBucketCount](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.HistogramBucketCount 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.HistogramBucketCount') — it is the boundary resolution, and 1000 is the upstream cap — and the buckets are asked for as equal-count ([DiGi\.PostgreSQL\.Table\.Enums\.HistogramBucketing\.EqualCount](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.enums.histogrambucketing.equalcount 'DiGi\.PostgreSQL\.Table\.Enums\.HistogramBucketing\.EqualCount'), issue #37), so the resolution follows the buildings rather than a value span set by outliers; a host without ZiolkowskiJakub/DiGi.GIS.WebAPI#35 ignores that property and answers equal-width buckets, which the page still inverts. Every non-success collapses to 204 No Content the same way, so the page degrades rather than errors.
+The upstream `gis/BuildingData/histogramsummary` takes its criteria in the body (POST) and filters by a single county part at a time, so the page asks per part and merges the answers — the same county-by-county pattern as [GetUniqueValuesAsync\(string, Nullable&lt;int&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetUniqueValuesAsync(string,System.Nullable_int_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TypologyController\.GetUniqueValuesAsync\(string, System\.Nullable\<int\>, System\.Threading\.CancellationToken\)'). Each answer is the `{bucket, rangeStart, rangeEnd, count}` array the page inverts into the equal-count boundaries of the area's buildings. The bucket count is fixed to [HistogramBucketCount](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.HistogramBucketCount 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.HistogramBucketCount') — it is the boundary resolution, and 1000 is the upstream cap — and the buckets are asked for as equal-count ([DiGi\.PostgreSQL\.Table\.Enums\.HistogramBucketing\.EqualCount](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.enums.histogrambucketing.equalcount 'DiGi\.PostgreSQL\.Table\.Enums\.HistogramBucketing\.EqualCount'), issue #37), so the resolution follows the buildings rather than a value span set by outliers; a host without ZiolkowskiJakub/DiGi.GIS.WebAPI#35 ignores that property and answers equal-width buckets, which the page still inverts. The relay keeps the upstream's 404 as the 204 the page reads as "no values in scope", and answers the rest of what the service did - an answered failure (502) or no answer at all (503) - so the page's outcome can name the cause instead of reading a failure as an empty column (issue #40).
 
 ```csharp
 public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetHistogramSummaryAsync(string columnUniqueId, System.Nullable<int> countyId, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
@@ -2151,7 +2155,7 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the upstream JSON array of bucket rows, a 204 No Content response when the upstream service answers nothing, or a 400 Bad Request response when the column identifier is blank\.
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the upstream JSON array of bucket rows, a 204 No Content response for the upstream's empty result, a 502 Bad Gateway response when the upstream answers a failure, a 503 Service Unavailable response when it answers nothing at all, or a 400 Bad Request response when the column identifier is blank\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetUniqueValuesAsync(string,System.Nullable_int_,System.Threading.CancellationToken)'></a>
 
@@ -2159,7 +2163,7 @@ A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dot
 
 Relays the distinct values of one building\-data column, for unique\-value coloring in the Column Properties section\.
 
-The upstream `gis/BuildingData/uniquevalues` answers 404 for an empty result and takes several seconds per county (tens of seconds nationwide), so every non-success collapses to 204 No Content and the page shows its empty state rather than an error.
+The upstream `gis/BuildingData/uniquevalues` answers 404 for an empty result and takes several seconds per county (tens of seconds nationwide). The relay keeps that 404 as the 204 the page reads as "no values in scope", and answers the rest of what the service did - an answered failure (502) or no answer at all (503) - so the page's outcome can name the cause instead of reading a failure as an empty column (issue #40).
 
 ```csharp
 public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetUniqueValuesAsync(string columnUniqueId, System.Nullable<int> countyId=null, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
@@ -2186,7 +2190,7 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the upstream JSON array of primitive values, a 204 No Content response when the upstream service answers nothing, or a 400 Bad Request response when the column identifier is blank\.
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the upstream JSON array of primitive values, a 204 No Content response for the upstream's empty result, a 502 Bad Gateway response when the upstream answers a failure, a 503 Service Unavailable response when it answers nothing at all, or a 400 Bad Request response when the column identifier is blank\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.SolveBuildingsAsync(DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter,System.Threading.CancellationToken)'></a>
 

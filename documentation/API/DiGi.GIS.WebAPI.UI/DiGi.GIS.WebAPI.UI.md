@@ -1329,14 +1329,14 @@ The columns by unique identifier, or [null](https://docs.microsoft.com/en-us/dot
 
 ## Query\.CountyPartsAsync\(this HttpClient, string, AdministrativeArealType, CancellationToken\) Method
 
-Resolves an administrative area code and type into the list of county part identifiers that scope a building data request\.
+Resolves an administrative area code and type into the county part identifiers that scope a building data request, as the status and body the upstream answered with\.
 
 Shared by `GET /typology/countyids` and `POST /typology/buildings` so both actions resolve parts through one code path. A county code maps to one identifier per polygon part (18 codes have several — see `Coding - GIS Administrative Data.md`), so the resolution goes through `idsbycode` rather than the single identifier the modal row carries.
 
-[null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') is the answer for every way of not getting parts: the upstream is unreachable, the code is blank, or the type names no parts. The caller maps [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') to 503 and an empty list to 404.
+[null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') is the answer for the ways of not getting parts that carry no status: the upstream is unreachable, or the code is blank. The rest is reported as the status the service answered with — an empty parts answer (the upstream's 404) stays the 404 the relay turns into the page's 204, an answered failure passes through as the refusal the page names (issue #40).
 
 ```csharp
-public static System.Threading.Tasks.Task<System.Collections.Generic.List<int>?> CountyPartsAsync(this System.Net.Http.HttpClient? httpClient, string code, DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType administrativeArealType, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+public static System.Threading.Tasks.Task<DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse?> CountyPartsAsync(this System.Net.Http.HttpClient? httpClient, string code, DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType administrativeArealType, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
@@ -1365,8 +1365,8 @@ The type of the selected area\.
 A cancellation token that can be used by the caller to cancel the asynchronous operation\.
 
 #### Returns
-[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-The county part identifiers, an empty list for a country, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the upstream answers nothing\.
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[WebAPIResponse](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse 'DiGi\.GIS\.WebAPI\.UI\.Classes\.WebAPIResponse')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The status and body the upstream answered with — a 200 carrying the county part identifiers \(empty for a country\), a 404 for an area that names no parts — or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the upstream answered nothing at all\.
 
 <a name='DiGi.GIS.WebAPI.UI.Query.Hex(thisDiGi.Core.Classes.Color)'></a>
 
@@ -1566,13 +1566,38 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The response body, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there is none\.
 
+<a name='DiGi.GIS.WebAPI.UI.Query.RelayUpstream(DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse)'></a>
+
+## Query\.RelayUpstream\(WebAPIResponse\) Method
+
+Maps the relayed outcome of a status\-preserving relay onto the page's contract: an empty result \(the upstream 404\) stays the 204 the page reads as "no data"; a 200 with a body passes through byte\-identical; an answered failure is a 502; a service that answered nothing at all is a 503\.
+
+One implementation for every verbatim relay in this application — the Typology value loads, the county-parts relay and the area search — so the controllers call this rather than each spelling the same mapping (Coding - WebAPI Contracts, section 3).
+
+A refusal is never a 400: the caller asked nothing wrong, and blaming it would turn a service fault into a visitor error (issue #40).
+
+```csharp
+public static Microsoft.AspNetCore.Mvc.IActionResult RelayUpstream(DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse? webAPIResponse);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.RelayUpstream(DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse).webAPIResponse'></a>
+
+`webAPIResponse` [WebAPIResponse](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse 'DiGi\.GIS\.WebAPI\.UI\.Classes\.WebAPIResponse')
+
+The relayed response\. This value can be null\.
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+The result to answer with\.
+
 <a name='DiGi.GIS.WebAPI.UI.Query.ResponseAsync(thisSystem.Net.Http.HttpClient,System.Net.Http.HttpMethod,string,string,System.Threading.CancellationToken)'></a>
 
 ## Query\.ResponseAsync\(this HttpClient, HttpMethod, string, string, CancellationToken\) Method
 
 Asynchronously relays a request carrying no body to a Web API, and reads back the status it answered with together with the body it returned\.
 
-The authentication counterpart of [JsonAsync\(this HttpClient, string, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.JsonAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.JsonAsync\(this System\.Net\.Http\.HttpClient, string, System\.Threading\.CancellationToken\)'). It differs in the one way that matters for signing in: a failure status is reported rather than collapsed into [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') - see [WebAPIResponse](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse 'DiGi\.GIS\.WebAPI\.UI\.Classes\.WebAPIResponse') for why absence and refusal must not be the same answer here.
+The status-preserving counterpart of [JsonAsync\(this HttpClient, string, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.JsonAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.JsonAsync\(this System\.Net\.Http\.HttpClient, string, System\.Threading\.CancellationToken\)'): where that helper collapses every failure into [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') so the rest of a page assembled from several independent requests can stand, this one reports the status the service answered with, so a caller whose outcome must name the cause - the authentication relays, and the typology value relays (issue #40) - can tell a refusal from an absence. See [WebAPIResponse](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse 'DiGi\.GIS\.WebAPI\.UI\.Classes\.WebAPIResponse') for why absence and refusal must not be the same answer.
 
 [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') is still returned for the failures that carry no status at all: no client, no URL, the service unreachable, or the caller cancelling. Those are the cases where nothing was answered, as opposed to something being refused.
 

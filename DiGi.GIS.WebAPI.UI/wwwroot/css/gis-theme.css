@@ -3051,6 +3051,13 @@ h1.gis-title-large {
     line-height: 1.4;
 }
 
+/* Load-failure outcome (#40): a refusal renders in the danger colour, so an upstream failure is not
+   read as an empty column. The compound selector wins over the rules above regardless of order. */
+.gis-empty-state.gis-typology-load-error,
+.gis-typology-hint.gis-typology-load-error {
+    color: var(--danger-color);
+}
+
 /* The Import/Export error dialog (#17): one line per message the server returned, in its order. */
 .gis-typology-error-list {
     padding-left: 20px;

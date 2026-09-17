@@ -11,7 +11,7 @@ namespace DiGi.GIS.WebAPI.UI
     {
         /// <summary>
         /// Asynchronously relays a request carrying no body to a Web API, and reads back the status it answered with together with the body it returned.
-        /// <para>The authentication counterpart of <see cref="JsonAsync(HttpClient, string, CancellationToken)"/>. It differs in the one way that matters for signing in: a failure status is reported rather than collapsed into <see langword="null"/> - see <see cref="Classes.WebAPIResponse"/> for why absence and refusal must not be the same answer here.</para>
+        /// <para>The status-preserving counterpart of <see cref="JsonAsync(HttpClient, string, CancellationToken)"/>: where that helper collapses every failure into <see langword="null"/> so the rest of a page assembled from several independent requests can stand, this one reports the status the service answered with, so a caller whose outcome must name the cause - the authentication relays, and the typology value relays (issue #40) - can tell a refusal from an absence. See <see cref="Classes.WebAPIResponse"/> for why absence and refusal must not be the same answer.</para>
         /// <para><see langword="null"/> is still returned for the failures that carry no status at all: no client, no URL, the service unreachable, or the caller cancelling. Those are the cases where nothing was answered, as opposed to something being refused.</para>
         /// <para>The token is attached as <c>Authorization: Bearer</c> when one is given, and omitted entirely when it is not, so the same method serves an anonymous sign-in and an authenticated read.</para>
         /// </summary>

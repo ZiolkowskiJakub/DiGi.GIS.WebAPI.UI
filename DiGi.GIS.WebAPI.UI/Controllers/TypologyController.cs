@@ -79,16 +79,42 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
         /// <summary>
         /// Retrieves the building-data columns available for typology grouping, sorted alphabetically by name.
+        /// <para>Status-preserving rather than the collapsing catalog read: an upstream failure is a 502 and a service that answered nothing at all is a 503, so the page's outcome can name the cause instead of reading a fault as an empty catalog (issue #40).</para>
         /// </summary>
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
-        /// <returns>A <see cref="Task{IActionResult}"/> containing the sorted column list, or a 204 No Content response when the upstream service answers nothing.</returns>
+        /// <returns>A <see cref="Task{IActionResult}"/> containing the sorted column list, a 204 No Content response when the upstream answers no columns, a 502 Bad Gateway response when the upstream answers a failure, or a 503 Service Unavailable response when it answers nothing at all.</returns>
         [HttpGet("columns")]
         public async Task<IActionResult> GetColumnsAsync(CancellationToken cancellationToken = default)
         {
             HttpClient httpClient = httpClientFactory.CreateClient();
 
-            List<DiGi.PostgreSQL.Table.Classes.Column>? columns = await httpClient.BuildingDataColumnsAsync(cancellationToken);
+            // Status-preserving rather than the collapsing BuildingDataColumnsAsync: the page's outcome must name the
+            // cause, so an upstream failure (502) and a no-answer (503) are distinct from the empty catalog (204) (issue #40).
+            Classes.WebAPIResponse? webAPIResponse = await httpClient.ResponseAsync(HttpMethod.Get, Constants.Default.BuildingDataColumnsUri, null, cancellationToken);
+            if (webAPIResponse is null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (webAPIResponse.StatusCode == StatusCodes.Status404NotFound)
+            {
+                return NoContent();
+            }
+
+            if (webAPIResponse.StatusCode != StatusCodes.Status200OK)
+            {
+                return StatusCode(StatusCodes.Status502BadGateway);
+            }
+
+            List<DiGi.PostgreSQL.Table.Classes.Column>? columns = Core.Convert.ToDiGi<DiGi.PostgreSQL.Table.Classes.Column>(webAPIResponse.Json);
             if (columns is null)
+            {
+                // A 200 that carries no decodable columns is a broken contract - the upstream's empty answer is the
+                // 404 handled above - and answers the refusal.
+                return StatusCode(StatusCodes.Status502BadGateway);
+            }
+
+            if (columns.Count == 0)
             {
                 return NoContent();
             }
@@ -108,7 +134,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// <param name="code">The administrative code of the selected area.</param>
         /// <param name="administrativeArealType">The type of the selected area, bound as nullable so an omitted value is refused rather than read as <see cref="AdministrativeArealType.Country"/>.</param>
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
-        /// <returns>A <see cref="Task{IActionResult}"/> containing the JSON array of county part identifiers (empty for a country), a 204 No Content response when the upstream service answers nothing, or a 400 Bad Request response when the code is blank or the type is missing.</returns>
+        /// <returns>A <see cref="Task{IActionResult}"/> containing the JSON array of county part identifiers (empty for a country), a 204 No Content response when the upstream answers no parts, a 502 Bad Gateway response when the upstream answers a failure, a 503 Service Unavailable response when it answers nothing at all, or a 400 Bad Request response when the code is blank or the type is missing.</returns>
         [HttpGet("countyids")]
         public async Task<IActionResult> GetCountyIdsAsync([FromQuery(Name = "code")] string code, [FromQuery(Name = "administrativearealtype")] AdministrativeArealType? administrativeArealType, CancellationToken cancellationToken = default)
         {
@@ -120,23 +146,19 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             HttpClient httpClient = httpClientFactory.CreateClient();
 
             // The resolution is shared with POST /typology/buildings: one implementation, both actions call it.
-            List<int>? countyParts = await httpClient.CountyPartsAsync(code, administrativeArealType.Value, cancellationToken);
-            if (countyParts is null)
-            {
-                return NoContent();
-            }
-
-            return Ok(countyParts);
+            // Status-preserving: an upstream failure (502) or no answer (503) is a refusal the page names, distinct
+            // from the empty parts answer (204) (issue #40).
+            return Query.RelayUpstream(await httpClient.CountyPartsAsync(code, administrativeArealType.Value, cancellationToken));
         }
 
         /// <summary>
         /// Relays the distinct values of one building-data column, for unique-value coloring in the Column Properties section.
-        /// <para>The upstream <c>gis/BuildingData/uniquevalues</c> answers 404 for an empty result and takes several seconds per county (tens of seconds nationwide), so every non-success collapses to 204 No Content and the page shows its empty state rather than an error.</para>
+        /// <para>The upstream <c>gis/BuildingData/uniquevalues</c> answers 404 for an empty result and takes several seconds per county (tens of seconds nationwide). The relay keeps that 404 as the 204 the page reads as "no values in scope", and answers the rest of what the service did - an answered failure (502) or no answer at all (503) - so the page's outcome can name the cause instead of reading a failure as an empty column (issue #40).</para>
         /// </summary>
         /// <param name="columnUniqueId">The unique identifier (slug) of the column, as listed by <see cref="GetColumnsAsync"/>.</param>
         /// <param name="countyId">The optional county part identifier that scopes the distinct values; <c>null</c> asks for the whole table.</param>
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
-        /// <returns>A <see cref="Task{IActionResult}"/> containing the upstream JSON array of primitive values, a 204 No Content response when the upstream service answers nothing, or a 400 Bad Request response when the column identifier is blank.</returns>
+        /// <returns>A <see cref="Task{IActionResult}"/> containing the upstream JSON array of primitive values, a 204 No Content response for the upstream's empty result, a 502 Bad Gateway response when the upstream answers a failure, a 503 Service Unavailable response when it answers nothing at all, or a 400 Bad Request response when the column identifier is blank.</returns>
         [HttpGet("uniquevalues")]
         public async Task<IActionResult> GetUniqueValuesAsync([FromQuery(Name = "columnuniqueid")] string columnUniqueId, [FromQuery(Name = "countyid")] int? countyId = null, CancellationToken cancellationToken = default)
         {
@@ -156,23 +178,20 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 urlBuilder = urlBuilder.AddParameter("countyid", countyId.Value);
             }
 
-            string? json = await httpClient.JsonAsync(urlBuilder.ToString(), cancellationToken);
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return NoContent();
-            }
-
-            return Content(json, "application/json");
+            // Status-preserving rather than the collapsing JsonAsync: an upstream 404 is the empty answer the
+            // page keeps reading as 204; anything else the service did is a refusal the page's outcome must name (issue #40).
+            Classes.WebAPIResponse? webAPIResponse = await httpClient.ResponseAsync(HttpMethod.Get, urlBuilder.ToString(), null, cancellationToken);
+            return Query.RelayUpstream(webAPIResponse);
         }
 
         /// <summary>
         /// Relays the value distribution histogram of one building-data column for one county part, so the Column Properties Load splits the buildings of the chosen area into ranges of comparable size (issue #30).
-        /// <para>The upstream <c>gis/BuildingData/histogramsummary</c> takes its criteria in the body (POST) and filters by a single county part at a time, so the page asks per part and merges the answers — the same county-by-county pattern as <see cref="GetUniqueValuesAsync"/>. Each answer is the <c>{bucket, rangeStart, rangeEnd, count}</c> array the page inverts into the equal-count boundaries of the area's buildings. The bucket count is fixed to <see cref="Constants.Default.HistogramBucketCount"/> — it is the boundary resolution, and 1000 is the upstream cap — and the buckets are asked for as equal-count (<see cref="DiGi.PostgreSQL.Table.Enums.HistogramBucketing.EqualCount"/>, issue #37), so the resolution follows the buildings rather than a value span set by outliers; a host without ZiolkowskiJakub/DiGi.GIS.WebAPI#35 ignores that property and answers equal-width buckets, which the page still inverts. Every non-success collapses to 204 No Content the same way, so the page degrades rather than errors.</para>
+        /// <para>The upstream <c>gis/BuildingData/histogramsummary</c> takes its criteria in the body (POST) and filters by a single county part at a time, so the page asks per part and merges the answers — the same county-by-county pattern as <see cref="GetUniqueValuesAsync"/>. Each answer is the <c>{bucket, rangeStart, rangeEnd, count}</c> array the page inverts into the equal-count boundaries of the area's buildings. The bucket count is fixed to <see cref="Constants.Default.HistogramBucketCount"/> — it is the boundary resolution, and 1000 is the upstream cap — and the buckets are asked for as equal-count (<see cref="DiGi.PostgreSQL.Table.Enums.HistogramBucketing.EqualCount"/>, issue #37), so the resolution follows the buildings rather than a value span set by outliers; a host without ZiolkowskiJakub/DiGi.GIS.WebAPI#35 ignores that property and answers equal-width buckets, which the page still inverts. The relay keeps the upstream's 404 as the 204 the page reads as "no values in scope", and answers the rest of what the service did - an answered failure (502) or no answer at all (503) - so the page's outcome can name the cause instead of reading a failure as an empty column (issue #40).</para>
         /// </summary>
         /// <param name="columnUniqueId">The unique identifier (slug) of the column, as listed by <see cref="GetColumnsAsync"/>.</param>
         /// <param name="countyId">The optional county part identifier scoping the histogram; absent asks for the whole table.</param>
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
-        /// <returns>A <see cref="Task{IActionResult}"/> containing the upstream JSON array of bucket rows, a 204 No Content response when the upstream service answers nothing, or a 400 Bad Request response when the column identifier is blank.</returns>
+        /// <returns>A <see cref="Task{IActionResult}"/> containing the upstream JSON array of bucket rows, a 204 No Content response for the upstream's empty result, a 502 Bad Gateway response when the upstream answers a failure, a 503 Service Unavailable response when it answers nothing at all, or a 400 Bad Request response when the column identifier is blank.</returns>
         [HttpGet("histogramsummary")]
         public async Task<IActionResult> GetHistogramSummaryAsync([FromQuery(Name = "columnuniqueid")] string columnUniqueId, [FromQuery(Name = "countyid")] int? countyId, CancellationToken cancellationToken = default)
         {
@@ -194,13 +213,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 HistogramBucketing = DiGi.PostgreSQL.Table.Enums.HistogramBucketing.EqualCount
             };
 
-            string? json = await httpClient.PostJsonAsync(Constants.Default.BuildingDataHistogramUri, parameter, cancellationToken);
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return NoContent();
-            }
-
-            return Content(json, "application/json");
+            // ResponseAsync serializes with JsonSerializerOptions.Default exactly as PostJsonAsync did, so the
+            // wire body is unchanged; the status it answers with is what this action now needs (issue #40).
+            Classes.WebAPIResponse? webAPIResponse = await httpClient.ResponseAsync(HttpMethod.Post, Constants.Default.BuildingDataHistogramUri, null, parameter, cancellationToken);
+            return Query.RelayUpstream(webAPIResponse);
         }
 
         /// <summary>
@@ -346,14 +362,32 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return PayloadTooLarge(null);
             }
 
-            // Resolve the area to county part identifiers.
-            List<int>? countyParts = await httpClient.CountyPartsAsync(typologySolveParameter.Code ?? "", administrativeArealType.Value, cancellationToken);
-            if (countyParts is null)
+            // Resolve the area to county part identifiers. The solve keeps its own contract over the shared
+            // status-preserving helper: a refusal - an upstream failure, no answer, or an area that names no parts
+            // (the upstream's 404) - is a 503, and a resolved area carries its parts.
+            Classes.WebAPIResponse? countyPartsResponse = await httpClient.CountyPartsAsync(typologySolveParameter.Code ?? "", administrativeArealType.Value, cancellationToken);
+            if (countyPartsResponse is null || countyPartsResponse.StatusCode != StatusCodes.Status200OK)
             {
                 return StatusCode(StatusCodes.Status503ServiceUnavailable);
             }
 
-            if (countyParts.Count == 0)
+            string? countyPartsJson = countyPartsResponse.Json;
+            if (string.IsNullOrWhiteSpace(countyPartsJson))
+            {
+                return NotFound();
+            }
+
+            List<int>? countyParts = null;
+            try
+            {
+                countyParts = System.Text.Json.JsonSerializer.Deserialize<List<int>>(countyPartsJson);
+            }
+            catch
+            {
+                // The upstream answered with a body that is not a JSON array of integers; treat it as a refusal.
+            }
+
+            if (countyParts is null || countyParts.Count == 0)
             {
                 return NotFound();
             }
