@@ -2706,6 +2706,7 @@ const digiTypology = (function () {
 
         loadRows = [];
         const rows = [];
+        const labelCounts = {};
 
         for (let i = 0; i < paths.length && loadRows.length < loadResultCap; i++) {
             const references = paths[i] !== null && Array.isArray(paths[i].AdministrativeAreal2DReferences) ? paths[i].AdministrativeAreal2DReferences : [];
@@ -2719,20 +2720,18 @@ const digiTypology = (function () {
             // and the entries before the match travel as the target's path for the Selected Area card (#41).
             const target = references[references.length - 1];
             const matchedTypeName = loadTypeNames[target.AdministrativeArealType] || 'Area';
+            const label = references.map(function (reference) {
+                return reference.Name || '';
+            }).join(' › ') + ' ' + matchedTypeName;
 
-            const breadcrumb =
-                '<span class="gis-path-breadcrumb">' +
-                references.map(function (reference) {
-                    return '<span class="breadcrumb-item-wrapper">' + escapeHtml(reference.Name || '') + '</span>';
-                }).join('<span class="breadcrumb-separator">&rsaquo;</span>') +
-                '</span>';
+            rows.push({
+                target: target,
+                matchedTypeName: matchedTypeName,
+                references: references,
+                label: label
+            });
 
-            rows.push(
-                '<div class="gis-typology-result-row" role="option" tabindex="0" aria-selected="false" data-load-index="' + loadRows.length + '">' +
-                breadcrumb +
-                '<span class="gis-typology-type-badge">' + escapeHtml(matchedTypeName) + '</span>' +
-                '</div>'
-            );
+            labelCounts[label] = (labelCounts[label] || 0) + 1;
 
             loadRows.push({
                 id: target.Id,
@@ -2750,7 +2749,36 @@ const digiTypology = (function () {
             return;
         }
 
-        let html = rows.join('');
+        const htmlParts = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+
+            const breadcrumb =
+                '<span class="gis-path-breadcrumb">' +
+                row.references.map(function (reference) {
+                    return '<span class="breadcrumb-item-wrapper">' + escapeHtml(reference.Name || '') + '</span>';
+                }).join('<span class="breadcrumb-separator">&rsaquo;</span>') +
+                '</span>';
+
+            // Rows that read identically get their own TERYT code appended (#42): two distinct areas can wear
+            // the same name at every level of the path - the town of Łomianki and the rural remainder of its
+            // urban-rural municipality are two type-4 rows with different codes. The chip marks the rows instead
+            // of collapsing them: both are real, selectable territory, so OK must load the one that was picked.
+            let identity = '';
+            if (labelCounts[row.label] > 1) {
+                identity = '<span class="gis-typology-code">TERYT ' + escapeHtml(row.target.Code || String(row.target.Id)) + '</span>';
+            }
+
+            htmlParts.push(
+                '<div class="gis-typology-result-row" role="option" tabindex="0" aria-selected="false" data-load-index="' + i + '">' +
+                breadcrumb +
+                '<span class="gis-typology-type-badge">' + escapeHtml(row.matchedTypeName) + '</span>' +
+                identity +
+                '</div>'
+            );
+        }
+
+        let html = htmlParts.join('');
         const remaining = paths.length - loadRows.length;
         if (remaining > 0) {
             html += '<div class="gis-typology-more-row">' + remaining + ' more - keep typing to narrow the list.</div>';

@@ -3239,6 +3239,19 @@ h1.gis-title-large {
         padding: 2px 8px;
     }
 
+    /* TERYT code chip (#42): shown only on rows that would otherwise read identically - distinct
+       areas can share a name at every level of the path - so the visitor picks the row they meant. */
+    .gis-typology-code {
+        flex-shrink: 0;
+        font-size: 0.7rem;
+        font-variant-numeric: tabular-nums;
+        color: var(--text-muted);
+        border: 1px solid var(--border-color-light);
+        border-radius: 10px;
+        padding: 2px 8px;
+        white-space: nowrap;
+    }
+
     .gis-typology-more-row {
         padding: 6px 10px;
         color: var(--text-muted);
