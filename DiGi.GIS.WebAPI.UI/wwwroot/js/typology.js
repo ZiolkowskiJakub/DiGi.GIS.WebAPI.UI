@@ -2707,6 +2707,7 @@ const digiTypology = (function () {
         loadRows = [];
         const rows = [];
         const labelCounts = {};
+        const codeCounts = {};
 
         for (let i = 0; i < paths.length && loadRows.length < loadResultCap; i++) {
             const references = paths[i] !== null && Array.isArray(paths[i].AdministrativeAreal2DReferences) ? paths[i].AdministrativeAreal2DReferences : [];
@@ -2732,6 +2733,8 @@ const digiTypology = (function () {
             });
 
             labelCounts[label] = (labelCounts[label] || 0) + 1;
+            const codeKey = label + '\u0000' + (target.Code === null || target.Code === undefined || target.Code === '' ? String(target.Id) : target.Code);
+            codeCounts[codeKey] = (codeCounts[codeKey] || 0) + 1;
 
             loadRows.push({
                 id: target.Id,
@@ -2764,9 +2767,17 @@ const digiTypology = (function () {
             // the same name at every level of the path - the town of Łomianki and the rural remainder of its
             // urban-rural municipality are two type-4 rows with different codes. The chip marks the rows instead
             // of collapsing them: both are real, selectable territory, so OK must load the one that was picked.
+            // A unit with disconnected territory is stored as one row per polygon part sharing code and name
+            // (18 counties, 2-3 parts), so a repeated code inside a collision group falls back to the row id -
+            // the only always-unique identity.
             let identity = '';
             if (labelCounts[row.label] > 1) {
-                identity = '<span class="gis-typology-code">TERYT ' + escapeHtml(row.target.Code || String(row.target.Id)) + '</span>';
+                const codeText = row.target.Code === null || row.target.Code === undefined || row.target.Code === '' ? String(row.target.Id) : row.target.Code;
+                let chipText = 'TERYT ' + codeText;
+                if (codeCounts[row.label + '\u0000' + codeText] > 1) {
+                    chipText += ' (id ' + row.target.Id + ')';
+                }
+                identity = '<span class="gis-typology-code">' + escapeHtml(chipText) + '</span>';
             }
 
             htmlParts.push(
