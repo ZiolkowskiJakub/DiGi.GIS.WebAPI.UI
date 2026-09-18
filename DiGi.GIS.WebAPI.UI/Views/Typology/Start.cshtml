@@ -25,19 +25,33 @@
             <input type="text" id="typology-column-filter" class="gis-column-filter" placeholder="Filter columns…" autocomplete="off" />
             <div class="gis-column-list"></div>
         </div>
-        <div class="gis-card" id="typology-selected-columns">
-            <h3 class="gis-title">Selected Columns</h3>
-            @* Import and Export (#17) sit under the heading of the chain they act on. The file input is
-               the picker Import opens and is never shown on its own. *@
-            <div class="gis-form-row gis-typology-panel-actions">
-                <button type="button" id="typology-import-button" class="gis-button gis-button-secondary">Import</button>
-                <button type="button" id="typology-export-button" class="gis-button gis-button-secondary">Export</button>
-                <input type="file" id="typology-import-file" accept=".json,application/json" hidden />
+        @* The middle grid cell holds two cards (#41): the column chain, and beneath it the area both
+           Load actions share. The wrapper is a flex column of the same fixed height as the outer cards,
+           so the outer three-column grid stays as it is. *@
+        <div class="gis-typology-column">
+            <div class="gis-card" id="typology-selected-columns">
+                <h3 class="gis-title">Selected Columns</h3>
+                @* Import and Export (#17) sit under the heading of the chain they act on. The file input is
+                   the picker Import opens and is never shown on its own. *@
+                <div class="gis-form-row gis-typology-panel-actions">
+                    <button type="button" id="typology-import-button" class="gis-button gis-button-secondary">Import</button>
+                    <button type="button" id="typology-export-button" class="gis-button gis-button-secondary">Export</button>
+                    <input type="file" id="typology-import-file" accept=".json,application/json" hidden />
+                </div>
+                <div class="gis-column-list"></div>
             </div>
-            <div class="gis-column-list"></div>
-            @* Load (#18) is pinned to the card's bottom, stretched: the card is a flex column, so the
-               list keeps flexing between this button and the Import/Export row above. *@
-            <button type="button" id="typology-load-button" class="gis-button gis-button-stretch">Load</button>
+            @* The Selected Area card (#41): the one administrative area that scopes both the values Load
+               in Column Properties and the Load into the area view. typology.js renders the area (or the
+               empty state) into the surface; Select opens the area modal without loading anything, and
+               Load (#18, relocated here) opens the area view - prompting for an area only when none is set. *@
+            <div class="gis-card" id="typology-selected-area">
+                <h3 class="gis-title">Selected Area</h3>
+                <div class="gis-typology-selected-area"></div>
+                <div class="gis-form-row gis-typology-area-actions">
+                    <button type="button" id="typology-select-area-button" class="gis-button gis-button-secondary">Select</button>
+                    <button type="button" id="typology-load-button" class="gis-button">Load</button>
+                </div>
+            </div>
         </div>
         <div class="gis-card" id="typology-column-properties">
             <h3 class="gis-title">Column Properties</h3>

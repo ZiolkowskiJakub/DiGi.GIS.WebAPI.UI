@@ -376,12 +376,16 @@ const digiTypology = (function () {
         }
     }
 
-    // The administrative area that scopes the values load — a load scope, not part of the definition,
-    // so it lives beside the state rather than on a level. null until an area is chosen, the only
-    // state in which no load can start. Picked in the same modal as Load:
-    // { name, code, administrativeArealType, countyIds }, where countyIds is the resolved list of
-    // county part ids (null until resolved, empty for a country, which loads the whole table).
-    let uniqueValuesScope = null;
+    // The administrative area both Load actions share (#41) — the values Load in Column Properties and
+    // the Load into the area view. A load scope, not part of the definition, so it lives beside the
+    // state rather than on a level; shown in the Selected Area card and persisted for the tab
+    // (selectedAreaStorageKey). null until an area is chosen, the only state in which a Load prompts.
+    // { id, code, name, administrativeArealType, path, countyIds }: path is the breadcrumb of parent
+    // names, so two areas that share a name stay apart in the card (#42); countyIds is the lazily
+    // resolved list of county part ids (null until resolved, empty for a country, which loads the
+    // whole table), dropped whenever the area changes.
+    let selectedArea = null;
+    const selectedAreaStorageKey = 'digiTypology.selectedArea';
     // The in-flight request (so a second click or a level switch cancels the first), the uniqueId of
     // the level whose values are loading, the progress line shown while loading, and the outcome
     // message of the last load.
@@ -417,8 +421,8 @@ const digiTypology = (function () {
     // its neighbour the way the old value-relative snap (a fifth of the value) did.
     const generatedRangeShareTolerance = 0.1;
 
-    // "Load" of either editor: the Load Area modal picks the scope, and a chosen area loads at once.
-    // A unique-value rule merges every answer into its rows as it arrives (capped at
+    // "Load" of either editor, for the selected area (selectUniqueValuesScope picks one first when none
+    // is set). A unique-value rule merges every answer into its rows as it arrives (capped at
     // uniqueValuesLimit); a range rule collects each part's value-distribution histogram and, at the
     // end, replaces its rows with generatedRangeCount ranges that split the area's buildings by count
     // (issue #30) — one comparable share per range, instead of equal widths over a span set by outliers.
@@ -689,10 +693,10 @@ const digiTypology = (function () {
         }
 
         function resolveCountyIds() {
-            if (uniqueValuesScope.countyIds !== null) {
-                return Promise.resolve(uniqueValuesScope.countyIds);
+            if (selectedArea.countyIds !== null) {
+                return Promise.resolve(selectedArea.countyIds);
             }
-            const scope = uniqueValuesScope;
+            const scope = selectedArea;
             const url = baseUrl() + '/typology/countyids?code=' + encodeURIComponent(scope.code) + '&administrativearealtype=' + scope.administrativeArealType;
             return fetch(url, { signal: abortController.signal })
                 .then(function (response) {
@@ -715,9 +719,9 @@ const digiTypology = (function () {
                 });
         }
 
-        // A load starts only from a chosen area — the confirm callback of the Load Area modal sets the
-        // scope and loads at once — so every load resolves counties; a country resolves to none and
-        // loads the whole table.
+        // A load starts only with an area selected — the caller prompts for one first — so every load
+        // resolves counties; a country resolves to none and loads the whole table. The ids are captured
+        // here, so re-selecting the area mid-load neither redirects nor aborts this load.
         const chain = resolveCountyIds().then(function (countyIds) {
             if (!current()) {
                 return;
@@ -737,17 +741,15 @@ const digiTypology = (function () {
         });
     }
 
-    // "Load" in Column Properties: the Load Area modal picks the scope; a chosen area starts a load
-    // at once, so the button is one step rather than two.
+    // "Load" in Column Properties: loads for the selected area at once; with none selected the area
+    // modal picks one first (which fills the Selected Area card), so the button stays one step (#41).
     function selectUniqueValuesScope(level) {
         const container = propertiesContainer();
-        openLoadModal({
+        ensureSelectedArea({
             opener: container !== null ? container.querySelector('button[data-action="load"]') : null,
-            title: 'Load Values From Area',
-            confirm: function (target) {
-                uniqueValuesScope = { name: target.name, code: target.code, administrativeArealType: target.administrativeArealType, countyIds: null };
-                loadColumnValues(level);
-            }
+            title: 'Load Values From Area'
+        }, function () {
+            loadColumnValues(level);
         });
     }
 
@@ -1228,8 +1230,8 @@ const digiTypology = (function () {
 
     // The chrome both editors share: the Add / Load / Clear row — the same three actions in the same
     // order for both rule kinds, so switching a level's kind never moves the buttons under the pointer.
-    // Add and Load wait out a running load; Clear waits out an empty list. Load picks its area in the
-    // Load Area modal every time, so no scope line is shown. The range editor adds its Load setting —
+    // Add and Load wait out a running load; Clear waits out an empty list. Load scopes to the area in
+    // the Selected Area card (#41), so no scope line is shown here. The range editor adds its Load setting —
     // the number of ranges to generate (#37) — after the buttons; the unique-value editor has none.
     function renderEditorActions(loading, listEmpty, settings) {
         return '<div class="gis-typology-actions">' +
@@ -1892,6 +1894,127 @@ const digiTypology = (function () {
         replaceDefinition(definition);
     }
 
+    // ----- selected area (#41) -----
+
+    function selectedAreaContainer() {
+        return document.querySelector('#typology-selected-area .gis-typology-selected-area');
+    }
+
+    // Replaces the shared area with a row of the area modal: the cached county ids go with the old
+    // area, the card is redrawn, and the choice is filed for the tab. Selecting loads nothing by
+    // itself — a load in flight keeps the ids it resolved (loadColumnValues).
+    function setSelectedArea(target) {
+        selectedArea = {
+            id: target.id,
+            code: target.code === null || target.code === undefined ? '' : target.code,
+            name: target.name || '',
+            administrativeArealType: target.administrativeArealType,
+            path: Array.isArray(target.path) ? target.path.slice() : [],
+            countyIds: null
+        };
+        try {
+            window.sessionStorage.setItem(selectedAreaStorageKey, JSON.stringify({
+                id: selectedArea.id,
+                code: selectedArea.code,
+                name: selectedArea.name,
+                administrativeArealType: selectedArea.administrativeArealType,
+                path: selectedArea.path
+            }));
+        } catch (error) {
+            // A full or blocked store only costs the restore on the next visit.
+        }
+        renderSelectedArea();
+    }
+
+    // The area the last visit selected comes back with the definition (restoreDefinition), so the round
+    // trip through the area view keeps it. The county ids are not stored — a cache, resolved again by
+    // the next load. Silent: an absent, blocked or malformed entry leaves the card empty, as a first visit is.
+    function restoreSelectedArea() {
+        let area = null;
+        try {
+            area = JSON.parse(window.sessionStorage.getItem(selectedAreaStorageKey));
+        } catch (error) {
+            return;
+        }
+        if (area === null || typeof area !== 'object' || !area.id || typeof area.administrativeArealType !== 'number') {
+            return;
+        }
+        setSelectedArea(area);
+    }
+
+    // The card's surface: the empty state, or the area's name with its type badge and, beneath, the
+    // parent path so two areas that share a name stay apart (#42).
+    function renderSelectedArea() {
+        const container = selectedAreaContainer();
+        if (container === null) {
+            return;
+        }
+        if (selectedArea === null) {
+            container.innerHTML = '<div class="gis-empty-state">No area selected — choose one to scope a load.</div>';
+            return;
+        }
+        const typeName = loadTypeNames[selectedArea.administrativeArealType] || 'Area';
+        let html = '<div class="gis-typology-area-name">' +
+            '<span title="' + escapeHtml(selectedArea.name) + '">' + escapeHtml(selectedArea.name) + '</span>' +
+            '<span class="gis-typology-type-badge">' + escapeHtml(typeName) + '</span>' +
+            '</div>';
+        if (selectedArea.path.length > 0) {
+            const pathText = selectedArea.path.join(' › ');
+            html += '<div class="gis-typology-area-path" title="' + escapeHtml(pathText) + '">' + escapeHtml(pathText) + '</div>';
+        }
+        container.innerHTML = html;
+    }
+
+    // Runs an action for the selected area, prompting for one first when none is set: the modal's
+    // OK then selects the area (filling the card) and runs the action, so the first Load of a visit
+    // is one step and every later Load skips the modal.
+    function ensureSelectedArea(options, action) {
+        if (selectedArea !== null) {
+            action();
+            return;
+        }
+        openLoadModal({
+            opener: options.opener,
+            title: options.title,
+            confirm: function (target) {
+                setSelectedArea(target);
+                action();
+            }
+        });
+    }
+
+    // Load in the Selected Area card: files the definition where the area view reads it, then opens
+    // the view for the selected area. The type travels as the integer the wire already carries - never
+    // a name.
+    function loadAreaView() {
+        try {
+            window.sessionStorage.setItem(loadDefinitionStorageKey, JSON.stringify(definitionPayload()));
+        } catch (error) {
+            // A full or blocked store must not eat the redirect; the target page treats absence as no
+            // definition carried.
+        }
+
+        window.location.href = baseUrl() + '/typology/view?id=' + selectedArea.id +
+            '&code=' + encodeURIComponent(selectedArea.code) +
+            '&administrativearealtype=' + selectedArea.administrativeArealType;
+    }
+
+    function setupSelectedAreaEvents() {
+        const selectButton = document.getElementById('typology-select-area-button');
+        if (selectButton !== null) {
+            selectButton.addEventListener('click', function () {
+                openLoadModal({ opener: selectButton, title: 'Select Area', confirm: setSelectedArea });
+            });
+        }
+
+        const loadButton = document.getElementById('typology-load-button');
+        if (loadButton !== null) {
+            loadButton.addEventListener('click', function () {
+                ensureSelectedArea({ opener: loadButton, title: 'Load Area' }, loadAreaView);
+            });
+        }
+    }
+
     // ----- modals -----
 
     let exportModal = null;
@@ -2376,13 +2499,13 @@ const digiTypology = (function () {
     // dropped instead of overwriting the newer list. The abort itself only rejects the fetch, not a
     // response already parsed.
     let loadSearchSequence = 0;
-    let loadRows = []; // { id, code, administrativeArealType, name } - the target of each rendered row
+    let loadRows = []; // { id, code, administrativeArealType, name, path } - the target of each rendered row
     let loadSelectionIndex = -1;
     let loadOpener = null; // the button that opened the modal, to return focus to when it closes
-    // The modal serves two callers: Load (no callback - OK redirects to the area view) and "Select
-    // area…" in Column Properties (OK hands the row to the callback and closes).
+    // The modal serves every area picker — Select in the Selected Area card, and the two Loads when
+    // no area is selected yet (#41): OK hands the row to the caller's callback and closes. The caller
+    // names the title, so the dialog says what the pick is for.
     let loadConfirm = null;
-    const loadTitle_Default = 'Load Area';
 
     function abortLoadSearch() {
         if (loadSearchTimer !== null) {
@@ -2403,12 +2526,12 @@ const digiTypology = (function () {
         }
 
         const settings = options !== null && options !== undefined ? options : {};
-        loadOpener = settings.opener !== null && settings.opener !== undefined ? settings.opener : document.getElementById('typology-load-button');
+        loadOpener = settings.opener !== null && settings.opener !== undefined ? settings.opener : document.getElementById('typology-select-area-button');
         loadConfirm = typeof settings.confirm === 'function' ? settings.confirm : null;
 
         const title = document.getElementById('typology-load-title');
         if (title !== null) {
-            title.textContent = settings.title || loadTitle_Default;
+            title.textContent = settings.title || 'Select Area';
         }
 
         const input = document.getElementById('typology-load-input');
@@ -2548,7 +2671,8 @@ const digiTypology = (function () {
 
             // The path runs from the country down to the matched area, so the last entry is the match - and it
             // is the target: a Subdivision loads its own district, not the municipality or county before it in
-            // the path. The row keeps its full breadcrumb, and the redirect carries the subdivision's own id/code/type.
+            // the path. The row keeps its full breadcrumb, the redirect carries the subdivision's own id/code/type,
+            // and the entries before the match travel as the target's path for the Selected Area card (#41).
             const target = references[references.length - 1];
             const matchedTypeName = loadTypeNames[target.AdministrativeArealType] || 'Area';
 
@@ -2570,7 +2694,10 @@ const digiTypology = (function () {
                 id: target.Id,
                 code: target.Code,
                 administrativeArealType: target.AdministrativeArealType,
-                name: (target.Name || '') + ' (' + (loadTypeNames[target.AdministrativeArealType] || 'Area') + ')'
+                name: target.Name || '',
+                path: references.slice(0, references.length - 1).map(function (reference) {
+                    return reference.Name || '';
+                })
             });
         }
 
@@ -2608,9 +2735,8 @@ const digiTypology = (function () {
         }
     }
 
-    // OK (and Enter in the search box): with a caller's callback, hand it the row and close; otherwise
-    // file the definition where the target page reads it, then redirect with the selected area. The
-    // type travels as the integer the wire already carries - never a name.
+    // OK (and Enter in the search box): close, then hand the row to the caller's callback. The close
+    // comes first so the callback's own modal or redirect never races the focus return.
     function confirmLoadSelection() {
         if (loadSelectionIndex < 0 || loadSelectionIndex >= loadRows.length) {
             return;
@@ -2621,35 +2747,18 @@ const digiTypology = (function () {
             return;
         }
 
-        if (loadConfirm !== null) {
-            const confirm = loadConfirm;
-            closeLoadModal();
+        const confirm = loadConfirm;
+        closeLoadModal();
+        if (confirm !== null) {
             confirm(target);
-            return;
         }
-
-        try {
-            window.sessionStorage.setItem(loadDefinitionStorageKey, JSON.stringify(definitionPayload()));
-        } catch (error) {
-            // A full or blocked store must not eat the redirect; the target page treats absence as no
-            // definition carried.
-        }
-
-        window.location.href = baseUrl() + '/typology/view?id=' + target.id +
-            '&code=' + encodeURIComponent(target.code === null || target.code === undefined ? '' : target.code) +
-            '&administrativearealtype=' + target.administrativeArealType;
     }
 
     function setupLoadEvents() {
         const modal = document.getElementById('typology-load-modal');
-        const loadButton = document.getElementById('typology-load-button');
-        if (modal === null || loadButton === null) {
+        if (modal === null) {
             return;
         }
-
-        loadButton.addEventListener('click', function () {
-            openLoadModal();
-        });
 
         const input = document.getElementById('typology-load-input');
         if (input !== null) {
@@ -2752,10 +2861,13 @@ const digiTypology = (function () {
         setupSelectedEvents();
         setupPropertiesEvents();
         setupDefinitionEvents();
+        setupSelectedAreaEvents();
         setupLoadEvents();
         renderSelected(); // the empty state, until the columns arrive
+        renderSelectedArea(); // the empty state, until an area is selected or restored
         renderProperties();
         restoreDefinition();
+        restoreSelectedArea();
         loadAvailableColumns();
     }
 

@@ -2725,19 +2725,47 @@ h1.gis-title-large {
     gap: 20px;
 }
 
-    /* The three cards share one fixed, viewport-based height so a drop or a longer rule editor never
+    /* The three cells share one fixed, viewport-based height so a drop or a longer rule editor never
        reflows the row: the heading and filter keep their natural size and the list/editor below them
-       takes the rest and scrolls on its own. */
-    .gis-typology-layout > .gis-card {
-        display: flex;
-        flex-direction: column;
+       takes the rest and scrolls on its own. The middle cell is a column of two cards (#41) with the
+       same height, so the cards inside it are sized by the column, not by this clamp. */
+    .gis-typology-layout > .gis-card,
+    .gis-typology-column {
         height: clamp(420px, calc(100vh - 380px), 800px);
         min-height: 0;
         margin-bottom: 0;
         box-sizing: border-box;
     }
 
+    .gis-typology-layout > .gis-card,
+    .gis-typology-column,
+    .gis-typology-column > .gis-card {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .gis-typology-column {
+        gap: 20px;
+    }
+
+        /* Inside the column the chain card takes whatever the area card leaves - the area card keeps
+           its natural height, so a long chain still scrolls in its own list. */
+        .gis-typology-column > .gis-card {
+            min-height: 0;
+            margin-bottom: 0;
+            box-sizing: border-box;
+        }
+
+        .gis-typology-column > #typology-selected-columns {
+            flex: 1 1 auto;
+        }
+
+        .gis-typology-column > #typology-selected-area {
+            flex: 0 0 auto;
+        }
+
         .gis-typology-layout > .gis-card > .gis-column-list,
+        .gis-typology-column > .gis-card > .gis-column-list,
         .gis-typology-layout > .gis-card > .gis-typology-properties {
             flex: 1 1 auto;
             min-height: 0;
@@ -2749,10 +2777,63 @@ h1.gis-title-large {
         grid-template-columns: 1fr;
     }
 
-        .gis-typology-layout > .gis-card {
+        .gis-typology-layout > .gis-card,
+        .gis-typology-column > #typology-selected-columns {
             height: 420px;
         }
+
+        /* Stacked, the column has no height budget: its cards stack at their own heights. */
+        .gis-typology-column {
+            height: auto;
+        }
 }
+
+/* The Selected Area card's surface (#41): the area's name with its type badge (the modal's badge, reused),
+   and beneath it the parent path in a muted line so two areas that share a name stay apart (#42). */
+.gis-typology-selected-area {
+    min-height: 44px;
+}
+
+    .gis-typology-selected-area .gis-empty-state {
+        padding: 10px 0;
+    }
+
+    .gis-typology-area-name {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        min-width: 0;
+    }
+
+        .gis-typology-area-name > span:first-child {
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+    .gis-typology-area-path {
+        margin-top: 4px;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+/* Select and Load under the area share the row's width. .gis-button is inline-flex with no
+   justify-content, so a stretched button left-aligns its label - centre it here. */
+.gis-typology-area-actions {
+    margin-top: 12px;
+    gap: 10px;
+}
+
+    .gis-typology-area-actions > .gis-button {
+        flex: 1 1 0;
+        justify-content: center;
+    }
 
 /* Filter input above the Available Columns list (#14). */
 .gis-column-filter {
@@ -2769,17 +2850,6 @@ h1.gis-title-large {
    line than .gis-form-row's default, and separates the row from the chain list below it. */
 .gis-typology-panel-actions {
     margin: -8px 0 12px 0;
-}
-
-/* Load pinned to the bottom of the Selected Columns card, stretched across it: the card is a flex
-   column with the list flexing between this button and the Import/Export row above. */
-.gis-button-stretch {
-    width: 100%;
-    box-sizing: border-box;
-    margin-top: 12px;
-    /* .gis-button is inline-flex with no justify-content, so a full-width button left-aligns its
-       label — centre it here, scoped to the stretch modifier (the Load button is the only user). */
-    justify-content: center;
 }
 
 /* The shared list surface the Available/Selected Columns sections render into (#14, #15). */
