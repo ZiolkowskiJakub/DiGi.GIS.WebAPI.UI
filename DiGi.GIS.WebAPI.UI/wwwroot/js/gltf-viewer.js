@@ -557,7 +557,7 @@ if (container) {
         resizer.classList.add('is-dragging');
 
         const startX = mouseDownEvent.clientX;
-        const startWidth = leftPanel.getBClientRect().width;
+        const startWidth = leftPanel.getBoundingClientRect().width;
 
         function onMouseMove(mouseMoveEvent) {
             const deltaX = mouseMoveEvent.clientX - startX;
@@ -576,7 +576,7 @@ if (container) {
             document.removeEventListener('mouseup', onMouseUp);
 
             // Save width preference
-            const finalWidth = leftPanel.getBClientRect().width;
+            const finalWidth = leftPanel.getBoundingClientRect().width;
             localStorage.setItem('gltf-left-panel-width', finalWidth);
 
             // Final resize dispatch
