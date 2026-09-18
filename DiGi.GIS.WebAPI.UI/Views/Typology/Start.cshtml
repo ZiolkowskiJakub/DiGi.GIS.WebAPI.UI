@@ -31,26 +31,31 @@
         <div class="gis-typology-column">
             <div class="gis-card" id="typology-selected-columns">
                 <h3 class="gis-title">Selected Columns</h3>
-                @* Import and Export (#17) sit under the heading of the chain they act on. The file input is
-                   the picker Import opens and is never shown on its own. *@
+                @* Import and Export (#17) sit under the heading of the chain they act on; Clear, pushed to
+                   the right, empties the chain after a confirmation. The file input is the picker Import
+                   opens and is never shown on its own. *@
                 <div class="gis-form-row gis-typology-panel-actions">
                     <button type="button" id="typology-import-button" class="gis-button gis-button-secondary">Import</button>
                     <button type="button" id="typology-export-button" class="gis-button gis-button-secondary">Export</button>
+                    <button type="button" id="typology-clear-columns-button" class="gis-button gis-button-secondary gis-typology-action-right" disabled>Clear</button>
                     <input type="file" id="typology-import-file" accept=".json,application/json" hidden />
                 </div>
                 <div class="gis-column-list"></div>
             </div>
             @* The Selected Area card (#41): the one administrative area that scopes both the values Load
                in Column Properties and the Load into the area view. typology.js renders the area (or the
-               empty state) into the surface; Select opens the area modal without loading anything, and
-               Load (#18, relocated here) opens the area view - prompting for an area only when none is set. *@
+               empty state) into the surface; Select opens the area modal without loading anything, Clear
+               (pushed to the right) drops the area after a confirmation, and Load (#18, relocated here)
+               stretches across the card's bottom and opens the area view - prompting for an area only
+               when none is set. *@
             <div class="gis-card" id="typology-selected-area">
                 <h3 class="gis-title">Selected Area</h3>
                 <div class="gis-typology-selected-area"></div>
                 <div class="gis-form-row gis-typology-area-actions">
                     <button type="button" id="typology-select-area-button" class="gis-button gis-button-secondary">Select</button>
-                    <button type="button" id="typology-load-button" class="gis-button">Load</button>
+                    <button type="button" id="typology-clear-area-button" class="gis-button gis-button-secondary gis-typology-action-right" disabled>Clear</button>
                 </div>
+                <button type="button" id="typology-load-button" class="gis-button gis-button-stretch">Load</button>
             </div>
         </div>
         <div class="gis-card" id="typology-column-properties">

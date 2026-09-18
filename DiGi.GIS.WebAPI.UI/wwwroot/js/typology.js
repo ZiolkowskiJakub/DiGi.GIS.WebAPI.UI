@@ -1151,6 +1151,12 @@ const digiTypology = (function () {
             return;
         }
 
+        // Clear waits out an empty chain, like the editors' Clear waits out an empty list.
+        const clearButton = document.getElementById('typology-clear-columns-button');
+        if (clearButton !== null) {
+            clearButton.disabled = state.levels.length === 0;
+        }
+
         if (state.levels.length === 0) {
             showEmptyState(container, 'No columns selected — double-click or drag a column here.');
             return;
@@ -1228,17 +1234,18 @@ const digiTypology = (function () {
         renderRangeValidation(level);
     }
 
-    // The chrome both editors share: the Add / Load / Clear row — the same three actions in the same
+    // The chrome both editors share: the Add / Load … Clear row — the same three actions in the same
     // order for both rule kinds, so switching a level's kind never moves the buttons under the pointer.
     // Add and Load wait out a running load; Clear waits out an empty list. Load scopes to the area in
     // the Selected Area card (#41), so no scope line is shown here. The range editor adds its Load setting —
-    // the number of ranges to generate (#37) — after the buttons; the unique-value editor has none.
+    // the number of ranges to generate (#37) — after Load; the unique-value editor has none. Clear is
+    // pushed to the row's right edge, away from the actions that build the list.
     function renderEditorActions(loading, listEmpty, settings) {
         return '<div class="gis-typology-actions">' +
             '<button type="button" class="gis-button" data-action="add"' + (loading ? ' disabled' : '') + '>Add</button>' +
             '<button type="button" class="gis-button" data-action="load"' + (loading ? ' disabled' : '') + '>Load</button>' +
-            '<button type="button" class="gis-button gis-button-secondary" data-action="clear"' + (listEmpty ? ' disabled' : '') + '>Clear</button>' +
             (settings || '') +
+            '<button type="button" class="gis-button gis-button-secondary gis-typology-action-right" data-action="clear"' + (listEmpty ? ' disabled' : '') + '>Clear</button>' +
             '</div>';
     }
 
@@ -1942,12 +1949,33 @@ const digiTypology = (function () {
         setSelectedArea(area);
     }
 
+    // Clear in the Selected Area card drops the area after a confirmation, so the next Load prompts
+    // again. Nothing is loaded or aborted by it — a values load in flight keeps the ids it resolved.
+    function clearSelectedArea(opener) {
+        if (selectedArea === null) {
+            return;
+        }
+        openConfirmModal('Clear Area', 'Clear the selected area ' + selectedArea.name + '?', function () {
+            selectedArea = null;
+            try {
+                window.sessionStorage.removeItem(selectedAreaStorageKey);
+            } catch (error) {
+                // A blocked store only means the area comes back on the next visit.
+            }
+            renderSelectedArea();
+        }, opener);
+    }
+
     // The card's surface: the empty state, or the area's name with its type badge and, beneath, the
-    // parent path so two areas that share a name stay apart (#42).
+    // parent path so two areas that share a name stay apart (#42). Clear waits out the empty state.
     function renderSelectedArea() {
         const container = selectedAreaContainer();
         if (container === null) {
             return;
+        }
+        const clearButton = document.getElementById('typology-clear-area-button');
+        if (clearButton !== null) {
+            clearButton.disabled = selectedArea === null;
         }
         if (selectedArea === null) {
             container.innerHTML = '<div class="gis-empty-state">No area selected — choose one to scope a load.</div>';
@@ -2004,6 +2032,13 @@ const digiTypology = (function () {
         if (selectButton !== null) {
             selectButton.addEventListener('click', function () {
                 openLoadModal({ opener: selectButton, title: 'Select Area', confirm: setSelectedArea });
+            });
+        }
+
+        const clearButton = document.getElementById('typology-clear-area-button');
+        if (clearButton !== null) {
+            clearButton.addEventListener('click', function () {
+                clearSelectedArea(clearButton);
             });
         }
 
@@ -2412,9 +2447,11 @@ const digiTypology = (function () {
     }
 
     // The Clear confirmation: Cancel is focused so one Enter through the dialog dismisses rather
-    // than destroys.
+    // than destroys. Focus returns to the button that opened it — by default the editor's Clear,
+    // which is re-rendered by the clear and so found again by selector rather than kept as an element.
     let confirmModal = null;
     let confirmModalCallback = null;
+    let confirmModalOpener = null;
 
     function ensureConfirmModal() {
         if (confirmModal !== null) {
@@ -2456,9 +2493,10 @@ const digiTypology = (function () {
         return confirmModal;
     }
 
-    function openConfirmModal(title, message, onOk) {
+    function openConfirmModal(title, message, onOk, opener) {
         const modal = ensureConfirmModal();
         confirmModalCallback = typeof onOk === 'function' ? onOk : null;
+        confirmModalOpener = opener !== null && opener !== undefined ? opener : null;
         modal.querySelector('#typology-confirm-title').textContent = title;
         modal.querySelector('#typology-confirm-message').textContent = message;
         modal.style.display = 'flex';
@@ -2470,7 +2508,13 @@ const digiTypology = (function () {
             confirmModal.style.display = 'none';
         }
         confirmModalCallback = null;
-        focusPropertiesField('button[data-action="clear"]'); // back to the button that opened it
+        // Back to the button that opened it.
+        if (confirmModalOpener !== null) {
+            confirmModalOpener.focus();
+            confirmModalOpener = null;
+        } else {
+            focusPropertiesField('button[data-action="clear"]');
+        }
     }
 
     // ----- load modal (#18) -----
@@ -2834,13 +2878,32 @@ const digiTypology = (function () {
         });
     }
 
+    // Clear in Selected Columns empties the whole chain after a confirmation — one stray click must not
+    // drop a hand-built definition. Going through replaceDefinition keeps it the one place the state is
+    // replaced wholesale (it also aborts a values load in flight).
+    function clearLevels(opener) {
+        if (state.levels.length === 0) {
+            return;
+        }
+        const count = state.levels.length;
+        openConfirmModal('Clear Columns', 'Remove all ' + count + ' selected ' + (count === 1 ? 'column' : 'columns') + '?', function () {
+            replaceDefinition({ levels: [] });
+        }, opener);
+    }
+
     function setupDefinitionEvents() {
         const exportButton = document.getElementById('typology-export-button');
         const importButton = document.getElementById('typology-import-button');
+        const clearButton = document.getElementById('typology-clear-columns-button');
         const fileInput = document.getElementById('typology-import-file');
 
         if (exportButton !== null) {
             exportButton.addEventListener('click', exportDefinition);
+        }
+        if (clearButton !== null) {
+            clearButton.addEventListener('click', function () {
+                clearLevels(clearButton);
+            });
         }
         if (importButton !== null && fileInput !== null) {
             importButton.addEventListener('click', function () {

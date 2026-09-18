@@ -2823,17 +2823,26 @@ h1.gis-title-large {
         white-space: nowrap;
     }
 
-/* Select and Load under the area share the row's width. .gis-button is inline-flex with no
-   justify-content, so a stretched button left-aligns its label - centre it here. */
+/* Select and Clear under the area: Select on the left, Clear pushed to the right edge. */
 .gis-typology-area-actions {
     margin-top: 12px;
     gap: 10px;
 }
 
-    .gis-typology-area-actions > .gis-button {
-        flex: 1 1 0;
-        justify-content: center;
-    }
+/* A button pushed to the far right of a flex action row (the Clear of Selected Columns and of Selected
+   Area): the gap between it and the buttons before it absorbs the free width. */
+.gis-typology-action-right {
+    margin-left: auto;
+}
+
+/* Load stretched across the bottom of the Selected Area card. .gis-button is inline-flex with no
+   justify-content, so a full-width button left-aligns its label - centre it here. */
+.gis-button-stretch {
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 12px;
+    justify-content: center;
+}
 
 /* Filter input above the Available Columns list (#14). */
 .gis-column-filter {
