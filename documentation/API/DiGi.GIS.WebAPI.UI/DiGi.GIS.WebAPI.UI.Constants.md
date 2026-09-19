@@ -329,6 +329,68 @@ public const int HistogramBucketCount = 1000;
 #### Field Value
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.OrtoDataEndpointsDeployed'></a>
+
+## Default\.OrtoDataEndpointsDeployed Field
+
+Whether the GIS Web API build this application is pointed at carries the Orto Data verification endpoints the Orto Data page relays to\.
+
+While false, the actions that depend on those endpoints answer as though nothing could be drawn, so the page shows its empty state rather than an error. The endpoints exist in the GIS Web API source (ZiolkowskiJakub/DiGi.GIS.WebAPI#36) but the deployed service lags the repository, and a relay built on an endpoint that is not deployed yet would read its 404 as "nothing left to verify" - the exact confusion this gate exists to prevent.
+
+Read-only rather than const on purpose: a const gate marks the code behind it unreachable and trips CS0162 against this repository's zero-warning standard for as long as the gate exists.
+
+```csharp
+public static readonly bool OrtoDataEndpointsDeployed;
+```
+
+#### Field Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.OrtoDataImageByReferenceUri'></a>
+
+## Default\.OrtoDataImageByReferenceUri Field
+
+URI of the GIS Web API endpoint serving the orthophoto image of a building for one year, as JPEG bytes\.
+
+Deployed already, so it is not gated on [OrtoDataEndpointsDeployed](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.OrtoDataEndpointsDeployed 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.OrtoDataEndpointsDeployed'); the `fallbackbyreference` parameter the relay sends is ignored by builds that predate it.
+
+```csharp
+public const string OrtoDataImageByReferenceUri = "https://api.digiproject.uk/gis/ortodatas/imagebyreference";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.OrtoDataRandomBuilding2DReferenceUri'></a>
+
+## Default\.OrtoDataRandomBuilding2DReferenceUri Field
+
+URI of the GIS Web API endpoint drawing the next building to verify: one with orthophoto coverage and no user\-provided year built yet\.
+
+Requires a signed-in session, and is one of the endpoints [OrtoDataEndpointsDeployed](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.OrtoDataEndpointsDeployed 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.OrtoDataEndpointsDeployed') gates on.
+
+```csharp
+public const string OrtoDataRandomBuilding2DReferenceUri = "https://api.digiproject.uk/gis/ortodatas/randombuilding2dreference";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.OrtoDataYearsByReferenceUri'></a>
+
+## Default\.OrtoDataYearsByReferenceUri Field
+
+URI of the GIS Web API endpoint listing the photo years held for a building \- the only years the Orto Data page renders a card for\.
+
+Requires a signed-in session, and is one of the endpoints [OrtoDataEndpointsDeployed](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.OrtoDataEndpointsDeployed 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.OrtoDataEndpointsDeployed') gates on.
+
+```csharp
+public const string OrtoDataYearsByReferenceUri = "https://api.digiproject.uk/gis/ortodatas/yearsbyreference";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.PolygonMinimumPointCount'></a>
 
 ## Default\.PolygonMinimumPointCount Field
@@ -697,6 +759,21 @@ Points at the production service for the same reason [GISWebAPIUri\_Development]
 
 ```csharp
 public const string UserWebAPIUri_Development = "https://api.digiproject.uk";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.YearBuiltDataSetUserYearBuiltUri'></a>
+
+## Default\.YearBuiltDataSetUserYearBuiltUri Field
+
+URI of the GIS Web API endpoint recording a reviewer's year built answer for a building\.
+
+Requires a signed-in session, and is one of the endpoints [OrtoDataEndpointsDeployed](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.OrtoDataEndpointsDeployed 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.OrtoDataEndpointsDeployed') gates on.
+
+```csharp
+public const string YearBuiltDataSetUserYearBuiltUri = "https://api.digiproject.uk/gis/yearbuiltdata/setuseryearbuilt";
 ```
 
 #### Field Value

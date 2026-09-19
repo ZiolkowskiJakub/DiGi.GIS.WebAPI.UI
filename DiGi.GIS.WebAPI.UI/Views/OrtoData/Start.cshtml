@@ -1,0 +1,38 @@
+@{
+    ViewData["Title"] = "Orto Data";
+    ViewData["Description"] = "Verify building construction years against historical orthophoto imagery.";
+    ViewData["Robots"] = "noindex, nofollow";
+}
+
+<div class="ortodata-page">
+    <div id="ortodata-toolbar" class="ortodata-toolbar">
+        <div class="ortodata-toolbar-row">
+            <div class="ortodata-identity">
+                <span class="ortodata-county">County ID: <span id="ortodata-county">&ndash;</span></span>
+                <span class="ortodata-reference">Reference: <span id="ortodata-reference">&ndash;</span></span>
+            </div>
+            <div class="ortodata-toolbar-actions">
+                <button type="button" id="ortodata-details" class="gis-button gis-button-secondary">Details</button>
+                <button type="button" id="ortodata-existed" class="ortodata-bound" aria-pressed="false">Existed in oldest photo</button>
+                <button type="button" id="ortodata-notvisible" class="ortodata-bound" aria-pressed="false">Not visible in newest photo</button>
+                <button type="button" id="ortodata-clear" class="gis-button gis-button-secondary">Clear</button>
+                <button type="button" id="ortodata-next" class="gis-button">Next</button>
+            </div>
+        </div>
+        <div class="ortodata-instruction">Select the first photo in which the building is present</div>
+        <div id="ortodata-provenance" class="ortodata-provenance" hidden></div>
+    </div>
+
+    <div id="ortodata-status" class="ortodata-status" role="status" aria-live="polite" hidden></div>
+
+    <div id="ortodata-grid" class="ortodata-grid"></div>
+
+    <div id="ortodata-empty" class="ortodata-empty" hidden>
+        <p class="ortodata-empty-title">Nothing left to verify</p>
+        <p class="ortodata-empty-text">Every covered building already has a year built answer, or the service could not be reached.</p>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/ortodata.js" asp-append-version="true"></script>
+}

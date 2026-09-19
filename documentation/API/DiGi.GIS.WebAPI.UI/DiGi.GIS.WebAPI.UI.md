@@ -1248,6 +1248,43 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The stored [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel'), or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') if the building could not be found\.
 
+<a name='DiGi.GIS.WebAPI.UI.Query.BytesAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken)'></a>
+
+## Query\.BytesAsync\(this HttpClient, string, CancellationToken\) Method
+
+Asynchronously reads the body of a GIS Web API response as bytes, for the payloads that are not JSON\.
+
+Every way of not getting a body collapses into [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null'): the service answered with a failure status, answered with nothing, was unreachable, or the request was cancelled - for the reasons given on [JsonAsync\(this HttpClient, string, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.JsonAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.JsonAsync\(this System\.Net\.Http\.HttpClient, string, System\.Threading\.CancellationToken\)'). The Orto Data image relay maps that absence to a 404 of its own, which the page turns into a hidden card, so a missing photo degrades the grid rather than failing the page.
+
+Sends no session token: the endpoint this serves (the orthophoto image read) is anonymous upstream. A bearer-carrying variant belongs on [ResponseAsync\(this HttpClient, HttpMethod, string, string, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.ResponseAsync(thisSystem.Net.Http.HttpClient,System.Net.Http.HttpMethod,string,string,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.ResponseAsync\(this System\.Net\.Http\.HttpClient, System\.Net\.Http\.HttpMethod, string, string, System\.Threading\.CancellationToken\)') if one is ever needed.
+
+```csharp
+public static System.Threading.Tasks.Task<byte[]?> BytesAsync(this System.Net.Http.HttpClient? httpClient, string? requestUri, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BytesAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BytesAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken).requestUri'></a>
+
+`requestUri` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The GIS Web API URL to read\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.BytesAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Byte](https://learn.microsoft.com/en-us/dotnet/api/system.byte 'System\.Byte')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The response body, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there is none\.
+
 <a name='DiGi.GIS.WebAPI.UI.Query.ClipByPolygon(thisDiGi.Core.IO.Table.Classes.Table,DiGi.Geometry.Planar.Classes.PolygonalFace2D)'></a>
 
 ## Query\.ClipByPolygon\(this Table, PolygonalFace2D\) Method

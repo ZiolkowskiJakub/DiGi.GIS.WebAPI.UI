@@ -77,6 +77,33 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const string GISWebAPIUri_Development = "https://api.digiproject.uk";
 
         /// <summary>
+        /// Whether the GIS Web API build this application is pointed at carries the Orto Data verification endpoints the Orto Data page relays to.
+        /// <para>While false, the actions that depend on those endpoints answer as though nothing could be drawn, so the page shows its empty state rather than an error. The endpoints exist in the GIS Web API source (ZiolkowskiJakub/DiGi.GIS.WebAPI#36) but the deployed service lags the repository, and a relay built on an endpoint that is not deployed yet would read its 404 as "nothing left to verify" - the exact confusion this gate exists to prevent.</para>
+        /// <para>Read-only rather than const on purpose: a const gate marks the code behind it unreachable and trips CS0162 against this repository's zero-warning standard for as long as the gate exists.</para>
+        /// </summary>
+        // TODO [OrtoDataEndpoints]: remove this field and every gate reading it once GET /information/endpoints on the GIS Web API reports a build carrying gis/ortodatas/randombuilding2dreference and gis/yearbuiltdata/setuseryearbuilt - tracking issue ZiolkowskiJakub/DiGi.GIS.WebAPI.UI#47, deployment tracked in ZiolkowskiJakub/DiGi.GIS.WebAPI#37.
+        // TODO [OrtoDataEndpoints]: remove this field and every gate reading it once GET /information/endpoints on the GIS Web API reports a build carrying gis/ortodatas/randombuilding2dreference and gis/yearbuiltdata/setuseryearbuilt - tracking issue ZiolkowskiJakub/DiGi.GIS.WebAPI.UI#47, deployment tracked in ZiolkowskiJakub/DiGi.GIS.WebAPI#37.
+        public static readonly bool OrtoDataEndpointsDeployed = false;
+
+        /// <summary>
+        /// URI of the GIS Web API endpoint drawing the next building to verify: one with orthophoto coverage and no user-provided year built yet.
+        /// <para>Requires a signed-in session, and is one of the endpoints <see cref="OrtoDataEndpointsDeployed"/> gates on.</para>
+        /// </summary>
+        public const string OrtoDataRandomBuilding2DReferenceUri = GISWebAPIUri + "/gis/ortodatas/randombuilding2dreference";
+
+        /// <summary>
+        /// URI of the GIS Web API endpoint listing the photo years held for a building - the only years the Orto Data page renders a card for.
+        /// <para>Requires a signed-in session, and is one of the endpoints <see cref="OrtoDataEndpointsDeployed"/> gates on.</para>
+        /// </summary>
+        public const string OrtoDataYearsByReferenceUri = GISWebAPIUri + "/gis/ortodatas/yearsbyreference";
+
+        /// <summary>
+        /// URI of the GIS Web API endpoint serving the orthophoto image of a building for one year, as JPEG bytes.
+        /// <para>Deployed already, so it is not gated on <see cref="OrtoDataEndpointsDeployed"/>; the <c>fallbackbyreference</c> parameter the relay sends is ignored by builds that predate it.</para>
+        /// </summary>
+        public const string OrtoDataImageByReferenceUri = GISWebAPIUri + "/gis/ortodatas/imagebyreference";
+
+        /// <summary>
         /// The fewest points a reduced outline is allowed to keep, for an administrative area with no rule of its own and for a building footprint.
         /// </summary>
         public const int PolygonMinimumPointCount = 100;
@@ -221,5 +248,11 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         /// <para>Points at the production service for the same reason <see cref="GISWebAPIUri_Development"/> does: no host runs locally by default, and a dead localhost URI would turn every sign-in attempt into a failure indistinguishable from a wrong password. Restore a localhost URI (matching the local host port) only when debugging DiGi.User.WebAPI locally.</para>
         /// </summary>
         public const string UserWebAPIUri_Development = "https://api.digiproject.uk";
+
+        /// <summary>
+        /// URI of the GIS Web API endpoint recording a reviewer's year built answer for a building.
+        /// <para>Requires a signed-in session, and is one of the endpoints <see cref="OrtoDataEndpointsDeployed"/> gates on.</para>
+        /// </summary>
+        public const string YearBuiltDataSetUserYearBuiltUri = GISWebAPIUri + "/gis/yearbuiltdata/setuseryearbuilt";
     }
 }

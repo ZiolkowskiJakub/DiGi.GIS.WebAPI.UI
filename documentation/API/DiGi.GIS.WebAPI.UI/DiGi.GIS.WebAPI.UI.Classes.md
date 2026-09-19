@@ -200,6 +200,142 @@ public System.Nullable<double> RelativePermittivity { get; set; }
 #### Property Value
 [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
+<a name='DiGi.GIS.WebAPI.UI.Classes.OrtoDataBuildingResponse'></a>
+
+## OrtoDataBuildingResponse Class
+
+The building the Orto Data page is to verify: where to find it, the photo years it holds, and the answer already on record\.
+
+An instance with no [Reference](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.OrtoDataBuildingResponse.Reference 'DiGi\.GIS\.WebAPI\.UI\.Classes\.OrtoDataBuildingResponse\.Reference') is the page's empty state - nothing left to verify - which is also what the relay answers while the upstream endpoints are not deployed. Serialized to the page script with the framework's web defaults, so the property names reach the browser camelCased (`countyId`, `reference`, `years`, `selected`).
+
+```csharp
+public class OrtoDataBuildingResponse
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → OrtoDataBuildingResponse
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.OrtoDataBuildingResponse.CountyId'></a>
+
+## OrtoDataBuildingResponse\.CountyId Property
+
+Gets or sets the identifier of the `building_2d` part the building is filed under, or null when no building was drawn\.
+
+```csharp
+public System.Nullable<int> CountyId { get; set; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.OrtoDataBuildingResponse.Reference'></a>
+
+## OrtoDataBuildingResponse\.Reference Property
+
+Gets or sets the reference of the building, or null when no building was drawn\.
+
+```csharp
+public string? Reference { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.OrtoDataBuildingResponse.Selected'></a>
+
+## OrtoDataBuildingResponse\.Selected Property
+
+Gets or sets the answer already recorded for the building, or null when none is\.
+
+```csharp
+public DiGi.GIS.WebAPI.UI.Classes.OrtoDataBuildingResponse.Selection? Selected { get; set; }
+```
+
+#### Property Value
+[Selection](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.OrtoDataBuildingResponse.Selection 'DiGi\.GIS\.WebAPI\.UI\.Classes\.OrtoDataBuildingResponse\.Selection')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.OrtoDataBuildingResponse.Years'></a>
+
+## OrtoDataBuildingResponse\.Years Property
+
+Gets or sets the years that hold a photo of the building \- the only years a card is rendered for\.
+
+Sorted ascending upstream; the bound answers read their oldest and newest ends.
+
+```csharp
+public System.Collections.Generic.List<short> Years { get; set; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.OrtoDataBuildingResponse.Selection'></a>
+
+## OrtoDataBuildingResponse\.Selection Class
+
+The year built answer recorded for a building: the year it names, how that year relates to the true construction year, and who recorded it when\.
+
+There is at most one user entry per building - the stored year built data is keyed by source - so the page's selection is a single object rather than a list.
+
+```csharp
+public class OrtoDataBuildingResponse.Selection
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → Selection
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.OrtoDataBuildingResponse.Selection.DateTime'></a>
+
+## OrtoDataBuildingResponse\.Selection\.DateTime Property
+
+Gets or sets when the answer was recorded \(UTC\), or null for legacy entries written before provenance was kept\.
+
+```csharp
+public System.Nullable<System.DateTimeOffset> DateTime { get; set; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.OrtoDataBuildingResponse.Selection.Relation'></a>
+
+## OrtoDataBuildingResponse\.Selection\.Relation Property
+
+Gets or sets how [Year](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.OrtoDataBuildingResponse.Selection.Year 'DiGi\.GIS\.WebAPI\.UI\.Classes\.OrtoDataBuildingResponse\.Selection\.Year') relates to the true construction year, as the integer value of `DiGi.GIS.Enums.YearBuiltRelation`: 0 exact, 1 at or before, 2 after\.
+
+```csharp
+public System.Nullable<int> Relation { get; set; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.OrtoDataBuildingResponse.Selection.UserName'></a>
+
+## OrtoDataBuildingResponse\.Selection\.UserName Property
+
+Gets or sets who recorded the answer, or null for legacy entries written before provenance was kept\.
+
+```csharp
+public string? UserName { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.OrtoDataBuildingResponse.Selection.Year'></a>
+
+## OrtoDataBuildingResponse\.Selection\.Year Property
+
+Gets or sets the photo year the answer names, or the bound year for an at\-or\-before or after answer\.
+
+```csharp
+public System.Nullable<short> Year { get; set; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
 <a name='DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionLevelParameter'></a>
 
 ## TypologyDefinitionLevelParameter Class
@@ -603,6 +739,77 @@ public string? Password { get; set; }
 
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.UserYearBuiltParameter'></a>
+
+## UserYearBuiltParameter Class
+
+The year built answer a reviewer submits on the Orto Data page, relayed to the GIS Web API\.
+
+These property names are the wire contract of `POST gis/yearbuiltdata/setuseryearbuilt` and must match the service's own `UserYearBuiltParameter`. This application reaches that service over HTTP only, so nothing checks them at compile time and a rename on either side fails silently - diff them by hand whenever either moves (Coding - WebAPI Contracts, section 5).
+
+```csharp
+public class UserYearBuiltParameter
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → UserYearBuiltParameter
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.UserYearBuiltParameter.CountyId'></a>
+
+## UserYearBuiltParameter\.CountyId Property
+
+Gets or sets the identifier of the `building_2d` part the building is filed under\.
+
+Always the part the page received from the random draw or the direct-mode reference resolution, never one re-derived from a county code: a county code can name several parts, and the write is refused when the named part does not hold the reference.
+
+```csharp
+public System.Nullable<int> CountyId { get; set; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.UserYearBuiltParameter.Reference'></a>
+
+## UserYearBuiltParameter\.Reference Property
+
+Gets or sets the reference of the building the answer is for\.
+
+```csharp
+public string? Reference { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.UserYearBuiltParameter.Relation'></a>
+
+## UserYearBuiltParameter\.Relation Property
+
+Gets or sets how [Year](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.UserYearBuiltParameter.Year 'DiGi\.GIS\.WebAPI\.UI\.Classes\.UserYearBuiltParameter\.Year') relates to the true construction year, as the integer value of `DiGi.GIS.Enums.YearBuiltRelation`: 0 exact, 1 at or before, 2 after\.
+
+The integer, never the member name: the service binds the value against its own enum spelling, and a renamed member turns a member-name string into a hard 400 while the integer never moves (Coding - WebAPI Contracts, section 2). The service treats null as 0.
+
+```csharp
+public System.Nullable<int> Relation { get; set; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.UserYearBuiltParameter.Year'></a>
+
+## UserYearBuiltParameter\.Year Property
+
+Gets or sets the photo year the answer names: the selected card's year, or the oldest or newest listed year for a bound answer\.
+
+```csharp
+public System.Nullable<short> Year { get; set; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 <a name='DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse'></a>
 

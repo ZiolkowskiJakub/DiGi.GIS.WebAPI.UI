@@ -1282,6 +1282,236 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A task that represents the asynchronous operation\. The task result contains an [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult'), which returns a partial view containing the occupancy data if successful; otherwise, a bad request or no content response\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController'></a>
+
+## OrtoDataController Class
+
+Provides the Orto Data verification page and the endpoints it uses, each relaying to the GIS Web API with the visitor's session presented as a bearer token\.
+
+Distinct from [OrtoDatasController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.OrtoDatasController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.OrtoDatasController'), which serves the orthophoto coverage panel of the building details page. This controller is the whole of a standalone page: it draws a building that has photos but no user year built answer yet, shows one card per photo year, and records the reviewer's answer.
+
+The page requires a session: the page action redirects an anonymous visitor to the sign-in page, and every other action answers 401, which the page script answers with one refresh attempt and then a sign-out (`wwwroot/js/user.js`).
+
+```csharp
+public class OrtoDataController : Microsoft.AspNetCore.Mvc.Controller
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [Microsoft\.AspNetCore\.Mvc\.ControllerBase](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controllerbase 'Microsoft\.AspNetCore\.Mvc\.ControllerBase') → [Microsoft\.AspNetCore\.Mvc\.Controller](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controller 'Microsoft\.AspNetCore\.Mvc\.Controller') → OrtoDataController
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.OrtoDataController(System.Net.Http.IHttpClientFactory)'></a>
+
+## OrtoDataController\(IHttpClientFactory\) Constructor
+
+Initializes a new instance of the [OrtoDataController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.OrtoDataController') class\.
+
+```csharp
+public OrtoDataController(System.Net.Http.IHttpClientFactory httpClientFactory);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.OrtoDataController(System.Net.Http.IHttpClientFactory).httpClientFactory'></a>
+
+`httpClientFactory` [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory')
+
+The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') used to create HTTP clients\.
+### Methods
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetBuildingAsync(System.Nullable_int_,string,System.Threading.CancellationToken)'></a>
+
+## OrtoDataController\.GetBuildingAsync\(Nullable\<int\>, string, CancellationToken\) Method
+
+Reads a named building with its photo years and the answer already recorded for it\.
+
+Direct mode: reached from the query values the page was opened with, and the only mode that can carry an existing answer - a freshly drawn building has none by construction.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetBuildingAsync(System.Nullable<int> countyId, string? reference, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetBuildingAsync(System.Nullable_int_,string,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional identifier of the county part the building is filed under; omitted, the service resolves the reference to the lowest part holding it\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetBuildingAsync(System.Nullable_int_,string,System.Threading.CancellationToken).reference'></a>
+
+`reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The reference of the building to read\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetBuildingAsync(System.Nullable_int_,string,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the building with its years and any recorded answer, 404 when no such building exists, 400 without a reference, 401 without a session, or the status the service answered with\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetImageAsync(System.Nullable_int_,string,System.Nullable_short_,System.Threading.CancellationToken)'></a>
+
+## OrtoDataController\.GetImageAsync\(Nullable\<int\>, string, Nullable\<short\>, CancellationToken\) Method
+
+Reads the orthophoto image of a building for one year, as JPEG bytes\.
+
+The image is requested only for years the years read listed, and a year the service holds no photo for answers 404 here, which the page turns into a hidden card.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetImageAsync(System.Nullable<int> countyId, string? reference, System.Nullable<short> year, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetImageAsync(System.Nullable_int_,string,System.Nullable_short_,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional identifier of the county part the building is filed under\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetImageAsync(System.Nullable_int_,string,System.Nullable_short_,System.Threading.CancellationToken).reference'></a>
+
+`reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The reference of the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetImageAsync(System.Nullable_int_,string,System.Nullable_short_,System.Threading.CancellationToken).year'></a>
+
+`year` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The photo year to read\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetImageAsync(System.Nullable_int_,string,System.Nullable_short_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the image, 404 when there is none, 400 without a reference or year, or 401 without a session\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetRandomAsync(int[],System.Threading.CancellationToken)'></a>
+
+## OrtoDataController\.GetRandomAsync\(int\[\], CancellationToken\) Method
+
+Draws the next building to verify and reads the photo years it holds\.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetRandomAsync(int[]? countyIds, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetRandomAsync(int[],System.Threading.CancellationToken).countyIds'></a>
+
+`countyIds` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')
+
+Optional `building_2d` part ids confining the draw; omitted or empty draws from every covered part\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetRandomAsync(int[],System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the drawn building with its years, the empty state when nothing unverified remains, 401 without a session, or the status the service answered with\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.SetUserYearBuiltAsync(DiGi.GIS.WebAPI.UI.Classes.UserYearBuiltParameter,System.Threading.CancellationToken)'></a>
+
+## OrtoDataController\.SetUserYearBuiltAsync\(UserYearBuiltParameter, CancellationToken\) Method
+
+Records a reviewer's year built answer for a building, relaying it to the GIS Web API\.
+
+The upstream status is mirrored rather than reinterpreted: 404 is the page's "building not found", 400 the service's own refusal of an incomplete answer, 401 a spent session, and a 500 or 503 a server fault that must not be reported as the caller's mistake.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> SetUserYearBuiltAsync(DiGi.GIS.WebAPI.UI.Classes.UserYearBuiltParameter? userYearBuiltParameter, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.SetUserYearBuiltAsync(DiGi.GIS.WebAPI.UI.Classes.UserYearBuiltParameter,System.Threading.CancellationToken).userYearBuiltParameter'></a>
+
+`userYearBuiltParameter` [UserYearBuiltParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.UserYearBuiltParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.UserYearBuiltParameter')
+
+The submitted answer\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.SetUserYearBuiltAsync(DiGi.GIS.WebAPI.UI.Classes.UserYearBuiltParameter,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') that is empty on success or carries the status the service answered with\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.Start()'></a>
+
+## OrtoDataController\.Start\(\) Method
+
+Returns the Orto Data verification page\.
+
+The page itself carries no building: its script draws one on load, either the next unverified building or the one named by the `countyid` and `reference` query values it reads itself. The optional repeated `countyids` confines the script's draws to those `building_2d` parts.
+
+```csharp
+public Microsoft.AspNetCore.Mvc.IActionResult Start();
+```
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the verification view, or a redirect to the sign\-in page for an anonymous visitor\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.YearsAsync(System.Net.Http.HttpClient,string,System.Nullable_int_,string,System.Threading.CancellationToken)'></a>
+
+## OrtoDataController\.YearsAsync\(HttpClient, string, Nullable\<int\>, string, CancellationToken\) Method
+
+Reads the photo years the GIS Web API holds for a building, presenting the session token the read requires\.
+
+Asked with `fallbackbyreference`, so a reference filed under a different county part than the one named still answers with the part that holds it.
+
+```csharp
+private static System.Threading.Tasks.Task<System.Collections.Generic.List<short>?> YearsAsync(System.Net.Http.HttpClient httpClient, string? reference, System.Nullable<int> countyId, string? tokenString, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.YearsAsync(System.Net.Http.HttpClient,string,System.Nullable_int_,string,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.YearsAsync(System.Net.Http.HttpClient,string,System.Nullable_int_,string,System.Threading.CancellationToken).reference'></a>
+
+`reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The reference of the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.YearsAsync(System.Net.Http.HttpClient,string,System.Nullable_int_,string,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The identifier of the county part the building is filed under\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.YearsAsync(System.Net.Http.HttpClient,string,System.Nullable_int_,string,System.Threading.CancellationToken).tokenString'></a>
+
+`tokenString` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The session token to present to the service\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.YearsAsync(System.Net.Http.HttpClient,string,System.Nullable_int_,string,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The sorted years that hold a photo, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the service answered with none\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDatasController'></a>
 
 ## OrtoDatasController Class
