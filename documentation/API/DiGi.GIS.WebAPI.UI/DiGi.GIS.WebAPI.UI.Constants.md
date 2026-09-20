@@ -329,23 +329,6 @@ public const int HistogramBucketCount = 1000;
 #### Field Value
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
-<a name='DiGi.GIS.WebAPI.UI.Constants.Default.OrtoDataEndpointsDeployed'></a>
-
-## Default\.OrtoDataEndpointsDeployed Field
-
-Whether the GIS Web API build this application is pointed at carries the Orto Data verification endpoints the Orto Data page relays to\.
-
-While false, the actions that depend on those endpoints answer as though nothing could be drawn, so the page shows its empty state rather than an error. The endpoints exist in the GIS Web API source (ZiolkowskiJakub/DiGi.GIS.WebAPI#36) but the deployed service lags the repository, and a relay built on an endpoint that is not deployed yet would read its 404 as "nothing left to verify" - the exact confusion this gate exists to prevent.
-
-Read-only rather than const on purpose: a const gate marks the code behind it unreachable and trips CS0162 against this repository's zero-warning standard for as long as the gate exists.
-
-```csharp
-public static readonly bool OrtoDataEndpointsDeployed;
-```
-
-#### Field Value
-[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
-
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.OrtoDataImageByReferenceUri'></a>
 
 ## Default\.OrtoDataImageByReferenceUri Field
@@ -778,3 +761,21 @@ public const string YearBuiltDataSetUserYearBuiltUri = "https://api.digiproject.
 
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.OrtoDataEndpointsDeployed'></a>
+
+## Default\.OrtoDataEndpointsDeployed Property
+
+Whether the GIS Web API build this application is pointed at carries the Orto Data verification endpoints the Orto Data page relays to\.
+
+While false, the actions that depend on those endpoints answer as though nothing could be drawn, so the page shows its empty state rather than an error. The endpoints exist in the GIS Web API source (ZiolkowskiJakub/DiGi.GIS.WebAPI#36) but the deployed service lags the repository, and a relay built on an endpoint that is not deployed yet would read its 404 as "nothing left to verify" - the exact confusion this gate exists to prevent.
+
+Not const on purpose: a const gate marks the code behind it unreachable and trips CS0162 against this repository's zero-warning standard for as long as the gate exists. Settable rather than `readonly` so the Orto Data Facts can open the gate for their scope on a build whose deployed service does not carry the endpoints yet, then close it again; production never assigns it.
+
+```csharp
+public static bool OrtoDataEndpointsDeployed { get; set; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')

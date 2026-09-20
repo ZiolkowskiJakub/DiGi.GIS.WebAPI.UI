@@ -119,7 +119,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// <param name="countyId">The optional identifier of the county part the building is filed under; omitted, the service resolves the reference to the lowest part holding it.</param>
         /// <param name="reference">The reference of the building to read.</param>
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
-        /// <returns>An <see cref="IActionResult"/> holding the building with its years and any recorded answer, 404 when no such building exists, 400 without a reference, 401 without a session, or the status the service answered with.</returns>
+        /// <returns>An <see cref="IActionResult"/> holding the building with its years and any recorded answer, 404 when no such building exists, 400 without a reference, 401 without a session, 503 when the service answered nothing at all, or the status the service answered with.</returns>
         [HttpGet("building")]
         public async Task<IActionResult> GetBuildingAsync([FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "reference")] string? reference, CancellationToken cancellationToken = default)
         {
@@ -142,7 +142,26 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             HttpClient httpClient = httpClientFactory.CreateClient();
 
-            Building2DReference? building2DReference = await httpClient.Building2DReferenceAsync(reference, countyId, cancellationToken);
+            // The reference read is status-preserving rather than collapsing to null: "no such building" and
+            // "the service is down" are different answers to the reviewer, and only this one may become a 404
+            // (issue #48; the same conflation class as #40).
+            WebAPIResponse? webAPIResponse = await httpClient.Building2DReferenceResponseAsync(reference, countyId, cancellationToken);
+            if (webAPIResponse is null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (webAPIResponse.StatusCode == StatusCodes.Status404NotFound)
+            {
+                return NotFound();
+            }
+
+            if (webAPIResponse.StatusCode != StatusCodes.Status200OK)
+            {
+                return StatusCode(webAPIResponse.StatusCode);
+            }
+
+            Building2DReference? building2DReference = Core.Convert.ToDiGi<Building2DReference>(webAPIResponse.Json)?.FirstOrDefault();
             if (building2DReference is null)
             {
                 return NotFound();

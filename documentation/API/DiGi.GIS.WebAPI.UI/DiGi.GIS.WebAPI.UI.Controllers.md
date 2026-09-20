@@ -1350,7 +1350,7 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the building with its years and any recorded answer, 404 when no such building exists, 400 without a reference, 401 without a session, or the status the service answered with\.
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the building with its years and any recorded answer, 404 when no such building exists, 400 without a reference, 401 without a session, 503 when the service answered nothing at all, or the status the service answered with\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetImageAsync(System.Nullable_int_,string,System.Nullable_short_,System.Threading.CancellationToken)'></a>
 

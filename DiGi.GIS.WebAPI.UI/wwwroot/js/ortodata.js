@@ -360,6 +360,14 @@
             return;
         }
 
+        if (response.status === 503) {
+            // The relay answers 503 when the service answered nothing at all (and mirrors an upstream 503):
+            // an outage must never be reported as "Building not found." (issue #48). The empty state is
+            // deliberately left alone - a service failure is not "nothing left to verify".
+            showStatus('The service could not be reached.');
+            return;
+        }
+
         if (!response.ok) {
             showStatus(`The building could not be read (status ${response.status}).`);
             return;

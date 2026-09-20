@@ -943,6 +943,53 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReference](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.classes.building2dreference 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReference')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The reference record, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there is none\.
 
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DReferenceResponseAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Threading.CancellationToken)'></a>
+
+## Query\.Building2DReferenceResponseAsync\(this HttpClient, string, Nullable\<int\>, CancellationToken\) Method
+
+Asynchronously reads the GIS Web API reference record of a building while preserving the status the service answered with\.
+
+The status-preserving counterpart of [Building2DReferenceAsync\(this HttpClient, string, Nullable&lt;int&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Building2DReferenceAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.Building2DReferenceAsync\(this System\.Net\.Http\.HttpClient, string, System\.Nullable\<int\>, System\.Threading\.CancellationToken\)'): where that read collapses every failure into [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') so a panel assembled from several independent requests survives one of them coming back empty, this one reports the status, so a caller whose outcome must name the cause can tell a refusal (or a fault) from an absence - the Orto Data direct-mode read is exactly such a caller (issue #48). See [WebAPIResponse](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse 'DiGi\.GIS\.WebAPI\.UI\.Classes\.WebAPIResponse') for why absence and refusal must not be the same answer.
+
+[null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') is still returned for the failures that carry no status at all: no client, no URL, the service unreachable, or the caller cancelling. Those are the cases where nothing was answered, as opposed to something being refused.
+
+Building data is partitioned per county, so [countyId](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Building2DReferenceResponseAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Threading.CancellationToken).countyId 'DiGi\.GIS\.WebAPI\.UI\.Query\.Building2DReferenceResponseAsync\(this System\.Net\.Http\.HttpClient, string, System\.Nullable\<int\>, System\.Threading\.CancellationToken\)\.countyId') addresses the data set the reference belongs to. Without it the GIS Web API resolves the reference to the lowest county part holding it, which is only unambiguous while no building is filed under two parts of the same county - pass it whenever it is known.
+
+The request is made anonymously: `gis/building2D/building2Dreferencebyreference` is not session-gated, matching [Building2DReferenceAsync\(this HttpClient, string, Nullable&lt;int&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Building2DReferenceAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.Building2DReferenceAsync\(this System\.Net\.Http\.HttpClient, string, System\.Nullable\<int\>, System\.Threading\.CancellationToken\)').
+
+```csharp
+public static System.Threading.Tasks.Task<DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse?> Building2DReferenceResponseAsync(this System.Net.Http.HttpClient? httpClient, string? reference, System.Nullable<int> countyId, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DReferenceResponseAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DReferenceResponseAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Threading.CancellationToken).reference'></a>
+
+`reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The reference of the building\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DReferenceResponseAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The identifier of the county part the building is filed under\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DReferenceResponseAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[WebAPIResponse](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse 'DiGi\.GIS\.WebAPI\.UI\.Classes\.WebAPIResponse')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The status and body the GIS Web API answered with, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when it answered nothing at all\.
+
 <a name='DiGi.GIS.WebAPI.UI.Query.BuildingDataColumnsAsync(thisSystem.Net.Http.HttpClient,System.Threading.CancellationToken)'></a>
 
 ## Query\.BuildingDataColumnsAsync\(this HttpClient, CancellationToken\) Method

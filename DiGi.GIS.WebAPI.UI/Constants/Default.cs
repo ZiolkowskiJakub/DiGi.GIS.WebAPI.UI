@@ -79,11 +79,10 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         /// <summary>
         /// Whether the GIS Web API build this application is pointed at carries the Orto Data verification endpoints the Orto Data page relays to.
         /// <para>While false, the actions that depend on those endpoints answer as though nothing could be drawn, so the page shows its empty state rather than an error. The endpoints exist in the GIS Web API source (ZiolkowskiJakub/DiGi.GIS.WebAPI#36) but the deployed service lags the repository, and a relay built on an endpoint that is not deployed yet would read its 404 as "nothing left to verify" - the exact confusion this gate exists to prevent.</para>
-        /// <para>Read-only rather than const on purpose: a const gate marks the code behind it unreachable and trips CS0162 against this repository's zero-warning standard for as long as the gate exists.</para>
+        /// <para>Not const on purpose: a const gate marks the code behind it unreachable and trips CS0162 against this repository's zero-warning standard for as long as the gate exists. Settable rather than <c>readonly</c> so the Orto Data Facts can open the gate for their scope on a build whose deployed service does not carry the endpoints yet, then close it again; production never assigns it.</para>
         /// </summary>
-        // TODO [OrtoDataEndpoints]: remove this field and every gate reading it once GET /information/endpoints on the GIS Web API reports a build carrying gis/ortodatas/randombuilding2dreference and gis/yearbuiltdata/setuseryearbuilt - tracking issue ZiolkowskiJakub/DiGi.GIS.WebAPI.UI#47, deployment tracked in ZiolkowskiJakub/DiGi.GIS.WebAPI#37.
-        // TODO [OrtoDataEndpoints]: remove this field and every gate reading it once GET /information/endpoints on the GIS Web API reports a build carrying gis/ortodatas/randombuilding2dreference and gis/yearbuiltdata/setuseryearbuilt - tracking issue ZiolkowskiJakub/DiGi.GIS.WebAPI.UI#47, deployment tracked in ZiolkowskiJakub/DiGi.GIS.WebAPI#37.
-        public static readonly bool OrtoDataEndpointsDeployed = false;
+        // TODO [OrtoDataEndpoints]: remove this member and every gate reading it once GET /information/endpoints on the GIS Web API reports a build carrying gis/ortodatas/randombuilding2dreference and gis/yearbuiltdata/setuseryearbuilt - tracking issue ZiolkowskiJakub/DiGi.GIS.WebAPI.UI#47, deployment tracked in ZiolkowskiJakub/DiGi.GIS.WebAPI#37.
+        public static bool OrtoDataEndpointsDeployed { get; set; } = false;
 
         /// <summary>
         /// URI of the GIS Web API endpoint drawing the next building to verify: one with orthophoto coverage and no user-provided year built yet.
