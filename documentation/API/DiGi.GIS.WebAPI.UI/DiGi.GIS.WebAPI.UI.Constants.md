@@ -335,7 +335,7 @@ public const int HistogramBucketCount = 1000;
 
 URI of the GIS Web API endpoint serving the orthophoto image of a building for one year, as JPEG bytes\.
 
-Deployed already, so it is not gated on [OrtoDataEndpointsDeployed](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.OrtoDataEndpointsDeployed 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.OrtoDataEndpointsDeployed'); the `fallbackbyreference` parameter the relay sends is ignored by builds that predate it.
+The `fallbackbyreference` parameter the relay sends is ignored by builds that predate it.
 
 ```csharp
 public const string OrtoDataImageByReferenceUri = "https://api.digiproject.uk/gis/ortodatas/imagebyreference";
@@ -350,7 +350,7 @@ public const string OrtoDataImageByReferenceUri = "https://api.digiproject.uk/gi
 
 URI of the GIS Web API endpoint drawing the next building to verify: one with orthophoto coverage and no user\-provided year built yet\.
 
-Requires a signed-in session, and is one of the endpoints [OrtoDataEndpointsDeployed](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.OrtoDataEndpointsDeployed 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.OrtoDataEndpointsDeployed') gates on.
+Requires a signed-in session.
 
 ```csharp
 public const string OrtoDataRandomBuilding2DReferenceUri = "https://api.digiproject.uk/gis/ortodatas/randombuilding2dreference";
@@ -365,7 +365,7 @@ public const string OrtoDataRandomBuilding2DReferenceUri = "https://api.digiproj
 
 URI of the GIS Web API endpoint listing the photo years held for a building \- the only years the Orto Data page renders a card for\.
 
-Requires a signed-in session, and is one of the endpoints [OrtoDataEndpointsDeployed](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.OrtoDataEndpointsDeployed 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.OrtoDataEndpointsDeployed') gates on.
+Requires a signed-in session.
 
 ```csharp
 public const string OrtoDataYearsByReferenceUri = "https://api.digiproject.uk/gis/ortodatas/yearsbyreference";
@@ -753,7 +753,7 @@ public const string UserWebAPIUri_Development = "https://api.digiproject.uk";
 
 URI of the GIS Web API endpoint recording a reviewer's year built answer for a building\.
 
-Requires a signed-in session, and is one of the endpoints [OrtoDataEndpointsDeployed](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.OrtoDataEndpointsDeployed 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.OrtoDataEndpointsDeployed') gates on.
+Requires a signed-in session.
 
 ```csharp
 public const string YearBuiltDataSetUserYearBuiltUri = "https://api.digiproject.uk/gis/yearbuiltdata/setuseryearbuilt";
@@ -761,21 +761,3 @@ public const string YearBuiltDataSetUserYearBuiltUri = "https://api.digiproject.
 
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
-### Properties
-
-<a name='DiGi.GIS.WebAPI.UI.Constants.Default.OrtoDataEndpointsDeployed'></a>
-
-## Default\.OrtoDataEndpointsDeployed Property
-
-Whether the GIS Web API build this application is pointed at carries the Orto Data verification endpoints the Orto Data page relays to\.
-
-While false, the actions that depend on those endpoints answer as though nothing could be drawn, so the page shows its empty state rather than an error. The endpoints exist in the GIS Web API source (ZiolkowskiJakub/DiGi.GIS.WebAPI#36) but the deployed service lags the repository, and a relay built on an endpoint that is not deployed yet would read its 404 as "nothing left to verify" - the exact confusion this gate exists to prevent.
-
-Not const on purpose: a const gate marks the code behind it unreachable and trips CS0162 against this repository's zero-warning standard for as long as the gate exists. Settable rather than `readonly` so the Orto Data Facts can open the gate for their scope on a build whose deployed service does not carry the endpoints yet, then close it again; production never assigns it.
-
-```csharp
-public static bool OrtoDataEndpointsDeployed { get; set; }
-```
-
-#### Property Value
-[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')

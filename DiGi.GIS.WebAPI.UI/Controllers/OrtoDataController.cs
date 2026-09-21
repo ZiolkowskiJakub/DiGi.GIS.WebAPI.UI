@@ -69,12 +69,6 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return Unauthorized();
             }
 
-            // TODO [OrtoDataEndpoints]: remove this gate together with Constants.Default.OrtoDataEndpointsDeployed once the upstream build carrying the endpoint is deployed.
-            if (!Constants.Default.OrtoDataEndpointsDeployed)
-            {
-                return Ok(new OrtoDataBuildingResponse());
-            }
-
             HttpClient httpClient = httpClientFactory.CreateClient();
 
             UrlBuilder urlBuilder = new(Constants.Default.OrtoDataRandomBuilding2DReferenceUri);
@@ -127,12 +121,6 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             if (string.IsNullOrWhiteSpace(tokenString))
             {
                 return Unauthorized();
-            }
-
-            // TODO [OrtoDataEndpoints]: remove this gate together with Constants.Default.OrtoDataEndpointsDeployed once the upstream build carrying the endpoint is deployed.
-            if (!Constants.Default.OrtoDataEndpointsDeployed)
-            {
-                return Ok(new OrtoDataBuildingResponse());
             }
 
             if (string.IsNullOrWhiteSpace(reference))
@@ -249,12 +237,6 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             if (string.IsNullOrWhiteSpace(tokenString))
             {
                 return Unauthorized();
-            }
-
-            // TODO [OrtoDataEndpoints]: remove this gate together with Constants.Default.OrtoDataEndpointsDeployed once the upstream build carrying the endpoint is deployed.
-            if (!Constants.Default.OrtoDataEndpointsDeployed)
-            {
-                return StatusCode(StatusCodes.Status501NotImplemented);
             }
 
             // Refused the way the service refuses an incomplete answer, so the page cannot distinguish this 400 from its own.
