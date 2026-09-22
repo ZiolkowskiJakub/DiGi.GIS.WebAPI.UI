@@ -711,9 +711,10 @@ h1.gis-title-large {
 }
 
 .ortodata-identity {
+    /* Reference under County ID (#49): two short lines read faster than one long wrapping one. */
     display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
+    flex-direction: column;
+    gap: 2px;
     font-weight: 600;
     color: var(--text-dark);
 }
@@ -723,12 +724,6 @@ h1.gis-title-large {
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
-}
-
-.ortodata-instruction {
-    margin-top: 6px;
-    font-size: 0.9em;
-    color: var(--text-muted);
 }
 
 .ortodata-provenance {
