@@ -6,6 +6,7 @@ using DiGi.GIS.WebAPI.UI.ViewModels;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,21 +70,14 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             #region Year
 
-            YearBuiltData? yearBuiltData = yearBuiltDatas.Find(x => x is YearBuiltData) as YearBuiltData;
-            if (yearBuiltData is null)
+            // The calculated year spans every stored row: the most frequent exact user year when one exists, otherwise the most frequent prediction (DiGi.GIS.IO#12).
+            short? year_Calculated = yearBuiltDatas.OfType<YearBuiltData>().CalculatedYearBuilt();
+            if (year_Calculated is null)
             {
                 return NoContent();
             }
 
-            IYearBuilt? yearBuilt = yearBuiltData.GetUserYearBuilt();
-            yearBuilt ??= yearBuiltData.GetLatestPredictedYearBuilt();
-
-            if (yearBuilt is null)
-            {
-                return NoContent();
-            }
-
-            short year = yearBuilt.Year;
+            short year = year_Calculated.Value;
 
             #endregion Year
 
