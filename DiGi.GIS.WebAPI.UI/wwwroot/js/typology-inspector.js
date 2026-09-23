@@ -14,8 +14,8 @@
  * click: selects the bucket in the tree when the building is outside the current selection, then the
  * row). It never dispatches 'typology:buildingselect' itself - the map is driven directly through
  * digiTypologyMap.selectBuilding/clearBuilding, so no event loop can form. A dot is matched to its DTO
- * entry by (reference, countyId), then by the reference alone when the DTO lists it once - the same
- * fallback the map applies. Shared helpers and event names come from typology-common.js, loaded first.
+ * entry by (reference, countyId) - the same key-only match the map applies. Shared helpers and event
+ * names come from typology-common.js, loaded first.
  * Classic script, no imports.
  */
 const digiTypologyInspector = (function () {
@@ -47,7 +47,6 @@ const digiTypologyInspector = (function () {
     let pathKeys = [];
     let referencesLower = [];
     let indexByKey = new Map();
-    let indexByReference = new Map();
 
     let selectedKey = null;
     let scoped = [];
@@ -82,10 +81,9 @@ const digiTypologyInspector = (function () {
         }
     }
 
-    // The DTO index of a dot: by the full key first, then by the reference alone when the DTO lists it once.
+    // The DTO index of a dot, by (reference, countyId).
     function indexOf(reference, countyId) {
-        const index = indexByKey.get(buildingKey(reference, countyId));
-        return index !== undefined ? index : indexByReference.get(String(reference));
+        return indexByKey.get(buildingKey(reference, countyId));
     }
 
     function openPanel() {
@@ -461,15 +459,6 @@ const digiTypologyInspector = (function () {
 
         selectBuildingByIndex(index);
 
-        // A dot matched by the reference alone was drawn under another county part than the DTO entry names:
-        // the marker and the plan coordinates follow the dot that was clicked, not the entry's key.
-        if (typeof digiTypologyMap !== 'undefined' && detail.countyId !== buildings[index].countyId) {
-            digiTypologyMap.selectBuilding(detail.reference, detail.countyId);
-            const point = digiTypologyMap.pointOf(detail.reference, detail.countyId);
-            setText('typology-building-x', point !== null ? formatMetre(point.x) : unknownText);
-            setText('typology-building-y', point !== null ? formatMetre(point.y) : unknownText);
-        }
-
         ensureVisible(focusPosition);
         openPanel();
     }
@@ -572,22 +561,12 @@ const digiTypologyInspector = (function () {
         pathKeys = new Array(buildings.length);
         referencesLower = new Array(buildings.length);
         indexByKey = new Map();
-        indexByReference = new Map();
-        const ambiguous = new Set();
         for (let i = 0; i < buildings.length; i++) {
             const reference = String(buildings[i].reference);
             pathKeys[i] = pathKey(buildings[i].path);
             referencesLower[i] = reference.toLowerCase();
             indexByKey.set(buildingKey(buildings[i].reference, buildings[i].countyId), i);
-            if (indexByReference.has(reference)) {
-                ambiguous.add(reference);
-            } else {
-                indexByReference.set(reference, i);
-            }
         }
-        ambiguous.forEach(function (reference) {
-            indexByReference.delete(reference);
-        });
 
         selectedBuildingIndex = null;
         focusPosition = -1;

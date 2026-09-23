@@ -8,10 +8,9 @@
  * the viewBox about the pointer, a drag pans it and a double click fits the outline again; the dots and the
  * marker keep a readable size through the --typology-point-scale custom property the CSS radii follow.
  * Buildings are dots only, never polygons: positions come from the UI proxy of the area-scoped
- * centroid endpoint (DiGi.GIS.WebAPI#34), joined with the solve DTO by (reference, countyId) because a
- * reference is unique only per county partition - and, when that key misses, by the reference alone when
- * the DTO lists it once: the building data and the building_2d rows of a multi-part county can be filed
- * under different parts, and a solved building must not read as unclassified for that.
+ * centroid endpoint (DiGi.GIS.WebAPI#34), joined with the solve DTO by (reference, countyId) - a
+ * reference is unique only per county partition, and no building is filed under two parts, so the key
+ * is exact in both directions (#53, B6).
  *
  * Dots are grouped in one <g> per typology path, plus one neutral group for buildings the typology could
  * not classify (or every building, while no definition is solved). Dimming toggles a class on the groups
@@ -68,7 +67,6 @@ const digiTypologyMap = (function () {
     let centroidsFailed = false;
     let nodesByKey = new Map();
     let buildingsByKey = new Map();
-    let buildingsByReference = new Map();
     let selectedPath = null;
     let selectedBuildingKey = null;
 
@@ -102,10 +100,9 @@ const digiTypologyMap = (function () {
         return node === undefined ? common.unclassifiedColor : common.colorOf(node);
     }
 
-    // The DTO entry of a dot: by the full key first, then by the reference alone when the DTO lists it once.
+    // The DTO entry of a dot, by (reference, countyId).
     function buildingOf(reference, countyId) {
-        const building = buildingsByKey.get(buildingKey(reference, countyId));
-        return building !== undefined ? building : buildingsByReference.get(String(reference));
+        return buildingsByKey.get(buildingKey(reference, countyId));
     }
 
     // ----- status -----
@@ -808,31 +805,19 @@ const digiTypologyMap = (function () {
         }
     }
 
-    // The solve DTO: indexes the tree by path and the buildings by (reference, countyId) - and by reference
-    // alone where that is unambiguous - then re-groups the dots in their colours if they are already drawn;
-    // otherwise they draw coloured on arrival.
+    // The solve DTO: indexes the tree by path and the buildings by (reference, countyId), then re-groups
+    // the dots in their colours if they are already drawn; otherwise they draw coloured on arrival.
     function render(model) {
         nodesByKey = new Map();
         buildingsByKey = new Map();
-        buildingsByReference = new Map();
         if (model !== null && model !== undefined) {
             nodesByKey = common.indexNodes(model.root);
             const buildings = Array.isArray(model.buildings) ? model.buildings : [];
-            const ambiguous = new Set();
             for (let i = 0; i < buildings.length; i++) {
                 const building = buildings[i];
                 const entry = { path: building.path, pathKey: pathKey(building.path) };
                 buildingsByKey.set(buildingKey(building.reference, building.countyId), entry);
-                const reference = String(building.reference);
-                if (buildingsByReference.has(reference)) {
-                    ambiguous.add(reference);
-                } else {
-                    buildingsByReference.set(reference, entry);
-                }
             }
-            ambiguous.forEach(function (reference) {
-                buildingsByReference.delete(reference);
-            });
         }
 
         // The dots exist already: a solve only moves them between groups (issue #52).
