@@ -18,7 +18,6 @@ namespace DiGi.GIS.WebAPI.UI
         /// Fetches every building data row for one county part from the GIS Web API, following the keyset cursor until the part is exhausted.
         /// <para>The upstream <c>tablebybuildingdatabypagingparameter</c> caps a single page at 10 000 rows, and a county part routinely holds more - part 76453 of code 2404 holds 100 543, part 16580 of code 0620 holds 93 672 - so one request would silently return only the first 10 000 buildings of such a part. The part is therefore read page by page.</para>
         /// <para>The pages are asked for in <b>physical order</b> (<c>PhysicalOrder = true</c>, DiGi.GIS.WebAPI#40): the part is read sequentially from the heap instead of one random heap read per row in reference order, which is what bounded the solve - 368-654 s for a cold 155 307-row part, all of it spent in the database (DiGi.GIS.WebAPI.UI#29). The next page's cursor arrives in the <see cref="Constants.Default.NextCursorHeaderName"/> response header, and a response without it ends the part. A building rewritten while its part is paged can come back twice, so rows are deduplicated on <c>Reference</c> within the part (<see cref="Modify.Append(Table?, Table?, string?, HashSet{string}?)"/>).</para>
-        /// <para>Where the upstream answers in reference order instead - a build older than DiGi.GIS.WebAPI#40, or a database older than PostgreSQL 14 - a full page comes back without the header. The read then continues the reference keyset: the page arrives ordered ascending by <c>Reference</c>, its last row is the next cursor, and the read ends when a page comes back short of the page size. That branch is temporary code, <c>TODO [PhysicalOrderPaging]</c>.</para>
         /// <para>Each page is parsed by <see cref="Create.TableAsync(Stream, CancellationToken)"/> straight from the response stream, so the columns arrive as the solver's <see cref="Column"/> and every cell typed to the column's declared type - the table is already the type the Typology solver classifies, no bridge needed. The pages are read through their live enumeration, never through <c>Rows</c>, which clones every row it hands out.</para>
         /// <para>An upstream 404 is the part holding no building data partition, not a failure: it answers an empty table at once, so a county with nothing stored reads as "no buildings" rather than "service unavailable". Every other failure status, and a transient exception, is retried once: the known cause is a command timeout on a cold partition, and the retry succeeds because the partition is warm by then. A second failure is not retried - it is a genuine defect, not a cold start (Coding - Deployed WebAPI, section 4).</para>
         /// <para>The read stops early once the rows fetched so far exceed <paramref name="maxRowCount"/>: the caller refuses such a part anyway, so the remaining pages would only cost time. The table returned then carries more rows than the ceiling, which is how the caller tells.</para>
@@ -45,7 +44,6 @@ namespace DiGi.GIS.WebAPI.UI
             Table? result = null;
             string? cursor = null;
             int pages = 0;
-            bool physicalOrder = true;
 
             // A county part's rows share one county_id, so the reference alone identifies a building within it.
             HashSet<string> references = [];
@@ -92,41 +90,11 @@ namespace DiGi.GIS.WebAPI.UI
                     continue;
                 }
 
-                if (rowCount < pageSize)
-                {
-                    break;
-                }
-
-                // TODO [PhysicalOrderPaging]: a full page without the header was answered in reference order - by a
-                // DiGi.GIS.WebAPI build older than DiGi.GIS.WebAPI#40, or by a database older than PostgreSQL 14. The read
-                // continues on the reference keyset. Remove this branch once GET /information/controllers reports a
-                // DiGi.GIS.WebAPI build carrying PhysicalOrder and DiGi.GIS.WebAPI.UI#54 confirmed production PostgreSQL 14 or
-                // later; a physical-order part then always ends on a response without the header.
-                physicalOrder = false;
-
-                // Without the seek column the paging cannot advance. Stopping here would report part of the partition
-                // as the whole of it, so the read is failed instead.
-                int index_Reference = page.GetColumnIndex(Constants.BuildingData.ReferenceName);
-                if (index_Reference == -1)
-                {
-                    log?.Invoke($"Building data part {countyId}: the page carries no '{Constants.BuildingData.ReferenceName}' column; the part cannot be paged and is skipped.");
-                    return null;
-                }
-
-                // The page arrives ordered ascending by reference under the database's own collation, so its last row
-                // is the cursor. A maximum computed here would be an ordinal one, which under any other collation names
-                // a different row and silently steps over everything between the two.
-                string? reference_Last = page.GetRow(rowCount - 1)?[index_Reference]?.ToString();
-                if (string.IsNullOrEmpty(reference_Last) || reference_Last == cursor)
-                {
-                    log?.Invoke($"Building data part {countyId}: the cursor did not advance (last reference '{reference_Last}'); the part is skipped.");
-                    return null;
-                }
-
-                cursor = reference_Last;
+                // No DiGi-Next-Cursor header: the physical-order read has reached the end of the part.
+                break;
             }
 
-            log?.Invoke($"Building data part {countyId}: {pages} page(s), {result!.RowCount} row(s), {(physicalOrder ? "physical" : "reference")} order.");
+            log?.Invoke($"Building data part {countyId}: {pages} page(s), {result!.RowCount} row(s), physical order.");
             return result;
 
             // One page, parsed, with the next physical cursor when the upstream sent one; an empty table for a part with
