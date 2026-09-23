@@ -83,6 +83,35 @@
 
     // ----- loading state: the loader and the tree status line never show at once -----
 
+    // The loader's line: what the solve reads, once the count is in, and how long it has been reading
+    // (#53, B1). The count is an estimate of the wait, not a progress bar - the server streams no
+    // progress.
+    let loaderStartedAt = 0;
+    let loaderTimer = null;
+    let loaderCount = null; // the buildingcount answer, or null until (or unless) it arrives
+
+    function loaderText() {
+        const seconds = Math.floor((Date.now() - loaderStartedAt) / 1000);
+        let text = 'Solving the typology for the area';
+        if (loaderCount !== null && typeof loaderCount.count === 'number') {
+            const buildings = common.formatCount(loaderCount.count);
+            const parts = loaderCount.countyPartCount === 1 ? '1 county part' : loaderCount.countyPartCount + ' county parts';
+            text = (loaderCount.clipped ? 'Up to ' : '') + buildings + ' buildings in ' + parts + ' · solving';
+        }
+        return text + '… ' + seconds + ' s';
+    }
+
+    function setLoaderText() {
+        const loader = element('typology-tree-loader');
+        if (loader === null) {
+            return;
+        }
+        const line = loader.querySelector('.gis-loader-text');
+        if (line !== null) {
+            line.textContent = loaderText();
+        }
+    }
+
     function showLoader() {
         const loader = element('typology-tree-loader');
         const status = element('typology-tree-status');
@@ -92,12 +121,22 @@
         if (status !== null) {
             status.hidden = true;
         }
+        loaderStartedAt = Date.now();
+        setLoaderText();
+        if (loaderTimer !== null) {
+            clearInterval(loaderTimer);
+        }
+        loaderTimer = setInterval(setLoaderText, 1000);
     }
 
     function hideLoader() {
         const loader = element('typology-tree-loader');
         if (loader !== null) {
             loader.hidden = true;
+        }
+        if (loaderTimer !== null) {
+            clearInterval(loaderTimer);
+            loaderTimer = null;
         }
     }
 
@@ -212,6 +251,16 @@
 
     function solve() {
         showLoader();
+
+        // The pre-flight count (#53, B1): in parallel with the solve, not before it - it only improves
+        // the loader line, and the solve's own pre-flight answers a 413 within seconds for an area
+        // above the ceiling. A failure leaves the plain text standing.
+        fetchJson(baseUrl() + '/typology/buildingcount?id=' + area.id + '&code=' + encodeURIComponent(area.code || '') + '&administrativearealtype=' + area.type)
+            .then(function (result) {
+                if (result.ok && result.body !== null && typeof result.body === 'object') {
+                    loaderCount = result.body;
+                }
+            });
 
         fetchJson(baseUrl() + '/typology/buildings', {
             method: 'POST',
