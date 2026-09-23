@@ -27,6 +27,23 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const string BuildingDataTableUri = GISWebAPIUri + "/gis/BuildingData/tablebybuildingdatabypagingparameter";
 
         /// <summary>
+        /// The number of rows the Typology solve asks <see cref="BuildingDataTableUri"/> for per page - the upstream cap.
+        /// <para>Page size does not decide the cost of the read: a warm 10 000-row page answers in about 0.1 s and a cold one is bound by the database reading its heap (DiGi.GIS.WebAPI.UI#29). The cap only keeps the number of round trips down.</para>
+        /// </summary>
+        public const int BuildingDataPageSize = 10000;
+
+        /// <summary>
+        /// The response header in which <see cref="BuildingDataTableUri"/> returns the cursor of the next page of a physical-order read (DiGi.GIS.WebAPI#40). Absent when the county part is exhausted, and absent when the endpoint answered in reference order instead.
+        /// <para>Must equal the GIS Web API's <c>Constants.Header.NextCursor</c>: the client has no compile-time link to the API (Coding - WebAPI Contracts, section 1).</para>
+        /// </summary>
+        public const string NextCursorHeaderName = "DiGi-Next-Cursor";
+
+        /// <summary>
+        /// URI of the GIS Web API endpoint answering the building centroids of an administrative area as one compact, columnar document - <c>{"References":[…],"CountyIds":[…],"X":[…],"Y":[…]}</c> - the 2D dot layer of the Typology area view is drawn from (DiGi.GIS.WebAPI#40).
+        /// </summary>
+        public const string Building2DCentroidsUri = GISWebAPIUri + "/gis/building2D/centroidsbyadministrativeareal2Did";
+
+        /// <summary>
         /// URI of the GIS Web API endpoint answering the value distribution histogram (bucket, actual bucket min/max, building count) of one building data column inside a county part, which the Typology definition Load reads to split an area's buildings into equal-count ranges (issue #30).
         /// </summary>
         public const string BuildingDataHistogramUri = GISWebAPIUri + "/gis/BuildingData/histogramsummary";

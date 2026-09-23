@@ -17,7 +17,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 {
     /// <summary>
     /// Provides the Typology definition feature: the page where a building typology is defined as a chain of building-data columns with rule types, ranges and colors.
-    /// <para>The column data and the solving are owned by the GIS Web API (ZiolkowskiJakub/DiGi.Gis#5); this controller only reads and renders, so the query and rule semantics stay owned by that service and cannot drift here.</para>
+    /// <para>The column catalog, the building data and the area geometry are read from the GIS Web API. The solve runs here: <c>POST /typology/buildings</c> joins the building data to the definition and classifies it with DiGi.Typology.Visual, because the per-building DTO the view draws is shaped for this page. An upstream solve was considered and rejected (DiGi.GIS.WebAPI.UI#29): the cost is the database reading the building data, which moving the classification does not reduce.</para>
     /// </summary>
     [Route("[controller]")]
     public class TypologyController : Controller
@@ -303,6 +303,97 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
 
         /// <summary>
+        /// Answers the pre-flight of a Typology solve: how many buildings the solve of an area reads, from how many county parts, against which ceiling - known in a fraction of a second, so the area view can say what the solve is waiting for (DiGi.GIS.WebAPI.UI#29, B1).
+        /// <para>The same resolution and count <see cref="SolveBuildingsAsync"/> runs before it reads a page (<see cref="Query.CountyPartIdsAsync"/>, then one <c>countbycountyid</c> per part). A municipality or subdivision is clipped to its polygon after the read, so its count is the count of its county parts - an upper bound, flagged by <c>clipped</c>. A country is not counted (<c>count</c> null): the solve refuses it outright. An area that names no parts counts 0.</para>
+        /// <para><see cref="AdministrativeArealType"/> is bound nullable and rejected when absent (Coding - WebAPI Contracts, section 2).</para>
+        /// </summary>
+        /// <param name="id">The unique identifier of the administrative area.</param>
+        /// <param name="code">The code of the administrative area.</param>
+        /// <param name="administrativeArealType">The type of the administrative area, as the integer the area view carries.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> containing a <see cref="ViewModels.TypologyAreaCountViewModel"/>, a 400 Bad Request response for a missing identifier or type, or a missing code for any area but the country, or a 503 Service Unavailable response when the parts or their counts cannot be read.</returns>
+        [HttpGet("buildingcount")]
+        public async Task<IActionResult> GetBuildingCountAsync([FromQuery(Name = "id")] int id, [FromQuery(Name = "code")] string? code, [FromQuery(Name = "administrativearealtype")] AdministrativeArealType? administrativeArealType, CancellationToken cancellationToken = default)
+        {
+            if (id <= 0 || administrativeArealType is null || administrativeArealType.Value == AdministrativeArealType.Undefined)
+            {
+                return BadRequest();
+            }
+
+            if (administrativeArealType.Value == AdministrativeArealType.Country)
+            {
+                return Ok(new ViewModels.TypologyAreaCountViewModel(null, 0, Constants.Default.BuildingSolveCeiling, false));
+            }
+
+            // Every other area is resolved to its county parts by its code, so a missing code is the caller's error.
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                return BadRequest();
+            }
+
+            bool clipped = administrativeArealType.Value >= AdministrativeArealType.Municipality;
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            (int statusCode_Parts, List<int>? countyParts) = await httpClient.CountyPartIdsAsync(code, administrativeArealType.Value, cancellationToken);
+            if (statusCode_Parts == StatusCodes.Status503ServiceUnavailable)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (countyParts is null || countyParts.Count == 0)
+            {
+                return Ok(new ViewModels.TypologyAreaCountViewModel(0, 0, Constants.Default.BuildingSolveCeiling, clipped));
+            }
+
+            long? count = await httpClient.BuildingDataCountAsync(countyParts, cancellationToken);
+            if (count is null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            return Ok(new ViewModels.TypologyAreaCountViewModel(count, countyParts.Count, Constants.Default.BuildingSolveCeiling, clipped));
+        }
+
+        /// <summary>
+        /// Lists the areas one level below an area too large for a Typology solve - a voivodeship's counties with their building counts, or the country's voivodeships - so the area view can offer a smaller area instead of the 413 (DiGi.GIS.WebAPI.UI#29, B2).
+        /// <para>See <see cref="Query.ChildAreasAsync"/> for the grouping of multi-part areas, the counts and the order. The parameters are those of the area view, so the page passes its own query through.</para>
+        /// </summary>
+        /// <param name="id">The unique identifier of the administrative area.</param>
+        /// <param name="code">The code of the administrative area; required for a voivodeship.</param>
+        /// <param name="administrativeArealType">The type of the administrative area: a voivodeship or the country.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> containing the list of <see cref="ViewModels.TypologyChildAreaViewModel"/>, a 400 Bad Request response for a missing identifier, a type other than voivodeship or country, or a voivodeship without a code, or a 503 Service Unavailable response when the areas cannot be read.</returns>
+        [HttpGet("childareas")]
+        public async Task<IActionResult> GetChildAreasAsync([FromQuery(Name = "id")] int id, [FromQuery(Name = "code")] string? code, [FromQuery(Name = "administrativearealtype")] AdministrativeArealType? administrativeArealType, CancellationToken cancellationToken = default)
+        {
+            if (id <= 0 || administrativeArealType is null)
+            {
+                return BadRequest();
+            }
+
+            if (administrativeArealType.Value != AdministrativeArealType.Voivodeship && administrativeArealType.Value != AdministrativeArealType.Country)
+            {
+                return BadRequest();
+            }
+
+            if (administrativeArealType.Value == AdministrativeArealType.Voivodeship && string.IsNullOrWhiteSpace(code))
+            {
+                return BadRequest();
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            List<ViewModels.TypologyChildAreaViewModel>? childAreas = await httpClient.ChildAreasAsync(code, administrativeArealType.Value, cancellationToken);
+            if (childAreas is null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            return Ok(childAreas);
+        }
+
+        /// <summary>
         /// Solves the Typology definition for the selected administrative area: joins the building data to the definition, runs the solver, and answers the view DTO the area view renders.
         /// <para>The pipeline: validate the definition against the live column catalog, resolve the area to county part identifiers, count the parts' rows and refuse an area above the ceiling before a page is read, fetch the building data per part (sequential, one retry on a cold partition, stopped at the ceiling), clip to the area when it is below county, solve, and flatten to the view DTO. The page arrives already in the solver's table type - the deployed GIS Web API's own <c>Create.Table</c> shape - so the join needs no bridge. The browser never spells a <c>_type</c> or a rule name; the join and the solve run server-side.</para>
         /// <para><see cref="AdministrativeArealType"/> is bound nullable and rejected when absent: the <c>Undefined</c> sentinel is -1 and not 0, so a non-nullable binding would silently keep <c>Country</c> for an omitted parameter (Coding - WebAPI Contracts, section 2). A country is refused outright as above the ceiling: it is every part there is, not an empty area.</para>
@@ -362,29 +453,12 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return PayloadTooLarge(null);
             }
 
-            // Resolve the area to county part identifiers. The solve keeps its own contract over the shared
-            // status-preserving helper: a refusal - an upstream failure, no answer, or an area that names no parts
-            // (the upstream's 404) - is a 503, and a resolved area carries its parts.
-            Classes.WebAPIResponse? countyPartsResponse = await httpClient.CountyPartsAsync(typologySolveParameter.Code ?? "", administrativeArealType.Value, cancellationToken);
-            if (countyPartsResponse is null || countyPartsResponse.StatusCode != StatusCodes.Status200OK)
+            // Resolve the area to county part identifiers (shared with GET /typology/buildingcount): a refusal - an upstream
+            // failure or no answer - is a 503, an area that names no parts is a 404, and a resolved area carries its parts.
+            (int statusCode_Parts, List<int>? countyParts) = await httpClient.CountyPartIdsAsync(typologySolveParameter.Code, administrativeArealType.Value, cancellationToken);
+            if (statusCode_Parts == StatusCodes.Status503ServiceUnavailable)
             {
                 return StatusCode(StatusCodes.Status503ServiceUnavailable);
-            }
-
-            string? countyPartsJson = countyPartsResponse.Json;
-            if (string.IsNullOrWhiteSpace(countyPartsJson))
-            {
-                return NotFound();
-            }
-
-            List<int>? countyParts = null;
-            try
-            {
-                countyParts = System.Text.Json.JsonSerializer.Deserialize<List<int>>(countyPartsJson);
-            }
-            catch
-            {
-                // The upstream answered with a body that is not a JSON array of integers; treat it as a refusal.
             }
 
             if (countyParts is null || countyParts.Count == 0)

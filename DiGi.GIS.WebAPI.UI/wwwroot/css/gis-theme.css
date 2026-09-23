@@ -2289,9 +2289,26 @@ h1.gis-title-large {
        path so dimming is one class per group. The marker ring sits in its own top layer above every group,
        so it stays at full opacity whatever the dimming does. */
     .typology-map {
+        position: relative;
         display: block;
         width: 100%;
         height: 100%;
+    }
+
+    /* Above the canvas threshold (typology-map.js) the dots are drawn on a canvas beneath the SVG instead of
+       one circle per building (issue #52): the SVG stays on top - positioned, after the canvas - with the
+       outline, the marker and every pointer event. The canvas shows only in that mode. */
+    .typology-map-canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: none;
+        pointer-events: none;
+    }
+
+    .typology-viewport-canvas .typology-map-canvas {
+        display: block;
     }
 
     .typology-outline {

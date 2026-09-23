@@ -235,7 +235,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
         /// <summary>
         /// Retrieves the bounding-box centres of every building of an administrative area, keyed by reference and county part, for the 2D dot rendering of the Typology area view.
-        /// <para>A relay of the GIS Web API's <c>gis/building2D/point2dsbyadministrativeareal2Did</c> (DiGi.GIS.WebAPI issue #34) without the <c>_type</c> discriminator, which alone is most of the upstream payload for a county-sized area. The area is resolved upstream through its subdivision children, so a county part identifier answers the buildings of every part sharing the code, each row carrying the county part it is actually filed under - a reference is unique only per county partition, so the view joins by <c>(reference, countyId)</c>. An area resolving to no subdivision answers an empty list, which is "nothing to draw"; an upstream failure, after one retry with a doubled command timeout for a cold partition, answers <see cref="StatusCodes.Status204NoContent"/> so the outline still renders without its dots.</para>
+        /// <para>A relay of the GIS Web API's compact <c>gis/building2D/centroidsbyadministrativeareal2Did</c> (DiGi.GIS.WebAPI#40), falling back to <c>point2dsbyadministrativeareal2Did</c> (DiGi.GIS.WebAPI issue #34) where the compact one is not deployed (<see cref="Query.Building2DCentroidsAsync"/>), answered without the <c>_type</c> discriminator. The area is resolved upstream through its subdivision children, so a county part identifier answers the buildings of every part sharing the code, each row carrying the county part it is actually filed under - a reference is unique only per county partition, so the view joins by <c>(reference, countyId)</c>. An area resolving to no subdivision answers an empty list, which is "nothing to draw"; an upstream failure, after one retry with a doubled command timeout for a cold partition, answers <see cref="StatusCodes.Status204NoContent"/> so the outline still renders without its dots.</para>
         /// </summary>
         /// <param name="administrativeAreal2DId">The unique identifier of the administrative area.</param>
         /// <param name="commandTimeout">The optional upstream command timeout in seconds for the first attempt. When omitted, 30 seconds is applied.</param>
@@ -256,22 +256,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             HttpClient httpClient = httpClientFactory.CreateClient();
 
-            List<Building2DCentroid>? building2DCentroids = await httpClient.Building2DCentroidsAsync(administrativeAreal2DId, commandTimeout ?? 30, cancellationToken);
-            if (building2DCentroids is null)
+            List<Building2DCentroidViewModel>? result = await httpClient.Building2DCentroidsAsync(administrativeAreal2DId, commandTimeout ?? 30, cancellationToken);
+            if (result is null)
             {
                 return NoContent();
-            }
-
-            // A row without a county part or a reference cannot be joined by the view, so it is skipped rather than defaulted to a key no building has.
-            List<Building2DCentroidViewModel> result = new(building2DCentroids.Count);
-            foreach (Building2DCentroid building2DCentroid in building2DCentroids)
-            {
-                if (!building2DCentroid.CountyId.HasValue || string.IsNullOrWhiteSpace(building2DCentroid.Reference))
-                {
-                    continue;
-                }
-
-                result.Add(new Building2DCentroidViewModel(building2DCentroid.Reference, building2DCentroid.CountyId.Value, building2DCentroid.X, building2DCentroid.Y));
             }
 
             return Ok(result);

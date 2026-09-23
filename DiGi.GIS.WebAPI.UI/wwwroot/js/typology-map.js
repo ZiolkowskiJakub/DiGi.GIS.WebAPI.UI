@@ -17,7 +17,14 @@
  * not classify (or every building, while no definition is solved). Dimming toggles a class on the groups
  * - a class toggle per bucket rather than a style write per point - and the selected building is marked
  * by a ring in a top layer instead of reparenting a dot, so it stays emphasised and on top whatever the
- * dimming does. The selection follows the left panel's 'typology:selectionchange' event; a dot click
+ * dimming does.
+ *
+ * The dot layer is built once per page load, when the fit and the centroids are both known, and a solve
+ * re-groups the existing dots instead of drawing them again (issue #52). Above canvasThreshold dots it is
+ * a <canvas> beneath the SVG instead of one <circle> per building - 155 307 SVG elements for county 1465
+ * made painting and hover slow. The per-path <g> groups stay in the SVG, empty, so dimming is still a class
+ * per group; the canvas draws each group's dots in the group's computed fill and opacity. The pointer is
+ * resolved through a uniform grid over the projected positions, since there is no element to hit. The selection follows the left panel's 'typology:selectionchange' event; a dot click
  * reports 'typology:buildingselect' on document for the right panel (#26). Shared helpers and event names
  * come from typology-common.js, loaded first. Classic script, no imports.
  */
@@ -46,6 +53,15 @@ const digiTypologyMap = (function () {
     const zoomMaximum = 256;
     const dragThreshold = 3;
 
+    // Above this many dots the layer is a canvas rather than SVG circles. 33k circles paint and hit-test
+    // fine; 155k (county 1465) do not. The browser tests lower it through window.digiTypologyMapCanvasThreshold
+    // to compare the two modes on the same area.
+    const canvasThreshold = 50000;
+    // The canvas has no element to hit, so a dot counts as under the pointer within its drawn radius plus
+    // this many CSS pixels; the grid cell is in viewBox units.
+    const hitTolerance = 3;
+    const gridCellSize = 2;
+
     let scaleParameters = null;
     let centroids = null;
     let centroidsByKey = new Map();
@@ -55,6 +71,19 @@ const digiTypologyMap = (function () {
     let buildingsByReference = new Map();
     let selectedPath = null;
     let selectedBuildingKey = null;
+
+    // The dot layer, built once per (centroids, fit): the projected positions in viewBox units, then either
+    // one <circle> per centroid (SVG mode) or the centroid indices of each group and a hit-test grid (canvas).
+    let pointsBuilt = false;
+    let canvasMode = false;
+    let projectedX = null;
+    let projectedY = null;
+    let circles = null;
+    let groupMembers = new Map();
+    let grid = null;
+    let canvas = null;
+    let drawRequested = false;
+    let dimmedOpacity = null;
 
     // The viewBox: the fit is (0, 0, 500, 500); zooming narrows it, panning moves it, both within the canvas.
     let view = { x: 0, y: 0, size: canvasSize };
@@ -153,44 +182,104 @@ const digiTypologyMap = (function () {
 
     // ----- dots -----
 
-    // Draws every centroid once the fit and the centroids are both known; the DTO is optional. One pass:
-    // centroids bucketed by the path their assignment names (or the neutral bucket), one <g> per bucket
-    // with its fill, the circles inside, all into a fragment and one insertion. A circle carries only its
-    // index into the centroid list; the reference and the county part are read from there on click or hover.
-    function renderPoints() {
+    function canvasThresholdValue() {
+        return typeof window.digiTypologyMapCanvasThreshold === 'number' ? window.digiTypologyMapCanvasThreshold : canvasThreshold;
+    }
+
+    // The group a centroid belongs to: the path its DTO entry names, or null for the neutral group.
+    function groupKeyOf(index) {
+        const centroid = centroids[index];
+        const building = buildingOf(centroid.reference, centroid.countyId);
+        return building === undefined ? null : building.pathKey;
+    }
+
+    function createGroup(groupKey) {
+        const group = document.createElementNS(svgNamespace, 'g');
+        group.setAttribute('class', groupKey === null ? 'typology-point-group typology-point-unclassified' : 'typology-point-group');
+        if (groupKey !== null) {
+            group.setAttribute('data-path', groupKey);
+            group.setAttribute('fill', colorOfPath(groupKey));
+        }
+        return group;
+    }
+
+    // Builds the dot layer once the fit and the centroids are both known; the DTO is optional. Projects every
+    // centroid once, then creates one <circle> per centroid - carrying only its index into the centroid list -
+    // or, above the threshold, the canvas's hit-test grid instead. A later solve only re-groups (groupPoints).
+    function buildPoints() {
         const layer = element('typology-map-points');
         if (layer === null || scaleParameters === null || centroids === null) {
             return;
         }
 
-        const groups = new Map();
-        for (let i = 0; i < centroids.length; i++) {
-            const centroid = centroids[i];
-            const building = buildingOf(centroid.reference, centroid.countyId);
-            const groupKey = building === undefined ? null : building.pathKey;
-            let group = groups.get(groupKey);
-            if (group === undefined) {
-                group = document.createElementNS(svgNamespace, 'g');
-                group.setAttribute('class', groupKey === null ? 'typology-point-group typology-point-unclassified' : 'typology-point-group');
-                if (groupKey !== null) {
-                    group.setAttribute('data-path', groupKey);
-                    group.setAttribute('fill', colorOfPath(groupKey));
-                }
-                groups.set(groupKey, group);
-            }
-
-            const point = project(centroid.x, centroid.y);
-            const circle = document.createElementNS(svgNamespace, 'circle');
-            circle.setAttribute('class', 'typology-point');
-            circle.setAttribute('cx', point.x.toFixed(2));
-            circle.setAttribute('cy', point.y.toFixed(2));
-            circle.setAttribute('r', pointRadius);
-            circle.setAttribute('data-i', i);
-            group.appendChild(circle);
+        const count = centroids.length;
+        projectedX = new Float64Array(count);
+        projectedY = new Float64Array(count);
+        for (let i = 0; i < count; i++) {
+            const point = project(centroids[i].x, centroids[i].y);
+            projectedX[i] = point.x;
+            projectedY[i] = point.y;
         }
 
-        // The neutral group first so classified dots paint over it, then the buckets in path order so the
-        // paint order (which colour wins where dots overlap) does not depend on the centroid row order.
+        canvasMode = count > canvasThresholdValue();
+        circles = null;
+        grid = null;
+        if (canvasMode) {
+            buildGrid();
+            ensureCanvas();
+        } else {
+            circles = new Array(count);
+            for (let i = 0; i < count; i++) {
+                const circle = document.createElementNS(svgNamespace, 'circle');
+                circle.setAttribute('class', 'typology-point');
+                circle.setAttribute('cx', projectedX[i].toFixed(2));
+                circle.setAttribute('cy', projectedY[i].toFixed(2));
+                circle.setAttribute('r', pointRadius);
+                circle.setAttribute('data-i', i);
+                circles[i] = circle;
+            }
+        }
+
+        const viewport = element('typology-viewport');
+        if (viewport !== null) {
+            viewport.classList.toggle('typology-viewport-canvas', canvasMode);
+        }
+
+        pointsBuilt = true;
+        groupPoints();
+    }
+
+    // Files every dot under the group of its current assignment: one <g> per bucket with its fill, the neutral
+    // group first so classified dots paint over it, then the buckets in path order so the paint order (which
+    // colour wins where dots overlap) does not depend on the centroid row order. SVG mode moves the existing
+    // circles into the new groups - appendChild moves a node - while the groups are detached, so the page
+    // takes one insertion; canvas mode lists the centroid indices per group and leaves the groups empty.
+    function groupPoints() {
+        const layer = element('typology-map-points');
+        if (layer === null || !pointsBuilt) {
+            return;
+        }
+
+        layer.replaceChildren();
+
+        const groups = new Map();
+        groupMembers = new Map();
+        for (let i = 0; i < centroids.length; i++) {
+            const groupKey = groupKeyOf(i);
+            let group = groups.get(groupKey);
+            if (group === undefined) {
+                group = createGroup(groupKey);
+                groups.set(groupKey, group);
+                groupMembers.set(groupKey, []);
+            }
+
+            if (canvasMode) {
+                groupMembers.get(groupKey).push(i);
+            } else {
+                group.appendChild(circles[i]);
+            }
+        }
+
         const fragment = document.createDocumentFragment();
         const unclassified = groups.get(null);
         if (unclassified !== undefined) {
@@ -210,12 +299,202 @@ const digiTypologyMap = (function () {
 
         applyDimming();
         renderMarker();
+        requestDraw();
     }
 
-    // The centroid a circle stands for, or null for anything else under the pointer.
-    function centroidOfTarget(target) {
-        const circle = target !== null && target.closest !== undefined ? target.closest('.typology-point') : null;
-        if (circle === null || centroids === null) {
+    // A uniform grid over the projected positions in compressed rows: cell c holds items[starts[c]] up to
+    // items[starts[c + 1]]. Built with the projection, so a hit test reads a handful of cells.
+    function buildGrid() {
+        const columns = Math.ceil(canvasSize / gridCellSize);
+        const cellCount = columns * columns;
+        const count = projectedX.length;
+        const cells = new Int32Array(count);
+        const starts = new Int32Array(cellCount + 1);
+        for (let i = 0; i < count; i++) {
+            const column = Math.min(columns - 1, Math.max(0, Math.floor(projectedX[i] / gridCellSize)));
+            const row = Math.min(columns - 1, Math.max(0, Math.floor(projectedY[i] / gridCellSize)));
+            cells[i] = row * columns + column;
+            starts[cells[i] + 1]++;
+        }
+        for (let c = 0; c < cellCount; c++) {
+            starts[c + 1] += starts[c];
+        }
+        const fill = starts.slice(0, cellCount);
+        const items = new Int32Array(count);
+        for (let i = 0; i < count; i++) {
+            items[fill[cells[i]]++] = i;
+        }
+        grid = { columns: columns, starts: starts, items: items };
+    }
+
+    // The canvas sits beneath the SVG in the viewport, so the outline, the marker and every pointer event stay
+    // the SVG's; the viewport's .typology-viewport-canvas class shows it.
+    function ensureCanvas() {
+        if (canvas !== null) {
+            return;
+        }
+        const viewport = element('typology-viewport');
+        const svg = element('typology-map');
+        if (viewport === null || svg === null) {
+            return;
+        }
+        canvas = document.createElement('canvas');
+        canvas.className = 'typology-map-canvas';
+        canvas.setAttribute('aria-hidden', 'true');
+        viewport.insertBefore(canvas, svg);
+    }
+
+    function pointScale() {
+        return 1 / Math.sqrt(canvasSize / view.size);
+    }
+
+    // The opacity of a dimmed group, read from the stylesheet once through a probe without the transition, so
+    // the canvas matches the SVG without restating the CSS value.
+    function dimmedOpacityValue() {
+        if (dimmedOpacity === null) {
+            const layer = element('typology-map-points');
+            dimmedOpacity = 0.15;
+            if (layer !== null) {
+                const probe = document.createElementNS(svgNamespace, 'g');
+                probe.setAttribute('class', 'typology-point-group typology-point-dimmed');
+                probe.style.transition = 'none';
+                layer.appendChild(probe);
+                const value = parseFloat(getComputedStyle(probe).opacity);
+                probe.remove();
+                if (isFinite(value)) {
+                    dimmedOpacity = value;
+                }
+            }
+        }
+        return dimmedOpacity;
+    }
+
+    // Coalesces the redraws of a wheel burst, a pan or a resize into one per frame.
+    function requestDraw() {
+        if (canvas === null || drawRequested) {
+            return;
+        }
+        drawRequested = true;
+        requestAnimationFrame(draw);
+    }
+
+    // Draws the canvas layer: every group in the SVG's order, in its computed fill, at full or dimmed opacity by
+    // its class, each group's dots one path and one fill. The viewBox-to-pixel mapping is the SVG's own screen
+    // transform, so the letterboxing of preserveAspectRatio and every zoom and pan are followed exactly. In SVG
+    // mode the canvas is only cleared.
+    function draw() {
+        drawRequested = false;
+        if (canvas === null) {
+            return;
+        }
+
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        const ratio = window.devicePixelRatio || 1;
+        const width_Backing = Math.max(1, Math.round(width * ratio));
+        const height_Backing = Math.max(1, Math.round(height * ratio));
+        if (canvas.width !== width_Backing || canvas.height !== height_Backing) {
+            canvas.width = width_Backing;
+            canvas.height = height_Backing;
+        }
+
+        const context = canvas.getContext('2d');
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        const svg = element('typology-map');
+        const layer = element('typology-map-points');
+        if (!canvasMode || !pointsBuilt || svg === null || layer === null) {
+            return;
+        }
+        const matrix = svg.getScreenCTM();
+        if (matrix === null) {
+            return;
+        }
+
+        const bounds = canvas.getBoundingClientRect();
+        const offsetX = matrix.e - bounds.left;
+        const offsetY = matrix.f - bounds.top;
+        const radius = Math.max(0.5, pointRadius * pointScale() * matrix.a);
+        const dimmed = dimmedOpacityValue();
+
+        context.setTransform(ratio, 0, 0, ratio, 0, 0);
+        const groups = layer.children;
+        for (let g = 0; g < groups.length; g++) {
+            const group = groups[g];
+            const members = groupMembers.get(group.hasAttribute('data-path') ? group.getAttribute('data-path') : null);
+            if (members === undefined || members.length === 0) {
+                continue;
+            }
+
+            context.fillStyle = getComputedStyle(group).fill;
+            context.globalAlpha = group.classList.contains('typology-point-dimmed') ? dimmed : 1;
+            context.beginPath();
+            for (let m = 0; m < members.length; m++) {
+                const i = members[m];
+                const x = matrix.a * projectedX[i] + offsetX;
+                const y = matrix.d * projectedY[i] + offsetY;
+                if (x < -radius || y < -radius || x > width + radius || y > height + radius) {
+                    continue;
+                }
+                context.moveTo(x + radius, y);
+                context.arc(x, y, radius, 0, 2 * Math.PI);
+            }
+            context.fill();
+        }
+        context.globalAlpha = 1;
+    }
+
+    // The centroid index nearest the client position within the drawn radius plus hitTolerance pixels, or -1.
+    function indexAt(clientX, clientY) {
+        const svg = element('typology-map');
+        if (!canvasMode || grid === null || svg === null) {
+            return -1;
+        }
+        const matrix = svg.getScreenCTM();
+        const point = userPoint(svg, clientX, clientY);
+        if (matrix === null || point === null || matrix.a <= 0) {
+            return -1;
+        }
+
+        const reach = (pointRadius * pointScale() * matrix.a + hitTolerance) / matrix.a;
+        const columns = grid.columns;
+        const column_Min = Math.max(0, Math.floor((point.x - reach) / gridCellSize));
+        const column_Max = Math.min(columns - 1, Math.floor((point.x + reach) / gridCellSize));
+        const row_Min = Math.max(0, Math.floor((point.y - reach) / gridCellSize));
+        const row_Max = Math.min(columns - 1, Math.floor((point.y + reach) / gridCellSize));
+
+        let result = -1;
+        let distance_Best = reach * reach;
+        for (let row = row_Min; row <= row_Max; row++) {
+            for (let column = column_Min; column <= column_Max; column++) {
+                const cell = row * columns + column;
+                for (let k = grid.starts[cell]; k < grid.starts[cell + 1]; k++) {
+                    const i = grid.items[k];
+                    const deltaX = projectedX[i] - point.x;
+                    const deltaY = projectedY[i] - point.y;
+                    const distance = deltaX * deltaX + deltaY * deltaY;
+                    if (distance <= distance_Best) {
+                        distance_Best = distance;
+                        result = i;
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    // The centroid under the pointer: the circle the event hit in SVG mode, the grid's nearest dot in canvas mode.
+    function centroidOfEvent(event) {
+        if (centroids === null) {
+            return null;
+        }
+        if (canvasMode) {
+            const index = indexAt(event.clientX, event.clientY);
+            return index === -1 ? null : centroids[index];
+        }
+        const circle = event.target !== null && event.target.closest !== undefined ? event.target.closest('.typology-point') : null;
+        if (circle === null) {
             return null;
         }
         const centroid = centroids[parseInt(circle.getAttribute('data-i'), 10)];
@@ -236,6 +515,7 @@ const digiTypologyMap = (function () {
             const dimmed = selectedPath !== null && (key === null || !common.isUnder(key, selectedPath));
             group.classList.toggle('typology-point-dimmed', dimmed);
         }
+        requestDraw();
     }
 
     function setSelection(path) {
@@ -305,6 +585,7 @@ const digiTypologyMap = (function () {
         // slower than the map, so a town centre separates into buildings instead of one blob.
         const zoom = canvasSize / view.size;
         svg.style.setProperty('--typology-point-scale', (1 / Math.sqrt(zoom)).toFixed(4));
+        requestDraw();
     }
 
     function resetView() {
@@ -423,9 +704,10 @@ const digiTypologyMap = (function () {
     // ----- hover label and clicks -----
 
     // The hover label of the 3D viewer: one positioned element in the viewport, shown while a dot is under
-    // the pointer. One delegated listener set on the layer rather than one per dot.
+    // the pointer. The listeners sit on the SVG rather than on the dot layer, so the canvas mode - which has no
+    // element per dot - resolves the pointer the same way (centroidOfEvent).
     function setupEvents() {
-        const layer = element('typology-map-points');
+        const svg = element('typology-map');
         const viewport = element('typology-viewport');
         const label = element('typology-map-label');
 
@@ -433,40 +715,38 @@ const digiTypologyMap = (function () {
             setSelection(event.detail !== null && event.detail !== undefined ? event.detail.path : null);
         });
 
-        if (layer === null || viewport === null) {
+        if (svg === null || viewport === null) {
             return;
         }
 
-        layer.addEventListener('mouseover', function (event) {
-            const centroid = centroidOfTarget(event.target);
-            if (centroid === null || label === null) {
+        svg.addEventListener('mousemove', function (event) {
+            if (label === null) {
                 return;
             }
-            label.textContent = centroid.reference || '';
-            label.hidden = false;
-        });
-
-        layer.addEventListener('mousemove', function (event) {
-            if (label === null || label.hidden) {
+            const centroid = svg.classList.contains('typology-map-panning') ? null : centroidOfEvent(event);
+            if (centroid === null) {
+                label.hidden = true;
                 return;
             }
             const bounds = viewport.getBoundingClientRect();
+            label.textContent = centroid.reference || '';
             label.style.left = (event.clientX - bounds.left + 12) + 'px';
             label.style.top = (event.clientY - bounds.top + 12) + 'px';
+            label.hidden = false;
         });
 
-        layer.addEventListener('mouseout', function (event) {
-            if (label !== null && centroidOfTarget(event.target) !== null) {
+        svg.addEventListener('mouseleave', function () {
+            if (label !== null) {
                 label.hidden = true;
             }
         });
 
-        layer.addEventListener('click', function (event) {
+        svg.addEventListener('click', function (event) {
             if (suppressClick) {
                 suppressClick = false;
                 return;
             }
-            const centroid = centroidOfTarget(event.target);
+            const centroid = centroidOfEvent(event);
             if (centroid === null) {
                 return;
             }
@@ -476,6 +756,11 @@ const digiTypologyMap = (function () {
                 detail: { reference: centroid.reference, countyId: centroid.countyId, path: entry === null ? null : entry.path }
             }));
         });
+
+        // A panel drag or toggle resizes the SVG with no script; the canvas has to follow it.
+        if (typeof ResizeObserver !== 'undefined') {
+            new ResizeObserver(requestDraw).observe(svg);
+        }
     }
 
     // ----- data in (issue #27): the view owns the fetches; the map only receives the data it draws -----
@@ -496,7 +781,8 @@ const digiTypologyMap = (function () {
         if (renderOutline(outlines)) {
             hideStatus();
             statusAfterCentroids();
-            renderPoints();
+            // A new fit moves every dot, so the layer is built again.
+            buildPoints();
         } else {
             showStatus('The area outline is unavailable.');
         }
@@ -515,15 +801,16 @@ const digiTypologyMap = (function () {
                 centroidsByKey.set(buildingKey(items[i].reference, items[i].countyId), items[i]);
             }
         }
+        pointsBuilt = false;
         if (scaleParameters !== null) {
             statusAfterCentroids();
-            renderPoints();
+            buildPoints();
         }
     }
 
     // The solve DTO: indexes the tree by path and the buildings by (reference, countyId) - and by reference
-    // alone where that is unambiguous - then redraws the dots in their colours if the centroids are already
-    // in; otherwise they draw coloured on arrival.
+    // alone where that is unambiguous - then re-groups the dots in their colours if they are already drawn;
+    // otherwise they draw coloured on arrival.
     function render(model) {
         nodesByKey = new Map();
         buildingsByKey = new Map();
@@ -547,7 +834,13 @@ const digiTypologyMap = (function () {
                 buildingsByReference.delete(reference);
             });
         }
-        renderPoints();
+
+        // The dots exist already: a solve only moves them between groups (issue #52).
+        if (pointsBuilt) {
+            groupPoints();
+        } else {
+            buildPoints();
+        }
     }
 
     setupEvents();

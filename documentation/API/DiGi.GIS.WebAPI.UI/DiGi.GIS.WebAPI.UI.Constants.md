@@ -148,6 +148,19 @@ public static class Default
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → Default
 ### Fields
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.Building2DCentroidsUri'></a>
+
+## Default\.Building2DCentroidsUri Field
+
+URI of the GIS Web API endpoint answering the building centroids of an administrative area as one compact, columnar document \- `{"References":[…],"CountyIds":[…],"X":[…],"Y":[…]}` \- the 2D dot layer of the Typology area view is drawn from \(DiGi\.GIS\.WebAPI\#40\)\.
+
+```csharp
+public const string Building2DCentroidsUri = "https://api.digiproject.uk/gis/building2D/centroidsbyadministrativeareal2Did";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingDataColumnsUri'></a>
 
 ## Default\.BuildingDataColumnsUri Field
@@ -173,6 +186,21 @@ public const string BuildingDataHistogramUri = "https://api.digiproject.uk/gis/B
 
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingDataPageSize'></a>
+
+## Default\.BuildingDataPageSize Field
+
+The number of rows the Typology solve asks [BuildingDataTableUri](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.BuildingDataTableUri 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.BuildingDataTableUri') for per page \- the upstream cap\.
+
+Page size does not decide the cost of the read: a warm 10 000-row page answers in about 0.1 s and a cold one is bound by the database reading its heap (DiGi.GIS.WebAPI.UI#29). The cap only keeps the number of round trips down.
+
+```csharp
+public const int BuildingDataPageSize = 10000;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingDataTableUri'></a>
 
@@ -328,6 +356,21 @@ public const int HistogramBucketCount = 1000;
 
 #### Field Value
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.NextCursorHeaderName'></a>
+
+## Default\.NextCursorHeaderName Field
+
+The response header in which [BuildingDataTableUri](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.BuildingDataTableUri 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.BuildingDataTableUri') returns the cursor of the next page of a physical\-order read \(DiGi\.GIS\.WebAPI\#40\)\. Absent when the county part is exhausted, and absent when the endpoint answered in reference order instead\.
+
+Must equal the GIS Web API's `Constants.Header.NextCursor`: the client has no compile-time link to the API (Coding - WebAPI Contracts, section 1).
+
+```csharp
+public const string NextCursorHeaderName = "DiGi-Next-Cursor";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.OrtoDataImageByReferenceUri'></a>
 

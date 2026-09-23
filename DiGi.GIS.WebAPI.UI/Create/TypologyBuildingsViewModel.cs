@@ -27,6 +27,35 @@ namespace DiGi.GIS.WebAPI.UI
                 return null;
             }
 
+            Dictionary<string, List<(int CountyId, long Id)>>? rows_ByReference = null;
+            if (countyId_ByReference is not null || id_ByReference is not null)
+            {
+                rows_ByReference = [];
+                foreach (string reference in (countyId_ByReference?.Keys ?? Enumerable.Empty<string>()).Union(id_ByReference?.Keys ?? Enumerable.Empty<string>()))
+                {
+                    int countyId = countyId_ByReference is not null && countyId_ByReference.TryGetValue(reference, out int partId) ? partId : 0;
+                    long id = id_ByReference is not null && id_ByReference.TryGetValue(reference, out long databaseId) ? databaseId : 0;
+                    rows_ByReference[reference] = [(countyId, id)];
+                }
+            }
+
+            return visualTypology.TypologyBuildingsViewModel(rows_ByReference);
+        }
+
+        /// <summary>
+        /// Flattens a solved <see cref="VisualTypology"/> into the view DTO, emitting one building entry per row a reference names: a reference filed under two county parts gives two entries, one per part, with its own county part and database identifier (DiGi.GIS.WebAPI.UI#51).
+        /// <para>The tree and the entries are produced exactly as the dictionary overload documents - buckets sorted by value, entries in the sorted tree's order, a reference emitted at the deepest bucket that holds it - with two differences. A reference expands to every row <paramref name="rows_ByReference"/> lists for it. A node's count is the number of entries its references expand to, so the tree total still equals the number of dots. The solver files references, not rows, so the rows of one reference share that reference's path. None of the 989 341 buildings of the 18 multi-part county codes is filed under two parts (DiGi.GIS.WebAPI.UI#29, M3), so this only guards against a future collision silently dropping a building. A reference <paramref name="rows_ByReference"/> does not list is emitted once with county part and identifier 0.</para>
+        /// </summary>
+        /// <param name="visualTypology">The solved typology. This value can be null.</param>
+        /// <param name="rows_ByReference">The county part and database identifier of every row, by reference. This value can be null, in which case every entry carries 0 for both.</param>
+        /// <returns>The view DTO, or <see langword="null"/> when <paramref name="visualTypology"/> is null.</returns>
+        public static ViewModels.TypologyBuildingsViewModel? TypologyBuildingsViewModel(this VisualTypology? visualTypology, Dictionary<string, List<(int CountyId, long Id)>>? rows_ByReference)
+        {
+            if (visualTypology is null)
+            {
+                return null;
+            }
+
             List<TypologyBuildingViewModel> buildings = [];
             HashSet<string> references_Emitted = [];
             TypologyTreeNodeViewModel? root = Flatten(visualTypology);
@@ -84,20 +113,36 @@ namespace DiGi.GIS.WebAPI.UI
                 // dropped at a lower level, which no child filed and which are therefore filed here. The root is no
                 // bucket and stores nothing, so it is counted as the sum of its children; taking the larger of the two
                 // covers both without understating either.
+                // A reference counts as many buildings as the rows it names - one per county part it is filed under.
                 List<string>? references = visualTypology_Node.References;
-                int count = references?.Count ?? 0;
+                int count = 0;
                 if (references is not null)
                 {
                     foreach (string reference in references)
                     {
+                        List<(int CountyId, long Id)>? rows = null;
+                        if (rows_ByReference is not null && rows_ByReference.TryGetValue(reference, out List<(int CountyId, long Id)>? rows_Reference) && rows_Reference.Count != 0)
+                        {
+                            rows = rows_Reference;
+                        }
+
+                        count += rows?.Count ?? 1;
+
                         if (!references_Emitted.Add(reference))
                         {
                             continue;
                         }
 
-                        int countyId = countyId_ByReference is not null && countyId_ByReference.TryGetValue(reference, out int partId) ? partId : 0;
-                        long id = id_ByReference is not null && id_ByReference.TryGetValue(reference, out long databaseId) ? databaseId : 0;
-                        buildings.Add(new TypologyBuildingViewModel(reference, id, countyId, path));
+                        if (rows is null)
+                        {
+                            buildings.Add(new TypologyBuildingViewModel(reference, 0, 0, path));
+                            continue;
+                        }
+
+                        foreach ((int countyId, long id) in rows)
+                        {
+                            buildings.Add(new TypologyBuildingViewModel(reference, id, countyId, path));
+                        }
                     }
                 }
 
@@ -179,8 +224,7 @@ namespace DiGi.GIS.WebAPI.UI
                 return null;
             }
 
-            Dictionary<string, int>? countyId_ByReference = null;
-            Dictionary<string, long>? id_ByReference = null;
+            Dictionary<string, List<(int CountyId, long Id)>>? rows_ByReference = null;
 
             int index_Reference = table?.GetColumnIndex(Constants.BuildingData.ReferenceName) ?? -1;
             if (table is not null && index_Reference != -1)
@@ -188,8 +232,7 @@ namespace DiGi.GIS.WebAPI.UI
                 int index_CountyId = table.GetColumnIndex(Constants.BuildingData.CountyIdName);
                 int index_Id = table.GetColumnIndex(Constants.BuildingData.DatabaseIdName);
 
-                countyId_ByReference = index_CountyId == -1 ? null : new Dictionary<string, int>(table.RowCount);
-                id_ByReference = index_Id == -1 ? null : new Dictionary<string, long>(table.RowCount);
+                rows_ByReference = new Dictionary<string, List<(int CountyId, long Id)>>(table.RowCount);
 
                 foreach (Row row in table)
                 {
@@ -199,35 +242,49 @@ namespace DiGi.GIS.WebAPI.UI
                     }
 
                     // The table converter types each cell by its declared column (int and long); the other integer widths are a defensive fallback.
-                    if (countyId_ByReference is not null)
+                    int countyId = 0;
+                    if (index_CountyId != -1)
                     {
                         object? value_CountyId = row[index_CountyId];
-                        if (value_CountyId is int countyId)
+                        if (value_CountyId is int countyId_Int)
                         {
-                            countyId_ByReference[reference] = countyId;
+                            countyId = countyId_Int;
                         }
                         else if (value_CountyId is long countyId_Long)
                         {
-                            countyId_ByReference[reference] = (int)countyId_Long;
+                            countyId = (int)countyId_Long;
                         }
                     }
 
-                    if (id_ByReference is not null)
+                    long id = 0;
+                    if (index_Id != -1)
                     {
                         object? value_Id = row[index_Id];
-                        if (value_Id is long id)
+                        if (value_Id is long id_Long)
                         {
-                            id_ByReference[reference] = id;
+                            id = id_Long;
                         }
                         else if (value_Id is int id_Int)
                         {
-                            id_ByReference[reference] = id_Int;
+                            id = id_Int;
                         }
+                    }
+
+                    if (!rows_ByReference.TryGetValue(reference, out List<(int CountyId, long Id)>? rows))
+                    {
+                        rows = [];
+                        rows_ByReference[reference] = rows;
+                    }
+
+                    // A building is (reference, county part): a second row of the same pair is the same building.
+                    if (!rows.Exists(x => x.CountyId == countyId))
+                    {
+                        rows.Add((countyId, id));
                     }
                 }
             }
 
-            return visualTypology.TypologyBuildingsViewModel(countyId_ByReference, id_ByReference);
+            return visualTypology.TypologyBuildingsViewModel(rows_ByReference);
         }
     }
 }

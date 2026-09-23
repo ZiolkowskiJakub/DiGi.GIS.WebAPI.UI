@@ -1009,6 +1009,117 @@ public DiGi.PostgreSQL.Table.Classes.Table? Table { get; }
 #### Property Value
 [DiGi\.PostgreSQL\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.table 'DiGi\.PostgreSQL\.Table\.Classes\.Table')
 
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyAreaCountViewModel'></a>
+
+## TypologyAreaCountViewModel Class
+
+The pre\-flight answer of `GET /typology/buildingcount`: how many buildings a Typology solve of an area reads, known before the solve starts, so the area view can say what it is waiting for \(DiGi\.GIS\.WebAPI\.UI\#29, B1\)\.
+
+```csharp
+public class TypologyAreaCountViewModel
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → TypologyAreaCountViewModel
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyAreaCountViewModel.TypologyAreaCountViewModel()'></a>
+
+## TypologyAreaCountViewModel\(\) Constructor
+
+Initializes a new instance of the [TypologyAreaCountViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyAreaCountViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyAreaCountViewModel') class\.
+
+```csharp
+public TypologyAreaCountViewModel();
+```
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyAreaCountViewModel.TypologyAreaCountViewModel(System.Nullable_long_,int,int,bool)'></a>
+
+## TypologyAreaCountViewModel\(Nullable\<long\>, int, int, bool\) Constructor
+
+Initializes a new instance of the [TypologyAreaCountViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyAreaCountViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyAreaCountViewModel') class\.
+
+```csharp
+public TypologyAreaCountViewModel(System.Nullable<long> count, int countyPartCount, int ceiling, bool clipped);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyAreaCountViewModel.TypologyAreaCountViewModel(System.Nullable_long_,int,int,bool).count'></a>
+
+`count` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The number of buildings the solve reads, or null when it is not counted\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyAreaCountViewModel.TypologyAreaCountViewModel(System.Nullable_long_,int,int,bool).countyPartCount'></a>
+
+`countyPartCount` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of county parts the solve reads\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyAreaCountViewModel.TypologyAreaCountViewModel(System.Nullable_long_,int,int,bool).ceiling'></a>
+
+`ceiling` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of buildings above which a solve is refused\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyAreaCountViewModel.TypologyAreaCountViewModel(System.Nullable_long_,int,int,bool).clipped'></a>
+
+`clipped` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+A value indicating whether the solve clips its county parts to the area's polygon\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyAreaCountViewModel.Ceiling'></a>
+
+## TypologyAreaCountViewModel\.Ceiling Property
+
+Gets the number of buildings above which a solve is refused with a 413 \([BuildingSolveCeiling](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.BuildingSolveCeiling 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.BuildingSolveCeiling')\)\.
+
+```csharp
+public int Ceiling { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyAreaCountViewModel.Clipped'></a>
+
+## TypologyAreaCountViewModel\.Clipped Property
+
+Gets a value indicating whether the area is a municipality or subdivision, whose county parts are clipped to its polygon after the read \- so [Count](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyAreaCountViewModel.Count 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyAreaCountViewModel\.Count') is an upper bound \("up to"\) rather than the area's count\.
+
+```csharp
+public bool Clipped { get; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyAreaCountViewModel.Count'></a>
+
+## TypologyAreaCountViewModel\.Count Property
+
+Gets the number of buildings the solve reads: the sum over the area's county parts\. For a clipped area it is the count of the county parts the area lies in, an upper bound of the area's own buildings\. Null for a country, which is not counted \- it is refused as above the ceiling outright\.
+
+```csharp
+public System.Nullable<long> Count { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyAreaCountViewModel.CountyPartCount'></a>
+
+## TypologyAreaCountViewModel\.CountyPartCount Property
+
+Gets the number of county parts the solve reads\.
+
+```csharp
+public int CountyPartCount { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyBuildingsViewModel'></a>
 
 ## TypologyBuildingsViewModel Class
@@ -1194,6 +1305,136 @@ Gets the building reference key, as addressed by the GIS Web API\.
 
 ```csharp
 public string Reference { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyChildAreaViewModel'></a>
+
+## TypologyChildAreaViewModel Class
+
+One area of `GET /typology/childareas`: an area one level below one too large for a Typology solve, which the area view offers to open instead \(DiGi\.GIS\.WebAPI\.UI\#29, B2\)\.
+
+```csharp
+public class TypologyChildAreaViewModel
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → TypologyChildAreaViewModel
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyChildAreaViewModel.TypologyChildAreaViewModel()'></a>
+
+## TypologyChildAreaViewModel\(\) Constructor
+
+Initializes a new instance of the [TypologyChildAreaViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyChildAreaViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyChildAreaViewModel') class\.
+
+```csharp
+public TypologyChildAreaViewModel();
+```
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyChildAreaViewModel.TypologyChildAreaViewModel(int,string,string,int,System.Nullable_long_)'></a>
+
+## TypologyChildAreaViewModel\(int, string, string, int, Nullable\<long\>\) Constructor
+
+Initializes a new instance of the [TypologyChildAreaViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyChildAreaViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyChildAreaViewModel') class\.
+
+```csharp
+public TypologyChildAreaViewModel(int id, string? code, string? name, int administrativeArealType, System.Nullable<long> count);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyChildAreaViewModel.TypologyChildAreaViewModel(int,string,string,int,System.Nullable_long_).id'></a>
+
+`id` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The identifier the area view opens the area with \- the lowest of its polygon parts\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyChildAreaViewModel.TypologyChildAreaViewModel(int,string,string,int,System.Nullable_long_).code'></a>
+
+`code` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The TERYT code of the area\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyChildAreaViewModel.TypologyChildAreaViewModel(int,string,string,int,System.Nullable_long_).name'></a>
+
+`name` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The name of the area\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyChildAreaViewModel.TypologyChildAreaViewModel(int,string,string,int,System.Nullable_long_).administrativeArealType'></a>
+
+`administrativeArealType` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The administrative level of the area, as the integer the area view carries\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyChildAreaViewModel.TypologyChildAreaViewModel(int,string,string,int,System.Nullable_long_).count'></a>
+
+`count` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The number of buildings of the area, or null when it is not counted\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyChildAreaViewModel.AdministrativeArealType'></a>
+
+## TypologyChildAreaViewModel\.AdministrativeArealType Property
+
+Gets the administrative level of the area, as the integer of `AdministrativeArealType` the area view carries in its query string\.
+
+```csharp
+public int AdministrativeArealType { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyChildAreaViewModel.Code'></a>
+
+## TypologyChildAreaViewModel\.Code Property
+
+Gets the TERYT code of the area\.
+
+```csharp
+public string? Code { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyChildAreaViewModel.Count'></a>
+
+## TypologyChildAreaViewModel\.Count Property
+
+Gets the number of buildings of the area: exact for a county \(the sum over its parts\), null for a voivodeship \(not counted\) or when the count could not be read\.
+
+```csharp
+public System.Nullable<long> Count { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyChildAreaViewModel.Id'></a>
+
+## TypologyChildAreaViewModel\.Id Property
+
+Gets the identifier the area view opens the area with: the lowest of its polygon parts, since a solve resolves every part from the code\.
+
+```csharp
+public int Id { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyChildAreaViewModel.Name'></a>
+
+## TypologyChildAreaViewModel\.Name Property
+
+Gets the name of the area\.
+
+```csharp
+public string? Name { get; }
 ```
 
 #### Property Value

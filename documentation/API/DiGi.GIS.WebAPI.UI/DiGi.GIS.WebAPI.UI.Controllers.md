@@ -500,7 +500,7 @@ A task that represents the asynchronous operation, containing the [Microsoft\.As
 
 Retrieves the bounding\-box centres of every building of an administrative area, keyed by reference and county part, for the 2D dot rendering of the Typology area view\.
 
-A relay of the GIS Web API's `gis/building2D/point2dsbyadministrativeareal2Did` (DiGi.GIS.WebAPI issue #34) without the `_type` discriminator, which alone is most of the upstream payload for a county-sized area. The area is resolved upstream through its subdivision children, so a county part identifier answers the buildings of every part sharing the code, each row carrying the county part it is actually filed under - a reference is unique only per county partition, so the view joins by `(reference, countyId)`. An area resolving to no subdivision answers an empty list, which is "nothing to draw"; an upstream failure, after one retry with a doubled command timeout for a cold partition, answers [Microsoft\.AspNetCore\.Http\.StatusCodes\.Status204NoContent](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.statuscodes.status204nocontent 'Microsoft\.AspNetCore\.Http\.StatusCodes\.Status204NoContent') so the outline still renders without its dots.
+A relay of the GIS Web API's compact `gis/building2D/centroidsbyadministrativeareal2Did` (DiGi.GIS.WebAPI#40), falling back to `point2dsbyadministrativeareal2Did` (DiGi.GIS.WebAPI issue #34) where the compact one is not deployed ([Building2DCentroidsAsync\(this HttpClient, int, int, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Building2DCentroidsAsync(thisSystem.Net.Http.HttpClient,int,int,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.Building2DCentroidsAsync\(this System\.Net\.Http\.HttpClient, int, int, System\.Threading\.CancellationToken\)')), answered without the `_type` discriminator. The area is resolved upstream through its subdivision children, so a county part identifier answers the buildings of every part sharing the code, each row carrying the county part it is actually filed under - a reference is unique only per county partition, so the view joins by `(reference, countyId)`. An area resolving to no subdivision answers an empty list, which is "nothing to draw"; an upstream failure, after one retry with a doubled command timeout for a cold partition, answers [Microsoft\.AspNetCore\.Http\.StatusCodes\.Status204NoContent](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.statuscodes.status204nocontent 'Microsoft\.AspNetCore\.Http\.StatusCodes\.Status204NoContent') so the outline still renders without its dots.
 
 ```csharp
 public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetPoint2DsByAdministrativeAreal2DIdAsync(int administrativeAreal2DId, System.Nullable<int> commandTimeout=null, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
@@ -2189,7 +2189,7 @@ An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us
 
 Provides the Typology definition feature: the page where a building typology is defined as a chain of building\-data columns with rule types, ranges and colors\.
 
-The column data and the solving are owned by the GIS Web API (ZiolkowskiJakub/DiGi.Gis#5); this controller only reads and renders, so the query and rule semantics stay owned by that service and cannot drift here.
+The column catalog, the building data and the area geometry are read from the GIS Web API. The solve runs here: `POST /typology/buildings` joins the building data to the definition and classifies it with DiGi.Typology.Visual, because the per-building DTO the view draws is shaped for this page. An upstream solve was considered and rejected (DiGi.GIS.WebAPI.UI#29): the cost is the database reading the building data, which moving the classification does not reduce.
 
 ```csharp
 public class TypologyController : Microsoft.AspNetCore.Mvc.Controller
@@ -2293,6 +2293,90 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the document as JSON, a 400 Bad Request response carrying the error list, or a 503 Service Unavailable response when the column catalog cannot be read\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetBuildingCountAsync(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken)'></a>
+
+## TypologyController\.GetBuildingCountAsync\(int, string, Nullable\<AdministrativeArealType\>, CancellationToken\) Method
+
+Answers the pre\-flight of a Typology solve: how many buildings the solve of an area reads, from how many county parts, against which ceiling \- known in a fraction of a second, so the area view can say what the solve is waiting for \(DiGi\.GIS\.WebAPI\.UI\#29, B1\)\.
+
+The same resolution and count [SolveBuildingsAsync\(TypologySolveParameter, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TypologyController.SolveBuildingsAsync(DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TypologyController\.SolveBuildingsAsync\(DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologySolveParameter, System\.Threading\.CancellationToken\)') runs before it reads a page ([CountyPartIdsAsync\(this HttpClient, string, AdministrativeArealType, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.CountyPartIdsAsync(thisSystem.Net.Http.HttpClient,string,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.CountyPartIdsAsync\(this System\.Net\.Http\.HttpClient, string, DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType, System\.Threading\.CancellationToken\)'), then one `countbycountyid` per part). A municipality or subdivision is clipped to its polygon after the read, so its count is the count of its county parts - an upper bound, flagged by `clipped`. A country is not counted (`count` null): the solve refuses it outright. An area that names no parts counts 0.
+
+[DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.enums.administrativearealtype 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType') is bound nullable and rejected when absent (Coding - WebAPI Contracts, section 2).
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetBuildingCountAsync(int id, string? code, System.Nullable<DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType> administrativeArealType, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetBuildingCountAsync(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken).id'></a>
+
+`id` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The unique identifier of the administrative area\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetBuildingCountAsync(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken).code'></a>
+
+`code` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The code of the administrative area\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetBuildingCountAsync(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken).administrativeArealType'></a>
+
+`administrativeArealType` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.enums.administrativearealtype 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The type of the administrative area, as the integer the area view carries\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetBuildingCountAsync(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing a [TypologyAreaCountViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyAreaCountViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyAreaCountViewModel'), a 400 Bad Request response for a missing identifier or type, or a missing code for any area but the country, or a 503 Service Unavailable response when the parts or their counts cannot be read\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetChildAreasAsync(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken)'></a>
+
+## TypologyController\.GetChildAreasAsync\(int, string, Nullable\<AdministrativeArealType\>, CancellationToken\) Method
+
+Lists the areas one level below an area too large for a Typology solve \- a voivodeship's counties with their building counts, or the country's voivodeships \- so the area view can offer a smaller area instead of the 413 \(DiGi\.GIS\.WebAPI\.UI\#29, B2\)\.
+
+See [ChildAreasAsync\(this HttpClient, string, AdministrativeArealType, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.ChildAreasAsync(thisSystem.Net.Http.HttpClient,string,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.ChildAreasAsync\(this System\.Net\.Http\.HttpClient, string, DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType, System\.Threading\.CancellationToken\)') for the grouping of multi-part areas, the counts and the order. The parameters are those of the area view, so the page passes its own query through.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetChildAreasAsync(int id, string? code, System.Nullable<DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType> administrativeArealType, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetChildAreasAsync(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken).id'></a>
+
+`id` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The unique identifier of the administrative area\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetChildAreasAsync(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken).code'></a>
+
+`code` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The code of the administrative area; required for a voivodeship\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetChildAreasAsync(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken).administrativeArealType'></a>
+
+`administrativeArealType` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.enums.administrativearealtype 'DiGi\.GIS\.PostgreSQL\.Enums\.AdministrativeArealType')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The type of the administrative area: a voivodeship or the country\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetChildAreasAsync(int,string,System.Nullable_DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the list of [TypologyChildAreaViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyChildAreaViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyChildAreaViewModel'), a 400 Bad Request response for a missing identifier, a type other than voivodeship or country, or a voivodeship without a code, or a 503 Service Unavailable response when the areas cannot be read\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetColumnsAsync(System.Threading.CancellationToken)'></a>
 
