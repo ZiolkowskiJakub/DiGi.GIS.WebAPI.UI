@@ -3,9 +3,9 @@
  * of its buildings with a text filter over the reference, and the info of the building picked from the
  * grid or the map, with links to the existing 2D details page and 3D viewer.
  *
- * A pure renderer of the solve DTO (POST /typology/buildings) and the definition the Load modal filed in
- * sessionStorage: no request is made per building, the id and county part come from the DTO and the
- * plan coordinates from the map's centroid lookup. The grid stays responsive at tens of thousands of rows
+ * A pure renderer of the solve DTO (POST /typology/buildings) and the definition filed in localStorage
+ * by the definition page: no request is made per building, the id and county part come from the DTO and
+ * the plan coordinates from the map's centroid lookup. The grid stays responsive at tens of thousands of rows
  * by windowing: a spacer keeps the scroll height of the whole filtered list, and only the rows of the
  * visible slice (plus an overscan) are in the DOM, re-rendered on scroll.
  *

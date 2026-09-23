@@ -26,10 +26,11 @@
         type: parseInt(shell.getAttribute('data-area-type'), 10)
     };
 
-    // The same key typology.js writes in confirmLoadSelection. A blocked store reads as no definition.
+    // The same key typology.js files in saveNow (loadAreaView / openAreaViewInNewTab flush it before
+    // opening the view). A blocked store reads as no definition.
     let definition = null;
     try {
-        definition = JSON.parse(window.sessionStorage.getItem('digiTypology.definition'));
+        definition = JSON.parse(window.localStorage.getItem('digiTypology.definition'));
     } catch (error) {
         definition = null;
     }

@@ -249,11 +249,13 @@ const digiTypology = (function () {
         const trimmed = String(rawValue).trim();
         level.ranges[index][field] = trimmed === '' ? null : Number(trimmed);
         renderRangeValidation(level);
+        scheduleSave();
     }
 
     function setRangeColor(level, index, color) {
         if (index >= 0 && index < level.ranges.length) {
             level.ranges[index].color = color;
+            scheduleSave();
         }
     }
 
@@ -373,6 +375,7 @@ const digiTypology = (function () {
     function setUniqueValueColor(level, index, color) {
         if (index >= 0 && index < level.uniqueValueColors.length) {
             level.uniqueValueColors[index].color = color;
+            scheduleSave();
         }
     }
 
@@ -1150,6 +1153,7 @@ const digiTypology = (function () {
         if (container === null) {
             return;
         }
+        scheduleSave();
 
         // Clear waits out an empty chain, like the editors' Clear waits out an empty list.
         const clearButton = document.getElementById('typology-clear-columns-button');
@@ -1188,6 +1192,7 @@ const digiTypology = (function () {
         if (container === null) {
             return;
         }
+        scheduleSave();
 
         const level = selectedLevel();
         const levelId = level === null ? null : level.uniqueId;
@@ -1884,14 +1889,46 @@ const digiTypology = (function () {
         return true;
     }
 
-    // The definition the last Load filed for the area view comes back when the page is revisited in the
-    // same tab - "Back to the definition page" and the browser's back button included - so the levels the
-    // visitor built are not lost to the round trip. Silent: an absent, blocked or malformed entry simply
-    // leaves the page empty, as a first visit is.
+    // The page state is filed on every change (#53, B5), so a reload or a new tab finds it. Debounced: a
+    // bound typed digit by digit is one write, not one per keystroke. Suppressed until the stored
+    // definition has been restored, so the empty first render does not overwrite it.
+    const saveDelay = 300;
+    let saveTimer = null;
+    let saveEnabled = false;
+
+    function scheduleSave() {
+        if (!saveEnabled) {
+            return;
+        }
+        if (saveTimer !== null) {
+            clearTimeout(saveTimer);
+        }
+        saveTimer = setTimeout(saveNow, saveDelay);
+    }
+
+    function saveNow() {
+        if (saveTimer !== null) {
+            clearTimeout(saveTimer);
+            saveTimer = null;
+        }
+        try {
+            if (state.levels.length === 0) {
+                window.localStorage.removeItem(loadDefinitionStorageKey);
+            } else {
+                window.localStorage.setItem(loadDefinitionStorageKey, JSON.stringify(definitionPayload()));
+            }
+        } catch (error) {
+            // A full or blocked store only costs the restore on the next visit.
+        }
+    }
+
+    // The definition the last change filed comes back on every visit - a reload or a new tab included -
+    // so the levels the visitor built are not lost to the round trip. Silent: an absent, blocked or
+    // malformed entry simply leaves the page empty, as a first visit is.
     function restoreDefinition() {
         let definition = null;
         try {
-            definition = JSON.parse(window.sessionStorage.getItem(loadDefinitionStorageKey));
+            definition = JSON.parse(window.localStorage.getItem(loadDefinitionStorageKey));
         } catch (error) {
             return;
         }
@@ -1920,7 +1957,7 @@ const digiTypology = (function () {
             countyIds: null
         };
         try {
-            window.sessionStorage.setItem(selectedAreaStorageKey, JSON.stringify({
+            window.localStorage.setItem(selectedAreaStorageKey, JSON.stringify({
                 id: selectedArea.id,
                 code: selectedArea.code,
                 name: selectedArea.name,
@@ -1939,7 +1976,7 @@ const digiTypology = (function () {
     function restoreSelectedArea() {
         let area = null;
         try {
-            area = JSON.parse(window.sessionStorage.getItem(selectedAreaStorageKey));
+            area = JSON.parse(window.localStorage.getItem(selectedAreaStorageKey));
         } catch (error) {
             return;
         }
@@ -1958,7 +1995,7 @@ const digiTypology = (function () {
         openConfirmModal('Clear Area', 'Clear the selected area ' + selectedArea.name + '?', function () {
             selectedArea = null;
             try {
-                window.sessionStorage.removeItem(selectedAreaStorageKey);
+                window.localStorage.removeItem(selectedAreaStorageKey);
             } catch (error) {
                 // A blocked store only means the area comes back on the next visit.
             }
@@ -2011,20 +2048,26 @@ const digiTypology = (function () {
         });
     }
 
-    // Load in the Selected Area card: files the definition where the area view reads it, then opens
-    // the view for the selected area. The type travels as the integer the wire already carries - never
-    // a name.
-    function loadAreaView() {
-        try {
-            window.sessionStorage.setItem(loadDefinitionStorageKey, JSON.stringify(definitionPayload()));
-        } catch (error) {
-            // A full or blocked store must not eat the redirect; the target page treats absence as no
-            // definition carried.
-        }
-
-        window.location.href = baseUrl() + '/typology/view?id=' + selectedArea.id +
+    // The area view the Load actions open, for the selected area. The type travels as the integer the
+    // wire already carries - never a name.
+    function areaViewUrl() {
+        return baseUrl() + '/typology/view?id=' + selectedArea.id +
             '&code=' + encodeURIComponent(selectedArea.code) +
             '&administrativearealtype=' + selectedArea.administrativeArealType;
+    }
+
+    // Load in the Selected Area card: flushes the debounced definition save (so the view never reads a
+    // stale state), then opens the view for the selected area.
+    function loadAreaView() {
+        saveNow();
+        window.location.href = areaViewUrl();
+    }
+
+    // Opens the area view in a new tab and keeps this page open beside it (#53, B5). The definition is
+    // flushed first; the view reads it from localStorage.
+    function openAreaViewInNewTab() {
+        saveNow();
+        window.open(areaViewUrl(), '_blank', 'noopener');
     }
 
     function setupSelectedAreaEvents() {
@@ -2046,6 +2089,13 @@ const digiTypology = (function () {
         if (loadButton !== null) {
             loadButton.addEventListener('click', function () {
                 ensureSelectedArea({ opener: loadButton, title: 'Load Area' }, loadAreaView);
+            });
+        }
+
+        const loadNewTabButton = document.getElementById('typology-load-new-tab-button');
+        if (loadNewTabButton !== null) {
+            loadNewTabButton.addEventListener('click', function () {
+                ensureSelectedArea({ opener: loadNewTabButton, title: 'Load Area' }, openAreaViewInNewTab);
             });
         }
     }
@@ -2527,9 +2577,9 @@ const digiTypology = (function () {
     const loadSearchMinimum = 2;
     const loadResultCap = 50;
 
-    // The definition travels to the redirect target in sessionStorage rather than the query string: a
-    // chain of levels with ranges and colours would bloat the URL past every reasonable limit. The area
-    // view reads it to solve, and this page reads it back on its next visit in the tab (restoreDefinition).
+    // The definition travels to the area view in localStorage rather than the query string: a chain of
+    // levels with ranges and colours would bloat the URL past every reasonable limit. The area view
+    // reads it to solve, and this page restores it on every visit (restoreDefinition).
     const loadDefinitionStorageKey = 'digiTypology.definition';
 
     // AdministrativeArealType on the wire: 1 Voivodeship, 2 County, 3 Municipality, 4 Subdivision. The
@@ -2970,6 +3020,8 @@ const digiTypology = (function () {
         renderProperties();
         restoreDefinition();
         restoreSelectedArea();
+        saveEnabled = true; // the empty first render must not file over the restored state
+        window.addEventListener('beforeunload', saveNow); // a reload inside the debounce window must not lose the last edit
         loadAvailableColumns();
     }
 
