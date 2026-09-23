@@ -49,6 +49,12 @@
                         <p class="gis-loader-text">Solving the typology for the area&hellip;</p>
                     </div>
                     <div id="typology-tree" class="typology-tree" role="tree" aria-label="Typology tree" hidden></div>
+                    @* The drill-down (issue #53, B2): the child areas of an area above the solve ceiling,
+                       offered in the left card instead of the 413 modal for a voivodeship or the country. *@
+                    <div id="typology-child-areas" class="typology-child-areas" hidden>
+                        <p class="typology-muted" id="typology-child-areas-text"></p>
+                        <ul class="typology-child-area-list" id="typology-child-area-list"></ul>
+                    </div>
                 </div>
                 <div class="gis-card gltf-card typology-pie-card">
                     <h3 class="typology-card-title" id="typology-pie-title"><span>Distribution</span><span id="typology-pie-focus" class="typology-muted"></span></h3>

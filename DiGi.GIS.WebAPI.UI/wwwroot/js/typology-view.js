@@ -192,6 +192,52 @@
         modalOpen = false;
     }
 
+    // The drill-down (#53, B2): the 413 message, then the child areas with their counts, each a link to
+    // the area view of that child. The definition is read from localStorage there (B5), so it carries
+    // over.
+    function showChildAreas(message) {
+        digiTypologyPanel.showStatus(message || 'The area is above the solve ceiling.');
+        const container = element('typology-child-areas');
+        const list = element('typology-child-area-list');
+        const text = element('typology-child-areas-text');
+        if (container === null || list === null) {
+            return;
+        }
+        text.textContent = area.type === 0 ? 'Choose a voivodeship:' : 'Loading the counties…';
+        list.replaceChildren();
+        container.hidden = false;
+
+        // The ceiling the server compares against: the B1 count carries it; the literal is
+        // Constants.Default.BuildingSolveCeiling, whose source of truth is the server.
+        const ceiling = (loaderCount !== null && typeof loaderCount.ceiling === 'number') ? loaderCount.ceiling : 200000;
+
+        fetchJson(baseUrl() + '/typology/childareas?id=' + area.id + '&code=' + encodeURIComponent(area.code || '') + '&administrativearealtype=' + area.type)
+            .then(function (result) {
+                if (!result.ok || !Array.isArray(result.body)) {
+                    text.textContent = 'The areas below this one could not be listed.';
+                    return;
+                }
+                text.textContent = area.type === 0 ? 'Choose a voivodeship:' : 'Choose a county:';
+                const fragment = document.createDocumentFragment();
+                result.body.forEach(function (child) {
+                    const item = document.createElement('li');
+                    const link = document.createElement('a');
+                    link.href = baseUrl() + '/typology/view?id=' + child.id + '&code=' + encodeURIComponent(child.code || '') + '&administrativearealtype=' + child.administrativeArealType;
+                    link.textContent = child.name || child.code;
+                    const count = document.createElement('span');
+                    count.className = 'typology-muted';
+                    count.textContent = typeof child.count === 'number' ? common.formatCount(child.count) : '—';
+                    if (typeof child.count === 'number' && child.count > ceiling) {
+                        item.classList.add('typology-child-area-over');
+                        item.title = 'Above the solve ceiling';
+                    }
+                    item.append(link, count);
+                    fragment.appendChild(item);
+                });
+                list.replaceChildren(fragment);
+            });
+    }
+
     // ----- selection ownership: one clear, one Escape chain -----
 
     function clearSelection() {
@@ -290,6 +336,13 @@
 
                 if (result.status === 404) {
                     digiTypologyPanel.showStatus('The area has no buildings to solve for.');
+                    return;
+                }
+                if (result.status === 413 && (area.type === 0 || area.type === 1)) {
+                    // Above the ceiling, a voivodeship or the country offers its child areas instead of
+                    // the modal (#53, B2). Any other type keeps the modal - no county reaches the ceiling,
+                    // so a 413 there is exceptional and the message says why.
+                    showChildAreas(messagesFromBody(result.body, 'The area is above the solve ceiling.')[0]);
                     return;
                 }
                 if (result.status === 400 || result.status === 413) {

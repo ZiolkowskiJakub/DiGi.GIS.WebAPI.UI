@@ -2544,6 +2544,43 @@ h1.gis-title-large {
     font-size: 0.9rem;
 }
 
+/* The drill-down (issue #53, B2): the child areas of an area above the solve ceiling, in the tree card.
+   [hidden] needs an explicit display rule - any display set on the class beats the hidden attribute
+   (the .typology-viewport-empty trap, #25). */
+.typology-child-areas[hidden] {
+    display: none;
+}
+
+.typology-child-area-list {
+    list-style: none;
+    margin: 8px 0 0 0;
+    padding: 0;
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+    .typology-child-area-list li {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 3px 0;
+    }
+
+    .typology-child-area-list li a {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* A row above the ceiling still opens - its own children may be under it - so it is marked, not
+       disabled. */
+    .typology-child-area-over a {
+        opacity: 0.65;
+        text-decoration: line-through;
+    }
+
 /* One row per node: chevron, swatch, name, count. Every row is focusable (tabindex="0"); focus and
    selection follow the definition page's column items and the Load modal's result rows. */
 .typology-tree-row {
