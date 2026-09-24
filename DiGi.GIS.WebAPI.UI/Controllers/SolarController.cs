@@ -41,20 +41,19 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             dateTime = dateTime.AddHours(hour);
 
-            // EPSG:2180 -> WGS 84; the converted point carries the longitude as X and the latitude as Y.
-            // GIS qualifier: this project's own Convert class (DiGi.GIS.WebAPI.UI.Convert) shadows
-            // DiGi.GIS.Convert in the enclosing-namespace lookup.
-            Point3D? point3D = GIS.Convert.ToEPSG4326(new Point2D(x, y));
-            if (point3D is null)
+            // GIS qualifier: this project's own Query class (DiGi.GIS.WebAPI.UI.Query) shadows
+            // DiGi.GIS.Query in the enclosing-namespace lookup.
+            Coordinates? coordinates = GIS.Query.Coordinates(new Point2D(x, y));
+            if (coordinates is null)
             {
                 return NoContent();
             }
 
-            Coordinates coordinates = new(point3D.Y, point3D.X);
-
-            // EPSG:2180 scenes are Polish, so the local time zone is CET/CEST; the offset follows
-            // the daylight saving state of the requested date. The identifier is the Windows form;
-            // .NET resolves it on any platform through the built-in IANA mapping.
+            // EPSG:2180 scenes are Polish, so the local time zone is CET/CEST. The offset follows
+            // the daylight saving state of the requested date, because this endpoint reports
+            // wall-clock sun angles for a single date. A shading model, in contrast, holds one
+            // fixed offset (UTC.Plus0100, no DST) for its whole solve - see UpdateBuildingInformation.
+            // The identifier is the Windows form; .NET resolves it on any platform through the built-in IANA mapping.
             TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
             UTC uTC = timeZoneInfo.GetUtcOffset(dateTime).TotalHours == 2 ? UTC.Plus0200 : UTC.Plus0100;
 
