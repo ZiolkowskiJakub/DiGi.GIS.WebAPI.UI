@@ -50,6 +50,16 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
 
         /// <summary>
+        /// Handles the HTTP GET request to the root endpoint and returns the solar radiation landing page, where a building is chosen by its identifier.
+        /// </summary>
+        /// <returns>An <see cref="IActionResult"/> representing the start view.</returns>
+        [HttpGet("")]
+        public IActionResult Start()
+        {
+            return View("~/Views/Solar/Start.cshtml");
+        }
+
+        /// <summary>
         /// Displays the solar radiation 3D viewer of a building: the page streams its scene from <see cref="GetGLBBuildingModelByIdAsync(long, int?, double?, CancellationToken)"/> and shows a legend with the colour ramp, the neighbour radius and the EPW station. The page itself carries no geometry and runs no solve.
         /// </summary>
         /// <param name="id">The unique identifier of the building.</param>

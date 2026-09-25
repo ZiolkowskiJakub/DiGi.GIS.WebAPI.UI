@@ -1837,6 +1837,20 @@ The local time of day as a decimal hour in the 0\-24 range\.
 [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
 JSON with the true solar angles: azimuth \[deg\] \(0 = north, clockwise\) and altitude \[deg\] above the horizon \(negative at night\)\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.Start()'></a>
+
+## SolarController\.Start\(\) Method
+
+Handles the HTTP GET request to the root endpoint and returns the solar radiation landing page, where a building is chosen by its identifier\.
+
+```csharp
+public Microsoft.AspNetCore.Mvc.IActionResult Start();
+```
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') representing the start view\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController'></a>
 
 ## TerrainController Class

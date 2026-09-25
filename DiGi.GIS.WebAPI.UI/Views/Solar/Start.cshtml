@@ -1,0 +1,46 @@
+@using System.Globalization
+@{
+    ViewData["Title"] = "Solar";
+    ViewData["Description"] = "Calculate the annual solar radiation on the walls and roofs of a building, shaded by the building itself and its neighbours.";
+
+    string radius = DiGi.GIS.WebAPI.UI.Constants.Default.SolarSurroundingRadius.ToString(CultureInfo.InvariantCulture);
+    string radiusMax = DiGi.GIS.WebAPI.UI.Constants.Default.SolarSurroundingRadiusMax.ToString(CultureInfo.InvariantCulture);
+}
+
+<div class="gis-panel">
+    <div class="gis-card gis-hero-card">
+        @* Sun line icon (consistent line-icon set shared with the 3D viewer and communication start pages). *@
+        <div class="gis-hero-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" role="img" aria-hidden="true">
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2" />
+                <path d="M12 20v2" />
+                <path d="m4.93 4.93 1.41 1.41" />
+                <path d="m17.66 17.66 1.41 1.41" />
+                <path d="M2 12h2" />
+                <path d="M20 12h2" />
+                <path d="m6.34 17.66-1.41 1.41" />
+                <path d="m19.07 4.93-1.41 1.41" />
+            </svg>
+        </div>
+        <h2 class="gis-title gis-title-hero">Solar Radiation</h2>
+        <p class="gis-hero-text">
+            Load a single building by its identifier and see how much sun its walls and roofs receive over a typical year. Every surface is coloured by its annual irradiation, with the building itself and its neighbours within the chosen radius casting shade, and the weather taken from the nearest EPW station.
+        </p>
+        <p class="gis-hero-text">
+            The calculation runs on request and can take a minute. Buildings with more than @DiGi.GIS.WebAPI.UI.Constants.Default.SolarReceiverCountMax external walls and roofs are too large for it.
+        </p>
+        <form method="get" action="~/solar/buildingmodelbyid" class="gis-inline-form">
+            <label>Building Id
+                <input type="number" name="id" value="11014740" required />
+            </label>
+            <label>County Id
+                <input type="number" name="countyid" value="55417" class="gis-input-md" />
+            </label>
+            <label>Radius [m]
+                <input type="number" name="radius" value="@radius" step="any" min="1" max="@radiusMax" required class="gis-input-sm" />
+            </label>
+            <button type="submit" class="gis-button">Open</button>
+        </form>
+    </div>
+</div>

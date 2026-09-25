@@ -47,7 +47,7 @@
             </a>
             @* The navigation links are collapsed into a hamburger button and dropdown menu. The menu
                items mirror the main menu (Views/Home/Start.cshtml), including Communication, the
-               3D Viewer and the Typology entries. *@
+               3D Viewer, Solar and the Typology entries. *@
             <nav class="gis-nav">
                 @* Session control. Both forms are rendered and one of them hidden, so signing out swaps which
                    is visible rather than building markup in script. It wears the hamburger's own classes - only
@@ -91,6 +91,7 @@
                     }
                     <a href="~/communication" role="menuitem" class="gis-nav-link @(currentPath.StartsWith("/communication", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Communication</a>
                     <a href="~/buildingmodel" role="menuitem" class="gis-nav-link @(currentPath.StartsWith("/buildingmodel", StringComparison.OrdinalIgnoreCase) ? "active" : "")">3D Viewer</a>
+                    <a href="~/solar" role="menuitem" class="gis-nav-link @(currentPath.StartsWith("/solar", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Solar</a>
                     <a href="~/terrain" role="menuitem" class="gis-nav-link @(currentPath.StartsWith("/terrain", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Terrain</a>
                     <a href="~/typology" role="menuitem" class="gis-nav-link @(currentPath.StartsWith("/typology", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Typology</a>
                     <a href="~/about" role="menuitem" class="gis-nav-link @(currentPath.StartsWith("/about", StringComparison.OrdinalIgnoreCase) ? "active" : "")">About</a>
