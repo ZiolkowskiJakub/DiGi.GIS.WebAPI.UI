@@ -342,7 +342,7 @@ public System.Nullable<short> Year { get; set; }
 
 Represents the annual solar radiation received by one external surface \(a wall or a roof\) of a building, shaded by the building itself and by its neighbours\.
 
-Irradiation values are per square metre of the surface, over one EPW year. The beam component reaches only the unshaded part of the surface; sky diffuse and ground-reflected radiation reach all of it (isotropic sky, so neighbours do not reduce diffuse radiation).
+Irradiation values are per square metre of the surface, over one EPW year. The beam component reaches only the unshaded part of the surface. Sky diffuse and ground-reflected radiation (isotropic sky) reach the surface in proportion to the part of its sky and of its ground not blocked by the building itself or by its neighbours ([SkyVisibility](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SkyVisibility 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult\.SkyVisibility'), [GroundVisibility](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.GroundVisibility 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult\.GroundVisibility')); blocked parts contribute nothing, reflections between buildings are ignored (ZiolkowskiJakub/DiGi.Solar#15).
 
 Instances are plain carriers of already-computed values. Use [SurfaceSolarRadiationResults\(this ShadingModel, IDictionary&lt;string,Vector3D&gt;, EPWFile, ShadingSolverOptions, Action&lt;string&gt;\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.SurfaceSolarRadiationResults(thisDiGi.Solar.Classes.ShadingModel,System.Collections.Generic.IDictionary_string,DiGi.Geometry.Spatial.Classes.Vector3D_,DiGi.EPW.Classes.EPWFile,DiGi.Solar.Classes.ShadingSolverOptions,System.Action_string_) 'DiGi\.GIS\.WebAPI\.UI\.Create\.SurfaceSolarRadiationResults\(this DiGi\.Solar\.Classes\.ShadingModel, System\.Collections\.Generic\.IDictionary\<string,DiGi\.Geometry\.Spatial\.Classes\.Vector3D\>, DiGi\.EPW\.Classes\.EPWFile, DiGi\.Solar\.Classes\.ShadingSolverOptions, System\.Action\<string\>\)') to calculate them.
 
@@ -370,64 +370,76 @@ public SurfaceSolarRadiationResult(DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiat
 
 The source [SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult') to copy from\.
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double,double,double)'></a>
 
-## SurfaceSolarRadiationResult\(string, double, double, double, double, double, double, double\) Constructor
+## SurfaceSolarRadiationResult\(string, double, double, double, double, double, double, double, double, double\) Constructor
 
 Initializes a new instance of the [SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult') class\.
 
 ```csharp
-public SurfaceSolarRadiationResult(string? reference, double area, double irradiation, double beam, double diffuse, double ground, double irradiationUnshaded, double energy);
+public SurfaceSolarRadiationResult(string? reference, double area, double irradiation, double beam, double diffuse, double ground, double irradiationUnshaded, double energy, double skyVisibility, double groundVisibility);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double).reference'></a>
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double,double,double).reference'></a>
 
 `reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The [DiGi\.Core\.Classes\.GuidReference](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.guidreference 'DiGi\.Core\.Classes\.GuidReference') string of the building component the surface belongs to\.
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double).area'></a>
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double,double,double).area'></a>
 
 `area` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 The area of the surface, in m²\.
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double).irradiation'></a>
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double,double,double).irradiation'></a>
 
 `irradiation` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 The annual irradiation of the surface with shading, in kWh/m² per year\.
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double).beam'></a>
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double,double,double).beam'></a>
 
 `beam` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 The annual beam \(direct\) irradiation reaching the unshaded part of the surface, in kWh/m² per year of the whole surface\.
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double).diffuse'></a>
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double,double,double).diffuse'></a>
 
 `diffuse` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
-The annual sky diffuse irradiation, in kWh/m² per year\.
+The annual sky diffuse irradiation reaching the surface past the blocked part of its sky, in kWh/m² per year\.
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double).ground'></a>
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double,double,double).ground'></a>
 
 `ground` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
-The annual ground\-reflected irradiation, in kWh/m² per year\.
+The annual ground\-reflected irradiation reaching the surface past the blocked part of its ground, in kWh/m² per year\.
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double).irradiationUnshaded'></a>
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double,double,double).irradiationUnshaded'></a>
 
 `irradiationUnshaded` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
-The annual irradiation the surface would receive without any shading, in kWh/m² per year\.
+The annual irradiation the surface would receive under an open sky, with no shading and nothing blocking its sky or ground, in kWh/m² per year\.
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double).energy'></a>
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double,double,double).energy'></a>
 
 `energy` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 The annual solar energy incident on the whole surface with shading, in kWh per year\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double,double,double).skyVisibility'></a>
+
+`skyVisibility` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The unblocked share of the surface's isotropic sky view factor, from 0 \(blocked\) to 1 \(open\)\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double,double,double).groundVisibility'></a>
+
+`groundVisibility` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The unblocked share of the surface's isotropic ground view factor, from 0 \(blocked\) to 1 \(open\)\.
 
 <a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(System.Text.Json.Nodes.JsonObject)'></a>
 
@@ -477,7 +489,7 @@ public double Beam { get; }
 
 ## SurfaceSolarRadiationResult\.Diffuse Property
 
-Gets the annual sky diffuse irradiation of the surface, in kWh/m² per year\.
+Gets the annual sky diffuse irradiation of the surface, reduced by the blocked part of its sky \([SkyVisibility](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SkyVisibility 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult\.SkyVisibility')\), in kWh/m² per year\.
 
 ```csharp
 public double Diffuse { get; }
@@ -503,10 +515,23 @@ public double Energy { get; }
 
 ## SurfaceSolarRadiationResult\.Ground Property
 
-Gets the annual ground\-reflected irradiation of the surface, in kWh/m² per year\.
+Gets the annual ground\-reflected irradiation of the surface, reduced by the blocked part of its ground \([GroundVisibility](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.GroundVisibility 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult\.GroundVisibility')\), in kWh/m² per year\.
 
 ```csharp
 public double Ground { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.GroundVisibility'></a>
+
+## SurfaceSolarRadiationResult\.GroundVisibility Property
+
+Gets the unblocked share of the surface's isotropic ground view factor, from 0 \(the building itself or its neighbours block the whole ground in front of it\) to 1 \(open\)\.
+
+```csharp
+public double GroundVisibility { get; }
 ```
 
 #### Property Value
@@ -529,7 +554,7 @@ public double Irradiation { get; }
 
 ## SurfaceSolarRadiationResult\.IrradiationUnshaded Property
 
-Gets the annual irradiation the surface would receive without any shading, in kWh/m² per year\. The difference to [Irradiation](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.Irradiation 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult\.Irradiation') is the shading loss\.
+Gets the annual irradiation the surface would receive under an open sky, with no shading and nothing blocking its sky or ground, in kWh/m² per year\. The difference to [Irradiation](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.Irradiation 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult\.Irradiation') is the loss to shading and blocked view\.
 
 ```csharp
 public double IrradiationUnshaded { get; }
@@ -550,6 +575,19 @@ public string? Reference { get; }
 
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SkyVisibility'></a>
+
+## SurfaceSolarRadiationResult\.SkyVisibility Property
+
+Gets the unblocked share of the surface's isotropic sky view factor, from 0 \(the building itself or its neighbours block the whole sky in front of it\) to 1 \(open\)\.
+
+```csharp
+public double SkyVisibility { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 <a name='DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionLevelParameter'></a>
 

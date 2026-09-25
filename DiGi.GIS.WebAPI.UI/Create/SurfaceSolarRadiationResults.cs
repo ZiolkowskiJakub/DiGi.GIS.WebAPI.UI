@@ -46,7 +46,8 @@ namespace DiGi.GIS.WebAPI.UI
 
         /// <summary>
         /// Solves a shading model over the hours of one EPW year and integrates the irradiation of each receiving surface.
-        /// <para>Every EPW hour with global, direct and diffuse radiation is sampled at its mid-hour instant in the reference year (<see cref="Query.SolarReferenceDateTime(DateTime)"/>). The shading model is solved for those instants with <see cref="ShadingSolver"/>, which writes its results into <paramref name="shadingModel"/>. For each receiver and hour, the irradiance of the surface is <c>Solar.Create.IrradianceResult</c> on its outward normal, and the power is <c>Solar.Create.SolarPowerResult_ByShadingFactor</c> with the solved shading factor: the shadow blocks the beam component only. An unshaded twin with factor 0 gives <see cref="SurfaceSolarRadiationResult.IrradiationUnshaded"/>.</para>
+        /// <para>Every EPW hour with global, direct and diffuse radiation is sampled at its mid-hour instant in the reference year (<see cref="Query.SolarReferenceDateTime(DateTime)"/>). The shading model is solved for those instants with <see cref="ShadingSolver"/>, which writes its results into <paramref name="shadingModel"/>. For each receiver and hour, the irradiance of the surface is <c>Solar.Create.IrradianceResult</c> on its outward normal, and the power is <c>Solar.Create.SolarPowerResult_ByShadingFactor</c> with the solved shading factor: the shadow blocks the beam component. The sky diffuse and ground-reflected components are scaled by the unblocked share of the surface's sky and ground (<c>Solar.Create.ViewFactorResults</c>, the same projection over fixed hemisphere patches), so a wall covered by a neighbour loses them too. An open-sky twin with factor 0 and nothing blocking the view gives <see cref="SurfaceSolarRadiationResult.IrradiationUnshaded"/>.</para>
+        /// <para>A blocked part of the sky or ground contributes nothing: light reflected by the neighbouring facades and roofs is ignored, which underestimates surfaces in narrow street canyons and courtyards (ZiolkowskiJakub/DiGi.Solar#15).</para>
         /// <para>Each receiver's results are read out once into a map of shaded area by instant; <c>ShadingModel.TryGetShadingFactor</c> would fetch and scan all of them on every call, 9–75 ms per call on the web UI host (DiGi.GIS.WebAPI.UI#59, comment 5830021444). The sun direction and the albedo depend only on the hour and are computed once per hour.</para>
         /// <para>Snow cover is never assumed: the served EPW files carry either filler snow depth (IWEC WARSAW reports snow for 8 322 hours) or no albedo at all, so the albedo is the file's own value or the 0.2 default.</para>
         /// <para>A receiver without an outward normal in <paramref name="normals"/>, with no area, or that the solver could not assign (no plane or no triangulation) gets no result. A daytime hour missing from a receiver's results is skipped.</para>
@@ -55,7 +56,7 @@ namespace DiGi.GIS.WebAPI.UI
         /// <param name="normals">The outward unit normal of each receiver, keyed by its reference (<see cref="Query.SolarReceiverNormals(BuildingModel?)"/>). This value can be null.</param>
         /// <param name="ePWFile">The EPW weather file. This value can be null.</param>
         /// <param name="shadingSolverOptions">The solver options; a copy is solved with its time series replaced by the EPW hours, so the caller's instance is left untouched. Null uses the defaults.</param>
-        /// <param name="log">Receives one line with the direction groups and the solve and aggregation times, or null for none.</param>
+        /// <param name="log">Receives one line with the direction groups and the solve, view factor and aggregation times, or null for none.</param>
         /// <returns>One result per receiving surface, or <see langword="null"/> when an input is null, the model has no coordinates, the EPW file has no usable hour, or the solver fails.</returns>
         public static List<SurfaceSolarRadiationResult>? SurfaceSolarRadiationResults(this ShadingModel? shadingModel, IDictionary<string, Vector3D>? normals, EPWFile? ePWFile, ShadingSolverOptions? shadingSolverOptions, Action<string>? log = null)
         {
@@ -127,6 +128,23 @@ namespace DiGi.GIS.WebAPI.UI
             long milliseconds_Solve = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 
+            // Unblocked share of each receiver's sky and ground; a receiver without one keeps the open view.
+            Dictionary<string, ViewFactorResult> viewFactorResults = [];
+            List<ViewFactorResult>? viewFactorResults_List = Solar.Create.ViewFactorResults(shadingModel, normals, shadingSolverOptions_Temp.Tolerance);
+            if (viewFactorResults_List is not null)
+            {
+                foreach (ViewFactorResult viewFactorResult in viewFactorResults_List)
+                {
+                    if (viewFactorResult.Reference is string reference_ViewFactor)
+                    {
+                        viewFactorResults[reference_ViewFactor] = viewFactorResult;
+                    }
+                }
+            }
+
+            long milliseconds_ViewFactor = stopwatch.ElapsedMilliseconds;
+            stopwatch.Restart();
+
             // The sun depends only on the hour. The night direction is kept too: the irradiance of a
             // night hour still needs one, and its beam is zeroed by passing no direct radiation.
             Vector3D?[] sunDirections = new Vector3D?[count];
@@ -170,6 +188,14 @@ namespace DiGi.GIS.WebAPI.UI
                         continue;
                     }
 
+                    double skyVisibility = 1;
+                    double groundVisibility = 1;
+                    if (viewFactorResults.TryGetValue(reference, out ViewFactorResult? viewFactorResult_Receiver))
+                    {
+                        skyVisibility = viewFactorResult_Receiver.SkyVisibility;
+                        groundVisibility = viewFactorResult_Receiver.GroundVisibility;
+                    }
+
                     Dictionary<DateTime, double> areas_Shaded = [];
                     foreach (IShadingSolverResult shadingSolverResult in shadingSolverResults)
                     {
@@ -211,11 +237,13 @@ namespace DiGi.GIS.WebAPI.UI
                             continue;
                         }
 
-                        // The split of SolarPowerResult.Power: the beam reaches the unshaded area only. The
-                        // local irradiance result is used because the property clones on every access.
+                        // The split of SolarPowerResult.Power: the beam reaches the unshaded area only, the diffuse
+                        // and ground-reflected components only the unblocked share of the sky and ground. A blocked
+                        // share contributes 0 - reflections off neighbours are ignored (DiGi.Solar#15). The local
+                        // irradiance result is used because the property clones on every access.
                         beam += solarPowerResult.UnshadedArea * irradianceResult.Beam;
-                        diffuse += solarPowerResult.TotalArea * irradianceResult.Diffuse;
-                        ground += solarPowerResult.TotalArea * irradianceResult.Ground;
+                        diffuse += solarPowerResult.TotalArea * irradianceResult.Diffuse * skyVisibility;
+                        ground += solarPowerResult.TotalArea * irradianceResult.Ground * groundVisibility;
                         unshaded += solarPowerResult_Unshaded.Power;
                     }
 
@@ -229,14 +257,16 @@ namespace DiGi.GIS.WebAPI.UI
                         diffuse / 1000 / area,
                         ground / 1000 / area,
                         unshaded / 1000 / area,
-                        energy));
+                        energy,
+                        skyVisibility,
+                        groundVisibility));
                 }
             }
 
             if (log is not null)
             {
                 int count_Group = Solar.Query.GroupDirections(sunDirections_Day, shadingSolverOptions_Temp.AngleTolerance)?.Count ?? 0;
-                log(string.Format(CultureInfo.InvariantCulture, "Solar radiation: {0} hours, {1} direction groups, solve {2} ms, aggregation {3} ms.", count, count_Group, milliseconds_Solve, stopwatch.ElapsedMilliseconds));
+                log(string.Format(CultureInfo.InvariantCulture, "Solar radiation: {0} hours, {1} direction groups, solve {2} ms, view factors {3} ms, aggregation {4} ms.", count, count_Group, milliseconds_Solve, milliseconds_ViewFactor, stopwatch.ElapsedMilliseconds));
             }
 
             return result;
