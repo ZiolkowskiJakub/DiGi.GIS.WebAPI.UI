@@ -22,6 +22,10 @@
 		<PackageReference Include="ProjNET4GeoAPI" Version="1.4.1" />
 		<!-- QuikGraph is a NuGet dependency of DiGi.Geometry (referenced via HintPath), so it must be re-added here to reach the application output. -->
 		<PackageReference Include="QuikGraph" Version="2.5.0" />
+		<!-- Serilog.Extensions.Logging routes this application's ILogger output into the daily file of DiGi.Serilog (see Program.cs). -->
+		<PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
+		<!-- Serilog.Sinks.File is a NuGet dependency of DiGi.Serilog (referenced via HintPath), so it must be re-added here to reach the application output. -->
+		<PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
 		<!-- SharpGLTF is a NuGet dependency of DiGi.GLTF (referenced via HintPath), so it must be re-added here to reach the application output. -->
 		<PackageReference Include="SharpGLTF.Toolkit" Version="1.0.6" />
 		<!-- SolarCalculator is a NuGet dependency of DiGi.Solar (referenced via HintPath), so it must be re-added here to reach the application output. -->
@@ -54,6 +58,9 @@
 		</Reference>
 		<Reference Include="DiGi.Analytical.Building.HVAC">
 		  <HintPath>..\..\DiGi.Analytical\bin\DiGi.Analytical.Building.HVAC.dll</HintPath>
+		</Reference>
+		<Reference Include="DiGi.Analytical.Building.Solar">
+		  <HintPath>..\..\DiGi.Analytical\bin\DiGi.Analytical.Building.Solar.dll</HintPath>
 		</Reference>
 		<Reference Include="DiGi.Analytical.Urban">
 		  <HintPath>..\..\DiGi.Analytical\bin\DiGi.Analytical.Urban.dll</HintPath>
@@ -119,6 +126,9 @@
 		</Reference>
 		<Reference Include="DiGi.Typology.Visual">
 			<HintPath>..\..\DiGi.Typology\bin\DiGi.Typology.Visual.dll</HintPath>
+		</Reference>
+		<Reference Include="DiGi.Serilog">
+		  <HintPath>..\..\DiGi.Serilog\bin\DiGi.Serilog.dll</HintPath>
 		</Reference>
 		<Reference Include="DiGi.Solar">
 		  <HintPath>..\..\DiGi.Solar\bin\DiGi.Solar.dll</HintPath>

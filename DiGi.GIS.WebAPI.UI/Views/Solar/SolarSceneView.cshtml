@@ -1,0 +1,184 @@
+@model DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel
+@inject Microsoft.AspNetCore.Mvc.ViewFeatures.IFileVersionProvider FileVersionProvider
+@using System.Globalization
+@{
+    ViewData["Title"] = Model.Title ?? "Solar radiation";
+    ViewData["Description"] = "Annual solar radiation on the external walls and roofs of a building, shaded by the building itself and its neighbours.";
+
+    // The legend ramp is sampled from the same function that colours the scene.
+    double scaleMax = DiGi.GIS.WebAPI.UI.Constants.Default.SolarIrradiationScaleMax;
+    List<string> gradientStops = [];
+    for (int i = 0; i <= 8; i++)
+    {
+        string? hex = DiGi.GIS.WebAPI.UI.Query.Hex(DiGi.GIS.WebAPI.UI.Query.SolarIrradiationColor(scaleMax * i / 8));
+        gradientStops.Add($"{hex} {(i * 12.5).ToString(CultureInfo.InvariantCulture)}%");
+    }
+    string gradient = $"linear-gradient(to right, {string.Join(", ", gradientStops)})";
+}
+
+<div class="gis-panel gis-panel-full">
+    <div class="gltf-layout gltf-left-panel-collapsed">
+        @* Left side panel (hidden by default) *@
+        <aside id="gltf-left-panel" class="gltf-left-panel">
+            <div class="gis-card gltf-card">
+                <h3 class="gltf-card-title">Controls</h3>
+                <div class="gltf-controls-list">
+                    <div class="gltf-control-row">
+                        <span class="gltf-control-key">Middle drag</span>
+                        <span class="gltf-control-val">Pan</span>
+                    </div>
+                    <div class="gltf-control-row">
+                        <span class="gltf-control-key">Shift + Middle drag</span>
+                        <span class="gltf-control-val">Orbit</span>
+                    </div>
+                    <div class="gltf-control-row">
+                        <span class="gltf-control-key">Scroll wheel</span>
+                        <span class="gltf-control-val">Zoom</span>
+                    </div>
+                    <div class="gltf-control-row">
+                        <span class="gltf-control-key">Left drag (L → R)</span>
+                        <span class="gltf-control-val">Window select</span>
+                    </div>
+                    <div class="gltf-control-row">
+                        <span class="gltf-control-key">Left drag (R → L)</span>
+                        <span class="gltf-control-val">Crossing select</span>
+                    </div>
+                    <div class="gltf-control-row">
+                        <span class="gltf-control-key">Right click</span>
+                        <span class="gltf-control-val">Context menu</span>
+                    </div>
+                </div>
+            </div>
+
+            @* Environment settings card: the generic viewer engine mounts its controls into #gltf-settings. *@
+            <div class="gis-card gltf-card">
+                <h3 class="gltf-card-title">Settings</h3>
+                <div id="gltf-settings"></div>
+            </div>
+        </aside>
+
+        @* Left resizer (hidden by default) *@
+        <div id="gltf-left-resizer" class="gltf-resizer" role="separator" aria-label="Resize left panels"></div>
+
+        @* Streamed delivery: the viewer fetches the binary glTF payload from data-glb-url. The solve runs
+           behind that request, so the page itself opens at once and the loader covers the calculation. *@
+        <div id="gltf-viewer-container"
+             data-status-terminal="true"
+             data-glb-url="@(string.IsNullOrEmpty(Model.GLBUrl) ? string.Empty : Url.Content(Model.GLBUrl))"
+             data-building-details-url="@Url.Content("~/building2D/detailsbyreference")"
+             data-buildingmodel-details-url="@Url.Content("~/buildingmodel/itembyreference")"
+             data-sun-direction-url="@Url.Content("~/solar/sundirection")">
+            <div id="gltf-loader" class="gltf-loader">
+                <div class="gis-loader"></div>
+                <p class="gis-loader-text">Calculating solar radiation…</p>
+            </div>
+            @* Small toggle in the top-left corner that folds/unfolds the left side panel. *@
+            <button type="button" id="gltf-left-panel-toggle" class="gltf-left-panel-toggle" title="Show controls" aria-label="Show controls" aria-controls="gltf-left-panel" aria-expanded="false">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m9 18 6-6-6-6" />
+                </svg>
+            </button>
+            @* Small toggle in the top-right corner that folds/unfolds the right side panel. *@
+            <button type="button" id="gltf-panel-toggle" class="gltf-panel-toggle" title="Hide panel" aria-label="Hide panel" aria-controls="gltf-side-panel" aria-expanded="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m9 18 6-6-6-6" />
+                </svg>
+            </button>
+        </div>
+
+        <div id="gltf-resizer" class="gltf-resizer" role="separator" aria-label="Resize panels"></div>
+
+        @* The cards are kept in alphabetical order by title (Lighting, Properties, Scene, Selection, Solar radiation) —
+           hidden cards (Selection) appear in place when user interaction reveals them. *@
+        <aside id="gltf-side-panel" class="gltf-side-panel">
+            <div class="gis-card gltf-card">
+                <h3 class="gltf-card-title">Lighting</h3>
+                <label class="gltf-slider-label">Date
+                    <input type="date" id="gltf-sun-date" class="gltf-date-input" />
+                </label>
+                <label class="gltf-slider-label">Time <span id="gltf-sun-hour-value"></span>
+                    <input type="range" id="gltf-sun-hour" min="0" max="24" step="0.25" />
+                </label>
+                <label class="gltf-slider-label">Sun azimuth <span id="gltf-sun-azimuth-value"></span>
+                    <input type="range" id="gltf-sun-azimuth" min="0" max="360" step="1" />
+                </label>
+                <label class="gltf-slider-label">Sun altitude <span id="gltf-sun-altitude-value"></span>
+                    <input type="range" id="gltf-sun-altitude" min="2" max="90" step="1" />
+                </label>
+                <label class="gltf-slider-label">Sun intensity <span id="gltf-sun-intensity-value"></span>
+                    <input type="range" id="gltf-sun-intensity" min="0" max="5" step="0.1" />
+                </label>
+                <label class="gltf-slider-label">Ambient intensity <span id="gltf-ambient-intensity-value"></span>
+                    <input type="range" id="gltf-ambient-intensity" min="0" max="2" step="0.05" />
+                </label>
+            </div>
+
+            <div class="gis-card gltf-card">
+                <h3 class="gltf-card-title">Properties</h3>
+                <div id="gltf-properties" class="gltf-properties">
+                    <span class="gltf-muted">Click a wall or a roof to see its annual irradiation (kWh/m²) and energy (kWh).</span>
+                </div>
+            </div>
+
+            <div class="gis-card gltf-card">
+                <h3 class="gltf-card-title">Scene</h3>
+                <div id="gltf-scene-info" class="gltf-properties"></div>
+            </div>
+
+            @* Selection card: shown by building-details-panel.js when exactly one building is selected. *@
+            <div class="gis-card gltf-card" id="building-details-card" style="display: none;">
+                <h3 class="gltf-card-title">Selection</h3>
+                <a id="building-details-show-link" class="gis-button" href="#" target="_blank" rel="noopener">Details</a>
+                <button type="button" id="building-export-button" class="gis-button">Export</button>
+            </div>
+
+            <div class="gis-card gltf-card" id="solar-legend-card">
+                <h3 class="gltf-card-title">Solar radiation</h3>
+                <div class="gltf-muted">Annual irradiation [kWh/m²]</div>
+                <div class="solar-legend-ramp" style="background: @gradient;" role="img" aria-label="Colour ramp from 0 to @scaleMax.ToString(CultureInfo.InvariantCulture) kWh/m² per year"></div>
+                <div class="solar-legend-scale">
+                    <span>0</span>
+                    <span>@((scaleMax / 2).ToString(CultureInfo.InvariantCulture))</span>
+                    <span>@scaleMax.ToString(CultureInfo.InvariantCulture)+</span>
+                </div>
+                <div class="gltf-controls-list">
+                    <div class="gltf-control-row">
+                        <span class="gltf-control-key">Neighbours</span>
+                        <span class="gltf-control-val">@Model.Radius.ToString(CultureInfo.InvariantCulture) m</span>
+                    </div>
+                    <div class="gltf-control-row">
+                        <span class="gltf-control-key">Weather</span>
+                        <span class="gltf-control-val">
+                            @if (string.IsNullOrEmpty(Model.StationUrl))
+                            {
+                                @(Model.StationName ?? "EPW")
+                            }
+                            else
+                            {
+                                <a href="@Url.Content(Model.StationUrl)" target="_blank" rel="noopener">@(Model.StationName ?? "EPW")</a>
+                            }
+                        </span>
+                    </div>
+                </div>
+                <div class="gltf-muted">Walls and roofs only; grey surfaces receive no result. Isotropic sky: neighbours shade the direct beam, not the diffuse light.</div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+@section Scripts {
+    @* The '!' prefix opts this element out of tag helper processing: the script tag helper
+       would otherwise strip the type="importmap" attribute and break module resolution. *@
+    <!script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+                "three-mesh-bvh": "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.8/build/index.module.js",
+                "gltf-viewer-core": "@FileVersionProvider.AddFileVersionToPath(Context.Request.PathBase, "/js/gltf-viewer-core.js")"
+            }
+        }
+    </!script>
+    <script type="module" src="~/js/gltf-viewer.js" asp-append-version="true"></script>
+    <script type="module" src="~/js/building-details-panel.js" asp-append-version="true"></script>
+}

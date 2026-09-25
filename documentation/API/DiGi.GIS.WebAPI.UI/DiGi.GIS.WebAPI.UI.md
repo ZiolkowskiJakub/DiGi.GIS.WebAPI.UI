@@ -152,6 +152,147 @@ The number of segments to divide the circle perimeter into\. Defaults to [Terrai
 [DiGi\.Geometry\.Planar\.Classes\.Polygon2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.polygon2d 'DiGi\.Geometry\.Planar\.Classes\.Polygon2D')  
 A [DiGi\.Geometry\.Planar\.Classes\.Polygon2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.polygon2d 'DiGi\.Geometry\.Planar\.Classes\.Polygon2D') representing the discretized circle, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') if the circle is null or invalid\.
 
+<a name='DiGi.GIS.WebAPI.UI.Create.SolarGLTFNodes(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double)'></a>
+
+## Create\.SolarGLTFNodes\(this BuildingModel, IEnumerable\<BuildingModel\>, IEnumerable\<SurfaceSolarRadiationResult\>, IReference, double\) Method
+
+Builds the glTF nodes of the solar radiation viewer from already calculated results: the analysed building component by component, each receiving surface coloured by its annual irradiation \([SolarIrradiationColor\(double\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.SolarIrradiationColor(double) 'DiGi\.GIS\.WebAPI\.UI\.Query\.SolarIrradiationColor\(double\)')\) and carrying its [SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult') as the node properties, every other component neutral grey, and the neighbours as grey semi\-transparent envelopes for context\.
+
+It takes results rather than solving, so a stored calculation can be displayed again without a new solve. No terrain is added: the solve ignores it.
+
+```csharp
+public static System.Collections.Generic.List<DiGi.GLTF.Classes.GLTFNode>? SolarGLTFNodes(this DiGi.Analytical.Building.Classes.BuildingModel? buildingModel, System.Collections.Generic.IEnumerable<DiGi.Analytical.Building.Classes.BuildingModel>? buildingModels_Surrounding, System.Collections.Generic.IEnumerable<DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult>? surfaceSolarRadiationResults, DiGi.Core.Interfaces.IReference? reference, double tolerance=1E-06);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SolarGLTFNodes(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double).buildingModel'></a>
+
+`buildingModel` [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')
+
+The analysed building model\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SolarGLTFNodes(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double).buildingModels_Surrounding'></a>
+
+`buildingModels_Surrounding` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The neighbouring building models shown for context, or null for none\. A copy of [buildingModel](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.SolarGLTFNodes(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double).buildingModel 'DiGi\.GIS\.WebAPI\.UI\.Create\.SolarGLTFNodes\(this DiGi\.Analytical\.Building\.Classes\.BuildingModel, System\.Collections\.Generic\.IEnumerable\<DiGi\.Analytical\.Building\.Classes\.BuildingModel\>, System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult\>, DiGi\.Core\.Interfaces\.IReference, double\)\.buildingModel') among them is skipped\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SolarGLTFNodes(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double).surfaceSolarRadiationResults'></a>
+
+`surfaceSolarRadiationResults` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The results of the receiving surfaces, matched to the components by [Reference](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.Reference 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult\.Reference')\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SolarGLTFNodes(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double).reference'></a>
+
+`reference` [DiGi\.Core\.Interfaces\.IReference](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.ireference 'DiGi\.Core\.Interfaces\.IReference')
+
+The optional root reference of the building model \(a county \+ building [DiGi\.Core\.Classes\.ComplexReference](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.complexreference 'DiGi\.Core\.Classes\.ComplexReference'), as the 3D building viewer uses\); each component node extends it by the component's step\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SolarGLTFNodes(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double).tolerance'></a>
+
+`tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The distance tolerance used by the triangulation\.
+
+#### Returns
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
+The nodes in world coordinates, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the building model is null or has no convertible component\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SurfaceSolarRadiationResults(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.EPW.Classes.EPWFile,DiGi.Solar.Classes.ShadingSolverOptions)'></a>
+
+## Create\.SurfaceSolarRadiationResults\(this BuildingModel, IEnumerable\<BuildingModel\>, EPWFile, ShadingSolverOptions\) Method
+
+Calculates the annual solar radiation on the external walls and roofs of a building, shaded by the building itself and by its neighbours, over one EPW year\.
+
+Composes [SolarReceiverNormals\(this BuildingModel\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.SolarReceiverNormals(thisDiGi.Analytical.Building.Classes.BuildingModel) 'DiGi\.GIS\.WebAPI\.UI\.Query\.SolarReceiverNormals\(this DiGi\.Analytical\.Building\.Classes\.BuildingModel\)'), `ToSolar` (the external walls and roofs receive, everything else - the building's other components and every neighbour - only casts shade) and [SurfaceSolarRadiationResults\(this ShadingModel, IDictionary&lt;string,Vector3D&gt;, EPWFile, ShadingSolverOptions, Action&lt;string&gt;\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.SurfaceSolarRadiationResults(thisDiGi.Solar.Classes.ShadingModel,System.Collections.Generic.IDictionary_string,DiGi.Geometry.Spatial.Classes.Vector3D_,DiGi.EPW.Classes.EPWFile,DiGi.Solar.Classes.ShadingSolverOptions,System.Action_string_) 'DiGi\.GIS\.WebAPI\.UI\.Create\.SurfaceSolarRadiationResults\(this DiGi\.Solar\.Classes\.ShadingModel, System\.Collections\.Generic\.IDictionary\<string,DiGi\.Geometry\.Spatial\.Classes\.Vector3D\>, DiGi\.EPW\.Classes\.EPWFile, DiGi\.Solar\.Classes\.ShadingSolverOptions, System\.Action\<string\>\)'). A caller that has to refuse a request between those steps (a receiver or caster limit) calls them itself.
+
+```csharp
+public static System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult>? SurfaceSolarRadiationResults(this DiGi.Analytical.Building.Classes.BuildingModel? buildingModel, System.Collections.Generic.IEnumerable<DiGi.Analytical.Building.Classes.BuildingModel>? buildingModels_Surrounding, DiGi.EPW.Classes.EPWFile? ePWFile, DiGi.Solar.Classes.ShadingSolverOptions? shadingSolverOptions);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SurfaceSolarRadiationResults(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.EPW.Classes.EPWFile,DiGi.Solar.Classes.ShadingSolverOptions).buildingModel'></a>
+
+`buildingModel` [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')
+
+The analysed building model, already stamped with its coordinates and time zone \(`GIS.Analytical.Modify.UpdateBuildingInformation`\)\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SurfaceSolarRadiationResults(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.EPW.Classes.EPWFile,DiGi.Solar.Classes.ShadingSolverOptions).buildingModels_Surrounding'></a>
+
+`buildingModels_Surrounding` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The neighbouring building models casting shade, or null for none\. A copy of [buildingModel](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.SurfaceSolarRadiationResults(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.EPW.Classes.EPWFile,DiGi.Solar.Classes.ShadingSolverOptions).buildingModel 'DiGi\.GIS\.WebAPI\.UI\.Create\.SurfaceSolarRadiationResults\(this DiGi\.Analytical\.Building\.Classes\.BuildingModel, System\.Collections\.Generic\.IEnumerable\<DiGi\.Analytical\.Building\.Classes\.BuildingModel\>, DiGi\.EPW\.Classes\.EPWFile, DiGi\.Solar\.Classes\.ShadingSolverOptions\)\.buildingModel') among them is skipped\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SurfaceSolarRadiationResults(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.EPW.Classes.EPWFile,DiGi.Solar.Classes.ShadingSolverOptions).ePWFile'></a>
+
+`ePWFile` [DiGi\.EPW\.Classes\.EPWFile](https://learn.microsoft.com/en-us/dotnet/api/digi.epw.classes.epwfile 'DiGi\.EPW\.Classes\.EPWFile')
+
+The EPW weather file\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SurfaceSolarRadiationResults(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.EPW.Classes.EPWFile,DiGi.Solar.Classes.ShadingSolverOptions).shadingSolverOptions'></a>
+
+`shadingSolverOptions` [DiGi\.Solar\.Classes\.ShadingSolverOptions](https://learn.microsoft.com/en-us/dotnet/api/digi.solar.classes.shadingsolveroptions 'DiGi\.Solar\.Classes\.ShadingSolverOptions')
+
+The solver options; its time series is replaced by the EPW hours\. Null uses the defaults\.
+
+#### Returns
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
+One result per receiving surface, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the model is null or unstamped \(no coordinates\), has no external envelope, or the EPW file has no usable hour\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SurfaceSolarRadiationResults(thisDiGi.Solar.Classes.ShadingModel,System.Collections.Generic.IDictionary_string,DiGi.Geometry.Spatial.Classes.Vector3D_,DiGi.EPW.Classes.EPWFile,DiGi.Solar.Classes.ShadingSolverOptions,System.Action_string_)'></a>
+
+## Create\.SurfaceSolarRadiationResults\(this ShadingModel, IDictionary\<string,Vector3D\>, EPWFile, ShadingSolverOptions, Action\<string\>\) Method
+
+Solves a shading model over the hours of one EPW year and integrates the irradiation of each receiving surface\.
+
+Every EPW hour with global, direct and diffuse radiation is sampled at its mid-hour instant in the reference year ([SolarReferenceDateTime\(this DateTime\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.SolarReferenceDateTime(thisSystem.DateTime) 'DiGi\.GIS\.WebAPI\.UI\.Query\.SolarReferenceDateTime\(this System\.DateTime\)')). The shading model is solved for those instants with [DiGi\.Solar\.Classes\.ShadingSolver](https://learn.microsoft.com/en-us/dotnet/api/digi.solar.classes.shadingsolver 'DiGi\.Solar\.Classes\.ShadingSolver'), which writes its results into [shadingModel](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.SurfaceSolarRadiationResults(thisDiGi.Solar.Classes.ShadingModel,System.Collections.Generic.IDictionary_string,DiGi.Geometry.Spatial.Classes.Vector3D_,DiGi.EPW.Classes.EPWFile,DiGi.Solar.Classes.ShadingSolverOptions,System.Action_string_).shadingModel 'DiGi\.GIS\.WebAPI\.UI\.Create\.SurfaceSolarRadiationResults\(this DiGi\.Solar\.Classes\.ShadingModel, System\.Collections\.Generic\.IDictionary\<string,DiGi\.Geometry\.Spatial\.Classes\.Vector3D\>, DiGi\.EPW\.Classes\.EPWFile, DiGi\.Solar\.Classes\.ShadingSolverOptions, System\.Action\<string\>\)\.shadingModel'). For each receiver and hour, the irradiance of the surface is `Solar.Create.IrradianceResult` on its outward normal, and the power is `Solar.Create.SolarPowerResult_ByShadingFactor` with the solved shading factor: the shadow blocks the beam component only. An unshaded twin with factor 0 gives [IrradiationUnshaded](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.IrradiationUnshaded 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult\.IrradiationUnshaded').
+
+Each receiver's results are read out once into a map of shaded area by instant; `ShadingModel.TryGetShadingFactor` would fetch and scan all of them on every call, 9–75 ms per call on the web UI host (DiGi.GIS.WebAPI.UI#59, comment 5830021444). The sun direction and the albedo depend only on the hour and are computed once per hour.
+
+Snow cover is never assumed: the served EPW files carry either filler snow depth (IWEC WARSAW reports snow for 8 322 hours) or no albedo at all, so the albedo is the file's own value or the 0.2 default.
+
+A receiver without an outward normal in [normals](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.SurfaceSolarRadiationResults(thisDiGi.Solar.Classes.ShadingModel,System.Collections.Generic.IDictionary_string,DiGi.Geometry.Spatial.Classes.Vector3D_,DiGi.EPW.Classes.EPWFile,DiGi.Solar.Classes.ShadingSolverOptions,System.Action_string_).normals 'DiGi\.GIS\.WebAPI\.UI\.Create\.SurfaceSolarRadiationResults\(this DiGi\.Solar\.Classes\.ShadingModel, System\.Collections\.Generic\.IDictionary\<string,DiGi\.Geometry\.Spatial\.Classes\.Vector3D\>, DiGi\.EPW\.Classes\.EPWFile, DiGi\.Solar\.Classes\.ShadingSolverOptions, System\.Action\<string\>\)\.normals'), with no area, or that the solver could not assign (no plane or no triangulation) gets no result. A daytime hour missing from a receiver's results is skipped.
+
+```csharp
+public static System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult>? SurfaceSolarRadiationResults(this DiGi.Solar.Classes.ShadingModel? shadingModel, System.Collections.Generic.IDictionary<string,DiGi.Geometry.Spatial.Classes.Vector3D>? normals, DiGi.EPW.Classes.EPWFile? ePWFile, DiGi.Solar.Classes.ShadingSolverOptions? shadingSolverOptions, System.Action<string>? log=null);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SurfaceSolarRadiationResults(thisDiGi.Solar.Classes.ShadingModel,System.Collections.Generic.IDictionary_string,DiGi.Geometry.Spatial.Classes.Vector3D_,DiGi.EPW.Classes.EPWFile,DiGi.Solar.Classes.ShadingSolverOptions,System.Action_string_).shadingModel'></a>
+
+`shadingModel` [DiGi\.Solar\.Classes\.ShadingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.solar.classes.shadingmodel 'DiGi\.Solar\.Classes\.ShadingModel')
+
+The shading model: the receivers and shading\-only casters, with coordinates and a time zone\. It receives the solver results\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SurfaceSolarRadiationResults(thisDiGi.Solar.Classes.ShadingModel,System.Collections.Generic.IDictionary_string,DiGi.Geometry.Spatial.Classes.Vector3D_,DiGi.EPW.Classes.EPWFile,DiGi.Solar.Classes.ShadingSolverOptions,System.Action_string_).normals'></a>
+
+`normals` [System\.Collections\.Generic\.IDictionary&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.idictionary-2 'System\.Collections\.Generic\.IDictionary\`2')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[,](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.idictionary-2 'System\.Collections\.Generic\.IDictionary\`2')[DiGi\.Geometry\.Spatial\.Classes\.Vector3D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.spatial.classes.vector3d 'DiGi\.Geometry\.Spatial\.Classes\.Vector3D')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.idictionary-2 'System\.Collections\.Generic\.IDictionary\`2')
+
+The outward unit normal of each receiver, keyed by its reference \([SolarReceiverNormals\(this BuildingModel\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.SolarReceiverNormals(thisDiGi.Analytical.Building.Classes.BuildingModel) 'DiGi\.GIS\.WebAPI\.UI\.Query\.SolarReceiverNormals\(this DiGi\.Analytical\.Building\.Classes\.BuildingModel\)')\)\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SurfaceSolarRadiationResults(thisDiGi.Solar.Classes.ShadingModel,System.Collections.Generic.IDictionary_string,DiGi.Geometry.Spatial.Classes.Vector3D_,DiGi.EPW.Classes.EPWFile,DiGi.Solar.Classes.ShadingSolverOptions,System.Action_string_).ePWFile'></a>
+
+`ePWFile` [DiGi\.EPW\.Classes\.EPWFile](https://learn.microsoft.com/en-us/dotnet/api/digi.epw.classes.epwfile 'DiGi\.EPW\.Classes\.EPWFile')
+
+The EPW weather file\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SurfaceSolarRadiationResults(thisDiGi.Solar.Classes.ShadingModel,System.Collections.Generic.IDictionary_string,DiGi.Geometry.Spatial.Classes.Vector3D_,DiGi.EPW.Classes.EPWFile,DiGi.Solar.Classes.ShadingSolverOptions,System.Action_string_).shadingSolverOptions'></a>
+
+`shadingSolverOptions` [DiGi\.Solar\.Classes\.ShadingSolverOptions](https://learn.microsoft.com/en-us/dotnet/api/digi.solar.classes.shadingsolveroptions 'DiGi\.Solar\.Classes\.ShadingSolverOptions')
+
+The solver options; a copy is solved with its time series replaced by the EPW hours, so the caller's instance is left untouched\. Null uses the defaults\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SurfaceSolarRadiationResults(thisDiGi.Solar.Classes.ShadingModel,System.Collections.Generic.IDictionary_string,DiGi.Geometry.Spatial.Classes.Vector3D_,DiGi.EPW.Classes.EPWFile,DiGi.Solar.Classes.ShadingSolverOptions,System.Action_string_).log'></a>
+
+`log` [System\.Action&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.action-1 'System\.Action\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.action-1 'System\.Action\`1')
+
+Receives one line with the direction groups and the solve and aggregation times, or null for none\.
+
+#### Returns
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
+One result per receiving surface, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when an input is null, the model has no coordinates, the EPW file has no usable hour, or the solver fails\.
+
 <a name='DiGi.GIS.WebAPI.UI.Create.Table(string)'></a>
 
 ## Create\.Table\(string\) Method
@@ -1402,6 +1543,35 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Byte](https://learn.microsoft.com/en-us/dotnet/api/system.byte 'System\.Byte')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The response body, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there is none\.
 
+<a name='DiGi.GIS.WebAPI.UI.Query.CasterTriangleCount(thisDiGi.Solar.Classes.ShadingModel,double)'></a>
+
+## Query\.CasterTriangleCount\(this ShadingModel, double\) Method
+
+Counts the triangles of the shading\-only elements of a shading model \- the neighbours and the analysed building's own non\-receiving components \- which every receiver is solved against\.
+
+The elements are triangulated exactly as [DiGi\.Solar\.Classes\.ShadingSolver\.Solve](https://learn.microsoft.com/en-us/dotnet/api/digi.solar.classes.shadingsolver.solve 'DiGi\.Solar\.Classes\.ShadingSolver\.Solve') triangulates its casters, so the count is the quantity [SolarCasterTriangleCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarCasterTriangleCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarCasterTriangleCountMax') was measured on (ZiolkowskiJakub/DiGi.Solar#7). The receivers' own triangles are not counted.
+
+```csharp
+public static int CasterTriangleCount(this DiGi.Solar.Classes.ShadingModel? shadingModel, double tolerance=1E-06);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.CasterTriangleCount(thisDiGi.Solar.Classes.ShadingModel,double).shadingModel'></a>
+
+`shadingModel` [DiGi\.Solar\.Classes\.ShadingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.solar.classes.shadingmodel 'DiGi\.Solar\.Classes\.ShadingModel')
+
+The shading model\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.CasterTriangleCount(thisDiGi.Solar.Classes.ShadingModel,double).tolerance'></a>
+
+`tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The distance tolerance used by the triangulation\.
+
+#### Returns
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')  
+The number of triangles, or 0 when the model is null or has no shading\-only element\.
+
 <a name='DiGi.GIS.WebAPI.UI.Query.ChildAreasAsync(thisSystem.Net.Http.HttpClient,string,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Threading.CancellationToken)'></a>
 
 ## Query\.ChildAreasAsync\(this HttpClient, string, AdministrativeArealType, CancellationToken\) Method
@@ -1945,6 +2115,79 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[WebAPIResponse](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse 'DiGi\.GIS\.WebAPI\.UI\.Classes\.WebAPIResponse')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The status and body the Web API answered with, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when it answered nothing at all\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.SolarIrradiationColor(double)'></a>
+
+## Query\.SolarIrradiationColor\(double\) Method
+
+Maps an annual irradiation to the colour the solar radiation viewer paints a surface with, on a fixed ramp from 0 \(dark blue\) through pale yellow to [SolarIrradiationScaleMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarIrradiationScaleMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarIrradiationScaleMax') \(dark red\)\.
+
+The ramp is fixed rather than fitted to each building, so two buildings read the same colour for the same irradiation. Values outside the range take the end colours, and a value that is not finite takes the bottom one. The same ramp draws the viewer's legend, so the two cannot drift apart.
+
+```csharp
+public static DiGi.Core.Classes.Color SolarIrradiationColor(double irradiation);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.SolarIrradiationColor(double).irradiation'></a>
+
+`irradiation` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The annual irradiation, in kWh/m² per year\.
+
+#### Returns
+[DiGi\.Core\.Classes\.Color](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.color 'DiGi\.Core\.Classes\.Color')  
+The opaque colour of the irradiation\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.SolarReceiverNormals(thisDiGi.Analytical.Building.Classes.BuildingModel)'></a>
+
+## Query\.SolarReceiverNormals\(this BuildingModel\) Method
+
+Collects the receiving surfaces of a solar radiation calculation \- the external walls and roofs of a building \- with the outward unit normal of each\.
+
+A component's stored normal is its drawing orientation, not the outward one, while the irradiance of a surface depends on which way it faces: with a stored normal pointing into the building, a north wall would receive the south wall's beam. The outward normals are therefore taken from [DiGi\.Analytical\.Building\.Classes\.BuildingModel\.GetExternalShell\(System\.Nullable\{DiGi\.Geometry\.Core\.Enums\.Side\},System\.Nullable\{DiGi\.Geometry\.Core\.Enums\.Orientation\},System\.Nullable\{DiGi\.Geometry\.Core\.Enums\.Orientation\},System\.Double\)](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel.getexternalshell#digi-analytical-building-classes-buildingmodel-getexternalshell(system-nullable{digi-geometry-core-enums-side}-system-nullable{digi-geometry-core-enums-orientation}-system-nullable{digi-geometry-core-enums-orientation}-system-double) 'DiGi\.Analytical\.Building\.Classes\.BuildingModel\.GetExternalShell\(System\.Nullable\{DiGi\.Geometry\.Core\.Enums\.Side\},System\.Nullable\{DiGi\.Geometry\.Core\.Enums\.Orientation\},System\.Nullable\{DiGi\.Geometry\.Core\.Enums\.Orientation\},System\.Double\)') with [DiGi\.Geometry\.Core\.Enums\.Side\.External](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.core.enums.side.external 'DiGi\.Geometry\.Core\.Enums\.Side\.External'), whose faces are oriented over the whole envelope.
+
+Floors are excluded because the ground floor faces the soil. Internal partitions are not part of the envelope and are excluded with them.
+
+```csharp
+public static System.Collections.Generic.Dictionary<string,DiGi.Geometry.Spatial.Classes.Vector3D>? SolarReceiverNormals(this DiGi.Analytical.Building.Classes.BuildingModel? buildingModel);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.SolarReceiverNormals(thisDiGi.Analytical.Building.Classes.BuildingModel).buildingModel'></a>
+
+`buildingModel` [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')
+
+The building model\. This value can be null\.
+
+#### Returns
+[System\.Collections\.Generic\.Dictionary&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[,](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[DiGi\.Geometry\.Spatial\.Classes\.Vector3D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.spatial.classes.vector3d 'DiGi\.Geometry\.Spatial\.Classes\.Vector3D')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')  
+The outward unit normal of each receiving surface, keyed by the [DiGi\.Core\.Classes\.GuidReference](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.guidreference 'DiGi\.Core\.Classes\.GuidReference') string of its component \- the string `ToSolar` writes to the shading element \- or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the model has no external envelope \(no space relation, fewer than four external faces, or a component with more than one geometry\)\. A degenerate model, such as a sliver footprint with walls and no roof or floor, is answered with [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.SolarReferenceDateTime(thisSystem.DateTime)'></a>
+
+## Query\.SolarReferenceDateTime\(this DateTime\) Method
+
+Maps the time stamp of an EPW record to the instant the solar radiation calculation samples the sun at: the middle of the hour the record covers, in [SolarReferenceYear](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarReferenceYear 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarReferenceYear')\.
+
+An EPW record is stamped with the end of its hour (`EPW.Convert.ToSystem_DateTime`: hour 1 is 01:00) and its radiation is the integral over the hour before, so the sun is sampled 30 minutes earlier. The time is local standard time, the fixed offset of the shading model, so no daylight saving shift applies.
+
+Typical meteorological years mix calendar years month by month, and hour 24 of 31 December rolls into 1 January of the next year; moving the mid-hour instant into one fixed non-leap year keeps the series monotonic and one hour per record. 31 December 24:00 therefore maps to 31 December 23:30 of the reference year.
+
+```csharp
+public static System.Nullable<System.DateTime> SolarReferenceDateTime(this System.DateTime dateTime);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.SolarReferenceDateTime(thisSystem.DateTime).dateTime'></a>
+
+`dateTime` [System\.DateTime](https://learn.microsoft.com/en-us/dotnet/api/system.datetime 'System\.DateTime')
+
+The hour\-ending time stamp of the EPW record\.
+
+#### Returns
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTime](https://learn.microsoft.com/en-us/dotnet/api/system.datetime 'System\.DateTime')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')  
+The mid\-hour instant in the reference year, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') for an hour on 29 February, which a non\-leap year does not have\.
 
 <a name='DiGi.GIS.WebAPI.UI.Query.TerrainCircle(thisDiGi.Analytical.Building.Classes.BuildingModel,double,double)'></a>
 

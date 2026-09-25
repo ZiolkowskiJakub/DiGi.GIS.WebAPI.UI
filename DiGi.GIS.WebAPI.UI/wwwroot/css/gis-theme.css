@@ -3455,3 +3455,21 @@ h1.gis-title-large {
         color: var(--text-muted);
         font-size: 0.8rem;
     }
+
+/* Solar radiation viewer legend: the colour ramp of the receiving surfaces (drawn from the same
+   stops as Query.SolarIrradiationColor, so the legend and the scene cannot drift apart), its scale
+   and the calculation inputs. */
+.solar-legend-ramp {
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid var(--border-color-light);
+}
+
+.solar-legend-scale {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+    margin: 4px 0 10px;
+}

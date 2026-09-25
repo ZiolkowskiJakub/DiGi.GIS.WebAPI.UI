@@ -955,6 +955,126 @@ public short Year { get; }
 #### Property Value
 [System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')
 
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel'></a>
+
+## SolarSceneViewModel Class
+
+Represents a view model for the solar radiation 3D scene view: the building and its neighbours, streamed as a binary glTF payload with the receiving surfaces coloured by their annual irradiation, plus what the legend states about the calculation\.
+
+```csharp
+public class SolarSceneViewModel
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → SolarSceneViewModel
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,double,string,string)'></a>
+
+## SolarSceneViewModel\(string, string, double, string, string\) Constructor
+
+Initializes a new instance of the [SolarSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSceneViewModel') class\.
+
+```csharp
+public SolarSceneViewModel(string? title, string? gLBUrl, double radius, string? stationName, string? stationUrl);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,double,string,string).title'></a>
+
+`title` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The title displayed above the viewer\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,double,string,string).gLBUrl'></a>
+
+`gLBUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The application relative URL of the binary glTF \(\.glb\) endpoint\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,double,string,string).radius'></a>
+
+`radius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The neighbour radius in metres, measured from the edge of the footprint\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,double,string,string).stationName'></a>
+
+`stationName` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The name of the EPW weather station, or null when the file does not state it\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,double,string,string).stationUrl'></a>
+
+`stationUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The application relative URL of the EPW weather file page of the station\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.GLBUrl'></a>
+
+## SolarSceneViewModel\.GLBUrl Property
+
+Gets the application relative URL of the binary glTF \(\.glb\) endpoint\.
+
+```csharp
+public string? GLBUrl { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.Radius'></a>
+
+## SolarSceneViewModel\.Radius Property
+
+Gets the neighbour radius in metres, measured from the edge of the footprint\.
+
+```csharp
+public double Radius { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.StationName'></a>
+
+## SolarSceneViewModel\.StationName Property
+
+Gets the name of the EPW weather station, or null when the file does not state it\.
+
+```csharp
+public string? StationName { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.StationUrl'></a>
+
+## SolarSceneViewModel\.StationUrl Property
+
+Gets the application relative URL of the EPW weather file page of the station\.
+
+```csharp
+public string? StationUrl { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.Title'></a>
+
+## SolarSceneViewModel\.Title Property
+
+Gets the title displayed above the viewer\.
+
+```csharp
+public string? Title { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.TableViewModel'></a>
 
 ## TableViewModel Class

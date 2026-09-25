@@ -226,6 +226,24 @@
                         }
                     </td>
                 </tr>
+                <tr>
+                    <td class="property-label">Solar radiation:</td>
+                    <td>
+                        @if (building2DView.Building2DReference is { Id: > 0 })
+                        {
+                            string solarUrl = $"/solar/buildingmodelbyid?id={building2DView.Building2DReference.Id}";
+                            if (building2DView.Building2DReference.CountyId.HasValue)
+                            {
+                                solarUrl += $"&countyid={building2DView.Building2DReference.CountyId.Value}";
+                            }
+                            <a href="@solarUrl" target="_blank" class="btn-buildings btn-active btn-sm">Show</a>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn-buildings btn-disabled btn-sm" disabled>Show</button>
+                        }
+                    </td>
+                </tr>
             </table>
         </div>
     }

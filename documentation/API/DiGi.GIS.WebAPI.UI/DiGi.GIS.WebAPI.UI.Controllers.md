@@ -1638,24 +1638,171 @@ A task that represents the asynchronous operation\. The task result contains an 
 
 ## SolarController Class
 
-\[TEMPORARY\] Solar calculations for the 3D viewer Lighting panel, hosted locally until a
-DiGi\.Solar backed endpoint is available on the central GIS Web API\. The route contract
-\(solar/sundirection\) is final \- when the central endpoint exists this controller becomes a
-proxy like the other controllers in this project, and the consuming frontend
-\(gltf\-viewer\.js\) stays unchanged\.
+Solar calculations for the 3D viewers: the sun position for the Lighting panel, and the annual solar radiation on the external walls and roofs of one building, calculated on this host's CPU with DiGi\.Solar over one EPW year, with the building itself and its neighbours casting shade\.
+
+The radiation routes answer the same refusals: 400 for a neighbour radius outside (0, [SolarSurroundingRadiusMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSurroundingRadiusMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSurroundingRadiusMax')], 204 when the building or its weather file is not found, 422 when the building cannot be located or has no closed external envelope, 413 above [SolarReceiverCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarReceiverCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarReceiverCountMax') receiving surfaces or [SolarCasterTriangleCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarCasterTriangleCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarCasterTriangleCountMax') caster triangles, 502 when the neighbours cannot be read, and 499 / 504 / 500 for a client cancel, an upstream timeout and any other failure.
 
 ```csharp
 public class SolarController : Microsoft.AspNetCore.Mvc.Controller
 ```
 
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [Microsoft\.AspNetCore\.Mvc\.ControllerBase](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controllerbase 'Microsoft\.AspNetCore\.Mvc\.ControllerBase') → [Microsoft\.AspNetCore\.Mvc\.Controller](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controller 'Microsoft\.AspNetCore\.Mvc\.Controller') → SolarController
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.SolarController(System.Net.Http.IHttpClientFactory,System.Threading.SemaphoreSlim,Microsoft.Extensions.Logging.ILogger_DiGi.GIS.WebAPI.UI.Controllers.SolarController_)'></a>
+
+## SolarController\(IHttpClientFactory, SemaphoreSlim, ILogger\<SolarController\>\) Constructor
+
+Initializes a new instance of the [SolarController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController') class\.
+
+```csharp
+public SolarController(System.Net.Http.IHttpClientFactory httpClientFactory, System.Threading.SemaphoreSlim semaphoreSlim, Microsoft.Extensions.Logging.ILogger<DiGi.GIS.WebAPI.UI.Controllers.SolarController> logger);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.SolarController(System.Net.Http.IHttpClientFactory,System.Threading.SemaphoreSlim,Microsoft.Extensions.Logging.ILogger_DiGi.GIS.WebAPI.UI.Controllers.SolarController_).httpClientFactory'></a>
+
+`httpClientFactory` [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory')
+
+The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') used to create [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') instances\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.SolarController(System.Net.Http.IHttpClientFactory,System.Threading.SemaphoreSlim,Microsoft.Extensions.Logging.ILogger_DiGi.GIS.WebAPI.UI.Controllers.SolarController_).semaphoreSlim'></a>
+
+`semaphoreSlim` [System\.Threading\.SemaphoreSlim](https://learn.microsoft.com/en-us/dotnet/api/system.threading.semaphoreslim 'System\.Threading\.SemaphoreSlim')
+
+The gate shared by every solar radiation solve on this host, registered under [SolarSolveGateKey](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSolveGateKey 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSolveGateKey')\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.SolarController(System.Net.Http.IHttpClientFactory,System.Threading.SemaphoreSlim,Microsoft.Extensions.Logging.ILogger_DiGi.GIS.WebAPI.UI.Controllers.SolarController_).logger'></a>
+
+`logger` [Microsoft\.Extensions\.Logging\.ILogger&lt;](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.ilogger-1 'Microsoft\.Extensions\.Logging\.ILogger\`1')[SolarController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.ilogger-1 'Microsoft\.Extensions\.Logging\.ILogger\`1')
+
+The logger receiving one line per solar radiation request\.
 ### Methods
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
+
+## SolarController\.GetBuildingModelByIdAsync\(long, Nullable\<int\>, Nullable\<double\>, CancellationToken\) Method
+
+Displays the solar radiation 3D viewer of a building: the page streams its scene from [GetGLBBuildingModelByIdAsync\(long, Nullable&lt;int&gt;, Nullable&lt;double&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController\.GetGLBBuildingModelByIdAsync\(long, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)') and shows a legend with the colour ramp, the neighbour radius and the EPW station\. The page itself carries no geometry and runs no solve\.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetBuildingModelByIdAsync(long id, System.Nullable<int> countyId, System.Nullable<double> radius, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).id'></a>
+
+`id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The unique identifier of the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional unique identifier of the county associated with the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).radius'></a>
+
+`radius` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The neighbour radius in metres, measured from the edge of the footprint; omitted means [SolarSurroundingRadius](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSurroundingRadius 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSurroundingRadius')\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The viewer page; 400 for an invalid radius, 204 when the building or its weather file is not found, 422 when the building cannot be located\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
+
+## SolarController\.GetGLBBuildingModelByIdAsync\(long, Nullable\<int\>, Nullable\<double\>, CancellationToken\) Method
+
+Calculates the annual solar radiation on the external walls and roofs of a building and streams it as a binary glTF \(\.glb\) scene: each receiving surface coloured by its irradiation on the fixed ramp of [SolarIrradiationColor\(double\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.SolarIrradiationColor(double) 'DiGi\.GIS\.WebAPI\.UI\.Query\.SolarIrradiationColor\(double\)') and carrying its [SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult') as node properties, the building's other components grey, and the neighbours as grey semi\-transparent context\.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetGLBBuildingModelByIdAsync(long id, System.Nullable<int> countyId, System.Nullable<double> radius, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).id'></a>
+
+`id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The unique identifier of the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional unique identifier of the county associated with the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).radius'></a>
+
+`radius` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The neighbour radius in metres, measured from the edge of the footprint; omitted means [SolarSurroundingRadius](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSurroundingRadius 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSurroundingRadius')\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The `model/gltf-binary` payload, or one of the refusals listed on [SolarController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController')\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetRadiationByBuildingModelIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
+
+## SolarController\.GetRadiationByBuildingModelIdAsync\(long, Nullable\<int\>, Nullable\<double\>, CancellationToken\) Method
+
+Calculates the annual solar radiation on the external walls and roofs of a building: one [SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult') per receiving surface, over one EPW year, with the building itself and its neighbours within [radius](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetRadiationByBuildingModelIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).radius 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController\.GetRadiationByBuildingModelIdAsync\(long, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)\.radius') casting shade\.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetRadiationByBuildingModelIdAsync(long id, System.Nullable<int> countyId, System.Nullable<double> radius, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetRadiationByBuildingModelIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).id'></a>
+
+`id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The unique identifier of the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetRadiationByBuildingModelIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional unique identifier of the county associated with the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetRadiationByBuildingModelIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).radius'></a>
+
+`radius` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The neighbour radius in metres, measured from the edge of the footprint; omitted means [SolarSurroundingRadius](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSurroundingRadius 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSurroundingRadius')\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetRadiationByBuildingModelIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The results as DiGi JSON \(`Core.Convert.ToSystem_String`, readable by `Core.Convert.ToDiGi`\), or one of the refusals listed on [SolarController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController')\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetSunDirection(double,double,string,double)'></a>
 
 ## SolarController\.GetSunDirection\(double, double, string, double\) Method
 
-Calculates the sun position for a world location and a local date and time\.
+\[TEMPORARY\] Calculates the sun position for a world location and a local date and time, for the 3D viewer Lighting panel\.
+
+Hosted locally until a DiGi.Solar backed endpoint is available on the central GIS Web API. The route contract (solar/sundirection) is final - when the central endpoint exists this action becomes a proxy like the other actions in this project, and the consuming frontend (gltf-viewer.js) stays unchanged.
 
 ```csharp
 public Microsoft.AspNetCore.Mvc.IActionResult GetSunDirection(double x, double y, string? date, double hour);

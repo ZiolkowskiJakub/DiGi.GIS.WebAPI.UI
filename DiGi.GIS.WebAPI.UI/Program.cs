@@ -4,10 +4,28 @@ using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Serilog;
+using Serilog.Extensions.Logging;
 using System.Linq;
+using System.Threading;
 
 // WebApplicationBuilder is the factory for our web application
 WebApplicationBuilder webApplicationBuilder = WebApplication.CreateBuilder(args);
+
+// File log: under IIS the console output of ILogger is discarded (web.config keeps stdoutLogEnabled
+// off), so the application's ILogger output also goes to the daily file of DiGi.Serilog, logs\log-yyyyMMdd.txt
+// beside the application - the same log the GIS Web API writes. The IIS application pool identity needs
+// write access to that folder. Framework categories are kept at warnings, or every request would be logged;
+// the rules name the Serilog provider because AddSerilog registers a provider-specific rule letting every
+// category through, which outranks a rule that names no provider.
+Serilog.Core.Logger? logger = DiGi.Serilog.Settings.LoggerManager.GetLogger(typeof(Program).Assembly);
+if (logger is not null)
+{
+    webApplicationBuilder.Logging.AddSerilog(logger);
+    webApplicationBuilder.Logging.AddFilter<SerilogLoggerProvider>("Microsoft", LogLevel.Warning);
+    webApplicationBuilder.Logging.AddFilter<SerilogLoggerProvider>("System", LogLevel.Warning);
+}
 
 string corsPolicyName = "DiGi_Origins";
 
@@ -26,6 +44,11 @@ webApplicationBuilder.Services.AddCors(options =>
 
 // Register IHttpClientFactory to allow server-side API calls
 webApplicationBuilder.Services.AddHttpClient();
+
+// One gate for every solar radiation solve on this host: a solve already uses every core, so solves
+// queue instead of running side by side (ZiolkowskiJakub/DiGi.Solar#7). Keyed, so that nothing else
+// resolving a SemaphoreSlim receives it and the background jobs of issue #60 can share it.
+webApplicationBuilder.Services.AddKeyedSingleton(DiGi.GIS.WebAPI.UI.Constants.Default.SolarSolveGateKey, new SemaphoreSlim(DiGi.GIS.WebAPI.UI.Constants.Default.SolarConcurrentSolveCount, DiGi.GIS.WebAPI.UI.Constants.Default.SolarConcurrentSolveCount));
 
 // Compress streamed binary glTF payloads (their JSON chunk with object properties compresses very well).
 webApplicationBuilder.Services.AddResponseCompression(responseCompressionOptions =>

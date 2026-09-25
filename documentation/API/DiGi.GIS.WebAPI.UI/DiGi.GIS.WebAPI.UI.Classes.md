@@ -336,6 +336,221 @@ public System.Nullable<short> Year { get; set; }
 #### Property Value
 [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult'></a>
+
+## SurfaceSolarRadiationResult Class
+
+Represents the annual solar radiation received by one external surface \(a wall or a roof\) of a building, shaded by the building itself and by its neighbours\.
+
+Irradiation values are per square metre of the surface, over one EPW year. The beam component reaches only the unshaded part of the surface; sky diffuse and ground-reflected radiation reach all of it (isotropic sky, so neighbours do not reduce diffuse radiation).
+
+Instances are plain carriers of already-computed values. Use [SurfaceSolarRadiationResults\(this ShadingModel, IDictionary&lt;string,Vector3D&gt;, EPWFile, ShadingSolverOptions, Action&lt;string&gt;\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.SurfaceSolarRadiationResults(thisDiGi.Solar.Classes.ShadingModel,System.Collections.Generic.IDictionary_string,DiGi.Geometry.Spatial.Classes.Vector3D_,DiGi.EPW.Classes.EPWFile,DiGi.Solar.Classes.ShadingSolverOptions,System.Action_string_) 'DiGi\.GIS\.WebAPI\.UI\.Create\.SurfaceSolarRadiationResults\(this DiGi\.Solar\.Classes\.ShadingModel, System\.Collections\.Generic\.IDictionary\<string,DiGi\.Geometry\.Spatial\.Classes\.Vector3D\>, DiGi\.EPW\.Classes\.EPWFile, DiGi\.Solar\.Classes\.ShadingSolverOptions, System\.Action\<string\>\)') to calculate them.
+
+```csharp
+public class SurfaceSolarRadiationResult : DiGi.Core.Classes.SerializableResult
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [DiGi\.Core\.Classes\.Object](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.object 'DiGi\.Core\.Classes\.Object') → [DiGi\.Core\.Classes\.SerializableObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableobject 'DiGi\.Core\.Classes\.SerializableObject') → [DiGi\.Core\.Classes\.SerializableResult](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.serializableresult 'DiGi\.Core\.Classes\.SerializableResult') → SurfaceSolarRadiationResult
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult)'></a>
+
+## SurfaceSolarRadiationResult\(SurfaceSolarRadiationResult\) Constructor
+
+Initializes a new instance of the [SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult') class by copying an existing instance\.
+
+```csharp
+public SurfaceSolarRadiationResult(DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult? surfaceSolarRadiationResult);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult).surfaceSolarRadiationResult'></a>
+
+`surfaceSolarRadiationResult` [SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult')
+
+The source [SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult') to copy from\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double)'></a>
+
+## SurfaceSolarRadiationResult\(string, double, double, double, double, double, double, double\) Constructor
+
+Initializes a new instance of the [SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult') class\.
+
+```csharp
+public SurfaceSolarRadiationResult(string? reference, double area, double irradiation, double beam, double diffuse, double ground, double irradiationUnshaded, double energy);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double).reference'></a>
+
+`reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The [DiGi\.Core\.Classes\.GuidReference](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.guidreference 'DiGi\.Core\.Classes\.GuidReference') string of the building component the surface belongs to\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double).area'></a>
+
+`area` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The area of the surface, in m²\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double).irradiation'></a>
+
+`irradiation` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The annual irradiation of the surface with shading, in kWh/m² per year\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double).beam'></a>
+
+`beam` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The annual beam \(direct\) irradiation reaching the unshaded part of the surface, in kWh/m² per year of the whole surface\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double).diffuse'></a>
+
+`diffuse` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The annual sky diffuse irradiation, in kWh/m² per year\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double).ground'></a>
+
+`ground` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The annual ground\-reflected irradiation, in kWh/m² per year\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double).irradiationUnshaded'></a>
+
+`irradiationUnshaded` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The annual irradiation the surface would receive without any shading, in kWh/m² per year\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(string,double,double,double,double,double,double,double).energy'></a>
+
+`energy` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The annual solar energy incident on the whole surface with shading, in kWh per year\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(System.Text.Json.Nodes.JsonObject)'></a>
+
+## SurfaceSolarRadiationResult\(JsonObject\) Constructor
+
+Initializes a new instance of the [SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult') class from a JSON object\.
+
+```csharp
+public SurfaceSolarRadiationResult(System.Text.Json.Nodes.JsonObject? jsonObject);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.SurfaceSolarRadiationResult(System.Text.Json.Nodes.JsonObject).jsonObject'></a>
+
+`jsonObject` [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject')
+
+The [System\.Text\.Json\.Nodes\.JsonObject](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.nodes.jsonobject 'System\.Text\.Json\.Nodes\.JsonObject') containing the result data\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.Area'></a>
+
+## SurfaceSolarRadiationResult\.Area Property
+
+Gets the area of the surface, in m²\.
+
+```csharp
+public double Area { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.Beam'></a>
+
+## SurfaceSolarRadiationResult\.Beam Property
+
+Gets the annual beam \(direct\) irradiation reaching the unshaded part of the surface, in kWh/m² per year of the whole surface\.
+
+```csharp
+public double Beam { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.Diffuse'></a>
+
+## SurfaceSolarRadiationResult\.Diffuse Property
+
+Gets the annual sky diffuse irradiation of the surface, in kWh/m² per year\.
+
+```csharp
+public double Diffuse { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.Energy'></a>
+
+## SurfaceSolarRadiationResult\.Energy Property
+
+Gets the annual solar energy incident on the whole surface with shading, in kWh per year: [Irradiation](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.Irradiation 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult\.Irradiation') times [Area](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.Area 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult\.Area')\.
+
+```csharp
+public double Energy { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.Ground'></a>
+
+## SurfaceSolarRadiationResult\.Ground Property
+
+Gets the annual ground\-reflected irradiation of the surface, in kWh/m² per year\.
+
+```csharp
+public double Ground { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.Irradiation'></a>
+
+## SurfaceSolarRadiationResult\.Irradiation Property
+
+Gets the annual irradiation of the surface with shading, in kWh/m² per year: the sum of [Beam](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.Beam 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult\.Beam'), [Diffuse](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.Diffuse 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult\.Diffuse') and [Ground](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.Ground 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult\.Ground')\.
+
+```csharp
+public double Irradiation { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.IrradiationUnshaded'></a>
+
+## SurfaceSolarRadiationResult\.IrradiationUnshaded Property
+
+Gets the annual irradiation the surface would receive without any shading, in kWh/m² per year\. The difference to [Irradiation](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.Irradiation 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult\.Irradiation') is the shading loss\.
+
+```csharp
+public double IrradiationUnshaded { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.Reference'></a>
+
+## SurfaceSolarRadiationResult\.Reference Property
+
+Gets the [DiGi\.Core\.Classes\.GuidReference](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.guidreference 'DiGi\.Core\.Classes\.GuidReference') string of the building component the surface belongs to, the same string the shading model's element carries\.
+
+```csharp
+public string? Reference { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionLevelParameter'></a>
 
 ## TypologyDefinitionLevelParameter Class

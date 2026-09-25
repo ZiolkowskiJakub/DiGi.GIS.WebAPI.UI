@@ -148,6 +148,71 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const double PolygonReductionFactor_Voivodeship = 0.001;
 
         /// <summary>
+        /// URI of the GIS Web API endpoint answering every stored building model whose footprint lies within a circle (<c>x</c>, <c>y</c>, <c>radius</c>), from which the solar radiation calculation takes the neighbours casting shade on the analysed building.
+        /// </summary>
+        public const string BuildingModelItemsByCircleUri = GISWebAPIUri + "/gis/buildingmodel/itemsbycircle";
+
+        /// <summary>
+        /// URI of the GIS Web API endpoint answering the EPW weather file of the station serving a location (<c>x</c>, <c>y</c>), the weather the solar radiation calculation integrates over one year.
+        /// <para>The station differs by location, and so does the file's quality: for Warsaw Ursynów it serves IWEC <c>WARSAW</c>, whose snow depth is a filler value, and elsewhere IMGW <c>Warszawa Okecie</c>, whose albedo is all missing (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537).</para>
+        /// </summary>
+        public const string EPWFileItemUri = GISWebAPIUri + "/gis/epwfile/item";
+
+        /// <summary>
+        /// The angular tolerance, in radians, below which the solar radiation calculation groups sun directions into one shading solve (<c>ShadingSolverOptions.AngleTolerance</c>); 2°, twice the solver default.
+        /// <para>Measured over a full EPW year (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537): it halves the direction groups (615 → 295) and the solve time, and changes the annual per-surface irradiation by at most 2.06 %. #7 measured on a 16-thread machine, not on this host; the relative saving holds on any machine.</para>
+        /// </summary>
+        public const double SolarAngleTolerance = Core.Constants.Tolerance.Angle;
+
+        /// <summary>
+        /// The upper bound, in metres, of the neighbour radius a solar radiation request may ask for; a larger one is refused with a 400.
+        /// <para>Headroom above <see cref="SolarSurroundingRadius"/> for tall distant casters in low winter sun, which the measured buildings do not cover; 200 m cost up to twice the solve time for no measured gain (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537).</para>
+        /// </summary>
+        public const double SolarSurroundingRadiusMax = 100.0;
+
+        /// <summary>
+        /// The default neighbour radius, in metres, of a solar radiation request, measured from the edge of the analysed building's footprint: every building within it casts shade.
+        /// <para>Going from 50 to 200 m changed the shading loss of the three measured buildings by at most 0.1 point while the solve time rose by 10–125 % (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537).</para>
+        /// </summary>
+        public const double SolarSurroundingRadius = 50.0;
+
+        /// <summary>
+        /// The ceiling on the number of shading-only triangles (neighbours and the analysed building's own non-receiving components) one synchronous solar radiation request solves against; above it the request is refused with a 413.
+        /// <para>A 50 m radius in central Warsaw gave 8 600–10 700 caster triangles (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537), which the ceiling still admits at the default radius. On this host, a 4-core Intel N150 (DiGi.GIS.WebAPI.UI#59), casters cost more than on the 16-thread machine #7 measured: 25 receivers among 8 600 caster triangles took 42 s against 23 s for 28 receivers among a few. Larger requests are the background jobs of DiGi.GIS.WebAPI.UI#60.</para>
+        /// </summary>
+        public const int SolarCasterTriangleCountMax = 12_000;
+
+        /// <summary>
+        /// The number of solar radiation solves that may run at the same time on this host; further requests wait for the gate registered under <see cref="SolarSolveGateKey"/>.
+        /// <para>One solve already uses every core: two parallel solves took 38.9 s each against 23.0 s for one on the 16-thread machine #7 measured, so a second request waits less on average when queued (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537). This host has 4 cores, which makes the case for one slot stronger.</para>
+        /// </summary>
+        public const int SolarConcurrentSolveCount = 1;
+
+        /// <summary>
+        /// The irradiation, in kWh/m² per year, at the top of the colour ramp of the solar radiation viewer; higher values take the top colour.
+        /// <para>Fixed rather than fitted to each building so that two buildings read the same colour for the same irradiation. The best roofs of the measured Warsaw buildings received 997–1 041 kWh/m² against an annual global horizontal irradiation of 978–999 kWh/m² (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537).</para>
+        /// </summary>
+        public const double SolarIrradiationScaleMax = 1200.0;
+
+        /// <summary>
+        /// The ceiling on the number of receiving surfaces (external walls and roofs) of the building one synchronous solar radiation request calculates; above it the request is refused with a 413.
+        /// <para>Measured on this host, a 4-core Intel N150 with 16 GB, whole requests in central Warsaw at the default radius took about 1.7 s per receiver: 42 s at 25 receivers, 56 s at 34, 65 s at 37 and 51–159 s at 43–48, repeated runs of one building varying up to 2.5 times (DiGi.GIS.WebAPI.UI#59). At 30 receivers a typical request stays near one minute, well under the ~135 s at which the front end answered 503. ZiolkowskiJakub/DiGi.Solar#7 proposed 100, but measured a 16-thread machine, not this host. Refine it from the per-request log of <c>SolarController</c> (<c>logs\log-yyyyMMdd.txt</c>). Larger buildings are the background jobs of DiGi.GIS.WebAPI.UI#60.</para>
+        /// </summary>
+        public const int SolarReceiverCountMax = 30;
+
+        /// <summary>
+        /// The year every EPW record is mapped to before the sun position is calculated. Typical meteorological years mix calendar years month by month, and the last record of the year rolls into the next one, so one fixed year keeps the time series monotonic.
+        /// <para>A non-leap year, so the 8 760 hours of an EPW year map one to one; a 29 February record is skipped.</para>
+        /// </summary>
+        public const int SolarReferenceYear = 2025;
+
+        /// <summary>
+        /// The dependency injection key of the <see cref="System.Threading.SemaphoreSlim"/> of <see cref="SolarConcurrentSolveCount"/> slots that gates every solar radiation solve on this host.
+        /// <para>A keyed singleton rather than a static field so that the background jobs of DiGi.GIS.WebAPI.UI#60 share the same gate with the synchronous requests.</para>
+        /// </summary>
+        public const string SolarSolveGateKey = "SolarSolveGate";
+
+        /// <summary>
         /// Default storey height in meters used to extrude 2D building footprints.
         /// </summary>
         public const double StoreyHeight = 3.0;

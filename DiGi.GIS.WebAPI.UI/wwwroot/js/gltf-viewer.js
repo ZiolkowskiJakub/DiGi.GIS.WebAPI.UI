@@ -4,9 +4,54 @@
 // the properties panel (filled from the domain data attached to glTF extras when
 // exactly one object is selected) and the scene information panel.
 
-import { GltfViewer, GltfStatusTerminal, readSceneData, readGlbBytes, fetchGlbBytes, reportStatus, updateLastStatus, formatElapsed } from 'gltf-viewer-core';
+import { GltfViewer, GltfStatusTerminal, readSceneData, readGlbBytes, reportStatus, updateLastStatus, formatElapsed } from 'gltf-viewer-core';
 
 const DEFAULT_PROPERTIES_HINT = 'Click an object or drag a selection rectangle in the 3D view. Properties are displayed when exactly one object is selected.';
+
+// Fetches the streamed glb like fetchGlbBytes, but keeps the server's refusal: a 4xx/5xx answer
+// (413 above a calculation limit, 422 for a model that cannot be calculated) carries a message the
+// user needs, which fetchGlbBytes - engine code shared with DiGi.GLTF.WebAPI - collapses into null.
+// A 204 or a network failure still answers no message, i.e. "nothing found".
+async function fetchGlb(url) {
+    try {
+        const response = await fetch(url);
+        if (response.status === 204) {
+            return { buffer: null, message: null };
+        }
+        if (response.ok) {
+            const buffer = await response.arrayBuffer();
+            return { buffer: buffer.byteLength > 0 ? buffer : null, message: null };
+        }
+        return { buffer: null, message: await refusalMessage(response) };
+    } catch {
+        return { buffer: null, message: null };
+    }
+}
+
+// The text of a refusal: the controllers answer a JSON list of messages, a problem document or plain text.
+async function refusalMessage(response) {
+    let text = '';
+    try {
+        text = (await response.text()).trim();
+    } catch {
+        text = '';
+    }
+    try {
+        const json = JSON.parse(text);
+        if (Array.isArray(json) && json.length > 0) {
+            return json.join(' ');
+        }
+        if (typeof json === 'string' && json) {
+            return json;
+        }
+        if (json && (json.detail || json.title)) {
+            return json.detail || json.title;
+        }
+    } catch {
+        // Not JSON: plain text below.
+    }
+    return text ? text.slice(0, 500) : `The request failed (HTTP ${response.status}).`;
+}
 
 function appendPropertyRow(table, key, value) {
     const row = table.insertRow();
@@ -402,7 +447,8 @@ if (container) {
             // (raw binary, browser-cacheable). The embedded base64 payload is the fallback mode; its
             // decode is asynchronous so multi-megabyte scenes never block the UI thread.
             const glbUrl = container.dataset.glbUrl;
-            const glbBuffer = glbUrl ? await fetchGlbBytes(glbUrl) : await readGlbBytes('gltf-glb-base64');
+            const fetched = glbUrl ? await fetchGlb(glbUrl) : { buffer: await readGlbBytes('gltf-glb-base64'), message: null };
+            const glbBuffer = fetched.buffer;
 
             if (!glbBuffer) {
                 if (loader) {
@@ -410,11 +456,15 @@ if (container) {
                 }
 
                 stopLoadingTimer();
+                const message = fetched.message || 'No objects were found for this request.';
                 const panel = document.getElementById('gltf-properties');
                 if (panel) {
-                    panel.innerHTML = '<span class="gltf-muted">No objects were found for this request.</span>';
+                    const span = document.createElement('span');
+                    span.className = 'gltf-muted';
+                    span.textContent = message;
+                    panel.replaceChildren(span);
                 }
-                reportStatus('No objects were found for this request.');
+                reportStatus(message);
                 return;
             }
 
