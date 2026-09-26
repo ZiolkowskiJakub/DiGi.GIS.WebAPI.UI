@@ -62,7 +62,7 @@
            attribute is empty, the embedded base64 payload below is used instead.
            data-status-terminal: boolean flag of the task status terminal docked to the bottom edge
            of the 3D view — "false" removes the text area and its splitter entirely.
-           data-scope-box-size: default scope box preset "halfX;halfY;zMin;zMax" (DiGi coordinates);
+           data-scope-box-size: default scope box preset "halfX;halfY;zMin;zMax" or "halfX;halfY" (DiGi coordinates; the latter fits Z to the buildings' elevation);
            empty falls back to the engine's bounds-fit default. *@
         <div id="gltf-viewer-container"
              data-status-terminal="true"

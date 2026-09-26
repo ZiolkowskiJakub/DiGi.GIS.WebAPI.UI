@@ -709,7 +709,7 @@ The application relative URL of the binary glTF \(\.glb\) endpoint\.
 
 `scopeBoxSize` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
-The default scope box preset in the form "halfX;halfY;zMin;zMax" \(DiGi coordinates\) passed to the viewer, or null for the bounds\-fit default\. This value can be null\.
+The default scope box preset in the form "halfX;halfY;zMin;zMax" or "halfX;halfY" \(DiGi coordinates; the latter lets the viewer fit the Z range to the buildings' elevation\) passed to the viewer, or null for the bounds\-fit default\. This value can be null\.
 ### Properties
 
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLBBase64'></a>
@@ -768,7 +768,7 @@ public string? GLTFSceneJson { get; }
 
 ## GLTFSceneViewModel\.ScopeBoxSize Property
 
-Gets the default scope box preset in the form "halfX;halfY;zMin;zMax" \(DiGi coordinates\) passed to the viewer, or null for the bounds\-fit default\.
+Gets the default scope box preset in the form "halfX;halfY;zMin;zMax" or "halfX;halfY" \(DiGi coordinates; the latter lets the viewer fit the Z range to the buildings' elevation\) passed to the viewer, or null for the bounds\-fit default\.
 
 ```csharp
 public string? ScopeBoxSize { get; }
