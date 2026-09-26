@@ -473,6 +473,62 @@ function extractTerrainHoleIndices(positionAttribute, indexArray, indexStart = 0
     return segmentIndices.length > 0 ? segmentIndices : null;
 }
 
+// Horizontal (three.js XZ) distance from center to the world-space centroid of every triangle in
+// the index range - the per-triangle view-range key of a terrain object, which is one object
+// spanning the whole scene and so cannot be culled by its bounding-box center.
+function terrainTriangleDistances(mesh, indexArray, indexStart, indexCount, center) {
+    const position = mesh.geometry.getAttribute('position');
+    const distances = new Float32Array(Math.floor(indexCount / 3));
+    const a = new THREE.Vector3();
+    const b = new THREE.Vector3();
+    const c = new THREE.Vector3();
+    mesh.updateWorldMatrix(true, false);
+    for (let t = 0; t < distances.length; t++) {
+        const i = indexStart + t * 3;
+        a.fromBufferAttribute(position, indexArray[i]).applyMatrix4(mesh.matrixWorld);
+        b.fromBufferAttribute(position, indexArray[i + 1]).applyMatrix4(mesh.matrixWorld);
+        c.fromBufferAttribute(position, indexArray[i + 2]).applyMatrix4(mesh.matrixWorld);
+        distances[t] = Math.hypot((a.x + b.x + c.x) / 3 - center.x, (a.z + b.z + c.z) / 3 - center.z);
+    }
+    return distances;
+}
+
+// Copies the triangles of an index range whose distance is within the range into target at
+// offset; returns the number of indices written.
+function copyTerrainIndicesInRange(indexArray, indexStart, distances, range, target, offset) {
+    let written = 0;
+    for (let t = 0; t < distances.length; t++) {
+        if (distances[t] <= range) {
+            const i = indexStart + t * 3;
+            target[offset + written] = indexArray[i];
+            target[offset + written + 1] = indexArray[i + 1];
+            target[offset + written + 2] = indexArray[i + 2];
+            written += 3;
+        }
+    }
+    return written;
+}
+
+// Drops hole-outline segments whose world-space midpoint lies beyond the view range, so terrain
+// trimmed by the range keeps no floating outlines.
+function filterSegmentsInRange(mesh, segmentIndices, center, range) {
+    if (!segmentIndices) {
+        return null;
+    }
+    const position = mesh.geometry.getAttribute('position');
+    const a = new THREE.Vector3();
+    const b = new THREE.Vector3();
+    const result = [];
+    for (let i = 0; i < segmentIndices.length; i += 2) {
+        a.fromBufferAttribute(position, segmentIndices[i]).applyMatrix4(mesh.matrixWorld);
+        b.fromBufferAttribute(position, segmentIndices[i + 1]).applyMatrix4(mesh.matrixWorld);
+        if (Math.hypot((a.x + b.x) / 2 - center.x, (a.z + b.z) / 2 - center.z) <= range) {
+            result.push(segmentIndices[i], segmentIndices[i + 1]);
+        }
+    }
+    return result.length > 0 ? result : null;
+}
+
 // ---------------------------------------------------------------------------------------------
 // Status terminal: a generic, read-only task log docked to the bottom edge of the viewer
 // container. Any code anywhere in the application reports the current or completed task through
@@ -1226,6 +1282,26 @@ export class GltfViewer {
             } else {
                 object.center = new THREE.Box3().setFromObject(mesh).getCenter(new THREE.Vector3());
             }
+
+            // Terrain is trimmed per triangle rather than hidden as a whole (see applyCulling).
+            if (object.isTerrain) {
+                let indexArray = null;
+                let indexStart = 0;
+                let indexCount = 0;
+                if (this.batched) {
+                    indexArray = this.originalIndices.get(mesh) ?? null;
+                    indexStart = object.indexStart;
+                    indexCount = object.indexCount;
+                } else if (mesh.geometry.index) {
+                    indexArray = mesh.geometry.index.array.slice();
+                    this.originalIndices.set(mesh, indexArray);
+                    indexCount = indexArray.length;
+                }
+                if (indexArray && indexCount > 0) {
+                    object.triangleDistances = terrainTriangleDistances(mesh, indexArray, indexStart, indexCount, this.center);
+                    object.visibleIndexCount = indexCount;
+                }
+            }
         }
 
         this.cullingReady = true;
@@ -1235,7 +1311,9 @@ export class GltfViewer {
     // than the range (horizontal distance — DiGi XY maps to three.js XZ) are hidden. Batched
     // meshes are culled by rebuilding their index buffer from the visible objects' contiguous
     // index ranges; legacy meshes simply toggle visibility. Hidden objects leave the selection
-    // and lose their hover state. Returns whether the hidden set changed.
+    // and lose their hover state. Terrain spans the whole scene, so it is trimmed per triangle
+    // (triangle centroid distance) instead, and hidden only when no triangle is in range.
+    // Returns whether the rendered set changed.
     applyCulling() {
         if (!this.cullingReady) {
             return false;
@@ -1243,10 +1321,27 @@ export class GltfViewer {
 
         const range = this.environmentState.viewRange;
         const hidden = new Set();
+        let terrainChanged = false;
         for (let id = 0; id < this.objects.length; id++) {
             const object = this.objects[id];
             if (object.isTerrain && !this.environmentState.terrainVisible) {
                 hidden.add(id);
+                continue;
+            }
+            if (object.isTerrain && object.triangleDistances) {
+                let visibleIndexCount = 0;
+                for (const distance of object.triangleDistances) {
+                    if (distance <= range) {
+                        visibleIndexCount += 3;
+                    }
+                }
+                if (visibleIndexCount !== object.visibleIndexCount) {
+                    object.visibleIndexCount = visibleIndexCount;
+                    terrainChanged = true;
+                }
+                if (visibleIndexCount === 0) {
+                    hidden.add(id);
+                }
                 continue;
             }
             const center = object.center;
@@ -1255,7 +1350,7 @@ export class GltfViewer {
             }
         }
 
-        let changed = hidden.size !== this.hiddenIds.size;
+        let changed = terrainChanged || hidden.size !== this.hiddenIds.size;
         if (!changed) {
             for (const id of hidden) {
                 if (!this.hiddenIds.has(id)) {
@@ -1282,9 +1377,19 @@ export class GltfViewer {
             }
         } else {
             for (let id = 0; id < this.objects.length; id++) {
-                const mesh = this.objects[id].mesh;
+                const object = this.objects[id];
+                const mesh = object.mesh;
                 if (mesh) {
                     mesh.visible = !hidden.has(id);
+                }
+                const original = mesh ? this.originalIndices.get(mesh) : null;
+                if (object.triangleDistances && original && mesh.visible) {
+                    const filtered = new original.constructor(object.visibleIndexCount);
+                    copyTerrainIndicesInRange(original, 0, object.triangleDistances, range, filtered, 0);
+                    mesh.geometry.setIndex(new THREE.BufferAttribute(filtered, 1));
+                    if (mesh.geometry.boundsTree) {
+                        mesh.geometry.disposeBoundsTree();
+                    }
                 }
             }
         }
@@ -1311,10 +1416,12 @@ export class GltfViewer {
         let count = 0;
         for (const id of ids) {
             if (!this.hiddenIds.has(id)) {
-                count += this.objects[id].indexCount;
+                const object = this.objects[id];
+                count += object.triangleDistances ? object.visibleIndexCount : object.indexCount;
             }
         }
 
+        const range = this.environmentState.viewRange;
         const filtered = new original.constructor(count);
         let offset = 0;
         for (const id of ids) {
@@ -1322,6 +1429,10 @@ export class GltfViewer {
                 continue;
             }
             const object = this.objects[id];
+            if (object.triangleDistances) {
+                offset += copyTerrainIndicesInRange(original, object.indexStart, object.triangleDistances, range, filtered, offset);
+                continue;
+            }
             filtered.set(original.subarray(object.indexStart, object.indexStart + object.indexCount), offset);
             offset += object.indexCount;
         }
@@ -1487,13 +1598,15 @@ export class GltfViewer {
                                 continue;
                             }
                             const object = this.objects[id];
-                            const holeIndices = extractTerrainHoleIndices(
+                            // Outlines come from the untrimmed terrain (the range cut is no hole),
+                            // then lose the segments beyond the view range.
+                            const holeIndices = filterSegmentsInRange(mesh, extractTerrainHoleIndices(
                                 mesh.geometry.getAttribute('position'),
                                 original,
                                 object.indexStart,
                                 object.indexCount,
                                 buildingBoxes
-                            );
+                            ), this.center, this.environmentState.viewRange);
                             if (holeIndices) {
                                 createTerrainHoleOverlay(mesh, holeIndices);
                             }
@@ -1505,15 +1618,15 @@ export class GltfViewer {
                 const isTerrain = (id !== undefined && this.objects[id]?.isTerrain) || mesh.name === 'Terrain';
                 if (isTerrain) {
                     if (id === undefined || !this.hiddenIds.has(id)) {
-                        const indexArray = mesh.geometry.index ? mesh.geometry.index.array : null;
+                        const indexArray = this.originalIndices.get(mesh) ?? (mesh.geometry.index ? mesh.geometry.index.array : null);
                         if (indexArray) {
-                            const holeIndices = extractTerrainHoleIndices(
+                            const holeIndices = filterSegmentsInRange(mesh, extractTerrainHoleIndices(
                                 mesh.geometry.getAttribute('position'),
                                 indexArray,
                                 0,
                                 indexArray.length,
                                 buildingBoxes
-                            );
+                            ), this.center, this.environmentState.viewRange);
                             if (holeIndices) {
                                 createTerrainHoleOverlay(mesh, holeIndices);
                             }
@@ -1750,7 +1863,7 @@ export class GltfViewer {
     }
 
     // View range in meters (default 2000): objects whose center lies further from the scene
-    // center than the range are not rendered. The index rebuild runs immediately; the expensive
+    // center than the range are not rendered; terrain is trimmed per triangle. The index rebuild runs immediately; the expensive
     // BVH/edge-overlay rebuild is debounced so slider drags stay responsive.
     setViewRange(range) {
         const value = Number(range);
