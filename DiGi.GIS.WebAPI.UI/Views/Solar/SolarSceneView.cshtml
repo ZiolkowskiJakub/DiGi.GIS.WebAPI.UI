@@ -61,10 +61,15 @@
         <div id="gltf-left-resizer" class="gltf-resizer" role="separator" aria-label="Resize left panels"></div>
 
         @* Streamed delivery: the viewer fetches the binary glTF payload from data-glb-url. The solve runs
-           behind that request, so the page itself opens at once and the loader covers the calculation. *@
+           behind that request, so the page itself opens at once and the loader covers the calculation.
+           A building above the synchronous limits (413) is offered a background job on data-solar-jobs-url
+           (issue #60); the job id then rides in the page address (?job=), so a reload resumes the polling. *@
         <div id="gltf-viewer-container"
              data-status-terminal="true"
              data-glb-url="@(string.IsNullOrEmpty(Model.GLBUrl) ? string.Empty : Url.Content(Model.GLBUrl))"
+             data-solar-jobs-url="@(string.IsNullOrEmpty(Model.JobsUrl) ? string.Empty : Url.Content(Model.JobsUrl))"
+             data-solar-job-query="@Model.JobQuery"
+             data-solar-job-poll-seconds="@DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobPollSeconds"
              data-building-details-url="@Url.Content("~/building2D/detailsbyreference")"
              data-buildingmodel-details-url="@Url.Content("~/buildingmodel/itembyreference")"
              data-sun-direction-url="@Url.Content("~/solar/sundirection")">
@@ -175,7 +180,8 @@
                 "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
                 "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
                 "three-mesh-bvh": "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.8/build/index.module.js",
-                "gltf-viewer-core": "@FileVersionProvider.AddFileVersionToPath(Context.Request.PathBase, "/js/gltf-viewer-core.js")"
+                "gltf-viewer-core": "@FileVersionProvider.AddFileVersionToPath(Context.Request.PathBase, "/js/gltf-viewer-core.js")",
+                "solar-job": "@FileVersionProvider.AddFileVersionToPath(Context.Request.PathBase, "/js/solar-job.js")"
             }
         }
     </!script>

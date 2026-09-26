@@ -199,6 +199,33 @@ The distance tolerance used by the triangulation\.
 [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
 The nodes in world coordinates, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the building model is null or has no convertible component\.
 
+<a name='DiGi.GIS.WebAPI.UI.Create.SolarJobViewModel(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,System.Guid)'></a>
+
+## Create\.SolarJobViewModel\(this SolarJobQueue, Guid\) Method
+
+Creates the view of a background solar radiation job, read in one step under the lock of its queue so that its state, times and place agree with each other\.
+
+```csharp
+public static DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel? SolarJobViewModel(this DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue? solarJobQueue, System.Guid id);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SolarJobViewModel(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,System.Guid).solarJobQueue'></a>
+
+`solarJobQueue` [SolarJobQueue](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJobQueue')
+
+The queue of jobs\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SolarJobViewModel(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,System.Guid).id'></a>
+
+`id` [System\.Guid](https://learn.microsoft.com/en-us/dotnet/api/system.guid 'System\.Guid')
+
+The unique identifier of the job\.
+
+#### Returns
+[SolarJobViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarJobViewModel')  
+The view of the job, or null when it is unknown or has expired\.
+
 <a name='DiGi.GIS.WebAPI.UI.Create.SurfaceSolarRadiationResults(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.EPW.Classes.EPWFile,DiGi.Solar.Classes.ShadingSolverOptions)'></a>
 
 ## Create\.SurfaceSolarRadiationResults\(this BuildingModel, IEnumerable\<BuildingModel\>, EPWFile, ShadingSolverOptions\) Method
@@ -888,6 +915,35 @@ The keys already appended; updated with every key appended\. This value can be n
 [DiGi\.Core\.IO\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.table 'DiGi\.Core\.IO\.Table\.Classes\.Table')  
 The table the rows were appended to, or [into](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Modify.Append(thisDiGi.Core.IO.Table.Classes.Table,DiGi.Core.IO.Table.Classes.Table,string,System.Collections.Generic.HashSet_string_).into 'DiGi\.GIS\.WebAPI\.UI\.Modify\.Append\(this DiGi\.Core\.IO\.Table\.Classes\.Table, DiGi\.Core\.IO\.Table\.Classes\.Table, string, System\.Collections\.Generic\.HashSet\<string\>\)\.into') when the page holds no rows\.
 
+<a name='DiGi.GIS.WebAPI.UI.Modify.Cancel(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,System.Guid)'></a>
+
+## Modify\.Cancel\(this SolarJobQueue, Guid\) Method
+
+Cancels a background solar radiation job\. A queued job leaves the queue at once and is never calculated\. A running calculation cannot be interrupted \(`ShadingSolver.Solve` takes no cancellation token\), so it runs to its end and its results are discarded\. A finished job is left as it is\.
+
+The job stays readable, in the [Cancelled](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus.Cancelled 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarJobStatus\.Cancelled') state, until it expires.
+
+```csharp
+public static bool Cancel(this DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue? solarJobQueue, System.Guid id);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.Cancel(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,System.Guid).solarJobQueue'></a>
+
+`solarJobQueue` [SolarJobQueue](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJobQueue')
+
+The queue of jobs\.
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.Cancel(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,System.Guid).id'></a>
+
+`id` [System\.Guid](https://learn.microsoft.com/en-us/dotnet/api/system.guid 'System\.Guid')
+
+The unique identifier of the job\.
+
+#### Returns
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')  
+True when the job exists \(whatever its state\); false when it is unknown or has expired\.
+
 <a name='DiGi.GIS.WebAPI.UI.Modify.Clip(thisDiGi.Geometry.Spatial.Classes.Mesh3D,DiGi.Geometry.Planar.Classes.BoundingBox2D,double)'></a>
 
 ## Modify\.Clip\(this Mesh3D, BoundingBox2D, double\) Method
@@ -1021,6 +1077,105 @@ The reduction factor used to determine the target number of points\. A value bet
 `minCount` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The minimum number of points that should remain in the list after reduction\. Defaults to 100\.
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.RemoveExpired(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue)'></a>
+
+## Modify\.RemoveExpired\(this SolarJobQueue\) Method
+
+Removes every background solar radiation job that finished, failed or was cancelled more than [SolarJobResultRetentionMinutes](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobResultRetentionMinutes 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobResultRetentionMinutes') minutes ago, together with its results\. Queued and running jobs never expire\.
+
+Called by every read and write of the queue, so no timer is needed.
+
+```csharp
+public static int RemoveExpired(this DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue? solarJobQueue);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.RemoveExpired(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue).solarJobQueue'></a>
+
+`solarJobQueue` [SolarJobQueue](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJobQueue')
+
+The queue of jobs\.
+
+#### Returns
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')  
+The number of jobs removed\.
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.SolveAsync(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,DiGi.GIS.WebAPI.UI.Classes.SolarJob,System.Threading.SemaphoreSlim,System.Action_string_,System.Threading.CancellationToken)'></a>
+
+## Modify\.SolveAsync\(this SolarJobQueue, SolarJob, SemaphoreSlim, Action\<string\>, CancellationToken\) Method
+
+Runs a queued background solar radiation job behind the solve gate it shares with the synchronous requests: waits for the gate, marks the job [Running](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus.Running 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarJobStatus\.Running'), runs its prepared calculation and marks it [Completed](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus.Completed 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarJobStatus\.Completed') with the results, or [Failed](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus.Failed 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarJobStatus\.Failed') with the error text when the calculation throws or gives no result\.
+
+A job cancelled before it starts is skipped without taking the gate; one cancelled while it runs keeps the [Cancelled](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus.Cancelled 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarJobStatus\.Cancelled') state and its results are discarded. Either way the calculation and the inputs it holds are released, and only a completed job keeps its building and neighbours, for its scene, until it expires. The job stays [Queued](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus.Queued 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarJobStatus\.Queued') while it waits for the gate. Expired jobs are removed after each job, so memory is returned even when nobody reads the queue.
+
+```csharp
+public static System.Threading.Tasks.Task SolveAsync(this DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue? solarJobQueue, DiGi.GIS.WebAPI.UI.Classes.SolarJob? solarJob, System.Threading.SemaphoreSlim? semaphoreSlim, System.Action<string>? log=null, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.SolveAsync(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,DiGi.GIS.WebAPI.UI.Classes.SolarJob,System.Threading.SemaphoreSlim,System.Action_string_,System.Threading.CancellationToken).solarJobQueue'></a>
+
+`solarJobQueue` [SolarJobQueue](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJobQueue')
+
+The queue the job belongs to\.
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.SolveAsync(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,DiGi.GIS.WebAPI.UI.Classes.SolarJob,System.Threading.SemaphoreSlim,System.Action_string_,System.Threading.CancellationToken).solarJob'></a>
+
+`solarJob` [SolarJob](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJob 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJob')
+
+The job\.
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.SolveAsync(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,DiGi.GIS.WebAPI.UI.Classes.SolarJob,System.Threading.SemaphoreSlim,System.Action_string_,System.Threading.CancellationToken).semaphoreSlim'></a>
+
+`semaphoreSlim` [System\.Threading\.SemaphoreSlim](https://learn.microsoft.com/en-us/dotnet/api/system.threading.semaphoreslim 'System\.Threading\.SemaphoreSlim')
+
+The gate shared by every solar radiation solve on this host, registered under [SolarSolveGateKey](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSolveGateKey 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSolveGateKey')\.
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.SolveAsync(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,DiGi.GIS.WebAPI.UI.Classes.SolarJob,System.Threading.SemaphoreSlim,System.Action_string_,System.Threading.CancellationToken).log'></a>
+
+`log` [System\.Action&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.action-1 'System\.Action\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.action-1 'System\.Action\`1')
+
+Receives one line per job that ran, or null for none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.SolveAsync(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,DiGi.GIS.WebAPI.UI.Classes.SolarJob,System.Threading.SemaphoreSlim,System.Action_string_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that stops the wait for the gate; the calculation itself cannot be interrupted\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task 'System\.Threading\.Tasks\.Task')  
+A task that completes when the job has run or was skipped\.
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.TryEnqueue(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,DiGi.GIS.WebAPI.UI.Classes.SolarJob)'></a>
+
+## Modify\.TryEnqueue\(this SolarJobQueue, SolarJob\) Method
+
+Queues a background solar radiation job for its consumer, stamping its creation time and queue order, unless [SolarJobQueueLengthMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobQueueLengthMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobQueueLengthMax') jobs are already waiting\.
+
+The queue length counts the queued jobs, not the channel: a cancelled job has left the count although its consumer has not reached it yet (DiGi.GIS.WebAPI.UI#60).
+
+```csharp
+public static bool TryEnqueue(this DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue? solarJobQueue, DiGi.GIS.WebAPI.UI.Classes.SolarJob? solarJob);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.TryEnqueue(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,DiGi.GIS.WebAPI.UI.Classes.SolarJob).solarJobQueue'></a>
+
+`solarJobQueue` [SolarJobQueue](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJobQueue')
+
+The queue of jobs\.
+
+<a name='DiGi.GIS.WebAPI.UI.Modify.TryEnqueue(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,DiGi.GIS.WebAPI.UI.Classes.SolarJob).solarJob'></a>
+
+`solarJob` [SolarJob](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJob 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJob')
+
+The job, in the [Queued](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus.Queued 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarJobStatus\.Queued') state and not queued before\.
+
+#### Returns
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')  
+True when the job was queued; false when the queue is full or the arguments are invalid\.
 
 <a name='DiGi.GIS.WebAPI.UI.Query'></a>
 
@@ -1980,6 +2135,56 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The response body, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there is none\.
 
+<a name='DiGi.GIS.WebAPI.UI.Query.QueuedCount(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue)'></a>
+
+## Query\.QueuedCount\(this SolarJobQueue\) Method
+
+Gets the number of background solar radiation jobs waiting in the queue: queued and not cancelled, not counting the one running\. This is the count [SolarJobQueueLengthMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobQueueLengthMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobQueueLengthMax') limits\.
+
+```csharp
+public static int QueuedCount(this DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue? solarJobQueue);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.QueuedCount(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue).solarJobQueue'></a>
+
+`solarJobQueue` [SolarJobQueue](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJobQueue')
+
+The queue of jobs\.
+
+#### Returns
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')  
+The number of waiting jobs; 0 for a null queue\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.QueuePosition(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,System.Guid)'></a>
+
+## Query\.QueuePosition\(this SolarJobQueue, Guid\) Method
+
+Gets the place of a background solar radiation job in the queue: 1 for the next job to run, 2 for the one after it, and so on; 0 for the running job\.
+
+The job at place 1 may still be waiting for the solve gate, held by a synchronous request.
+
+```csharp
+public static System.Nullable<int> QueuePosition(this DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue? solarJobQueue, System.Guid id);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.QueuePosition(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,System.Guid).solarJobQueue'></a>
+
+`solarJobQueue` [SolarJobQueue](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJobQueue')
+
+The queue of jobs\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.QueuePosition(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,System.Guid).id'></a>
+
+`id` [System\.Guid](https://learn.microsoft.com/en-us/dotnet/api/system.guid 'System\.Guid')
+
+The unique identifier of the job\.
+
+#### Returns
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')  
+The place of the job, or null when it is finished, cancelled, unknown or expired\.
+
 <a name='DiGi.GIS.WebAPI.UI.Query.RelayUpstream(DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse)'></a>
 
 ## Query\.RelayUpstream\(WebAPIResponse\) Method
@@ -2140,6 +2345,35 @@ The annual irradiation, in kWh/m² per year\.
 #### Returns
 [DiGi\.Core\.Classes\.Color](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.color 'DiGi\.Core\.Classes\.Color')  
 The opaque colour of the irradiation\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.SolarJob(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,System.Guid)'></a>
+
+## Query\.SolarJob\(this SolarJobQueue, Guid\) Method
+
+Gets a background solar radiation job by its identifier, after removing the expired jobs\.
+
+The job's state keeps changing while its consumer runs it; read a consistent view of it through [SolarJobViewModel\(this SolarJobQueue, Guid\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.SolarJobViewModel(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,System.Guid) 'DiGi\.GIS\.WebAPI\.UI\.Create\.SolarJobViewModel\(this DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJobQueue, System\.Guid\)'). Its building, neighbours and results do not change once it has completed.
+
+```csharp
+public static DiGi.GIS.WebAPI.UI.Classes.SolarJob? SolarJob(this DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue? solarJobQueue, System.Guid id);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.SolarJob(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,System.Guid).solarJobQueue'></a>
+
+`solarJobQueue` [SolarJobQueue](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJobQueue')
+
+The queue of jobs\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.SolarJob(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,System.Guid).id'></a>
+
+`id` [System\.Guid](https://learn.microsoft.com/en-us/dotnet/api/system.guid 'System\.Guid')
+
+The unique identifier of the job\.
+
+#### Returns
+[SolarJob](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJob 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJob')  
+The job, or null when it is unknown or has expired\.
 
 <a name='DiGi.GIS.WebAPI.UI.Query.SolarReceiverNormals(thisDiGi.Analytical.Building.Classes.BuildingModel)'></a>
 

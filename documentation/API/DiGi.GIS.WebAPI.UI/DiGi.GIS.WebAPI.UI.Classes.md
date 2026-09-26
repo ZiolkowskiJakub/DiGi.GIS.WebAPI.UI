@@ -336,6 +336,374 @@ public System.Nullable<short> Year { get; set; }
 #### Property Value
 [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob'></a>
+
+## SolarJob Class
+
+A background solar radiation job: the request it answers, the calculation prepared for it, its state and, once calculated, its results\.
+
+Held in memory by a [SolarJobQueue](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJobQueue') and never persisted. Its state changes only through `Modify.TryEnqueue`, `Modify.Cancel` and `Modify.SolveAsync`, under the lock of the queue; read it through `Query.SolarJob` or `Create.SolarJobViewModel`.
+
+```csharp
+public class SolarJob
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → SolarJob
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.List_DiGi.Analytical.Building.Classes.BuildingModel_,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__)'></a>
+
+## SolarJob\(Guid, long, Nullable\<int\>, double, int, BuildingModel, List\<BuildingModel\>, Func\<List\<SurfaceSolarRadiationResult\>\>\) Constructor
+
+Initializes a new instance of the [SolarJob](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJob 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJob') class in the [Queued](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus.Queued 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarJobStatus\.Queued') state\.
+
+```csharp
+public SolarJob(System.Guid id, long buildingModelId, System.Nullable<int> countyId, double radius, int receiverCount, DiGi.Analytical.Building.Classes.BuildingModel? buildingModel, System.Collections.Generic.List<DiGi.Analytical.Building.Classes.BuildingModel>? buildingModels_Surrounding, System.Func<System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult>?>? calculation);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.List_DiGi.Analytical.Building.Classes.BuildingModel_,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__).id'></a>
+
+`id` [System\.Guid](https://learn.microsoft.com/en-us/dotnet/api/system.guid 'System\.Guid')
+
+The unique identifier of the job\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.List_DiGi.Analytical.Building.Classes.BuildingModel_,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__).buildingModelId'></a>
+
+`buildingModelId` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The unique identifier of the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.List_DiGi.Analytical.Building.Classes.BuildingModel_,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional unique identifier of the county associated with the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.List_DiGi.Analytical.Building.Classes.BuildingModel_,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__).radius'></a>
+
+`radius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The neighbour radius in metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.List_DiGi.Analytical.Building.Classes.BuildingModel_,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__).receiverCount'></a>
+
+`receiverCount` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of receiving surfaces \(external walls and roofs\) of the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.List_DiGi.Analytical.Building.Classes.BuildingModel_,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__).buildingModel'></a>
+
+`buildingModel` [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')
+
+The building, kept to build the coloured scene from the results\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.List_DiGi.Analytical.Building.Classes.BuildingModel_,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__).buildingModels_Surrounding'></a>
+
+`buildingModels_Surrounding` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+The neighbours, kept to build the coloured scene from the results\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.List_DiGi.Analytical.Building.Classes.BuildingModel_,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__).calculation'></a>
+
+`calculation` [System\.Func&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.func-1 'System\.Func\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.func-1 'System\.Func\`1')
+
+The calculation, prepared with every input it needs; it is released once it has run\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.BuildingModel'></a>
+
+## SolarJob\.BuildingModel Property
+
+Gets the building, kept to build the coloured scene from the results; null once the job failed or was cancelled\.
+
+```csharp
+public DiGi.Analytical.Building.Classes.BuildingModel? BuildingModel { get; internal set; }
+```
+
+#### Property Value
+[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.BuildingModelId'></a>
+
+## SolarJob\.BuildingModelId Property
+
+Gets the unique identifier of the building\.
+
+```csharp
+public long BuildingModelId { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.BuildingModels_Surrounding'></a>
+
+## SolarJob\.BuildingModels\_Surrounding Property
+
+Gets the neighbours, kept to build the coloured scene from the results; null once the job failed or was cancelled\.
+
+```csharp
+public System.Collections.Generic.List<DiGi.Analytical.Building.Classes.BuildingModel>? BuildingModels_Surrounding { get; internal set; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.Calculation'></a>
+
+## SolarJob\.Calculation Property
+
+Gets the prepared calculation, or null once it has run or the job was cancelled\.
+
+```csharp
+public System.Func<System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult>?>? Calculation { get; internal set; }
+```
+
+#### Property Value
+[System\.Func&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.func-1 'System\.Func\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.func-1 'System\.Func\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.CountyId'></a>
+
+## SolarJob\.CountyId Property
+
+Gets the optional unique identifier of the county associated with the building\.
+
+```csharp
+public System.Nullable<int> CountyId { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.CreatedAt'></a>
+
+## SolarJob\.CreatedAt Property
+
+Gets the moment the job was queued\.
+
+```csharp
+public System.DateTimeOffset CreatedAt { get; internal set; }
+```
+
+#### Property Value
+[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.Error'></a>
+
+## SolarJob\.Error Property
+
+Gets the error text of a failed job\.
+
+```csharp
+public string? Error { get; internal set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.FinishedAt'></a>
+
+## SolarJob\.FinishedAt Property
+
+Gets the moment the job completed, failed or was cancelled\.
+
+```csharp
+public System.Nullable<System.DateTimeOffset> FinishedAt { get; internal set; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.Id'></a>
+
+## SolarJob\.Id Property
+
+Gets the unique identifier of the job\.
+
+```csharp
+public System.Guid Id { get; }
+```
+
+#### Property Value
+[System\.Guid](https://learn.microsoft.com/en-us/dotnet/api/system.guid 'System\.Guid')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.Index'></a>
+
+## SolarJob\.Index Property
+
+Gets the order in which the job was queued, from 1\.
+
+```csharp
+public long Index { get; internal set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.Radius'></a>
+
+## SolarJob\.Radius Property
+
+Gets the neighbour radius in metres\.
+
+```csharp
+public double Radius { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.ReceiverCount'></a>
+
+## SolarJob\.ReceiverCount Property
+
+Gets the number of receiving surfaces \(external walls and roofs\) of the building\.
+
+```csharp
+public int ReceiverCount { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.StartedAt'></a>
+
+## SolarJob\.StartedAt Property
+
+Gets the moment the calculation started\.
+
+```csharp
+public System.Nullable<System.DateTimeOffset> StartedAt { get; internal set; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.Status'></a>
+
+## SolarJob\.Status Property
+
+Gets the state of the job\.
+
+```csharp
+public DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus Status { get; internal set; }
+```
+
+#### Property Value
+[SolarJobStatus](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarJobStatus')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SurfaceSolarRadiationResults'></a>
+
+## SolarJob\.SurfaceSolarRadiationResults Property
+
+Gets the results of a completed job\.
+
+```csharp
+public System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult>? SurfaceSolarRadiationResults { get; internal set; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue'></a>
+
+## SolarJobQueue Class
+
+The background solar radiation jobs of this host: every job by its identifier until it expires, and the channel through which queued jobs reach their single consumer \(`SolarJobHostedService`\)\. Registered as a singleton\.
+
+The channel is unbounded and only carries jobs to the consumer: the queue length ([SolarJobQueueLengthMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobQueueLengthMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobQueueLengthMax')) is counted over the queued jobs under [Lock](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue.Lock 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJobQueue\.Lock'), so that a cancelled job frees its place at once instead of holding a channel slot until the consumer reaches it (DiGi.GIS.WebAPI.UI#60).
+
+```csharp
+public class SolarJobQueue
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → SolarJobQueue
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue.SolarJobQueue(System.TimeProvider)'></a>
+
+## SolarJobQueue\(TimeProvider\) Constructor
+
+Initializes a new instance of the [SolarJobQueue](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJobQueue') class\.
+
+```csharp
+public SolarJobQueue(System.TimeProvider timeProvider);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue.SolarJobQueue(System.TimeProvider).timeProvider'></a>
+
+`timeProvider` [System\.TimeProvider](https://learn.microsoft.com/en-us/dotnet/api/system.timeprovider 'System\.TimeProvider')
+
+The clock that stamps the jobs and expires them\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue.Channel'></a>
+
+## SolarJobQueue\.Channel Property
+
+Gets the channel through which queued jobs reach their consumer\.
+
+```csharp
+internal System.Threading.Channels.Channel<DiGi.GIS.WebAPI.UI.Classes.SolarJob> Channel { internal get; }
+```
+
+#### Property Value
+[System\.Threading\.Channels\.Channel&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.channels.channel-1 'System\.Threading\.Channels\.Channel\`1')[SolarJob](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJob 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJob')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.channels.channel-1 'System\.Threading\.Channels\.Channel\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue.Count'></a>
+
+## SolarJobQueue\.Count Property
+
+Gets the number of jobs queued so far, the source of [Index](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJob.Index 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJob\.Index')\.
+
+```csharp
+internal long Count { internal get; internal set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue.Lock'></a>
+
+## SolarJobQueue\.Lock Property
+
+Gets the lock guarding [SolarJobs](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue.SolarJobs 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJobQueue\.SolarJobs'), [Count](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue.Count 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJobQueue\.Count') and the state of every job\.
+
+```csharp
+internal System.Threading.Lock Lock { internal get; }
+```
+
+#### Property Value
+[System\.Threading\.Lock](https://learn.microsoft.com/en-us/dotnet/api/system.threading.lock 'System\.Threading\.Lock')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue.SolarJobs'></a>
+
+## SolarJobQueue\.SolarJobs Property
+
+Gets every job that has not expired, by its identifier\.
+
+```csharp
+internal System.Collections.Generic.Dictionary<System.Guid,DiGi.GIS.WebAPI.UI.Classes.SolarJob> SolarJobs { internal get; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.Dictionary&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[System\.Guid](https://learn.microsoft.com/en-us/dotnet/api/system.guid 'System\.Guid')[,](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[SolarJob](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJob 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJob')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue.TimeProvider'></a>
+
+## SolarJobQueue\.TimeProvider Property
+
+Gets the clock that stamps the jobs and expires them\.
+
+```csharp
+public System.TimeProvider TimeProvider { get; }
+```
+
+#### Property Value
+[System\.TimeProvider](https://learn.microsoft.com/en-us/dotnet/api/system.timeprovider 'System\.TimeProvider')
+
 <a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult'></a>
 
 ## SurfaceSolarRadiationResult Class

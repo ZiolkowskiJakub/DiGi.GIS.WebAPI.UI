@@ -8,4 +8,6 @@
 | [DiGi\.GIS\.WebAPI\.UI\.Classes](DiGi.GIS.WebAPI.UI.Classes.md 'DiGi\.GIS\.WebAPI\.UI\.Classes') | |
 | [DiGi\.GIS\.WebAPI\.UI\.Constants](DiGi.GIS.WebAPI.UI.Constants.md 'DiGi\.GIS\.WebAPI\.UI\.Constants') | |
 | [DiGi\.GIS\.WebAPI\.UI\.Controllers](DiGi.GIS.WebAPI.UI.Controllers.md 'DiGi\.GIS\.WebAPI\.UI\.Controllers') | |
+| [DiGi\.GIS\.WebAPI\.UI\.Enums](DiGi.GIS.WebAPI.UI.Enums.md 'DiGi\.GIS\.WebAPI\.UI\.Enums') | |
+| [DiGi\.GIS\.WebAPI\.UI\.HostedServices](DiGi.GIS.WebAPI.UI.HostedServices.md 'DiGi\.GIS\.WebAPI\.UI\.HostedServices') | |
 | [DiGi\.GIS\.WebAPI\.UI\.ViewModels](DiGi.GIS.WebAPI.UI.ViewModels.md 'DiGi\.GIS\.WebAPI\.UI\.ViewModels') | |

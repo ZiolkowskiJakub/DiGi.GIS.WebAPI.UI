@@ -955,6 +955,145 @@ public short Year { get; }
 #### Property Value
 [System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')
 
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel'></a>
+
+## SolarJobViewModel Class
+
+Represents the state of a background solar radiation job as the `solar/jobs` routes answer it and the solar radiation viewer polls it\.
+
+```csharp
+public class SolarJobViewModel
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → SolarJobViewModel
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel.SolarJobViewModel(string,string,System.Nullable_int_,double,int,string)'></a>
+
+## SolarJobViewModel\(string, string, Nullable\<int\>, double, int, string\) Constructor
+
+Initializes a new instance of the [SolarJobViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarJobViewModel') class\.
+
+```csharp
+public SolarJobViewModel(string jobId, string status, System.Nullable<int> queuePosition, double elapsedSeconds, int receiverCount, string? error);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel.SolarJobViewModel(string,string,System.Nullable_int_,double,int,string).jobId'></a>
+
+`jobId` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The unique identifier of the job\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel.SolarJobViewModel(string,string,System.Nullable_int_,double,int,string).status'></a>
+
+`status` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The state of the job, the name of an [SolarJobStatus](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarJobStatus') member\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel.SolarJobViewModel(string,string,System.Nullable_int_,double,int,string).queuePosition'></a>
+
+`queuePosition` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The place of the job in the queue \(0 while it runs\), or null once it has finished\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel.SolarJobViewModel(string,string,System.Nullable_int_,double,int,string).elapsedSeconds'></a>
+
+`elapsedSeconds` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The seconds spent in the current state: waiting while queued, calculating while running, and the calculation time once finished\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel.SolarJobViewModel(string,string,System.Nullable_int_,double,int,string).receiverCount'></a>
+
+`receiverCount` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of receiving surfaces \(external walls and roofs\) the job calculates\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel.SolarJobViewModel(string,string,System.Nullable_int_,double,int,string).error'></a>
+
+`error` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The error text of a failed job\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel.ElapsedSeconds'></a>
+
+## SolarJobViewModel\.ElapsedSeconds Property
+
+Gets the seconds spent in the current state: waiting while queued, calculating while running, and the calculation time once finished\.
+
+```csharp
+public double ElapsedSeconds { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel.Error'></a>
+
+## SolarJobViewModel\.Error Property
+
+Gets the error text of a failed job\.
+
+```csharp
+public string? Error { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel.JobId'></a>
+
+## SolarJobViewModel\.JobId Property
+
+Gets the unique identifier of the job\.
+
+```csharp
+public string JobId { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel.QueuePosition'></a>
+
+## SolarJobViewModel\.QueuePosition Property
+
+Gets the place of the job in the queue \(0 while it runs\), or null once it has finished\.
+
+```csharp
+public System.Nullable<int> QueuePosition { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel.ReceiverCount'></a>
+
+## SolarJobViewModel\.ReceiverCount Property
+
+Gets the number of receiving surfaces \(external walls and roofs\) the job calculates\.
+
+```csharp
+public int ReceiverCount { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel.Status'></a>
+
+## SolarJobViewModel\.Status Property
+
+Gets the state of the job, the name of an [SolarJobStatus](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarJobStatus') member; a name rather than the number the JSON serializer would write for the enum\.
+
+```csharp
+public string Status { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel'></a>
 
 ## SolarSceneViewModel Class
@@ -968,42 +1107,54 @@ public class SolarSceneViewModel
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → SolarSceneViewModel
 ### Constructors
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,double,string,string)'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,string,string,double,string,string)'></a>
 
-## SolarSceneViewModel\(string, string, double, string, string\) Constructor
+## SolarSceneViewModel\(string, string, string, string, double, string, string\) Constructor
 
 Initializes a new instance of the [SolarSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSceneViewModel') class\.
 
 ```csharp
-public SolarSceneViewModel(string? title, string? gLBUrl, double radius, string? stationName, string? stationUrl);
+public SolarSceneViewModel(string? title, string? gLBUrl, string? jobsUrl, string? jobQuery, double radius, string? stationName, string? stationUrl);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,double,string,string).title'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,string,string,double,string,string).title'></a>
 
 `title` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The title displayed above the viewer\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,double,string,string).gLBUrl'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,string,string,double,string,string).gLBUrl'></a>
 
 `gLBUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The application relative URL of the binary glTF \(\.glb\) endpoint\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,double,string,string).radius'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,string,string,double,string,string).jobsUrl'></a>
+
+`jobsUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The application relative URL of the background job routes \(`solar/jobs`\), offered when the scene request is refused as too large\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,string,string,double,string,string).jobQuery'></a>
+
+`jobQuery` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The query string \(`id`, `countyid`, `radius`\) a background job is posted with\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,string,string,double,string,string).radius'></a>
 
 `radius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 The neighbour radius in metres, measured from the edge of the footprint\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,double,string,string).stationName'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,string,string,double,string,string).stationName'></a>
 
 `stationName` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The name of the EPW weather station, or null when the file does not state it\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,double,string,string).stationUrl'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,string,string,double,string,string).stationUrl'></a>
 
 `stationUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
@@ -1018,6 +1169,32 @@ Gets the application relative URL of the binary glTF \(\.glb\) endpoint\.
 
 ```csharp
 public string? GLBUrl { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.JobQuery'></a>
+
+## SolarSceneViewModel\.JobQuery Property
+
+Gets the query string \(`id`, `countyid`, `radius`\) a background job is posted with\.
+
+```csharp
+public string? JobQuery { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.JobsUrl'></a>
+
+## SolarSceneViewModel\.JobsUrl Property
+
+Gets the application relative URL of the background job routes \(`solar/jobs`\), offered when the scene request is refused as too large\.
+
+```csharp
+public string? JobsUrl { get; }
 ```
 
 #### Property Value

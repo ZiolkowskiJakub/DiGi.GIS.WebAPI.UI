@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Extensions.Logging;
+using System;
 using System.Linq;
 using System.Threading;
 
@@ -47,8 +48,14 @@ webApplicationBuilder.Services.AddHttpClient();
 
 // One gate for every solar radiation solve on this host: a solve already uses every core, so solves
 // queue instead of running side by side (ZiolkowskiJakub/DiGi.Solar#7). Keyed, so that nothing else
-// resolving a SemaphoreSlim receives it and the background jobs of issue #60 can share it.
+// resolving a SemaphoreSlim receives it; the background jobs (issue #60) share it with the requests.
 webApplicationBuilder.Services.AddKeyedSingleton(DiGi.GIS.WebAPI.UI.Constants.Default.SolarSolveGateKey, new SemaphoreSlim(DiGi.GIS.WebAPI.UI.Constants.Default.SolarConcurrentSolveCount, DiGi.GIS.WebAPI.UI.Constants.Default.SolarConcurrentSolveCount));
+
+// Background solar radiation jobs for buildings above the synchronous limits (issue #60): the in-memory
+// queue, read by the solar routes, and its single consumer. Jobs are lost when the application restarts.
+webApplicationBuilder.Services.AddSingleton(TimeProvider.System);
+webApplicationBuilder.Services.AddSingleton<DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue>();
+webApplicationBuilder.Services.AddHostedService<DiGi.GIS.WebAPI.UI.HostedServices.SolarJobHostedService>();
 
 // Compress streamed binary glTF payloads (their JSON chunk with object properties compresses very well).
 webApplicationBuilder.Services.AddResponseCompression(responseCompressionOptions =>

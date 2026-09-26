@@ -12,6 +12,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<!-- The facts shorten the solve gate wait of SolarController (SolveGateWait) and read the job table of SolarJobQueue. -->
+		<InternalsVisibleTo Include="DiGi.GIS.WebAPI.UI.xUnit" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<!-- MathNet.Numerics is a NuGet dependency of DiGi.Math, reached through the DiGi.Geometry HintPath below.
 		     Matrix.GetInversed (transform inversion, polynomial fitting) throws FileNotFoundException without it. -->
 		<PackageReference Include="MathNet.Numerics" Version="5.0.0" />

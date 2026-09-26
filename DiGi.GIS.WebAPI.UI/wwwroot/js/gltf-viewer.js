@@ -11,20 +11,21 @@ const DEFAULT_PROPERTIES_HINT = 'Click an object or drag a selection rectangle i
 // Fetches the streamed glb like fetchGlbBytes, but keeps the server's refusal: a 4xx/5xx answer
 // (413 above a calculation limit, 422 for a model that cannot be calculated) carries a message the
 // user needs, which fetchGlbBytes - engine code shared with DiGi.GLTF.WebAPI - collapses into null.
-// A 204 or a network failure still answers no message, i.e. "nothing found".
+// A 204 or a network failure still answers no message, i.e. "nothing found". The status lets the
+// solar radiation viewer offer a background calculation for a 413.
 async function fetchGlb(url) {
     try {
         const response = await fetch(url);
         if (response.status === 204) {
-            return { buffer: null, message: null };
+            return { buffer: null, message: null, status: response.status };
         }
         if (response.ok) {
             const buffer = await response.arrayBuffer();
-            return { buffer: buffer.byteLength > 0 ? buffer : null, message: null };
+            return { buffer: buffer.byteLength > 0 ? buffer : null, message: null, status: response.status };
         }
-        return { buffer: null, message: await refusalMessage(response) };
+        return { buffer: null, message: await refusalMessage(response), status: response.status };
     } catch {
-        return { buffer: null, message: null };
+        return { buffer: null, message: null, status: 0 };
     }
 }
 
@@ -440,84 +441,180 @@ if (container) {
         const loadingTimer = setInterval(() => updateLastStatus(`Loading... (${formatElapsed(loadingStart)})`), 200);
         const stopLoadingTimer = () => { clearInterval(loadingTimer); };
 
+        const hideLoader = () => {
+            if (loader) {
+                loader.style.display = 'none';
+            }
+        };
+
+        // The Properties panel as the page rendered it, restored once a background job's scene arrives.
+        const propertiesPanel = document.getElementById('gltf-properties');
+        const propertiesDefault = propertiesPanel ? [...propertiesPanel.childNodes].map((node) => node.cloneNode(true)) : [];
+
+        // Replaces the Properties panel with a message, followed by any action buttons on a row of their own.
+        const showMessage = (message, buttons = []) => {
+            if (propertiesPanel) {
+                const span = document.createElement('span');
+                span.className = 'gltf-muted';
+                span.textContent = message;
+                if (buttons.length === 0) {
+                    propertiesPanel.replaceChildren(span);
+                    return;
+                }
+                const row = document.createElement('div');
+                row.style.marginTop = '8px';
+                row.append(...buttons);
+                propertiesPanel.replaceChildren(span, row);
+            }
+        };
+
+        // Cards are folded by default; the background job's offer and progress live in the Properties card,
+        // so it is unfolded through its own toggle (which keeps aria-expanded in step).
+        const expandProperties = () => {
+            const card = document.getElementById('gltf-properties')?.closest('.gltf-card');
+            if (card && card.classList.contains('gltf-card-collapsed')) {
+                card.querySelector('.gltf-card-toggle')?.click();
+            }
+        };
+
+        const createButton = (text, onClick) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'gis-button';
+            button.textContent = text;
+            button.addEventListener('click', () => {
+                button.disabled = true;
+                onClick();
+            });
+            return button;
+        };
+
         try {
             const sceneData = readSceneData('gltf-scene-data');
+
+            const showScene = (glbBuffer) => {
+                const viewer = new GltfViewer(container, sceneData, glbBuffer);
+
+                // Exposed on window for debugging and UI automation.
+                window.gltfViewer = viewer;
+
+                container.addEventListener('gltf-ready', (event) => {
+                    hideLoader();
+                    stopLoadingTimer();
+                    reportStatus(`Loaded in ${formatElapsed(loadingStart)}`);
+
+                    initLightingPanel(viewer);
+                    initSunClock(viewer, event.detail.referencePoint);
+                    fillSceneInfo(event.detail.referencePoint, event.detail.objectCount);
+
+                    // The page shell does not know the object count upfront in streamed mode.
+                    const title = document.getElementById('gltf-title');
+                    if (title && event.detail.objectCount > 0) {
+                        title.textContent = `${title.textContent} — ${event.detail.objectCount} objects`;
+                    }
+                });
+
+                container.addEventListener('gltf-error', (event) => {
+                    hideLoader();
+                    stopLoadingTimer();
+                    const panel = document.getElementById('gltf-properties');
+                    if (panel) {
+                        panel.innerHTML = '<span class="gltf-muted" style="color: var(--danger-color);">Error loading 3D scene data. The requested area may be too large to fit in browser memory.</span>';
+                    }
+                    reportStatus(`Error: ${event.detail?.error?.message || 'Failed to load 3D scene data.'}`);
+                });
+
+                container.addEventListener('gltf-selectionchanged', (event) => {
+                    fillProperties(viewer, event.detail.references);
+
+                    const references = (event.detail.references ?? []).filter((reference) => reference);
+                    reportStatus(references.length === 0
+                        ? 'Selection cleared'
+                        : `Selected (${references.length}): ${references.join(', ')}`);
+                });
+            };
+
+            // Background solar radiation jobs (issue #60): only the solar radiation viewer carries
+            // data-solar-jobs-url. A job posts (jobId null) or resumes, reports its state in the
+            // Properties panel and the status terminal, and hands its scene to showScene.
+            const solarJobsUrl = container.dataset.solarJobsUrl;
+            const runJob = solarJobsUrl ? async (jobId) => {
+                stopLoadingTimer();
+                expandProperties();
+                if (loader) {
+                    loader.style.display = '';
+                    const loaderText = loader.querySelector('.gis-loader-text');
+                    if (loaderText) {
+                        loaderText.textContent = 'Calculating solar radiation in the background…';
+                    }
+                }
+
+                const { runSolarJob, cancelSolarJob } = await import('solar-job');
+
+                let currentJobId = jobId;
+                const cancelButton = createButton('Cancel calculation', () => cancelSolarJob(solarJobsUrl, currentJobId));
+                let reported = false;
+                const result = await runSolarJob({
+                    jobsUrl: solarJobsUrl,
+                    query: container.dataset.solarJobQuery ?? '',
+                    jobId,
+                    pollSeconds: container.dataset.solarJobPollSeconds,
+                    refusalMessage,
+                    onStatus: (text, id, completed) => {
+                        currentJobId = id;
+                        showMessage(text, completed || cancelButton.disabled ? [] : [cancelButton]);
+                        if (reported) {
+                            updateLastStatus(text);
+                        } else {
+                            reportStatus(text);
+                            reported = true;
+                        }
+                    },
+                });
+
+                if (result.buffer) {
+                    propertiesPanel?.replaceChildren(...propertiesDefault);
+                    showScene(result.buffer);
+                    return;
+                }
+
+                hideLoader();
+                reportStatus(result.message);
+                showMessage(result.message, result.retry ? [createButton('Calculate in background', () => runJob(null))] : []);
+            } : null;
+
+            const jobId = runJob ? new URLSearchParams(window.location.search).get('job') : null;
+            if (jobId) {
+                await runJob(jobId);
+                return;
+            }
 
             // Streamed delivery is preferred: the binary glTF payload is fetched from the glb endpoint
             // (raw binary, browser-cacheable). The embedded base64 payload is the fallback mode; its
             // decode is asynchronous so multi-megabyte scenes never block the UI thread.
             const glbUrl = container.dataset.glbUrl;
-            const fetched = glbUrl ? await fetchGlb(glbUrl) : { buffer: await readGlbBytes('gltf-glb-base64'), message: null };
-            const glbBuffer = fetched.buffer;
+            const fetched = glbUrl ? await fetchGlb(glbUrl) : { buffer: await readGlbBytes('gltf-glb-base64'), message: null, status: 0 };
 
-            if (!glbBuffer) {
-                if (loader) {
-                    loader.style.display = 'none';
-                }
-
-                stopLoadingTimer();
-                const message = fetched.message || 'No objects were found for this request.';
-                const panel = document.getElementById('gltf-properties');
-                if (panel) {
-                    const span = document.createElement('span');
-                    span.className = 'gltf-muted';
-                    span.textContent = message;
-                    panel.replaceChildren(span);
-                }
-                reportStatus(message);
+            if (fetched.buffer) {
+                showScene(fetched.buffer);
                 return;
             }
 
-            const viewer = new GltfViewer(container, sceneData, glbBuffer);
+            hideLoader();
+            stopLoadingTimer();
+            const message = fetched.message || 'No objects were found for this request.';
+            reportStatus(message);
 
-            // Exposed on window for debugging and UI automation.
-            window.gltfViewer = viewer;
-
-            container.addEventListener('gltf-ready', (event) => {
-                if (loader) {
-                    loader.style.display = 'none';
-                }
-
-                stopLoadingTimer();
-                reportStatus(`Loaded in ${formatElapsed(loadingStart)}`);
-
-                initLightingPanel(viewer);
-                initSunClock(viewer, event.detail.referencePoint);
-                fillSceneInfo(event.detail.referencePoint, event.detail.objectCount);
-
-                // The page shell does not know the object count upfront in streamed mode.
-                const title = document.getElementById('gltf-title');
-                if (title && event.detail.objectCount > 0) {
-                    title.textContent = `${title.textContent} — ${event.detail.objectCount} objects`;
-                }
-            });
-
-            container.addEventListener('gltf-error', (event) => {
-                if (loader) {
-                    loader.style.display = 'none';
-                }
-
-                stopLoadingTimer();
-                const panel = document.getElementById('gltf-properties');
-                if (panel) {
-                    panel.innerHTML = '<span class="gltf-muted" style="color: var(--danger-color);">Error loading 3D scene data. The requested area may be too large to fit in browser memory.</span>';
-                }
-                reportStatus(`Error: ${event.detail?.error?.message || 'Failed to load 3D scene data.'}`);
-            });
-
-            container.addEventListener('gltf-selectionchanged', (event) => {
-                fillProperties(viewer, event.detail.references);
-
-                const references = (event.detail.references ?? []).filter((reference) => reference);
-                reportStatus(references.length === 0
-                    ? 'Selection cleared'
-                    : `Selected (${references.length}): ${references.join(', ')}`);
-            });
-        } catch {
-            if (loader) {
-                loader.style.display = 'none';
+            // Above the synchronous limits (413), or while the solve gate is busy (503, typically with a
+            // background job running), the solar radiation viewer offers a background calculation.
+            if (runJob && (fetched.status === 413 || fetched.status === 503)) {
+                showMessage(message, [createButton('Calculate in background', () => runJob(null))]);
+                expandProperties();
+            } else {
+                showMessage(message);
             }
-
+        } catch {
+            hideLoader();
             stopLoadingTimer();
             const panel = document.getElementById('gltf-properties');
             if (panel) {

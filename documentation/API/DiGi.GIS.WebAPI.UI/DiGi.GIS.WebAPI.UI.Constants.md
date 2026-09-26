@@ -559,7 +559,7 @@ public const double SolarAngleTolerance = 0.0349066;
 
 The ceiling on the number of shading\-only triangles \(neighbours and the analysed building's own non\-receiving components\) one synchronous solar radiation request solves against; above it the request is refused with a 413\.
 
-A 50 m radius in central Warsaw gave 8 600–10 700 caster triangles (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537), which the ceiling still admits at the default radius. On this host, a 4-core Intel N150 (DiGi.GIS.WebAPI.UI#59), casters cost more than on the 16-thread machine #7 measured: 25 receivers among 8 600 caster triangles took 42 s against 23 s for 28 receivers among a few. Larger requests are the background jobs of DiGi.GIS.WebAPI.UI#60.
+A 50 m radius in central Warsaw gave 8 600–10 700 caster triangles (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537), which the ceiling still admits at the default radius. On this host, a 4-core Intel N150 (DiGi.GIS.WebAPI.UI#59), casters cost more than on the 16-thread machine #7 measured: 25 receivers among 8 600 caster triangles took 42 s against 23 s for 28 receivers among a few. Larger surroundings are calculated as background jobs, up to [SolarJobCasterTriangleCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobCasterTriangleCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobCasterTriangleCountMax') (DiGi.GIS.WebAPI.UI#60).
 
 ```csharp
 public const int SolarCasterTriangleCountMax = 12000;
@@ -572,7 +572,7 @@ public const int SolarCasterTriangleCountMax = 12000;
 
 ## Default\.SolarConcurrentSolveCount Field
 
-The number of solar radiation solves that may run at the same time on this host; further requests wait for the gate registered under [SolarSolveGateKey](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSolveGateKey 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSolveGateKey')\.
+The number of solar radiation solves that may run at the same time on this host; further requests and background jobs wait for the gate registered under [SolarSolveGateKey](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSolveGateKey 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSolveGateKey'), a request for at most [SolarSolveGateWaitSeconds](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSolveGateWaitSeconds 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSolveGateWaitSeconds')\.
 
 One solve already uses every core: two parallel solves took 38.9 s each against 23.0 s for one on the 16-thread machine #7 measured, so a second request waits less on average when queued (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537). This host has 4 cores, which makes the case for one slot stronger.
 
@@ -598,13 +598,99 @@ public const double SolarIrradiationScaleMax = 1200;
 #### Field Value
 [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobCasterTriangleCountMax'></a>
+
+## Default\.SolarJobCasterTriangleCountMax Field
+
+The ceiling on the number of shading\-only triangles one background solar radiation job solves against; above it the job is refused with a 413\.
+
+Provisional (DiGi.GIS.WebAPI.UI#60): it covers the largest surroundings measured, B3 at a 100 m radius with 30 519 caster triangles, which peaked at 6.9 GB on the 16-thread machine of ZiolkowskiJakub/DiGi.Solar#7 - below this host's 16 GB. The peak on this host is not measured yet.
+
+```csharp
+public const int SolarJobCasterTriangleCountMax = 32000;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobPollSeconds'></a>
+
+## Default\.SolarJobPollSeconds Field
+
+The number of seconds between two status requests of the solar radiation viewer while it waits for a background job\.
+
+```csharp
+public const int SolarJobPollSeconds = 5;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobQueueLengthMax'></a>
+
+## Default\.SolarJobQueueLengthMax Field
+
+The number of background solar radiation jobs that may wait in the queue, not counting the one running; a further job is refused with a 503 and a `Retry-After` of [SolarJobRetryAfterSeconds](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobRetryAfterSeconds 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobRetryAfterSeconds')\.
+
+At up to about 12 minutes per job ([SolarJobReceiverCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobReceiverCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobReceiverCountMax')), the last queued job waits about 35 minutes before its own calculation starts (DiGi.GIS.WebAPI.UI#60).
+
+```csharp
+public const int SolarJobQueueLengthMax = 3;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobReceiverCountMax'></a>
+
+## Default\.SolarJobReceiverCountMax Field
+
+The ceiling on the number of receiving surfaces \(external walls and roofs\) of the building one background solar radiation job calculates; above it the job is refused with a 413\.
+
+Provisional (DiGi.GIS.WebAPI.UI#60): at the ~1.7 s per receiver measured on this host (see [SolarReceiverCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarReceiverCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarReceiverCountMax')), 400 receivers is about 11–12 minutes per job, and it admits the 320-receiver block B3 of ZiolkowskiJakub/DiGi.Solar#7. To be confirmed by a measurement on the web server.
+
+```csharp
+public const int SolarJobReceiverCountMax = 400;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobResultRetentionMinutes'></a>
+
+## Default\.SolarJobResultRetentionMinutes Field
+
+The number of minutes a finished, failed or cancelled background solar radiation job, and its results, are kept after it finished; afterwards the job answers 404\. Queued and running jobs never expire\.
+
+Keeping the results until they are fetched is the asynchronous contract, not a cache: nothing is reused across jobs. Jobs live in memory only and are lost when the application restarts.
+
+```csharp
+public const int SolarJobResultRetentionMinutes = 60;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobRetryAfterSeconds'></a>
+
+## Default\.SolarJobRetryAfterSeconds Field
+
+The number of seconds in the `Retry-After` header of the 503 a background solar radiation job is refused with when the queue is full \([SolarJobQueueLengthMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobQueueLengthMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobQueueLengthMax')\)\.
+
+```csharp
+public const int SolarJobRetryAfterSeconds = 300;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.SolarReceiverCountMax'></a>
 
 ## Default\.SolarReceiverCountMax Field
 
 The ceiling on the number of receiving surfaces \(external walls and roofs\) of the building one synchronous solar radiation request calculates; above it the request is refused with a 413\.
 
-Measured on this host, a 4-core Intel N150 with 16 GB, whole requests in central Warsaw at the default radius took about 1.7 s per receiver: 42 s at 25 receivers, 56 s at 34, 65 s at 37 and 51–159 s at 43–48, repeated runs of one building varying up to 2.5 times (DiGi.GIS.WebAPI.UI#59). At 30 receivers a typical request stays near one minute, well under the ~135 s at which the front end answered 503. ZiolkowskiJakub/DiGi.Solar#7 proposed 100, but measured a 16-thread machine, not this host. Refine it from the per-request log of `SolarController` (`logs\log-yyyyMMdd.txt`). Larger buildings are the background jobs of DiGi.GIS.WebAPI.UI#60.
+Measured on this host, a 4-core Intel N150 with 16 GB, whole requests in central Warsaw at the default radius took about 1.7 s per receiver: 42 s at 25 receivers, 56 s at 34, 65 s at 37 and 51–159 s at 43–48, repeated runs of one building varying up to 2.5 times (DiGi.GIS.WebAPI.UI#59). At 30 receivers a typical request stays near one minute, well under the ~135 s at which the front end answered 503. ZiolkowskiJakub/DiGi.Solar#7 proposed 100, but measured a 16-thread machine, not this host. Refine it from the per-request log of `SolarController` (`logs\log-yyyyMMdd.txt`). Larger buildings are calculated as background jobs, up to [SolarJobReceiverCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobReceiverCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobReceiverCountMax') (DiGi.GIS.WebAPI.UI#60).
 
 ```csharp
 public const int SolarReceiverCountMax = 30;
@@ -634,7 +720,7 @@ public const int SolarReferenceYear = 2025;
 
 The dependency injection key of the [System\.Threading\.SemaphoreSlim](https://learn.microsoft.com/en-us/dotnet/api/system.threading.semaphoreslim 'System\.Threading\.SemaphoreSlim') of [SolarConcurrentSolveCount](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarConcurrentSolveCount 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarConcurrentSolveCount') slots that gates every solar radiation solve on this host\.
 
-A keyed singleton rather than a static field so that the background jobs of DiGi.GIS.WebAPI.UI#60 share the same gate with the synchronous requests.
+A keyed singleton rather than a static field so that the background jobs (`SolarJobHostedService`, DiGi.GIS.WebAPI.UI#60) share the same gate with the synchronous requests: a job and a request never solve at the same time.
 
 ```csharp
 public const string SolarSolveGateKey = "SolarSolveGate";
@@ -642,6 +728,21 @@ public const string SolarSolveGateKey = "SolarSolveGate";
 
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.SolarSolveGateWaitSeconds'></a>
+
+## Default\.SolarSolveGateWaitSeconds Field
+
+The number of seconds a synchronous solar radiation request waits for the gate registered under [SolarSolveGateKey](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSolveGateKey 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSolveGateKey') before it is refused with a 503 and a `Retry-After` of the same number of seconds\.
+
+A background job holds the gate for many minutes (about 1.7 s per receiver on this host), and the front end answers 503 on its own at about 135 s (DiGi.GIS.WebAPI.UI#59). Thirty seconds of waiting plus a synchronous solve of about one minute stays under that, and the refusal tells the viewer why.
+
+```csharp
+public const int SolarSolveGateWaitSeconds = 30;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.SolarSurroundingRadius'></a>
 

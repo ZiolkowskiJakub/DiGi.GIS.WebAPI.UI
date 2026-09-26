@@ -178,12 +178,12 @@ namespace DiGi.GIS.WebAPI.UI.Constants
 
         /// <summary>
         /// The ceiling on the number of shading-only triangles (neighbours and the analysed building's own non-receiving components) one synchronous solar radiation request solves against; above it the request is refused with a 413.
-        /// <para>A 50 m radius in central Warsaw gave 8 600–10 700 caster triangles (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537), which the ceiling still admits at the default radius. On this host, a 4-core Intel N150 (DiGi.GIS.WebAPI.UI#59), casters cost more than on the 16-thread machine #7 measured: 25 receivers among 8 600 caster triangles took 42 s against 23 s for 28 receivers among a few. Larger requests are the background jobs of DiGi.GIS.WebAPI.UI#60.</para>
+        /// <para>A 50 m radius in central Warsaw gave 8 600–10 700 caster triangles (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537), which the ceiling still admits at the default radius. On this host, a 4-core Intel N150 (DiGi.GIS.WebAPI.UI#59), casters cost more than on the 16-thread machine #7 measured: 25 receivers among 8 600 caster triangles took 42 s against 23 s for 28 receivers among a few. Larger surroundings are calculated as background jobs, up to <see cref="SolarJobCasterTriangleCountMax"/> (DiGi.GIS.WebAPI.UI#60).</para>
         /// </summary>
         public const int SolarCasterTriangleCountMax = 12_000;
 
         /// <summary>
-        /// The number of solar radiation solves that may run at the same time on this host; further requests wait for the gate registered under <see cref="SolarSolveGateKey"/>.
+        /// The number of solar radiation solves that may run at the same time on this host; further requests and background jobs wait for the gate registered under <see cref="SolarSolveGateKey"/>, a request for at most <see cref="SolarSolveGateWaitSeconds"/>.
         /// <para>One solve already uses every core: two parallel solves took 38.9 s each against 23.0 s for one on the 16-thread machine #7 measured, so a second request waits less on average when queued (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537). This host has 4 cores, which makes the case for one slot stronger.</para>
         /// </summary>
         public const int SolarConcurrentSolveCount = 1;
@@ -196,7 +196,7 @@ namespace DiGi.GIS.WebAPI.UI.Constants
 
         /// <summary>
         /// The ceiling on the number of receiving surfaces (external walls and roofs) of the building one synchronous solar radiation request calculates; above it the request is refused with a 413.
-        /// <para>Measured on this host, a 4-core Intel N150 with 16 GB, whole requests in central Warsaw at the default radius took about 1.7 s per receiver: 42 s at 25 receivers, 56 s at 34, 65 s at 37 and 51–159 s at 43–48, repeated runs of one building varying up to 2.5 times (DiGi.GIS.WebAPI.UI#59). At 30 receivers a typical request stays near one minute, well under the ~135 s at which the front end answered 503. ZiolkowskiJakub/DiGi.Solar#7 proposed 100, but measured a 16-thread machine, not this host. Refine it from the per-request log of <c>SolarController</c> (<c>logs\log-yyyyMMdd.txt</c>). Larger buildings are the background jobs of DiGi.GIS.WebAPI.UI#60.</para>
+        /// <para>Measured on this host, a 4-core Intel N150 with 16 GB, whole requests in central Warsaw at the default radius took about 1.7 s per receiver: 42 s at 25 receivers, 56 s at 34, 65 s at 37 and 51–159 s at 43–48, repeated runs of one building varying up to 2.5 times (DiGi.GIS.WebAPI.UI#59). At 30 receivers a typical request stays near one minute, well under the ~135 s at which the front end answered 503. ZiolkowskiJakub/DiGi.Solar#7 proposed 100, but measured a 16-thread machine, not this host. Refine it from the per-request log of <c>SolarController</c> (<c>logs\log-yyyyMMdd.txt</c>). Larger buildings are calculated as background jobs, up to <see cref="SolarJobReceiverCountMax"/> (DiGi.GIS.WebAPI.UI#60).</para>
         /// </summary>
         public const int SolarReceiverCountMax = 30;
 
@@ -208,9 +208,49 @@ namespace DiGi.GIS.WebAPI.UI.Constants
 
         /// <summary>
         /// The dependency injection key of the <see cref="System.Threading.SemaphoreSlim"/> of <see cref="SolarConcurrentSolveCount"/> slots that gates every solar radiation solve on this host.
-        /// <para>A keyed singleton rather than a static field so that the background jobs of DiGi.GIS.WebAPI.UI#60 share the same gate with the synchronous requests.</para>
+        /// <para>A keyed singleton rather than a static field so that the background jobs (<c>SolarJobHostedService</c>, DiGi.GIS.WebAPI.UI#60) share the same gate with the synchronous requests: a job and a request never solve at the same time.</para>
         /// </summary>
         public const string SolarSolveGateKey = "SolarSolveGate";
+
+        /// <summary>
+        /// The number of seconds a synchronous solar radiation request waits for the gate registered under <see cref="SolarSolveGateKey"/> before it is refused with a 503 and a <c>Retry-After</c> of the same number of seconds.
+        /// <para>A background job holds the gate for many minutes (about 1.7 s per receiver on this host), and the front end answers 503 on its own at about 135 s (DiGi.GIS.WebAPI.UI#59). Thirty seconds of waiting plus a synchronous solve of about one minute stays under that, and the refusal tells the viewer why.</para>
+        /// </summary>
+        public const int SolarSolveGateWaitSeconds = 30;
+
+        /// <summary>
+        /// The ceiling on the number of receiving surfaces (external walls and roofs) of the building one background solar radiation job calculates; above it the job is refused with a 413.
+        /// <para>Provisional (DiGi.GIS.WebAPI.UI#60): at the ~1.7 s per receiver measured on this host (see <see cref="SolarReceiverCountMax"/>), 400 receivers is about 11–12 minutes per job, and it admits the 320-receiver block B3 of ZiolkowskiJakub/DiGi.Solar#7. To be confirmed by a measurement on the web server.</para>
+        /// </summary>
+        public const int SolarJobReceiverCountMax = 400;
+
+        /// <summary>
+        /// The ceiling on the number of shading-only triangles one background solar radiation job solves against; above it the job is refused with a 413.
+        /// <para>Provisional (DiGi.GIS.WebAPI.UI#60): it covers the largest surroundings measured, B3 at a 100 m radius with 30 519 caster triangles, which peaked at 6.9 GB on the 16-thread machine of ZiolkowskiJakub/DiGi.Solar#7 - below this host's 16 GB. The peak on this host is not measured yet.</para>
+        /// </summary>
+        public const int SolarJobCasterTriangleCountMax = 32_000;
+
+        /// <summary>
+        /// The number of background solar radiation jobs that may wait in the queue, not counting the one running; a further job is refused with a 503 and a <c>Retry-After</c> of <see cref="SolarJobRetryAfterSeconds"/>.
+        /// <para>At up to about 12 minutes per job (<see cref="SolarJobReceiverCountMax"/>), the last queued job waits about 35 minutes before its own calculation starts (DiGi.GIS.WebAPI.UI#60).</para>
+        /// </summary>
+        public const int SolarJobQueueLengthMax = 3;
+
+        /// <summary>
+        /// The number of minutes a finished, failed or cancelled background solar radiation job, and its results, are kept after it finished; afterwards the job answers 404. Queued and running jobs never expire.
+        /// <para>Keeping the results until they are fetched is the asynchronous contract, not a cache: nothing is reused across jobs. Jobs live in memory only and are lost when the application restarts.</para>
+        /// </summary>
+        public const int SolarJobResultRetentionMinutes = 60;
+
+        /// <summary>
+        /// The number of seconds in the <c>Retry-After</c> header of the 503 a background solar radiation job is refused with when the queue is full (<see cref="SolarJobQueueLengthMax"/>).
+        /// </summary>
+        public const int SolarJobRetryAfterSeconds = 300;
+
+        /// <summary>
+        /// The number of seconds between two status requests of the solar radiation viewer while it waits for a background job.
+        /// </summary>
+        public const int SolarJobPollSeconds = 5;
 
         /// <summary>
         /// Default storey height in meters used to extrude 2D building footprints.

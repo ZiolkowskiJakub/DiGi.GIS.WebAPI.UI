@@ -1640,7 +1640,9 @@ A task that represents the asynchronous operation\. The task result contains an 
 
 Solar calculations for the 3D viewers: the sun position for the Lighting panel, and the annual solar radiation on the external walls and roofs of one building, calculated on this host's CPU with DiGi\.Solar over one EPW year, with the building itself and its neighbours casting shade\.
 
-The radiation routes answer the same refusals: 400 for a neighbour radius outside (0, [SolarSurroundingRadiusMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSurroundingRadiusMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSurroundingRadiusMax')], 204 when the building or its weather file is not found, 422 when the building cannot be located or has no closed external envelope, 413 above [SolarReceiverCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarReceiverCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarReceiverCountMax') receiving surfaces or [SolarCasterTriangleCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarCasterTriangleCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarCasterTriangleCountMax') caster triangles, 502 when the neighbours cannot be read, and 499 / 504 / 500 for a client cancel, an upstream timeout and any other failure.
+The radiation routes answer the same refusals: 400 for a neighbour radius outside (0, [SolarSurroundingRadiusMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSurroundingRadiusMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSurroundingRadiusMax')], 204 when the building or its weather file is not found, 422 when the building cannot be located or has no closed external envelope, 413 above [SolarReceiverCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarReceiverCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarReceiverCountMax') receiving surfaces or [SolarCasterTriangleCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarCasterTriangleCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarCasterTriangleCountMax') caster triangles, 502 when the neighbours cannot be read, 503 with `Retry-After` when the solve gate stays busy for [SolarSolveGateWaitSeconds](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSolveGateWaitSeconds 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSolveGateWaitSeconds') seconds, and 499 / 504 / 500 for a client cancel, an upstream timeout and any other failure.
+
+Buildings above those ceilings are calculated as background jobs (`solar/jobs`, DiGi.GIS.WebAPI.UI#60): the POST runs the same checks with the job ceilings ([SolarJobReceiverCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobReceiverCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobReceiverCountMax'), [SolarJobCasterTriangleCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobCasterTriangleCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobCasterTriangleCountMax')), queues the prepared calculation and answers 202, or 503 with `Retry-After` when [SolarJobQueueLengthMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobQueueLengthMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobQueueLengthMax') jobs are already waiting. The job routes answer 404 for an unknown or expired job and 409 for results of a job that has not completed.
 
 ```csharp
 public class SolarController : Microsoft.AspNetCore.Mvc.Controller
@@ -1649,41 +1651,84 @@ public class SolarController : Microsoft.AspNetCore.Mvc.Controller
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [Microsoft\.AspNetCore\.Mvc\.ControllerBase](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controllerbase 'Microsoft\.AspNetCore\.Mvc\.ControllerBase') → [Microsoft\.AspNetCore\.Mvc\.Controller](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controller 'Microsoft\.AspNetCore\.Mvc\.Controller') → SolarController
 ### Constructors
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.SolarController(System.Net.Http.IHttpClientFactory,System.Threading.SemaphoreSlim,Microsoft.Extensions.Logging.ILogger_DiGi.GIS.WebAPI.UI.Controllers.SolarController_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.SolarController(System.Net.Http.IHttpClientFactory,System.Threading.SemaphoreSlim,DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,Microsoft.Extensions.Logging.ILogger_DiGi.GIS.WebAPI.UI.Controllers.SolarController_)'></a>
 
-## SolarController\(IHttpClientFactory, SemaphoreSlim, ILogger\<SolarController\>\) Constructor
+## SolarController\(IHttpClientFactory, SemaphoreSlim, SolarJobQueue, ILogger\<SolarController\>\) Constructor
 
 Initializes a new instance of the [SolarController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController') class\.
 
 ```csharp
-public SolarController(System.Net.Http.IHttpClientFactory httpClientFactory, System.Threading.SemaphoreSlim semaphoreSlim, Microsoft.Extensions.Logging.ILogger<DiGi.GIS.WebAPI.UI.Controllers.SolarController> logger);
+public SolarController(System.Net.Http.IHttpClientFactory httpClientFactory, System.Threading.SemaphoreSlim semaphoreSlim, DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue solarJobQueue, Microsoft.Extensions.Logging.ILogger<DiGi.GIS.WebAPI.UI.Controllers.SolarController> logger);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.SolarController(System.Net.Http.IHttpClientFactory,System.Threading.SemaphoreSlim,Microsoft.Extensions.Logging.ILogger_DiGi.GIS.WebAPI.UI.Controllers.SolarController_).httpClientFactory'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.SolarController(System.Net.Http.IHttpClientFactory,System.Threading.SemaphoreSlim,DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,Microsoft.Extensions.Logging.ILogger_DiGi.GIS.WebAPI.UI.Controllers.SolarController_).httpClientFactory'></a>
 
 `httpClientFactory` [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory')
 
 The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') used to create [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') instances\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.SolarController(System.Net.Http.IHttpClientFactory,System.Threading.SemaphoreSlim,Microsoft.Extensions.Logging.ILogger_DiGi.GIS.WebAPI.UI.Controllers.SolarController_).semaphoreSlim'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.SolarController(System.Net.Http.IHttpClientFactory,System.Threading.SemaphoreSlim,DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,Microsoft.Extensions.Logging.ILogger_DiGi.GIS.WebAPI.UI.Controllers.SolarController_).semaphoreSlim'></a>
 
 `semaphoreSlim` [System\.Threading\.SemaphoreSlim](https://learn.microsoft.com/en-us/dotnet/api/system.threading.semaphoreslim 'System\.Threading\.SemaphoreSlim')
 
 The gate shared by every solar radiation solve on this host, registered under [SolarSolveGateKey](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSolveGateKey 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSolveGateKey')\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.SolarController(System.Net.Http.IHttpClientFactory,System.Threading.SemaphoreSlim,Microsoft.Extensions.Logging.ILogger_DiGi.GIS.WebAPI.UI.Controllers.SolarController_).logger'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.SolarController(System.Net.Http.IHttpClientFactory,System.Threading.SemaphoreSlim,DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,Microsoft.Extensions.Logging.ILogger_DiGi.GIS.WebAPI.UI.Controllers.SolarController_).solarJobQueue'></a>
+
+`solarJobQueue` [SolarJobQueue](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJobQueue')
+
+The background solar radiation jobs of this host\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.SolarController(System.Net.Http.IHttpClientFactory,System.Threading.SemaphoreSlim,DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,Microsoft.Extensions.Logging.ILogger_DiGi.GIS.WebAPI.UI.Controllers.SolarController_).logger'></a>
 
 `logger` [Microsoft\.Extensions\.Logging\.ILogger&lt;](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.ilogger-1 'Microsoft\.Extensions\.Logging\.ILogger\`1')[SolarController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.ilogger-1 'Microsoft\.Extensions\.Logging\.ILogger\`1')
 
 The logger receiving one line per solar radiation request\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.SolveGateWait'></a>
+
+## SolarController\.SolveGateWait Property
+
+Gets or sets how long a synchronous request waits for the solve gate before it is refused with a 503; [SolarSolveGateWaitSeconds](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSolveGateWaitSeconds 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSolveGateWaitSeconds') outside the tests\.
+
+```csharp
+internal System.TimeSpan SolveGateWait { internal get; internal set; }
+```
+
+#### Property Value
+[System\.TimeSpan](https://learn.microsoft.com/en-us/dotnet/api/system.timespan 'System\.TimeSpan')
 ### Methods
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.DeleteJob(System.Guid)'></a>
+
+## SolarController\.DeleteJob\(Guid\) Method
+
+Cancels a background solar radiation job: a queued job is never calculated; a running calculation cannot be interrupted, so it finishes and its results are discarded\.
+
+```csharp
+public Microsoft.AspNetCore.Mvc.IActionResult DeleteJob(System.Guid jobId);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.DeleteJob(System.Guid).jobId'></a>
+
+`jobId` [System\.Guid](https://learn.microsoft.com/en-us/dotnet/api/system.guid 'System\.Guid')
+
+The unique identifier of the job\.
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+204; 404 when the job is unknown or has expired\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
 
 ## SolarController\.GetBuildingModelByIdAsync\(long, Nullable\<int\>, Nullable\<double\>, CancellationToken\) Method
 
 Displays the solar radiation 3D viewer of a building: the page streams its scene from [GetGLBBuildingModelByIdAsync\(long, Nullable&lt;int&gt;, Nullable&lt;double&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController\.GetGLBBuildingModelByIdAsync\(long, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)') and shows a legend with the colour ramp, the neighbour radius and the EPW station\. The page itself carries no geometry and runs no solve\.
+
+When the scene request is refused with a 413, the page offers a background calculation ([PostJobAsync\(long, Nullable&lt;int&gt;, Nullable&lt;double&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController.PostJobAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController\.PostJobAsync\(long, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)')), polls it and loads its scene from [GetJobGLB\(Guid\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetJobGLB(System.Guid) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController\.GetJobGLB\(System\.Guid\)'); the job identifier is kept in the page address (`job`), so a reload resumes the polling.
 
 ```csharp
 public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetBuildingModelByIdAsync(long id, System.Nullable<int> countyId, System.Nullable<double> radius, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
@@ -1756,6 +1801,69 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The `model/gltf-binary` payload, or one of the refusals listed on [SolarController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController')\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetJob(System.Guid)'></a>
+
+## SolarController\.GetJob\(Guid\) Method
+
+Gets the state of a background solar radiation job: its status, its place in the queue, the seconds spent in its current state and, for a failed job, the error text\.
+
+```csharp
+public Microsoft.AspNetCore.Mvc.IActionResult GetJob(System.Guid jobId);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetJob(System.Guid).jobId'></a>
+
+`jobId` [System\.Guid](https://learn.microsoft.com/en-us/dotnet/api/system.guid 'System\.Guid')
+
+The unique identifier of the job\.
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+200 with the [SolarJobViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarJobViewModel') of the job; 404 when it is unknown or has expired\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetJobGLB(System.Guid)'></a>
+
+## SolarController\.GetJobGLB\(Guid\) Method
+
+Streams the coloured binary glTF \(\.glb\) scene of a completed background solar radiation job, in the shape of [GetGLBBuildingModelByIdAsync\(long, Nullable&lt;int&gt;, Nullable&lt;double&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController\.GetGLBBuildingModelByIdAsync\(long, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)'), built from the stored results without solving again\.
+
+```csharp
+public Microsoft.AspNetCore.Mvc.IActionResult GetJobGLB(System.Guid jobId);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetJobGLB(System.Guid).jobId'></a>
+
+`jobId` [System\.Guid](https://learn.microsoft.com/en-us/dotnet/api/system.guid 'System\.Guid')
+
+The unique identifier of the job\.
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+The `model/gltf-binary` payload; 409 when the job has not completed; 404 when it is unknown or has expired\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetJobResult(System.Guid)'></a>
+
+## SolarController\.GetJobResult\(Guid\) Method
+
+Gets the results of a completed background solar radiation job, in the shape of [GetRadiationByBuildingModelIdAsync\(long, Nullable&lt;int&gt;, Nullable&lt;double&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetRadiationByBuildingModelIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController\.GetRadiationByBuildingModelIdAsync\(long, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)')\.
+
+```csharp
+public Microsoft.AspNetCore.Mvc.IActionResult GetJobResult(System.Guid jobId);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetJobResult(System.Guid).jobId'></a>
+
+`jobId` [System\.Guid](https://learn.microsoft.com/en-us/dotnet/api/system.guid 'System\.Guid')
+
+The unique identifier of the job\.
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+The results as DiGi JSON; 409 when the job has not completed; 404 when it is unknown or has expired\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetRadiationByBuildingModelIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
 
@@ -1836,6 +1944,45 @@ The local time of day as a decimal hour in the 0\-24 range\.
 #### Returns
 [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
 JSON with the true solar angles: azimuth \[deg\] \(0 = north, clockwise\) and altitude \[deg\] above the horizon \(negative at night\)\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.PostJobAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
+
+## SolarController\.PostJobAsync\(long, Nullable\<int\>, Nullable\<double\>, CancellationToken\) Method
+
+Queues the annual solar radiation of a building as a background job, for buildings above the synchronous ceilings\. The building, its neighbours and its weather are fetched and checked in this request, with the job ceilings \([SolarJobReceiverCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobReceiverCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobReceiverCountMax'), [SolarJobCasterTriangleCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobCasterTriangleCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobCasterTriangleCountMax')\), so every refusal is immediate; the solve runs later, one job at a time, behind the gate shared with the synchronous routes\.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> PostJobAsync(long id, System.Nullable<int> countyId, System.Nullable<double> radius, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.PostJobAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).id'></a>
+
+`id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The unique identifier of the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.PostJobAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional unique identifier of the county associated with the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.PostJobAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).radius'></a>
+
+`radius` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The neighbour radius in metres, measured from the edge of the footprint; omitted means [SolarSurroundingRadius](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSurroundingRadius 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSurroundingRadius')\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.PostJobAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation; it does not reach the queued job\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+202 with the [SolarJobViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarJobViewModel') of the job and its `Location` \(`solar/jobs/{jobId}`\); 503 with `Retry-After` when the queue is full; otherwise one of the refusals listed on [SolarController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController')\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.Start()'></a>
 

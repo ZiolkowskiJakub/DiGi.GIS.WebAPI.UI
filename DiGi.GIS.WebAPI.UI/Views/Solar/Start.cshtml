@@ -28,7 +28,7 @@
             Load a single building by its identifier and see how much sun its walls and roofs receive over a typical year. Every surface is coloured by its annual irradiation, with the building itself and its neighbours within the chosen radius casting shade, and the weather taken from the nearest EPW station.
         </p>
         <p class="gis-hero-text">
-            The calculation runs on request and can take a minute. Buildings with more than @DiGi.GIS.WebAPI.UI.Constants.Default.SolarReceiverCountMax external walls and roofs are too large for it.
+            The calculation runs on request and can take a minute. Buildings with more than @DiGi.GIS.WebAPI.UI.Constants.Default.SolarReceiverCountMax external walls and roofs, up to @DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobReceiverCountMax, are calculated in the background instead: the viewer offers it, shows its progress and loads the result when it is ready, which can take several minutes. The result stays available for an hour.
         </p>
         <form method="get" action="~/solar/buildingmodelbyid" class="gis-inline-form">
             <label>Building Id
