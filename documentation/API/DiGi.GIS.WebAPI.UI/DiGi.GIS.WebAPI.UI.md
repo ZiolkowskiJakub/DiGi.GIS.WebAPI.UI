@@ -277,7 +277,7 @@ Every EPW hour with global, direct and diffuse radiation is sampled at its mid-h
 
 A blocked part of the sky or ground contributes nothing: light reflected by the neighbouring facades and roofs is ignored, which underestimates surfaces in narrow street canyons and courtyards (ZiolkowskiJakub/DiGi.Solar#15).
 
-Each receiver's results are read out once into a map of shaded area by instant; `ShadingModel.TryGetShadingFactor` would fetch and scan all of them on every call, 9–75 ms per call on the web UI host (DiGi.GIS.WebAPI.UI#59, comment 5830021444). The sun direction and the albedo depend only on the hour and are computed once per hour.
+Each receiver's shading factors are read out once, without cloning the stored results, by `ShadingModel.TryGetShadingFactors` (ZiolkowskiJakub/DiGi.Solar#13, DiGi.GIS.WebAPI.UI#63); a stored result with a NaN area has no factor, so its hour is skipped. `ShadingModel.TryGetShadingFactor` would fetch and scan all of them on every call, 9–75 ms per call on the web UI host (DiGi.GIS.WebAPI.UI#59, comment 5830021444). The sun direction and the albedo depend only on the hour and are computed once per hour.
 
 Snow cover is never assumed: the served EPW files carry either filler snow depth (IWEC WARSAW reports snow for 8 322 hours) or no albedo at all, so the albedo is the file's own value or the 0.2 default.
 

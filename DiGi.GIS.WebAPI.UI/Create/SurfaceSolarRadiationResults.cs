@@ -48,7 +48,7 @@ namespace DiGi.GIS.WebAPI.UI
         /// Solves a shading model over the hours of one EPW year and integrates the irradiation of each receiving surface.
         /// <para>Every EPW hour with global, direct and diffuse radiation is sampled at its mid-hour instant in the reference year (<see cref="Query.SolarReferenceDateTime(DateTime)"/>). The shading model is solved for those instants with <see cref="ShadingSolver"/>, which writes its results into <paramref name="shadingModel"/>. For each receiver and hour, the irradiance of the surface is <c>Solar.Create.IrradianceResult</c> on its outward normal, and the power is <c>Solar.Create.SolarPowerResult_ByShadingFactor</c> with the solved shading factor: the shadow blocks the beam component. The sky diffuse and ground-reflected components are scaled by the unblocked share of the surface's sky and ground (<c>Solar.Create.ViewFactorResults</c>, the same projection over fixed hemisphere patches), so a wall covered by a neighbour loses them too. An open-sky twin with factor 0 and nothing blocking the view gives <see cref="SurfaceSolarRadiationResult.IrradiationUnshaded"/>.</para>
         /// <para>A blocked part of the sky or ground contributes nothing: light reflected by the neighbouring facades and roofs is ignored, which underestimates surfaces in narrow street canyons and courtyards (ZiolkowskiJakub/DiGi.Solar#15).</para>
-        /// <para>Each receiver's results are read out once into a map of shaded area by instant; <c>ShadingModel.TryGetShadingFactor</c> would fetch and scan all of them on every call, 9–75 ms per call on the web UI host (DiGi.GIS.WebAPI.UI#59, comment 5830021444). The sun direction and the albedo depend only on the hour and are computed once per hour.</para>
+        /// <para>Each receiver's shading factors are read out once, without cloning the stored results, by <c>ShadingModel.TryGetShadingFactors</c> (ZiolkowskiJakub/DiGi.Solar#13, DiGi.GIS.WebAPI.UI#63); a stored result with a NaN area has no factor, so its hour is skipped. <c>ShadingModel.TryGetShadingFactor</c> would fetch and scan all of them on every call, 9–75 ms per call on the web UI host (DiGi.GIS.WebAPI.UI#59, comment 5830021444). The sun direction and the albedo depend only on the hour and are computed once per hour.</para>
         /// <para>Snow cover is never assumed: the served EPW files carry either filler snow depth (IWEC WARSAW reports snow for 8 322 hours) or no albedo at all, so the albedo is the file's own value or the 0.2 default.</para>
         /// <para>A receiver without an outward normal in <paramref name="normals"/>, with no area, or that the solver could not assign (no plane or no triangulation) gets no result. A daytime hour missing from a receiver's results is skipped.</para>
         /// </summary>
@@ -182,8 +182,7 @@ namespace DiGi.GIS.WebAPI.UI
                         continue;
                     }
 
-                    List<IShadingSolverResult>? shadingSolverResults = shadingModel.GetShadingSolverResults<IShadingSolverResult>(shadingElement);
-                    if (shadingSolverResults is null)
+                    if (!shadingModel.TryGetShadingFactors(shadingElement, out Dictionary<DateTime, double>? shadingFactors) || shadingFactors is null)
                     {
                         continue;
                     }
@@ -194,15 +193,6 @@ namespace DiGi.GIS.WebAPI.UI
                     {
                         skyVisibility = viewFactorResult_Receiver.SkyVisibility;
                         groundVisibility = viewFactorResult_Receiver.GroundVisibility;
-                    }
-
-                    Dictionary<DateTime, double> areas_Shaded = [];
-                    foreach (IShadingSolverResult shadingSolverResult in shadingSolverResults)
-                    {
-                        if (shadingSolverResult is not null)
-                        {
-                            areas_Shaded[shadingSolverResult.DateTime] = shadingSolverResult.Area;
-                        }
                     }
 
                     // Energies in Wh: each EPW value is a mean power over one hour.
@@ -216,12 +206,13 @@ namespace DiGi.GIS.WebAPI.UI
                         double shadingFactor = 0;
                         if (sunUps[i])
                         {
-                            if (!areas_Shaded.TryGetValue(dateTimes[i], out double area_Shaded))
+                            if (!shadingFactors.TryGetValue(dateTimes[i], out double shadingFactor_Solved))
                             {
                                 continue;
                             }
 
-                            shadingFactor = Math.Clamp(area_Shaded / area, 0, 1);
+                            // A fully shaded receiver can read 1 plus a few ulps.
+                            shadingFactor = Math.Clamp(shadingFactor_Solved, 0, 1);
                         }
 
                         IrradianceResult? irradianceResult = Solar.Create.IrradianceResult(normal, sunDirections[i], globalHorizontalRadiations[i], sunUps[i] ? directNormalRadiations[i] : 0, diffuseHorizontalRadiations[i], albedos[i]);
