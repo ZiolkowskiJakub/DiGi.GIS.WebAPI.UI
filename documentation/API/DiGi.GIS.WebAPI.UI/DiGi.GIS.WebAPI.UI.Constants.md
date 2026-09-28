@@ -604,7 +604,7 @@ public const double SolarIrradiationScaleMax = 1200;
 
 The ceiling on the number of shading\-only triangles one background solar radiation job solves against; above it the job is refused with a 413\.
 
-Provisional (DiGi.GIS.WebAPI.UI#60): it covers the largest surroundings measured, B3 at a 100 m radius with 30 519 caster triangles, which peaked at 6.9 GB on the 16-thread machine of ZiolkowskiJakub/DiGi.Solar#7 - below this host's 16 GB. The peak on this host is not measured yet.
+Measured on this host, a 4-core Intel N150 with 16 GB (DiGi.GIS.WebAPI.UI#62): B3 at a 100 m radius, the largest surroundings measured, with 30 519 caster triangles peaked at 3 235 MB of the process's working set, 20 % of the host's memory, while the two 50 m runs with 10 733 triangles peaked at 3 364 and 3 202 MB. The caster geometry is thus a minor term against the 320 receiver results, and 32 000 triangles stay at about 3.4 GB, far below the ~8 GB budget (half of the host's memory), so the ceiling is kept.
 
 ```csharp
 public const int SolarJobCasterTriangleCountMax = 32000;
@@ -632,10 +632,10 @@ public const int SolarJobPollSeconds = 5;
 
 The number of background solar radiation jobs that may wait in the queue, not counting the one running; a further job is refused with a 503 and a `Retry-After` of [SolarJobRetryAfterSeconds](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobRetryAfterSeconds 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobRetryAfterSeconds')\.
 
-At up to about 12 minutes per job ([SolarJobReceiverCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobReceiverCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobReceiverCountMax')), the last queued job waits about 35 minutes before its own calculation starts (DiGi.GIS.WebAPI.UI#60).
+A job at the [SolarJobReceiverCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobReceiverCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobReceiverCountMax') ceiling takes about 29 minutes at a 50 m radius and 42 minutes at 100 m (DiGi.GIS.WebAPI.UI#62). The last queued job waits for every job ahead of it: with three waiting that was about 90–125 minutes, so the queue is two, which halves the worst wait to about 60–84 minutes. One waiting job is what the ~45 minute worst-wait aim needs at those job times; two is kept so a burst of background calculations is not refused outright.
 
 ```csharp
-public const int SolarJobQueueLengthMax = 3;
+public const int SolarJobQueueLengthMax = 2;
 ```
 
 #### Field Value
@@ -647,7 +647,7 @@ public const int SolarJobQueueLengthMax = 3;
 
 The ceiling on the number of receiving surfaces \(external walls and roofs\) of the building one background solar radiation job calculates; above it the job is refused with a 413\.
 
-Provisional (DiGi.GIS.WebAPI.UI#60): at the ~1.7 s per receiver measured on this host (see [SolarReceiverCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarReceiverCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarReceiverCountMax')), 400 receivers is about 11–12 minutes per job, and it admits the 320-receiver block B3 of ZiolkowskiJakub/DiGi.Solar#7. To be confirmed by a measurement on the web server.
+Measured on this host, a 4-core Intel N150 with 16 GB (DiGi.GIS.WebAPI.UI#62): the 320-receiver block B3 of ZiolkowskiJakub/DiGi.Solar#7 took 1 441 351 ms and 1 369 242 ms at a 50 m radius (10 733 caster triangles) and 1 996 178 ms at 100 m (30 519 caster triangles), 4.28–4.50 s per receiver at 50 m. The provisional ceiling targeted about 15 minutes per job at the 1.7 s per receiver [SolarReceiverCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarReceiverCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarReceiverCountMax') measured with; B3 refuted it, and 400 receivers takes about 29 minutes at 50 m and 42 minutes at 100 m. 400 is kept because it still admits B3, the 320-receiver block the background jobs exist for, and [SolarJobQueueLengthMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobQueueLengthMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobQueueLengthMax') is correspondingly shorter.
 
 ```csharp
 public const int SolarJobReceiverCountMax = 400;
@@ -735,7 +735,7 @@ public const string SolarSolveGateKey = "SolarSolveGate";
 
 The number of seconds a synchronous solar radiation request waits for the gate registered under [SolarSolveGateKey](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSolveGateKey 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSolveGateKey') before it is refused with a 503 and a `Retry-After` of the same number of seconds\.
 
-A background job holds the gate for many minutes (about 1.7 s per receiver on this host), and the front end answers 503 on its own at about 135 s (DiGi.GIS.WebAPI.UI#59). Thirty seconds of waiting plus a synchronous solve of about one minute stays under that, and the refusal tells the viewer why.
+A background job holds the gate for up to about 29 minutes at the [SolarJobReceiverCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobReceiverCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobReceiverCountMax') ceiling (DiGi.GIS.WebAPI.UI#62), and the front end answers 503 on its own at about 135 s (DiGi.GIS.WebAPI.UI#59). Thirty seconds of waiting plus a synchronous solve of about one minute stays under that, and the refusal tells the viewer why.
 
 ```csharp
 public const int SolarSolveGateWaitSeconds = 30;
