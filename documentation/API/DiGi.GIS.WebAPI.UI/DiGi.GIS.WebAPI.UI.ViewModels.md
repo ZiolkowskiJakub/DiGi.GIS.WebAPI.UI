@@ -461,46 +461,52 @@ public class CommunicationSceneViewModel
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → CommunicationSceneViewModel
 ### Constructors
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double)'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double,DiGi.GIS.WebAPI.UI.Classes.ViewRange)'></a>
 
-## CommunicationSceneViewModel\(string, string, double, double, double\) Constructor
+## CommunicationSceneViewModel\(string, string, double, double, double, ViewRange\) Constructor
 
 Initializes a new instance of the [CommunicationSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.CommunicationSceneViewModel') class\.
 
 ```csharp
-public CommunicationSceneViewModel(string? title, string? gLBUrl, double centerX, double centerY, double radius);
+public CommunicationSceneViewModel(string? title, string? gLBUrl, double centerX, double centerY, double radius, DiGi.GIS.WebAPI.UI.Classes.ViewRange? viewRange=null);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double).title'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double,DiGi.GIS.WebAPI.UI.Classes.ViewRange).title'></a>
 
 `title` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The title displayed above the viewer\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double).gLBUrl'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double,DiGi.GIS.WebAPI.UI.Classes.ViewRange).gLBUrl'></a>
 
 `gLBUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The application relative URL of the binary glTF \(\.glb\) endpoint\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double).centerX'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double,DiGi.GIS.WebAPI.UI.Classes.ViewRange).centerX'></a>
 
 `centerX` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 The X coordinate of the center of the analyzed circular area\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double).centerY'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double,DiGi.GIS.WebAPI.UI.Classes.ViewRange).centerY'></a>
 
 `centerY` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 The Y coordinate of the center of the analyzed circular area\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double).radius'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double,DiGi.GIS.WebAPI.UI.Classes.ViewRange).radius'></a>
 
 `radius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 The radius of the analyzed circular area in meters\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CommunicationSceneViewModel(string,string,double,double,double,DiGi.GIS.WebAPI.UI.Classes.ViewRange).viewRange'></a>
+
+`viewRange` [ViewRange](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.ViewRange 'DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange')
+
+The bounds of the "View range" slider bound to the scene, or null for the viewer defaults \(100 / 2000 / 10000 m\)\. This value can be null\.
 ### Properties
 
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.CenterX'></a>
@@ -567,6 +573,19 @@ public string? Title { get; }
 
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.CommunicationSceneViewModel.ViewRange'></a>
+
+## CommunicationSceneViewModel\.ViewRange Property
+
+Gets the bounds of the "View range" slider bound to the scene, or null for the viewer defaults \(100 / 2000 / 10000 m\)\.
+
+```csharp
+public DiGi.GIS.WebAPI.UI.Classes.ViewRange? ViewRange { get; }
+```
+
+#### Property Value
+[ViewRange](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.ViewRange 'DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange')
 
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.EPWFileViewModel'></a>
 
@@ -647,69 +666,81 @@ Initializes a new instance of the [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewMo
 public GLTFSceneViewModel();
 ```
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string)'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange)'></a>
 
-## GLTFSceneViewModel\(GLTFScene, string, string, string\) Constructor
+## GLTFSceneViewModel\(GLTFScene, string, string, string, ViewRange\) Constructor
 
 Initializes a new instance of the [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel') class for embedded delivery\.
 
 ```csharp
-public GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene? gLTFScene, string? gLTFSceneJson, string? gLBBase64, string? title);
+public GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene? gLTFScene, string? gLTFSceneJson, string? gLBBase64, string? title, DiGi.GIS.WebAPI.UI.Classes.ViewRange? viewRange=null);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string).gLTFScene'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).gLTFScene'></a>
 
 `gLTFScene` [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene')
 
 The [GLTFScene](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFScene 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel\.GLTFScene') to be rendered\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string).gLTFSceneJson'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).gLTFSceneJson'></a>
 
 `gLTFSceneJson` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The JSON representation of the scene used by the viewer for lights, camera and reference point configuration\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string).gLBBase64'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).gLBBase64'></a>
 
 `gLBBase64` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The base64 encoded binary glTF \(\.glb\) payload rendered by the viewer\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string).title'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).title'></a>
 
 `title` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The title displayed above the viewer\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string)'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).viewRange'></a>
 
-## GLTFSceneViewModel\(string, string, string\) Constructor
+`viewRange` [ViewRange](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.ViewRange 'DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange')
 
-Initializes a new instance of the [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel') class for streamed delivery: the viewer fetches the binary glTF payload from [gLBUrl](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string).gLBUrl 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel\.GLTFSceneViewModel\(string, string, string\)\.gLBUrl') and reads the scene configuration from its extras\.
+The bounds of the "View range" slider bound to the scene, or null for the viewer defaults \(100 / 2000 / 10000 m\)\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange)'></a>
+
+## GLTFSceneViewModel\(string, string, string, ViewRange\) Constructor
+
+Initializes a new instance of the [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel') class for streamed delivery: the viewer fetches the binary glTF payload from [gLBUrl](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).gLBUrl 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel\.GLTFSceneViewModel\(string, string, string, DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange\)\.gLBUrl') and reads the scene configuration from its extras\.
 
 ```csharp
-public GLTFSceneViewModel(string? title, string? gLBUrl, string? scopeBoxSize=null);
+public GLTFSceneViewModel(string? title, string? gLBUrl, string? scopeBoxSize=null, DiGi.GIS.WebAPI.UI.Classes.ViewRange? viewRange=null);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string).title'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).title'></a>
 
 `title` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The title displayed above the viewer\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string).gLBUrl'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).gLBUrl'></a>
 
 `gLBUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The application relative URL of the binary glTF \(\.glb\) endpoint\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string).scopeBoxSize'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).scopeBoxSize'></a>
 
 `scopeBoxSize` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The default scope box preset in the form "halfX;halfY;zMin;zMax" or "halfX;halfY" \(DiGi coordinates; the latter lets the viewer fit the Z range to the buildings' elevation\) passed to the viewer, or null for the bounds\-fit default\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).viewRange'></a>
+
+`viewRange` [ViewRange](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.ViewRange 'DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange')
+
+The bounds of the "View range" slider bound to the scene, or null for the viewer defaults \(100 / 2000 / 10000 m\)\. This value can be null\.
 ### Properties
 
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLBBase64'></a>
@@ -789,6 +820,19 @@ public string? Title { get; }
 
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.ViewRange'></a>
+
+## GLTFSceneViewModel\.ViewRange Property
+
+Gets the bounds of the "View range" slider bound to the scene, or null for the viewer defaults \(100 / 2000 / 10000 m\)\.
+
+```csharp
+public DiGi.GIS.WebAPI.UI.Classes.ViewRange? ViewRange { get; }
+```
+
+#### Property Value
+[ViewRange](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.ViewRange 'DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange')
 
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.OrtoDatasViewModel'></a>
 

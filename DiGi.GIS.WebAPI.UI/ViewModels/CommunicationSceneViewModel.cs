@@ -13,13 +13,15 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
         /// <param name="centerX">The X coordinate of the center of the analyzed circular area.</param>
         /// <param name="centerY">The Y coordinate of the center of the analyzed circular area.</param>
         /// <param name="radius">The radius of the analyzed circular area in meters.</param>
-        public CommunicationSceneViewModel(string? title, string? gLBUrl, double centerX, double centerY, double radius)
+        /// <param name="viewRange">The bounds of the "View range" slider bound to the scene, or null for the viewer defaults (100 / 2000 / 10000 m). This value can be null.</param>
+        public CommunicationSceneViewModel(string? title, string? gLBUrl, double centerX, double centerY, double radius, Classes.ViewRange? viewRange = null)
         {
             Title = title;
             GLBUrl = gLBUrl;
             CenterX = centerX;
             CenterY = centerY;
             Radius = radius;
+            ViewRange = viewRange;
         }
 
         /// <summary> Gets the X coordinate of the center of the analyzed circular area. </summary>
@@ -36,5 +38,8 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
 
         /// <summary> Gets the title displayed above the viewer. </summary>
         public string? Title { get; }
+
+        /// <summary> Gets the bounds of the "View range" slider bound to the scene, or null for the viewer defaults (100 / 2000 / 10000 m). </summary>
+        public Classes.ViewRange? ViewRange { get; }
     }
 }

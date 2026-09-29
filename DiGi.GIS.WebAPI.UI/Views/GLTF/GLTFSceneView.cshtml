@@ -70,7 +70,10 @@
              data-glb-url="@(string.IsNullOrEmpty(Model.GLBUrl) ? string.Empty : Url.Content(Model.GLBUrl))"
              data-building-details-url="@Url.Content("~/building2D/detailsbyreference")"
              data-buildingmodel-details-url="@Url.Content("~/buildingmodel/itembyreference")"
-             data-sun-direction-url="@Url.Content("~/solar/sundirection")">
+             data-sun-direction-url="@Url.Content("~/solar/sundirection")"
+             data-view-range-min="@Model.ViewRange?.Minimum.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+             data-view-range-max="@Model.ViewRange?.Maximum.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+             data-view-range-default="@Model.ViewRange?.Default.ToString(System.Globalization.CultureInfo.InvariantCulture)">
             <div id="gltf-loader" class="gltf-loader">
                 <div class="gis-loader"></div>
                 <p class="gis-loader-text">Loading 3D scene…</p>

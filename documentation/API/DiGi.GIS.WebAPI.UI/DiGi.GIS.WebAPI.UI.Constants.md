@@ -271,6 +271,21 @@ public const int BuildingSolveCeiling = 200000;
 #### Field Value
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingViewRangeFactor'></a>
+
+## Default\.BuildingViewRangeFactor Field
+
+The factor between the smallest and the largest view range of a single building scene: the "View range" slider spans the minimum to this many times the minimum\.
+
+Provisional: the value still has to be investigated and may change.
+
+```csharp
+public const double BuildingViewRangeFactor = 3;
+```
+
+#### Field Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.CommunicationWebAPIUri'></a>
 
 ## Default\.CommunicationWebAPIUri Field
@@ -1053,6 +1068,19 @@ public const string UserWebAPIUri_Development = "https://api.digiproject.uk";
 
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.ViewRangeMinimum'></a>
+
+## Default\.ViewRangeMinimum Field
+
+The smallest view range, in metres, of the "View range" slider of a scene loaded for a circular area \(the radius itself when it is smaller\)\.
+
+```csharp
+public const double ViewRangeMinimum = 100;
+```
+
+#### Field Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.YearBuiltDataSetUserYearBuiltUri'></a>
 

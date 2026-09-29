@@ -77,28 +77,55 @@ public static class Create
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → Create
 ### Methods
 
-<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.BuildingViewRange(System.Nullable_double_)'></a>
 
-## Create\.GLTFSceneViewModel\(this GLTFScene, string\) Method
+## Create\.BuildingViewRange\(Nullable\<double\>\) Method
+
+Creates the view range of a single building scene: the slider starts at its minimum and can be moved to the right up to [BuildingViewRangeFactor](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.BuildingViewRangeFactor 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.BuildingViewRangeFactor') times the minimum\.
+
+```csharp
+public static DiGi.GIS.WebAPI.UI.Classes.ViewRange? BuildingViewRange(System.Nullable<double> radius);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.BuildingViewRange(System.Nullable_double_).radius'></a>
+
+`radius` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The requested minimum view range, in metres; null means [TerrainRadius](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.TerrainRadius 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.TerrainRadius')\. This value can be null\.
+
+#### Returns
+[ViewRange](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.ViewRange 'DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange')  
+A [ViewRange](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.ViewRange 'DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange'), or null if the radius is not finite, not positive or its maximum exceeds [TerrainRadiusMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.TerrainRadiusMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.TerrainRadiusMax'), which is as far as the ground can be loaded\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange)'></a>
+
+## Create\.GLTFSceneViewModel\(this GLTFScene, string, ViewRange\) Method
 
 Creates a [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel') for the 3D viewer from the specified [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene') by serializing the scene to JSON and exporting it as a base64 encoded binary glTF \(\.glb\) payload\.
 
 ```csharp
-public static DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel? GLTFSceneViewModel(this DiGi.GLTF.Classes.GLTFScene? gLTFScene, string? title=null);
+public static DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel? GLTFSceneViewModel(this DiGi.GLTF.Classes.GLTFScene? gLTFScene, string? title=null, DiGi.GIS.WebAPI.UI.Classes.ViewRange? viewRange=null);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string).gLTFScene'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).gLTFScene'></a>
 
 `gLTFScene` [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene')
 
 The [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene') to be rendered\. This value can be null\.
 
-<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string).title'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).title'></a>
 
 `title` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The title displayed above the viewer\. If this value is null, the scene name is used\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).viewRange'></a>
+
+`viewRange` [ViewRange](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.ViewRange 'DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange')
+
+The bounds of the "View range" slider bound to the scene, or null for the viewer defaults\. This value can be null\.
 
 #### Returns
 [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel')  
@@ -798,6 +825,27 @@ public static Microsoft.AspNetCore.Http.CookieOptions UserTokenCookieOptions();
 #### Returns
 [Microsoft\.AspNetCore\.Http\.CookieOptions](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.cookieoptions 'Microsoft\.AspNetCore\.Http\.CookieOptions')  
 The [Microsoft\.AspNetCore\.Http\.CookieOptions](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.cookieoptions 'Microsoft\.AspNetCore\.Http\.CookieOptions') used for the session token cookie\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.ViewRange(System.Nullable_double_)'></a>
+
+## Create\.ViewRange\(Nullable\<double\>\) Method
+
+Creates the view range of a scene loaded for a circular area: the radius is both the maximum and the initial value of the slider, so moving it to the left reduces the range shown\.
+
+```csharp
+public static DiGi.GIS.WebAPI.UI.Classes.ViewRange? ViewRange(System.Nullable<double> radius);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.ViewRange(System.Nullable_double_).radius'></a>
+
+`radius` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The radius of the loaded area, in metres\. This value can be null\.
+
+#### Returns
+[ViewRange](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.ViewRange 'DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange')  
+A [ViewRange](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.ViewRange 'DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange') with the minimum [ViewRangeMinimum](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.ViewRangeMinimum 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.ViewRangeMinimum') \(or the radius when it is smaller\), or null if the radius is null, not finite or not positive\.
 
 <a name='DiGi.GIS.WebAPI.UI.Create.VisualColumnTypologyFilter(thisDiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_)'></a>
 

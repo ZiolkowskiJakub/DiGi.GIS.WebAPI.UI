@@ -6,6 +6,12 @@ namespace DiGi.GIS.WebAPI.UI.Constants
     public static class Default
     {
         /// <summary>
+        /// The factor between the smallest and the largest view range of a single building scene: the "View range" slider spans the minimum to this many times the minimum.
+        /// <para>Provisional: the value still has to be investigated and may change.</para>
+        /// </summary>
+        public const double BuildingViewRangeFactor = 3.0;
+
+        /// <summary>
         /// The radius, in metres, searched around a plan position to find the building standing there.
         /// <para>The 3D viewer knows a picked building by its centroid rather than by its identifier, so the building is recovered by asking for everything within this distance of that point. Small on purpose: it has to be forgiving of the difference between a footprint centroid and a model centroid without reaching a neighbouring building.</para>
         /// </summary>
@@ -367,5 +373,10 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         /// <para>Requires a signed-in session.</para>
         /// </summary>
         public const string YearBuiltDataSetUserYearBuiltUri = GISWebAPIUri + "/gis/yearbuiltdata/setuseryearbuilt";
+
+        /// <summary>
+        /// The smallest view range, in metres, of the "View range" slider of a scene loaded for a circular area (the radius itself when it is smaller).
+        /// </summary>
+        public const double ViewRangeMinimum = 100.0;
     }
 }

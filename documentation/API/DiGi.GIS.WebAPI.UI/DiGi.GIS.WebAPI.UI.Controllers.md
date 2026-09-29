@@ -730,30 +730,36 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task 'System\.Threading\.Tasks\.Task')  
 A [System\.Threading\.Tasks\.Task](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task 'System\.Threading\.Tasks\.Task') representing the asynchronous operation\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Threading.CancellationToken)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
 
-## BuildingModelController\.GetBuildingModelByIdAsync\(long, Nullable\<int\>, CancellationToken\) Method
+## BuildingModelController\.GetBuildingModelByIdAsync\(long, Nullable\<int\>, Nullable\<double\>, CancellationToken\) Method
 
 Renders the 3D viewer page for a single building\. The page itself carries no geometry; the viewer streams the binary glTF payload from the glb endpoint\.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetBuildingModelByIdAsync(long id, System.Nullable<int> countyId, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetBuildingModelByIdAsync(long id, System.Nullable<int> countyId, System.Nullable<double> radius, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Threading.CancellationToken).id'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).id'></a>
 
 `id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 The unique identifier of the building\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Threading.CancellationToken).countyId'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).countyId'></a>
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional unique identifier of the county associated with the building\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).radius'></a>
+
+`radius` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional minimum view range in metres \(the "View range" slider then spans it to [BuildingViewRangeFactor](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.BuildingViewRangeFactor 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.BuildingViewRangeFactor') times it and the ground is loaded out to that maximum\); when null, [TerrainRadius](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.TerrainRadius 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.TerrainRadius') is used\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
 
 `cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
 
@@ -804,32 +810,38 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the \.glb file\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Threading.CancellationToken)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
 
-## BuildingModelController\.GetGLBBuildingModelByIdAsync\(long, Nullable\<int\>, CancellationToken\) Method
+## BuildingModelController\.GetGLBBuildingModelByIdAsync\(long, Nullable\<int\>, Nullable\<double\>, CancellationToken\) Method
 
 Asynchronously retrieves the 3D [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') for the building with the specified unique identifier from the database \(see [BuildingModelAsync\(this HttpClient, long, Nullable&lt;int&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.BuildingModelAsync(thisSystem.Net.Http.HttpClient,long,System.Nullable_int_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.BuildingModelAsync\(this System\.Net\.Http\.HttpClient, long, System\.Nullable\<int\>, System\.Threading\.CancellationToken\)')\), converts each of its components \(walls, floors and roofs\) into a separate node of a batched [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene') \(translated to a local origin\) and streams it as a binary glTF \(\.glb\) payload\.
 
 Each component carries its own identity in the scene object map, so the 3D viewer can hit-test and select individual components instead of the building as a whole.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetGLBBuildingModelByIdAsync(long id, System.Nullable<int> countyId, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetGLBBuildingModelByIdAsync(long id, System.Nullable<int> countyId, System.Nullable<double> radius, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Threading.CancellationToken).id'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).id'></a>
 
 `id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 The unique identifier of the building\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Threading.CancellationToken).countyId'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).countyId'></a>
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional unique identifier of the county associated with the building\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).radius'></a>
+
+`radius` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional minimum view range in metres \(the "View range" slider then spans it to [BuildingViewRangeFactor](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.BuildingViewRangeFactor 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.BuildingViewRangeFactor') times it and the ground is loaded out to that maximum\); when null, [TerrainRadius](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.TerrainRadius 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.TerrainRadius') is used\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
 
 `cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
 
@@ -839,36 +851,42 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the \.glb file\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double,System.Threading.CancellationToken)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double,System.Nullable_double_,System.Threading.CancellationToken)'></a>
 
-## BuildingModelController\.GetItemByReferenceAsync\(string, double, double, CancellationToken\) Method
+## BuildingModelController\.GetItemByReferenceAsync\(string, double, double, Nullable\<double\>, CancellationToken\) Method
 
 Asynchronously loads a [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') from the GIS Web API by searching for the building at the specified coordinates, converts its components into separate selectable [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode') instances and renders the 3D viewer page\.
 
 ```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetItemByReferenceAsync(string reference, double x, double y, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetItemByReferenceAsync(string reference, double x, double y, System.Nullable<double> radius, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double,System.Threading.CancellationToken).reference'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double,System.Nullable_double_,System.Threading.CancellationToken).reference'></a>
 
 `reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The reference of the building model\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double,System.Threading.CancellationToken).x'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double,System.Nullable_double_,System.Threading.CancellationToken).x'></a>
 
 `x` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 The X coordinate of the building centroid\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double,System.Threading.CancellationToken).y'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double,System.Nullable_double_,System.Threading.CancellationToken).y'></a>
 
 `y` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 The Y coordinate of the building centroid\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double,System.Threading.CancellationToken).cancellationToken'></a>
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double,System.Nullable_double_,System.Threading.CancellationToken).radius'></a>
+
+`radius` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional minimum view range in metres \(the "View range" slider then spans it to [BuildingViewRangeFactor](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.BuildingViewRangeFactor 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.BuildingViewRangeFactor') times it and the ground is loaded out to that maximum\); when null, [TerrainRadius](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.TerrainRadius 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.TerrainRadius') is used\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
 
 `cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
 

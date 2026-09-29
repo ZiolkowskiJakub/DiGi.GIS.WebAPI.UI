@@ -1,3 +1,4 @@
+using DiGi.GIS.WebAPI.UI.Classes;
 using DiGi.GLTF.Classes;
 
 namespace DiGi.GIS.WebAPI.UI.ViewModels
@@ -21,11 +22,13 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
         /// <param name="title">The title displayed above the viewer.</param>
         /// <param name="gLBUrl">The application relative URL of the binary glTF (.glb) endpoint.</param>
         /// <param name="scopeBoxSize">The default scope box preset in the form "halfX;halfY;zMin;zMax" or "halfX;halfY" (DiGi coordinates; the latter lets the viewer fit the Z range to the buildings' elevation) passed to the viewer, or null for the bounds-fit default. This value can be null.</param>
-        public GLTFSceneViewModel(string? title, string? gLBUrl, string? scopeBoxSize = null)
+        /// <param name="viewRange">The bounds of the "View range" slider bound to the scene, or null for the viewer defaults (100 / 2000 / 10000 m). This value can be null.</param>
+        public GLTFSceneViewModel(string? title, string? gLBUrl, string? scopeBoxSize = null, ViewRange? viewRange = null)
         {
             Title = title;
             GLBUrl = gLBUrl;
             ScopeBoxSize = scopeBoxSize;
+            ViewRange = viewRange;
         }
 
         /// <summary>
@@ -35,12 +38,14 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
         /// <param name="gLTFSceneJson">The JSON representation of the scene used by the viewer for lights, camera and reference point configuration.</param>
         /// <param name="gLBBase64">The base64 encoded binary glTF (.glb) payload rendered by the viewer.</param>
         /// <param name="title">The title displayed above the viewer.</param>
-        public GLTFSceneViewModel(GLTFScene? gLTFScene, string? gLTFSceneJson, string? gLBBase64, string? title)
+        /// <param name="viewRange">The bounds of the "View range" slider bound to the scene, or null for the viewer defaults (100 / 2000 / 10000 m). This value can be null.</param>
+        public GLTFSceneViewModel(GLTFScene? gLTFScene, string? gLTFSceneJson, string? gLBBase64, string? title, ViewRange? viewRange = null)
         {
             GLTFScene = gLTFScene;
             GLTFSceneJson = gLTFSceneJson;
             GLBBase64 = gLBBase64;
             Title = title;
+            ViewRange = viewRange;
         }
 
         /// <summary> Gets the base64 encoded binary glTF (.glb) payload rendered by the viewer (embedded delivery only). </summary>
@@ -60,5 +65,8 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
 
         /// <summary> Gets the title displayed above the viewer. </summary>
         public string? Title { get; }
+
+        /// <summary> Gets the bounds of the "View range" slider bound to the scene, or null for the viewer defaults (100 / 2000 / 10000 m). </summary>
+        public ViewRange? ViewRange { get; }
     }
 }

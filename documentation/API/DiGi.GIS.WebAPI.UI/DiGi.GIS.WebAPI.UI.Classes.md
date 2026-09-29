@@ -1432,6 +1432,90 @@ public System.Nullable<short> Year { get; set; }
 #### Property Value
 [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
+<a name='DiGi.GIS.WebAPI.UI.Classes.ViewRange'></a>
+
+## ViewRange Class
+
+The bounds of the 3D viewer "View range" slider, in metres, bound to a scene: objects further from the scene center than the current value are not rendered\.
+
+Built by [ViewRange\(Nullable&lt;double&gt;\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.ViewRange(System.Nullable_double_) 'DiGi\.GIS\.WebAPI\.UI\.Create\.ViewRange\(System\.Nullable\<double\>\)') and [BuildingViewRange\(Nullable&lt;double&gt;\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.BuildingViewRange(System.Nullable_double_) 'DiGi\.GIS\.WebAPI\.UI\.Create\.BuildingViewRange\(System\.Nullable\<double\>\)'), which validate the values; the constructor only assigns them.
+
+```csharp
+public class ViewRange
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → ViewRange
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.ViewRange.ViewRange(double,double,double)'></a>
+
+## ViewRange\(double, double, double\) Constructor
+
+Initializes a new instance of the [ViewRange](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.ViewRange 'DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange') class\.
+
+```csharp
+public ViewRange(double minimum, double maximum, double defaultValue);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.ViewRange.ViewRange(double,double,double).minimum'></a>
+
+`minimum` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The smallest view range, in metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.ViewRange.ViewRange(double,double,double).maximum'></a>
+
+`maximum` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The largest view range, in metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.ViewRange.ViewRange(double,double,double).defaultValue'></a>
+
+`defaultValue` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The view range the slider starts at, in metres\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.ViewRange.Default'></a>
+
+## ViewRange\.Default Property
+
+Gets the view range the slider starts at, in metres\.
+
+```csharp
+public double Default { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.ViewRange.Maximum'></a>
+
+## ViewRange\.Maximum Property
+
+Gets the largest view range, in metres\.
+
+```csharp
+public double Maximum { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.ViewRange.Minimum'></a>
+
+## ViewRange\.Minimum Property
+
+Gets the smallest view range, in metres\.
+
+```csharp
+public double Minimum { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
 <a name='DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse'></a>
 
 ## WebAPIResponse Class

@@ -54,7 +54,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             string title = $"Buildings ({centerX}, {centerY}) r = {radius} m";
 
-            CommunicationSceneViewModel communicationSceneViewModel = new(title, gLBUrl, centerX, centerY, radius);
+            CommunicationSceneViewModel communicationSceneViewModel = new(title, gLBUrl, centerX, centerY, radius, Create.ViewRange(radius));
 
             return View("CommunicationSceneView", communicationSceneViewModel);
         }

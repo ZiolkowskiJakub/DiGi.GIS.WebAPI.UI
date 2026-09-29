@@ -25,12 +25,15 @@
         <p class="gis-hero-text">
             Load a single building by its identifier and explore it in 3D. The footprint is extruded to the building height from its number of storeys, so you can inspect its shape, size and surroundings from any angle.
         </p>
-        <form method="get" action="~/buildingmodel/buildingmodelbyid" class="gis-inline-form">
+        <form id="buildingmodel-id-form" method="get" action="~/buildingmodel/buildingmodelbyid" class="gis-inline-form">
             <label>Building Id
                 <input type="number" name="id" value="5072294" required />
             </label>
             <label>County Id
                 <input type="number" name="countyid" value="12668" class="gis-input-md" />
+            </label>
+            <label>Radius [m]
+                <input type="number" name="radius" step="any" min="1" max="666" placeholder="default" class="gis-input-sm" />
             </label>
             <button type="submit" class="gis-button">Open</button>
         </form>
@@ -72,5 +75,7 @@
     <script src="~/js/gis-common.js" asp-append-version="true"></script>
     <script>
         setupDisplayAreaRadiusValidation('#buildingmodel-radius-form');
+        // The Building Viewer radius is the minimum view range; the ground is loaded out to 3 times it, and at most 2000 m.
+        setupDisplayAreaRadiusValidation('#buildingmodel-id-form', 'radius', 666, 666);
     </script>
 }

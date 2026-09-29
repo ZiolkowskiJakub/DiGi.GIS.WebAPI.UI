@@ -42,14 +42,21 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// <param name="reference">The reference of the building model.</param>
         /// <param name="x">The X coordinate of the building centroid.</param>
         /// <param name="y">The Y coordinate of the building centroid.</param>
+        /// <param name="radius">The optional minimum view range in metres (the "View range" slider then spans it to <see cref="Constants.Default.BuildingViewRangeFactor"/> times it and the ground is loaded out to that maximum); when null, <see cref="Constants.Default.TerrainRadius"/> is used.</param>
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
         /// <returns>A <see cref="Task{IActionResult}"/> rendering the 3D glTF scene view or a not found response.</returns>
         [HttpGet("itembyreference")]
-        public async Task<IActionResult> GetItemByReferenceAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "x")] double x, [FromQuery(Name = "y")] double y, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetItemByReferenceAsync([FromQuery(Name = "reference")] string reference, [FromQuery(Name = "x")] double x, [FromQuery(Name = "y")] double y, [FromQuery(Name = "radius")] double? radius, CancellationToken cancellationToken = default)
         {
             if (!double.IsFinite(x) || !double.IsFinite(y))
             {
                 return BadRequest();
+            }
+
+            Classes.ViewRange? viewRange = Create.BuildingViewRange(radius);
+            if (viewRange is null)
+            {
+                return BadRequest($"The radius must be a positive number of meters not greater than {System.Math.Floor(Constants.Default.TerrainRadiusMax / Constants.Default.BuildingViewRangeFactor)} m.");
             }
 
             HttpClient httpClient = httpClientFactory.CreateClient();
@@ -100,7 +107,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NotFound();
             }
 
-            Circle2D? circle2D_Terrain = buildingModel.TerrainCircle();
+            Circle2D? circle2D_Terrain = buildingModel.TerrainCircle(minimumRadius: viewRange.Maximum);
 
             await AddTerrainAsync(gLTFNodes, httpClient, circle2D_Terrain, [buildingModel], cancellationToken);
 
@@ -112,7 +119,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NotFound();
             }
 
-            ViewModels.GLTFSceneViewModel? gLTFSceneViewModel = gLTFScene.GLTFSceneViewModel(name);
+            ViewModels.GLTFSceneViewModel? gLTFSceneViewModel = gLTFScene.GLTFSceneViewModel(name, viewRange);
             if (gLTFSceneViewModel is null)
             {
                 return NotFound();
@@ -142,7 +149,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             string title = $"Buildings ({centerX}, {centerY}) r = {radius} m";
 
             // Multi-building default scope box: +-50 m in X/Y around the scene center; the viewer fits Z to the buildings' elevation.
-            GLTFSceneViewModel gLTFSceneViewModel = new(title, gLBUrl, "50;50");
+            GLTFSceneViewModel gLTFSceneViewModel = new(title, gLBUrl, "50;50", Create.ViewRange(radius));
 
             return View("~/Views/GLTF/GLTFSceneView.cshtml", gLTFSceneViewModel);
         }
@@ -236,11 +243,18 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// </summary>
         /// <param name="id">The unique identifier of the building.</param>
         /// <param name="countyId">The optional unique identifier of the county associated with the building.</param>
+        /// <param name="radius">The optional minimum view range in metres (the "View range" slider then spans it to <see cref="Constants.Default.BuildingViewRangeFactor"/> times it and the ground is loaded out to that maximum); when null, <see cref="Constants.Default.TerrainRadius"/> is used.</param>
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
         /// <returns>An <see cref="IActionResult"/> rendering the glTF scene view.</returns>
         [HttpGet("buildingmodelbyid")]
-        public async Task<IActionResult> GetBuildingModelByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetBuildingModelByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "radius")] double? radius, CancellationToken cancellationToken = default)
         {
+            Classes.ViewRange? viewRange = Create.BuildingViewRange(radius);
+            if (viewRange is null)
+            {
+                return BadRequest($"The radius must be a positive number of meters not greater than {System.Math.Floor(Constants.Default.TerrainRadiusMax / Constants.Default.BuildingViewRangeFactor)} m.");
+            }
+
             HttpClient httpClient = httpClientFactory.CreateClient();
 
             UrlBuilder urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/building2D/building2Dreferencebyid");
@@ -265,7 +279,12 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 gLBUrl += $"&countyid={countyId.Value.ToString(CultureInfo.InvariantCulture)}";
             }
 
-            GLTFSceneViewModel gLTFSceneViewModel = new($"BuildingModel {id}", gLBUrl);
+            if (radius.HasValue)
+            {
+                gLBUrl += $"&radius={radius.Value.ToString(CultureInfo.InvariantCulture)}";
+            }
+
+            GLTFSceneViewModel gLTFSceneViewModel = new($"BuildingModel {id}", gLBUrl, viewRange: viewRange);
 
             return View("~/Views/GLTF/GLTFSceneView.cshtml", gLTFSceneViewModel);
         }
@@ -276,11 +295,18 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// </summary>
         /// <param name="id">The unique identifier of the building.</param>
         /// <param name="countyId">The optional unique identifier of the county associated with the building.</param>
+        /// <param name="radius">The optional minimum view range in metres (the "View range" slider then spans it to <see cref="Constants.Default.BuildingViewRangeFactor"/> times it and the ground is loaded out to that maximum); when null, <see cref="Constants.Default.TerrainRadius"/> is used.</param>
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
         /// <returns>A <see cref="Task{IActionResult}"/> holding the .glb file.</returns>
         [HttpGet("glb/buildingmodelbyid")]
-        public async Task<IActionResult> GetGLBBuildingModelByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetGLBBuildingModelByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "radius")] double? radius, CancellationToken cancellationToken = default)
         {
+            Classes.ViewRange? viewRange = Create.BuildingViewRange(radius);
+            if (viewRange is null)
+            {
+                return BadRequest($"The radius must be a positive number of meters not greater than {System.Math.Floor(Constants.Default.TerrainRadiusMax / Constants.Default.BuildingViewRangeFactor)} m.");
+            }
+
             HttpClient httpClient = httpClientFactory.CreateClient();
 
             BuildingModel? buildingModel = await httpClient.BuildingModelAsync(id, countyId, cancellationToken);
@@ -299,7 +325,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NoContent();
             }
 
-            Circle2D? circle2D_Terrain = buildingModel.TerrainCircle();
+            Circle2D? circle2D_Terrain = buildingModel.TerrainCircle(minimumRadius: viewRange.Maximum);
 
             await AddTerrainAsync(gLTFNodes, httpClient, circle2D_Terrain, [buildingModel], cancellationToken);
 
