@@ -173,12 +173,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             HttpClient httpClient = httpClientFactory.CreateClient();
 
-            UrlBuilder urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/buildingmodel/itemsbycircle");
-            urlBuilder = urlBuilder.AddParameter("x", centerX);
-            urlBuilder = urlBuilder.AddParameter("y", centerY);
-            urlBuilder = urlBuilder.AddParameter("radius", radius);
-
-            List<BuildingModel>? buildingModels = await httpClient.ItemsAsync<BuildingModel>(urlBuilder.ToString(), cancellationToken);
+            List<BuildingModel>? buildingModels = await BuildingModelsByCircleAsync(httpClient, centerX, centerY, radius, cancellationToken);
             if (buildingModels is null || buildingModels.Count == 0)
             {
                 return NoContent();
@@ -193,21 +188,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             string name = $"Buildings ({centerX}, {centerY}) r = {radius} m";
 
-            List<GLTFNode> gLTFNodes = [];
-            foreach (BuildingModel buildingModel in buildingModels)
-            {
-                IReference? reference = null;
-                if(buildingModel.TryGetValue<string>(Analytical.Enums.BuildingModelParameter.Reference, out string? referenceText) && Core.Query.TryParse(referenceText, out IReference? reference_Temp))
-                {
-                    reference = reference_Temp;
-                }
-
-                List<GLTFNode>? gLTFNodes_Temp = buildingModel.ToGLTF_GLTFNodes(reference, Core.Constants.Tolerance.Distance, BuildingModelDetailLevel.Envelope);
-                if (gLTFNodes_Temp is not null)
-                {
-                    gLTFNodes.AddRange(gLTFNodes_Temp);
-                }
-            }
+            List<GLTFNode> gLTFNodes = EnvelopeGLTFNodes(buildingModels);
 
             if (gLTFNodes is null || gLTFNodes.Count == 0)
             {
@@ -284,7 +265,14 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 gLBUrl += $"&radius={radius.Value.ToString(CultureInfo.InvariantCulture)}";
             }
 
-            GLTFSceneViewModel gLTFSceneViewModel = new($"BuildingModel {id}", gLBUrl, viewRange: viewRange);
+            // Surrounding elements are offered by the page but only fetched when the user first asks for them.
+            string surroundingsGLBUrl = $"~/buildingmodel/glb/surroundingsbybuildingid?id={id.ToString(CultureInfo.InvariantCulture)}";
+            if (countyId.HasValue)
+            {
+                surroundingsGLBUrl += $"&countyid={countyId.Value.ToString(CultureInfo.InvariantCulture)}";
+            }
+
+            GLTFSceneViewModel gLTFSceneViewModel = new($"BuildingModel {id}", gLBUrl, viewRange: viewRange, surroundingsGLBUrl: surroundingsGLBUrl);
 
             return View("~/Views/GLTF/GLTFSceneView.cshtml", gLTFSceneViewModel);
         }
@@ -331,7 +319,93 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             string name = $"BuildingModel {id.ToString(CultureInfo.InvariantCulture)}";
 
-            GLTFScene? gLTFScene = GLTF.Create.GLTFScene(gLTFNodes, name);
+            // An explicit local origin (the building centre) keeps this payload lined up with the surrounding elements, which are streamed separately.
+            Point2D? center = buildingModel.TerrainCircle(0, 0)?.Center;
+
+            GLTFScene? gLTFScene = GLTF.Create.GLTFScene(gLTFNodes, name, referencePointOverride: center is null ? null : new Point3D(center.X, center.Y, 0));
+            if (gLTFScene is null)
+            {
+                return NoContent();
+            }
+
+            byte[]? bytes = GLTF.Convert.ToSystem_Bytes(gLTFScene, true);
+            if (bytes is null || bytes.Length == 0)
+            {
+                return NoContent();
+            }
+
+            return File(bytes, "model/gltf-binary", $"{name}.glb");
+        }
+
+        /// <summary>
+        /// Asynchronously retrieves the buildings surrounding the building with the specified unique identifier and streams them as a binary glTF (.glb) payload of non-selectable "surroundings" nodes (see <see cref="Constants.Default.SurroundingName"/>), which the Building Viewer loads lazily when the user asks to show the surrounding elements.
+        /// <para>The buildings are converted at <see cref="BuildingModelDetailLevel.Envelope"/> detail, the target building itself and the terrain are left out, and the scene is translated to the same local origin as the one of <see cref="GetGLBBuildingModelByIdAsync(long, int?, double?, CancellationToken)"/>, so the two payloads line up.</para>
+        /// </summary>
+        /// <param name="id">The unique identifier of the target building.</param>
+        /// <param name="countyId">The optional unique identifier of the county associated with the building.</param>
+        /// <param name="radius">The optional search radius in metres around the building; when null, <see cref="Constants.Default.SurroundingRadius"/> is used.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> holding the .glb file, or no content when the building has no neighbours.</returns>
+        [HttpGet("glb/surroundingsbybuildingid")]
+        public async Task<IActionResult> GetGLBSurroundingsByBuildingIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "radius")] double? radius, CancellationToken cancellationToken = default)
+        {
+            double radius_Search = radius ?? Constants.Default.SurroundingRadius;
+            if (double.IsNaN(radius_Search) || radius_Search <= 0 || radius_Search > Constants.Default.DisplayRadiusMax || ModelState.GetValidationState("radius") == Microsoft.AspNetCore.Mvc.ModelBinding.ModelValidationState.Invalid)
+            {
+                return BadRequest($"The radius must be a positive number of meters not greater than {Constants.Default.DisplayRadiusMax} m.");
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            BuildingModel? buildingModel = await httpClient.BuildingModelAsync(id, countyId, cancellationToken);
+            if (buildingModel is null)
+            {
+                return NoContent();
+            }
+
+            Point2D? center = buildingModel.TerrainCircle(0, 0)?.Center;
+            if (center is null)
+            {
+                return NoContent();
+            }
+
+            List<BuildingModel>? buildingModels = await BuildingModelsByCircleAsync(httpClient, center.X, center.Y, radius_Search, cancellationToken);
+            if (buildingModels is null || buildingModels.Count == 0)
+            {
+                return NoContent();
+            }
+
+            // The target building is part of the answer, and is matched by reference (falling back to its centre)
+            // so that it is never drawn twice - once opaque and selectable, once as a surrounding element.
+            string? referenceText_Target = TryGetReferenceText(buildingModel);
+            List<BuildingModel> buildingModels_Surrounding = [];
+            foreach (BuildingModel buildingModel_Temp in buildingModels)
+            {
+                string? referenceText = TryGetReferenceText(buildingModel_Temp);
+                bool isTarget = referenceText_Target is not null && referenceText is not null
+                    ? referenceText == referenceText_Target
+                    : buildingModel_Temp.TerrainCircle(0, 0)?.Center.Distance(center) < Constants.Default.BuildingSearchTolerance;
+
+                if (!isTarget)
+                {
+                    buildingModels_Surrounding.Add(buildingModel_Temp);
+                }
+            }
+
+            List<GLTFNode> gLTFNodes = [];
+            foreach (GLTFNode gLTFNode in EnvelopeGLTFNodes(buildingModels_Surrounding))
+            {
+                gLTFNodes.Add(new GLTFNode(Constants.Default.SurroundingName, gLTFNode.Reference, gLTFNode.Mesh3D, gLTFNode.Color, gLTFNode.Opacity, gLTFNode.Properties));
+            }
+
+            if (gLTFNodes.Count == 0)
+            {
+                return NoContent();
+            }
+
+            string name = $"Surroundings {id.ToString(CultureInfo.InvariantCulture)}";
+
+            GLTFScene? gLTFScene = GLTF.Create.GLTFScene(gLTFNodes, name, referencePointOverride: new Point3D(center.X, center.Y, 0));
             if (gLTFScene is null)
             {
                 return NoContent();
@@ -354,6 +428,62 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         public IActionResult Start()
         {
             return View("~/Views/GLTF/Start.cshtml");
+        }
+
+        /// <summary>
+        /// Asynchronously retrieves the <see cref="BuildingModel"/> items whose position lies within the given circle from the GIS Web API.
+        /// </summary>
+        /// <param name="httpClient">The HTTP client used for the request.</param>
+        /// <param name="centerX">The X coordinate of the center of the search circle.</param>
+        /// <param name="centerY">The Y coordinate of the center of the search circle.</param>
+        /// <param name="radius">The radius of the search circle in meters.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>The buildings found, or <see langword="null"/> when the request fails.</returns>
+        private static async Task<List<BuildingModel>?> BuildingModelsByCircleAsync(HttpClient httpClient, double centerX, double centerY, double radius, CancellationToken cancellationToken)
+        {
+            UrlBuilder urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/buildingmodel/itemsbycircle");
+            urlBuilder = urlBuilder.AddParameter("x", centerX);
+            urlBuilder = urlBuilder.AddParameter("y", centerY);
+            urlBuilder = urlBuilder.AddParameter("radius", radius);
+
+            return await httpClient.ItemsAsync<BuildingModel>(urlBuilder.ToString(), cancellationToken);
+        }
+
+        /// <summary>
+        /// Converts each of the given buildings into <see cref="GLTFNode"/> instances at <see cref="BuildingModelDetailLevel.Envelope"/> detail, referenced by the reference stored on the building.
+        /// </summary>
+        /// <param name="buildingModels">The buildings to convert.</param>
+        /// <returns>The nodes of all the buildings, in world coordinates. The list is empty when nothing could be converted.</returns>
+        private static List<GLTFNode> EnvelopeGLTFNodes(IEnumerable<BuildingModel> buildingModels)
+        {
+            List<GLTFNode> result = [];
+            foreach (BuildingModel buildingModel in buildingModels)
+            {
+                IReference? reference = null;
+                string? referenceText = TryGetReferenceText(buildingModel);
+                if (referenceText is not null && Core.Query.TryParse(referenceText, out IReference? reference_Temp))
+                {
+                    reference = reference_Temp;
+                }
+
+                List<GLTFNode>? gLTFNodes = buildingModel.ToGLTF_GLTFNodes(reference, Core.Constants.Tolerance.Distance, BuildingModelDetailLevel.Envelope);
+                if (gLTFNodes is not null)
+                {
+                    result.AddRange(gLTFNodes);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Reads the reference text stored on a building.
+        /// </summary>
+        /// <param name="buildingModel">The building.</param>
+        /// <returns>The reference text, or <see langword="null"/> when the building carries none.</returns>
+        private static string? TryGetReferenceText(BuildingModel buildingModel)
+        {
+            return buildingModel.TryGetValue<string>(Analytical.Enums.BuildingModelParameter.Reference, out string? referenceText) ? referenceText : null;
         }
 
         /// <summary>

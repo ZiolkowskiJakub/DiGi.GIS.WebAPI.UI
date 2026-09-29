@@ -63,11 +63,14 @@
            data-status-terminal: boolean flag of the task status terminal docked to the bottom edge
            of the 3D view — "false" removes the text area and its splitter entirely.
            data-scope-box-size: default scope box preset "halfX;halfY;zMin;zMax" or "halfX;halfY" (DiGi coordinates; the latter fits Z to the buildings' elevation);
-           empty falls back to the engine's bounds-fit default. *@
+           empty falls back to the engine's bounds-fit default.
+           data-surroundings-glb-url: optional URL of the surrounding elements payload; when present the Settings card offers the
+           "Show surrounding elements" checkbox and the Transparency slider, and the payload is fetched only on the first check. *@
         <div id="gltf-viewer-container"
              data-status-terminal="true"
              data-scope-box-size="@Model.ScopeBoxSize"
              data-glb-url="@(string.IsNullOrEmpty(Model.GLBUrl) ? string.Empty : Url.Content(Model.GLBUrl))"
+             data-surroundings-glb-url="@(string.IsNullOrEmpty(Model.SurroundingsGLBUrl) ? null : Url.Content(Model.SurroundingsGLBUrl))"
              data-building-details-url="@Url.Content("~/building2D/detailsbyreference")"
              data-buildingmodel-details-url="@Url.Content("~/buildingmodel/itembyreference")"
              data-sun-direction-url="@Url.Content("~/solar/sundirection")"

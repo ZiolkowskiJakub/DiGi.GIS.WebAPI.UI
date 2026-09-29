@@ -293,6 +293,17 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const string TerrainName = "Terrain";
 
         /// <summary>
+        /// The radius, in metres, around a building within which the Building Viewer loads its surrounding elements (neighbouring buildings) when they are requested.
+        /// <para>Capped by <see cref="DisplayRadiusMax"/>.</para>
+        /// </summary>
+        public const double SurroundingRadius = 150.0;
+
+        /// <summary>
+        /// The name given to every node of the surrounding elements of a scene, which the 3D viewer reads as the non-selectable "surroundings" category (the way it reads <see cref="TerrainName"/> as terrain).
+        /// </summary>
+        public const string SurroundingName = "Surrounding";
+
+        /// <summary>
         /// The margin in meters extending beyond building bounding envelopes when calculating dynamic terrain coverage.
         /// </summary>
         public const double TerrainPadding = 50.0;

@@ -23,7 +23,8 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
         /// <param name="gLBUrl">The application relative URL of the binary glTF (.glb) endpoint.</param>
         /// <param name="scopeBoxSize">The default scope box preset in the form "halfX;halfY;zMin;zMax" or "halfX;halfY" (DiGi coordinates; the latter lets the viewer fit the Z range to the buildings' elevation) passed to the viewer, or null for the bounds-fit default. This value can be null.</param>
         /// <param name="viewRange">The bounds of the "View range" slider bound to the scene, or null for the viewer defaults (100 / 2000 / 10000 m). This value can be null.</param>
-        public GLTFSceneViewModel(string? title, string? gLBUrl, string? scopeBoxSize = null, ViewRange? viewRange = null)
+        /// <param name="surroundingsGLBUrl">The application relative URL of the binary glTF (.glb) endpoint of the surrounding elements, which the viewer loads lazily when they are first requested, or null when the scene offers none. This value can be null.</param>
+        public GLTFSceneViewModel(string? title, string? gLBUrl, string? scopeBoxSize = null, ViewRange? viewRange = null, string? surroundingsGLBUrl = null)
         {
             Title = title;
             GLBUrl = gLBUrl;
@@ -46,6 +47,7 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
             GLBBase64 = gLBBase64;
             Title = title;
             ViewRange = viewRange;
+            SurroundingsGLBUrl = surroundingsGLBUrl;
         }
 
         /// <summary> Gets the base64 encoded binary glTF (.glb) payload rendered by the viewer (embedded delivery only). </summary>
@@ -62,6 +64,9 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
 
         /// <summary> Gets the default scope box preset in the form "halfX;halfY;zMin;zMax" or "halfX;halfY" (DiGi coordinates; the latter lets the viewer fit the Z range to the buildings' elevation) passed to the viewer, or null for the bounds-fit default. </summary>
         public string? ScopeBoxSize { get; }
+
+        /// <summary> Gets the application relative URL of the binary glTF (.glb) endpoint of the surrounding elements (streamed delivery only), or null when the scene offers none. </summary>
+        public string? SurroundingsGLBUrl { get; }
 
         /// <summary> Gets the title displayed above the viewer. </summary>
         public string? Title { get; }
