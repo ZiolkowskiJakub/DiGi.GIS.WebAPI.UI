@@ -730,6 +730,72 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task 'System\.Threading\.Tasks\.Task')  
 A [System\.Threading\.Tasks\.Task](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task 'System\.Threading\.Tasks\.Task') representing the asynchronous operation\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.BuildingModelsByCircleAsync(System.Net.Http.HttpClient,double,double,double,System.Threading.CancellationToken)'></a>
+
+## BuildingModelController\.BuildingModelsByCircleAsync\(HttpClient, double, double, double, CancellationToken\) Method
+
+Asynchronously retrieves the [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') items whose position lies within the given circle from the GIS Web API\.
+
+```csharp
+private static System.Threading.Tasks.Task<System.Collections.Generic.List<DiGi.Analytical.Building.Classes.BuildingModel>?> BuildingModelsByCircleAsync(System.Net.Http.HttpClient httpClient, double centerX, double centerY, double radius, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.BuildingModelsByCircleAsync(System.Net.Http.HttpClient,double,double,double,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.BuildingModelsByCircleAsync(System.Net.Http.HttpClient,double,double,double,System.Threading.CancellationToken).centerX'></a>
+
+`centerX` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The X coordinate of the center of the search circle\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.BuildingModelsByCircleAsync(System.Net.Http.HttpClient,double,double,double,System.Threading.CancellationToken).centerY'></a>
+
+`centerY` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The Y coordinate of the center of the search circle\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.BuildingModelsByCircleAsync(System.Net.Http.HttpClient,double,double,double,System.Threading.CancellationToken).radius'></a>
+
+`radius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The radius of the search circle in meters\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.BuildingModelsByCircleAsync(System.Net.Http.HttpClient,double,double,double,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The buildings found, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the request fails\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.EnvelopeGLTFNodes(System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_)'></a>
+
+## BuildingModelController\.EnvelopeGLTFNodes\(IEnumerable\<BuildingModel\>\) Method
+
+Converts each of the given buildings into [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode') instances at [DiGi\.Analytical\.Building\.Enums\.BuildingModelDetailLevel\.Envelope](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.enums.buildingmodeldetaillevel.envelope 'DiGi\.Analytical\.Building\.Enums\.BuildingModelDetailLevel\.Envelope') detail, referenced by the reference stored on the building\.
+
+```csharp
+private static System.Collections.Generic.List<DiGi.GLTF.Classes.GLTFNode> EnvelopeGLTFNodes(System.Collections.Generic.IEnumerable<DiGi.Analytical.Building.Classes.BuildingModel> buildingModels);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.EnvelopeGLTFNodes(System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_).buildingModels'></a>
+
+`buildingModels` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The buildings to convert\.
+
+#### Returns
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
+The nodes of all the buildings, in world coordinates\. The list is empty when nothing could be converted\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
 
 ## BuildingModelController\.GetBuildingModelByIdAsync\(long, Nullable\<int\>, Nullable\<double\>, CancellationToken\) Method
@@ -851,6 +917,47 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the \.glb file\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBSurroundingsByBuildingIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
+
+## BuildingModelController\.GetGLBSurroundingsByBuildingIdAsync\(long, Nullable\<int\>, Nullable\<double\>, CancellationToken\) Method
+
+Asynchronously retrieves the buildings surrounding the building with the specified unique identifier and streams them as a binary glTF \(\.glb\) payload of non\-selectable "surroundings" nodes \(see [SurroundingName](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SurroundingName 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SurroundingName')\), which the Building Viewer loads lazily when the user asks to show the surrounding elements\.
+
+The buildings are converted at [DiGi\.Analytical\.Building\.Enums\.BuildingModelDetailLevel\.Envelope](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.enums.buildingmodeldetaillevel.envelope 'DiGi\.Analytical\.Building\.Enums\.BuildingModelDetailLevel\.Envelope') detail, the target building itself and the terrain are left out, and the scene is translated to the same local origin as the one of [GetGLBBuildingModelByIdAsync\(long, Nullable&lt;int&gt;, Nullable&lt;double&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.BuildingModelController\.GetGLBBuildingModelByIdAsync\(long, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)'), so the two payloads line up.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetGLBSurroundingsByBuildingIdAsync(long id, System.Nullable<int> countyId, System.Nullable<double> radius, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBSurroundingsByBuildingIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).id'></a>
+
+`id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The unique identifier of the target building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBSurroundingsByBuildingIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional unique identifier of the county associated with the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBSurroundingsByBuildingIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).radius'></a>
+
+`radius` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional search radius in metres around the building; when null, [SurroundingRadius](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SurroundingRadius 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SurroundingRadius') is used\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBSurroundingsByBuildingIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the \.glb file, or no content when the building has no neighbours\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double,System.Nullable_double_,System.Threading.CancellationToken)'></a>
 
 ## BuildingModelController\.GetItemByReferenceAsync\(string, double, double, Nullable\<double\>, CancellationToken\) Method
@@ -944,6 +1051,27 @@ public Microsoft.AspNetCore.Mvc.IActionResult Start();
 #### Returns
 [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
 An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') representing the start view\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.TryGetReferenceText(DiGi.Analytical.Building.Classes.BuildingModel)'></a>
+
+## BuildingModelController\.TryGetReferenceText\(BuildingModel\) Method
+
+Reads the reference text stored on a building\.
+
+```csharp
+private static string? TryGetReferenceText(DiGi.Analytical.Building.Classes.BuildingModel buildingModel);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.TryGetReferenceText(DiGi.Analytical.Building.Classes.BuildingModel).buildingModel'></a>
+
+`buildingModel` [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')
+
+The building\.
+
+#### Returns
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
+The reference text, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the building carries none\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController'></a>
 
