@@ -1391,6 +1391,10 @@ h1.gis-title-large {
             width: 70px;
         }
 
+        .gis-inline-form input.gis-input-lg {
+            width: 100px;
+        }
+
 /* Narrow centered card (single control panel) */
 .gis-card-narrow {
     max-width: 520px;
