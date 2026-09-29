@@ -802,6 +802,34 @@ public const double StoreyHeight = 3;
 #### Field Value
 [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.SurroundingName'></a>
+
+## Default\.SurroundingName Field
+
+The name given to every node of the surrounding elements of a scene, which the 3D viewer reads as the non\-selectable "surroundings" category \(the way it reads [TerrainName](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.TerrainName 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.TerrainName') as terrain\)\.
+
+```csharp
+public const string SurroundingName = "Surrounding";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.SurroundingRadius'></a>
+
+## Default\.SurroundingRadius Field
+
+The radius, in metres, around a building within which the Building Viewer loads its surrounding elements \(neighbouring buildings\) when they are requested\.
+
+Capped by [DisplayRadiusMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.DisplayRadiusMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.DisplayRadiusMax').
+
+```csharp
+public const double SurroundingRadius = 150;
+```
+
+#### Field Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.TerrainBuffer'></a>
 
 ## Default\.TerrainBuffer Field
