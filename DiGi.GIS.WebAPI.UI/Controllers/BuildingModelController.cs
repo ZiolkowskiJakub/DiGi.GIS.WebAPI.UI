@@ -382,9 +382,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             foreach (BuildingModel buildingModel_Temp in buildingModels)
             {
                 string? referenceText = TryGetReferenceText(buildingModel_Temp);
+                Point2D? center_Temp = buildingModel_Temp.TerrainCircle(0, 0)?.Center;
                 bool isTarget = referenceText_Target is not null && referenceText is not null
                     ? referenceText == referenceText_Target
-                    : buildingModel_Temp.TerrainCircle(0, 0)?.Center.Distance(center) < Constants.Default.BuildingSearchTolerance;
+                    : center_Temp is not null && center_Temp.Distance(center) < Constants.Default.BuildingSearchTolerance;
 
                 if (!isTarget)
                 {

@@ -30,6 +30,7 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
             GLBUrl = gLBUrl;
             ScopeBoxSize = scopeBoxSize;
             ViewRange = viewRange;
+            SurroundingsGLBUrl = surroundingsGLBUrl;
         }
 
         /// <summary>
@@ -47,7 +48,6 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
             GLBBase64 = gLBBase64;
             Title = title;
             ViewRange = viewRange;
-            SurroundingsGLBUrl = surroundingsGLBUrl;
         }
 
         /// <summary> Gets the base64 encoded binary glTF (.glb) payload rendered by the viewer (embedded delivery only). </summary>
