@@ -54,7 +54,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             }
 
             Classes.ViewRange? viewRange = Create.BuildingViewRange(radius);
-            if (viewRange is null)
+            if (viewRange is null || ModelState.GetValidationState("radius") == Microsoft.AspNetCore.Mvc.ModelBinding.ModelValidationState.Invalid)
             {
                 return BadRequest($"The radius must be a positive number of meters not greater than {System.Math.Floor(Constants.Default.TerrainRadiusMax / Constants.Default.BuildingViewRangeFactor)} m.");
             }
@@ -250,7 +250,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         public async Task<IActionResult> GetBuildingModelByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "radius")] double? radius, CancellationToken cancellationToken = default)
         {
             Classes.ViewRange? viewRange = Create.BuildingViewRange(radius);
-            if (viewRange is null)
+            if (viewRange is null || ModelState.GetValidationState("radius") == Microsoft.AspNetCore.Mvc.ModelBinding.ModelValidationState.Invalid)
             {
                 return BadRequest($"The radius must be a positive number of meters not greater than {System.Math.Floor(Constants.Default.TerrainRadiusMax / Constants.Default.BuildingViewRangeFactor)} m.");
             }
@@ -302,7 +302,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         public async Task<IActionResult> GetGLBBuildingModelByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "radius")] double? radius, CancellationToken cancellationToken = default)
         {
             Classes.ViewRange? viewRange = Create.BuildingViewRange(radius);
-            if (viewRange is null)
+            if (viewRange is null || ModelState.GetValidationState("radius") == Microsoft.AspNetCore.Mvc.ModelBinding.ModelValidationState.Invalid)
             {
                 return BadRequest($"The radius must be a positive number of meters not greater than {System.Math.Floor(Constants.Default.TerrainRadiusMax / Constants.Default.BuildingViewRangeFactor)} m.");
             }
