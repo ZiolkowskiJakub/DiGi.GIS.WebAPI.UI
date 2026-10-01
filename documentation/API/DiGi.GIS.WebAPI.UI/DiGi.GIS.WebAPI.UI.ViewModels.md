@@ -666,87 +666,99 @@ Initializes a new instance of the [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewMo
 public GLTFSceneViewModel();
 ```
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange)'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel)'></a>
 
-## GLTFSceneViewModel\(GLTFScene, string, string, string, ViewRange\) Constructor
+## GLTFSceneViewModel\(GLTFScene, string, string, string, ViewRange, SolarSettingsViewModel\) Constructor
 
 Initializes a new instance of the [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel') class for embedded delivery\.
 
 ```csharp
-public GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene? gLTFScene, string? gLTFSceneJson, string? gLBBase64, string? title, DiGi.GIS.WebAPI.UI.Classes.ViewRange? viewRange=null);
+public GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene? gLTFScene, string? gLTFSceneJson, string? gLBBase64, string? title, DiGi.GIS.WebAPI.UI.Classes.ViewRange? viewRange=null, DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel? solarSettings=null);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).gLTFScene'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).gLTFScene'></a>
 
 `gLTFScene` [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene')
 
 The [GLTFScene](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFScene 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel\.GLTFScene') to be rendered\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).gLTFSceneJson'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).gLTFSceneJson'></a>
 
 `gLTFSceneJson` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The JSON representation of the scene used by the viewer for lights, camera and reference point configuration\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).gLBBase64'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).gLBBase64'></a>
 
 `gLBBase64` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The base64 encoded binary glTF \(\.glb\) payload rendered by the viewer\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).title'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).title'></a>
 
 `title` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The title displayed above the viewer\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).viewRange'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).viewRange'></a>
 
 `viewRange` [ViewRange](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.ViewRange 'DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange')
 
 The bounds of the "View range" slider bound to the scene, or null for the viewer defaults \(100 / 2000 / 10000 m\)\. This value can be null\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string)'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).solarSettings'></a>
 
-## GLTFSceneViewModel\(string, string, string, ViewRange, string\) Constructor
+`solarSettings` [SolarSettingsViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSettingsViewModel')
 
-Initializes a new instance of the [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel') class for streamed delivery: the viewer fetches the binary glTF payload from [gLBUrl](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string).gLBUrl 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel\.GLTFSceneViewModel\(string, string, string, DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange, string\)\.gLBUrl') and reads the scene configuration from its extras\.
+The settings of the "Solar radiation" panel, or null when the page offers no solar calculation\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel)'></a>
+
+## GLTFSceneViewModel\(string, string, string, ViewRange, string, SolarSettingsViewModel\) Constructor
+
+Initializes a new instance of the [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel') class for streamed delivery: the viewer fetches the binary glTF payload from [gLBUrl](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).gLBUrl 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel\.GLTFSceneViewModel\(string, string, string, DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange, string, DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSettingsViewModel\)\.gLBUrl') and reads the scene configuration from its extras\.
 
 ```csharp
-public GLTFSceneViewModel(string? title, string? gLBUrl, string? scopeBoxSize=null, DiGi.GIS.WebAPI.UI.Classes.ViewRange? viewRange=null, string? surroundingsGLBUrl=null);
+public GLTFSceneViewModel(string? title, string? gLBUrl, string? scopeBoxSize=null, DiGi.GIS.WebAPI.UI.Classes.ViewRange? viewRange=null, string? surroundingsGLBUrl=null, DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel? solarSettings=null);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string).title'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).title'></a>
 
 `title` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The title displayed above the viewer\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string).gLBUrl'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).gLBUrl'></a>
 
 `gLBUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The application relative URL of the binary glTF \(\.glb\) endpoint\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string).scopeBoxSize'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).scopeBoxSize'></a>
 
 `scopeBoxSize` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The default scope box preset in the form "halfX;halfY;zMin;zMax" or "halfX;halfY" \(DiGi coordinates; the latter lets the viewer fit the Z range to the buildings' elevation\) passed to the viewer, or null for the bounds\-fit default\. This value can be null\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string).viewRange'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).viewRange'></a>
 
 `viewRange` [ViewRange](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.ViewRange 'DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange')
 
 The bounds of the "View range" slider bound to the scene, or null for the viewer defaults \(100 / 2000 / 10000 m\)\. This value can be null\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string).surroundingsGLBUrl'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).surroundingsGLBUrl'></a>
 
 `surroundingsGLBUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The application relative URL of the binary glTF \(\.glb\) endpoint of the surrounding elements, which the viewer loads lazily when they are first requested, or null when the scene offers none\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).solarSettings'></a>
+
+`solarSettings` [SolarSettingsViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSettingsViewModel')
+
+The settings of the "Solar radiation" panel, or null when the page offers no solar calculation\. This value can be null\.
 ### Properties
 
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLBBase64'></a>
@@ -813,6 +825,19 @@ public string? ScopeBoxSize { get; }
 
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.SolarSettings'></a>
+
+## GLTFSceneViewModel\.SolarSettings Property
+
+Gets the settings of the "Solar radiation" panel, or null when the page offers no solar calculation\.
+
+```csharp
+public DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel? SolarSettings { get; }
+```
+
+#### Property Value
+[SolarSettingsViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSettingsViewModel')
 
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.SurroundingsGLBUrl'></a>
 
@@ -1022,7 +1047,7 @@ public short Year { get; }
 
 ## SolarJobViewModel Class
 
-Represents the state of a background solar radiation job as the `solar/jobs` routes answer it and the solar radiation viewer polls it\.
+Represents the state of a background solar radiation job as the `solar/jobs` routes answer it and the Building Viewer's "Solar radiation" panel polls it\.
 
 ```csharp
 public class SolarJobViewModel
@@ -1157,117 +1182,62 @@ public string Status { get; }
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel'></a>
 
-## SolarSceneViewModel Class
+## SolarRadiationViewModel Class
 
-Represents a view model for the solar radiation 3D scene view: the building and its neighbours, streamed as a binary glTF payload with the receiving surfaces coloured by their annual irradiation, plus what the legend states about the calculation\.
+Represents the annual solar radiation of one building as the Building Viewer's "Solar radiation" panel applies it: one entry per receiving surface, recoloured in the existing scene, and the inputs the Results card reports\.
+
+Answered by `solar/viewbybuildingmodelid` and `solar/jobs/{jobId}/view`. It carries no geometry: the surfaces are matched to the scene by [Reference](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel.Reference 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSurfaceViewModel\.Reference').
 
 ```csharp
-public class SolarSceneViewModel
+public class SolarRadiationViewModel
 ```
 
-Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → SolarSceneViewModel
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → SolarRadiationViewModel
 ### Constructors
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,string,string,double,string,string)'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.SolarRadiationViewModel(double,string,string,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel_)'></a>
 
-## SolarSceneViewModel\(string, string, string, string, double, string, string\) Constructor
+## SolarRadiationViewModel\(double, string, string, List\<SolarSurfaceViewModel\>\) Constructor
 
-Initializes a new instance of the [SolarSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSceneViewModel') class\.
+Initializes a new instance of the [SolarRadiationViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarRadiationViewModel') class\.
 
 ```csharp
-public SolarSceneViewModel(string? title, string? gLBUrl, string? jobsUrl, string? jobQuery, double radius, string? stationName, string? stationUrl);
+public SolarRadiationViewModel(double radius, string? stationName, string? stationUrl, System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel> surfaces);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,string,string,double,string,string).title'></a>
-
-`title` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
-
-The title displayed above the viewer\.
-
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,string,string,double,string,string).gLBUrl'></a>
-
-`gLBUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
-
-The application relative URL of the binary glTF \(\.glb\) endpoint\.
-
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,string,string,double,string,string).jobsUrl'></a>
-
-`jobsUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
-
-The application relative URL of the background job routes \(`solar/jobs`\), offered when the scene request is refused as too large\.
-
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,string,string,double,string,string).jobQuery'></a>
-
-`jobQuery` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
-
-The query string \(`id`, `countyid`, `radius`\) a background job is posted with\.
-
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,string,string,double,string,string).radius'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.SolarRadiationViewModel(double,string,string,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel_).radius'></a>
 
 `radius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
-The neighbour radius in metres, measured from the edge of the footprint\.
+The neighbour radius the calculation used, in metres\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,string,string,double,string,string).stationName'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.SolarRadiationViewModel(double,string,string,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel_).stationName'></a>
 
 `stationName` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
-The name of the EPW weather station, or null when the file does not state it\.
+The name of the EPW weather station, or null when the file names none\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.SolarSceneViewModel(string,string,string,string,double,string,string).stationUrl'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.SolarRadiationViewModel(double,string,string,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel_).stationUrl'></a>
 
 `stationUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
-The application relative URL of the EPW weather file page of the station\.
+The application relative URL of the EPW file page of the station, or null\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.SolarRadiationViewModel(double,string,string,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel_).surfaces'></a>
+
+`surfaces` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[SolarSurfaceViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSurfaceViewModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+The results of the receiving surfaces\.
 ### Properties
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.GLBUrl'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.Radius'></a>
 
-## SolarSceneViewModel\.GLBUrl Property
+## SolarRadiationViewModel\.Radius Property
 
-Gets the application relative URL of the binary glTF \(\.glb\) endpoint\.
-
-```csharp
-public string? GLBUrl { get; }
-```
-
-#### Property Value
-[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
-
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.JobQuery'></a>
-
-## SolarSceneViewModel\.JobQuery Property
-
-Gets the query string \(`id`, `countyid`, `radius`\) a background job is posted with\.
-
-```csharp
-public string? JobQuery { get; }
-```
-
-#### Property Value
-[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
-
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.JobsUrl'></a>
-
-## SolarSceneViewModel\.JobsUrl Property
-
-Gets the application relative URL of the background job routes \(`solar/jobs`\), offered when the scene request is refused as too large\.
-
-```csharp
-public string? JobsUrl { get; }
-```
-
-#### Property Value
-[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
-
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.Radius'></a>
-
-## SolarSceneViewModel\.Radius Property
-
-Gets the neighbour radius in metres, measured from the edge of the footprint\.
+Gets the neighbour radius the calculation used, in metres\.
 
 ```csharp
 public double Radius { get; }
@@ -1276,11 +1246,11 @@ public double Radius { get; }
 #### Property Value
 [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.StationName'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.StationName'></a>
 
-## SolarSceneViewModel\.StationName Property
+## SolarRadiationViewModel\.StationName Property
 
-Gets the name of the EPW weather station, or null when the file does not state it\.
+Gets the name of the EPW weather station, or null when the file names none\.
 
 ```csharp
 public string? StationName { get; }
@@ -1289,11 +1259,11 @@ public string? StationName { get; }
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.StationUrl'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.StationUrl'></a>
 
-## SolarSceneViewModel\.StationUrl Property
+## SolarRadiationViewModel\.StationUrl Property
 
-Gets the application relative URL of the EPW weather file page of the station\.
+Gets the application relative URL of the EPW file page of the station, or null\.
 
 ```csharp
 public string? StationUrl { get; }
@@ -1302,14 +1272,180 @@ public string? StationUrl { get; }
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSceneViewModel.Title'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.Surfaces'></a>
 
-## SolarSceneViewModel\.Title Property
+## SolarRadiationViewModel\.Surfaces Property
 
-Gets the title displayed above the viewer\.
+Gets the results of the receiving surfaces\.
 
 ```csharp
-public string? Title { get; }
+public System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel> Surfaces { get; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[SolarSurfaceViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSurfaceViewModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel'></a>
+
+## SolarSettingsViewModel Class
+
+Represents what the Building Viewer's "Solar radiation" panel needs to calculate the building of the page: the query of the solar routes and the neighbour radius, both the one used and the one the page asked for\.
+
+A page renders the panel only when it carries these settings, i.e. when its building is known by identifier (DiGi.GIS.WebAPI.UI#66).
+
+```csharp
+public class SolarSettingsViewModel
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → SolarSettingsViewModel
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel.SolarSettingsViewModel(string,double,double)'></a>
+
+## SolarSettingsViewModel\(string, double, double\) Constructor
+
+Initializes a new instance of the [SolarSettingsViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSettingsViewModel') class\.
+
+```csharp
+public SolarSettingsViewModel(string query, double radius, double radiusRequested);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel.SolarSettingsViewModel(string,double,double).query'></a>
+
+`query` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The query string of the solar routes \(`id`, `countyid` and `radius`, invariant culture, without the leading `?`\)\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel.SolarSettingsViewModel(string,double,double).radius'></a>
+
+`radius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The neighbour radius the calculation uses, in metres \([SolarRadius\(Nullable&lt;double&gt;\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.SolarRadius(System.Nullable_double_) 'DiGi\.GIS\.WebAPI\.UI\.Query\.SolarRadius\(System\.Nullable\<double\>\)')\)\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel.SolarSettingsViewModel(string,double,double).radiusRequested'></a>
+
+`radiusRequested` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The scene radius of the page, in metres, from which [radius](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel.SolarSettingsViewModel(string,double,double).radius 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSettingsViewModel\.SolarSettingsViewModel\(string, double, double\)\.radius') was clamped\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel.Query'></a>
+
+## SolarSettingsViewModel\.Query Property
+
+Gets the query string of the solar routes, without the leading `?`\.
+
+```csharp
+public string Query { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel.Radius'></a>
+
+## SolarSettingsViewModel\.Radius Property
+
+Gets the neighbour radius the calculation uses, in metres\.
+
+```csharp
+public double Radius { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel.RadiusRequested'></a>
+
+## SolarSettingsViewModel\.RadiusRequested Property
+
+Gets the scene radius of the page, in metres, from which [Radius](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel.Radius 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSettingsViewModel\.Radius') was clamped\.
+
+```csharp
+public double RadiusRequested { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel'></a>
+
+## SolarSurfaceViewModel Class
+
+Represents the solar radiation result of one receiving surface \(an external wall or roof\) as the Building Viewer applies it to the scene in place: the node it recolours, the colour and the properties it shows\.
+
+```csharp
+public class SolarSurfaceViewModel
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → SolarSurfaceViewModel
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel.SolarSurfaceViewModel(string,string,string)'></a>
+
+## SolarSurfaceViewModel\(string, string, string\) Constructor
+
+Initializes a new instance of the [SolarSurfaceViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSurfaceViewModel') class\.
+
+```csharp
+public SolarSurfaceViewModel(string reference, string color, string? properties);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel.SolarSurfaceViewModel(string,string,string).reference'></a>
+
+`reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The reference of the Building Viewer node of the component, exactly as the scene carries it\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel.SolarSurfaceViewModel(string,string,string).color'></a>
+
+`color` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The irradiation colour of the surface as a `#rrggbb` string \([SolarIrradiationColor\(double\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.SolarIrradiationColor(double) 'DiGi\.GIS\.WebAPI\.UI\.Query\.SolarIrradiationColor\(double\)')\)\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel.SolarSurfaceViewModel(string,string,string).properties'></a>
+
+`properties` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The [SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult') of the surface as DiGi JSON, shown in the Properties panel in place of the component's own data\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel.Color'></a>
+
+## SolarSurfaceViewModel\.Color Property
+
+Gets the irradiation colour of the surface as a `#rrggbb` string\.
+
+```csharp
+public string Color { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel.Properties'></a>
+
+## SolarSurfaceViewModel\.Properties Property
+
+Gets the [SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult') of the surface as DiGi JSON\.
+
+```csharp
+public string? Properties { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel.Reference'></a>
+
+## SolarSurfaceViewModel\.Reference Property
+
+Gets the reference of the Building Viewer node of the component, exactly as the scene carries it\.
+
+```csharp
+public string Reference { get; }
 ```
 
 #### Property Value

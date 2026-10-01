@@ -3,7 +3,7 @@ namespace DiGi.GIS.WebAPI.UI
     public static partial class Query
     {
         /// <summary>
-        /// Maps an annual irradiation to the colour the solar radiation viewer paints a surface with, on a fixed ramp from 0 (dark blue) through pale yellow to <see cref="Constants.Default.SolarIrradiationScaleMax"/> (dark red).
+        /// Maps an annual irradiation to the colour the Building Viewer's "Solar radiation" panel paints a surface with, on a fixed ramp from 0 (dark blue) through pale yellow to <see cref="Constants.Default.SolarIrradiationScaleMax"/> (dark red).
         /// <para>The ramp is fixed rather than fitted to each building, so two buildings read the same colour for the same irradiation. Values outside the range take the end colours, and a value that is not finite takes the bottom one. The same ramp draws the viewer's legend, so the two cannot drift apart.</para>
         /// </summary>
         /// <param name="irradiation">The annual irradiation, in kWh/m² per year.</param>

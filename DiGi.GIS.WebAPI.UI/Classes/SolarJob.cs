@@ -19,8 +19,9 @@ namespace DiGi.GIS.WebAPI.UI.Classes
         /// <param name="countyId">The optional unique identifier of the county associated with the building.</param>
         /// <param name="radius">The neighbour radius in metres.</param>
         /// <param name="receiverCount">The number of receiving surfaces (external walls and roofs) of the building.</param>
-        /// <param name="buildingModel">The building, kept to build the coloured scene from the results.</param>
-        /// <param name="buildingModels_Surrounding">The neighbours, kept to build the coloured scene from the results.</param>
+        /// <param name="buildingModel">The building, kept to reference the Building Viewer nodes of the results.</param>
+        /// <param name="stationName">The name of the EPW weather station the calculation uses, or null when the file names none.</param>
+        /// <param name="stationUrl">The application relative URL of the EPW file page of the station, or null.</param>
         /// <param name="calculation">The calculation, prepared with every input it needs; it is released once it has run.</param>
         public SolarJob(
             Guid id,
@@ -29,7 +30,8 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             double radius,
             int receiverCount,
             BuildingModel? buildingModel,
-            List<BuildingModel>? buildingModels_Surrounding,
+            string? stationName,
+            string? stationUrl,
             Func<List<SurfaceSolarRadiationResult>?>? calculation)
         {
             Id = id;
@@ -38,18 +40,16 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             Radius = radius;
             ReceiverCount = receiverCount;
             BuildingModel = buildingModel;
-            BuildingModels_Surrounding = buildingModels_Surrounding;
+            StationName = stationName;
+            StationUrl = stationUrl;
             Calculation = calculation;
         }
 
-        /// <summary> Gets the building, kept to build the coloured scene from the results; null once the job failed or was cancelled. </summary>
+        /// <summary> Gets the building, kept to reference the Building Viewer nodes of the results; null once the job failed or was cancelled. </summary>
         public BuildingModel? BuildingModel { get; internal set; }
 
         /// <summary> Gets the unique identifier of the building. </summary>
         public long BuildingModelId { get; }
-
-        /// <summary> Gets the neighbours, kept to build the coloured scene from the results; null once the job failed or was cancelled. </summary>
-        public List<BuildingModel>? BuildingModels_Surrounding { get; internal set; }
 
         /// <summary> Gets the prepared calculation, or null once it has run or the job was cancelled. </summary>
         public Func<List<SurfaceSolarRadiationResult>?>? Calculation { get; internal set; }
@@ -80,6 +80,12 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 
         /// <summary> Gets the moment the calculation started. </summary>
         public DateTimeOffset? StartedAt { get; internal set; }
+
+        /// <summary> Gets the name of the EPW weather station the calculation uses, or null when the file names none. </summary>
+        public string? StationName { get; }
+
+        /// <summary> Gets the application relative URL of the EPW file page of the station, or null. </summary>
+        public string? StationUrl { get; }
 
         /// <summary> Gets the state of the job. </summary>
         public SolarJobStatus Status { get; internal set; } = SolarJobStatus.Queued;

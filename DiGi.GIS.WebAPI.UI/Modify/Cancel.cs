@@ -31,11 +31,10 @@ namespace DiGi.GIS.WebAPI.UI
 
                 if (solarJob.Status == SolarJobStatus.Queued)
                 {
-                    // Nothing of it will be used again: the calculation and the models go at once.
+                    // Nothing of it will be used again: the calculation and the building go at once.
                     solarJob.Status = SolarJobStatus.Cancelled;
                     solarJob.Calculation = null;
                     solarJob.BuildingModel = null;
-                    solarJob.BuildingModels_Surrounding = null;
                     solarJob.FinishedAt = solarJobQueue.TimeProvider.GetUtcNow();
                 }
                 else if (solarJob.Status == SolarJobStatus.Running)

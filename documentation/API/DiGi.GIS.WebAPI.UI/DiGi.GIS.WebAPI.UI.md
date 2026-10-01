@@ -98,34 +98,40 @@ The requested minimum view range, in metres; null means [TerrainRadius](DiGi.GIS
 [ViewRange](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.ViewRange 'DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange')  
 A [ViewRange](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.ViewRange 'DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange'), or null if the radius is not finite, not positive or its maximum exceeds [TerrainRadiusMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.TerrainRadiusMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.TerrainRadiusMax'), which is as far as the ground can be loaded\.
 
-<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel)'></a>
 
-## Create\.GLTFSceneViewModel\(this GLTFScene, string, ViewRange\) Method
+## Create\.GLTFSceneViewModel\(this GLTFScene, string, ViewRange, SolarSettingsViewModel\) Method
 
 Creates a [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel') for the 3D viewer from the specified [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene') by serializing the scene to JSON and exporting it as a base64 encoded binary glTF \(\.glb\) payload\.
 
 ```csharp
-public static DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel? GLTFSceneViewModel(this DiGi.GLTF.Classes.GLTFScene? gLTFScene, string? title=null, DiGi.GIS.WebAPI.UI.Classes.ViewRange? viewRange=null);
+public static DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel? GLTFSceneViewModel(this DiGi.GLTF.Classes.GLTFScene? gLTFScene, string? title=null, DiGi.GIS.WebAPI.UI.Classes.ViewRange? viewRange=null, DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel? solarSettings=null);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).gLTFScene'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).gLTFScene'></a>
 
 `gLTFScene` [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene')
 
 The [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene') to be rendered\. This value can be null\.
 
-<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).title'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).title'></a>
 
 `title` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The title displayed above the viewer\. If this value is null, the scene name is used\.
 
-<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange).viewRange'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).viewRange'></a>
 
 `viewRange` [ViewRange](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.ViewRange 'DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange')
 
 The bounds of the "View range" slider bound to the scene, or null for the viewer defaults\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).solarSettings'></a>
+
+`solarSettings` [SolarSettingsViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSettingsViewModel')
+
+The settings of the "Solar radiation" panel, or null when the page offers no solar calculation\. This value can be null\.
 
 #### Returns
 [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel')  
@@ -179,53 +185,6 @@ The number of segments to divide the circle perimeter into\. Defaults to [Terrai
 [DiGi\.Geometry\.Planar\.Classes\.Polygon2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.polygon2d 'DiGi\.Geometry\.Planar\.Classes\.Polygon2D')  
 A [DiGi\.Geometry\.Planar\.Classes\.Polygon2D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.planar.classes.polygon2d 'DiGi\.Geometry\.Planar\.Classes\.Polygon2D') representing the discretized circle, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') if the circle is null or invalid\.
 
-<a name='DiGi.GIS.WebAPI.UI.Create.SolarGLTFNodes(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double)'></a>
-
-## Create\.SolarGLTFNodes\(this BuildingModel, IEnumerable\<BuildingModel\>, IEnumerable\<SurfaceSolarRadiationResult\>, IReference, double\) Method
-
-Builds the glTF nodes of the solar radiation viewer from already calculated results: the analysed building component by component, each receiving surface coloured by its annual irradiation \([SolarIrradiationColor\(double\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.SolarIrradiationColor(double) 'DiGi\.GIS\.WebAPI\.UI\.Query\.SolarIrradiationColor\(double\)')\) and carrying its [SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult') as the node properties, every other component neutral grey, and the neighbours as grey semi\-transparent envelopes for context\.
-
-It takes results rather than solving, so a stored calculation can be displayed again without a new solve. No terrain is added: the solve ignores it.
-
-```csharp
-public static System.Collections.Generic.List<DiGi.GLTF.Classes.GLTFNode>? SolarGLTFNodes(this DiGi.Analytical.Building.Classes.BuildingModel? buildingModel, System.Collections.Generic.IEnumerable<DiGi.Analytical.Building.Classes.BuildingModel>? buildingModels_Surrounding, System.Collections.Generic.IEnumerable<DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult>? surfaceSolarRadiationResults, DiGi.Core.Interfaces.IReference? reference, double tolerance=1E-06);
-```
-#### Parameters
-
-<a name='DiGi.GIS.WebAPI.UI.Create.SolarGLTFNodes(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double).buildingModel'></a>
-
-`buildingModel` [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')
-
-The analysed building model\. This value can be null\.
-
-<a name='DiGi.GIS.WebAPI.UI.Create.SolarGLTFNodes(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double).buildingModels_Surrounding'></a>
-
-`buildingModels_Surrounding` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
-
-The neighbouring building models shown for context, or null for none\. A copy of [buildingModel](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.SolarGLTFNodes(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double).buildingModel 'DiGi\.GIS\.WebAPI\.UI\.Create\.SolarGLTFNodes\(this DiGi\.Analytical\.Building\.Classes\.BuildingModel, System\.Collections\.Generic\.IEnumerable\<DiGi\.Analytical\.Building\.Classes\.BuildingModel\>, System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult\>, DiGi\.Core\.Interfaces\.IReference, double\)\.buildingModel') among them is skipped\.
-
-<a name='DiGi.GIS.WebAPI.UI.Create.SolarGLTFNodes(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double).surfaceSolarRadiationResults'></a>
-
-`surfaceSolarRadiationResults` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
-
-The results of the receiving surfaces, matched to the components by [Reference](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.Reference 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult\.Reference')\. This value can be null\.
-
-<a name='DiGi.GIS.WebAPI.UI.Create.SolarGLTFNodes(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double).reference'></a>
-
-`reference` [DiGi\.Core\.Interfaces\.IReference](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.ireference 'DiGi\.Core\.Interfaces\.IReference')
-
-The optional root reference of the building model \(a county \+ building [DiGi\.Core\.Classes\.ComplexReference](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.complexreference 'DiGi\.Core\.Classes\.ComplexReference'), as the 3D building viewer uses\); each component node extends it by the component's step\.
-
-<a name='DiGi.GIS.WebAPI.UI.Create.SolarGLTFNodes(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double).tolerance'></a>
-
-`tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-The distance tolerance used by the triangulation\.
-
-#### Returns
-[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
-The nodes in world coordinates, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the building model is null or has no convertible component\.
-
 <a name='DiGi.GIS.WebAPI.UI.Create.SolarJobViewModel(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue,System.Guid)'></a>
 
 ## Create\.SolarJobViewModel\(this SolarJobQueue, Guid\) Method
@@ -252,6 +211,92 @@ The unique identifier of the job\.
 #### Returns
 [SolarJobViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarJobViewModel')  
 The view of the job, or null when it is unknown or has expired\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SolarRadiationViewModel(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double,string,string)'></a>
+
+## Create\.SolarRadiationViewModel\(this BuildingModel, IEnumerable\<SurfaceSolarRadiationResult\>, IReference, double, string, string\) Method
+
+Builds the solar radiation view of a building from already calculated results: one [SolarSurfaceViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSurfaceViewModel') per receiving surface, referenced exactly like the Building Viewer node of its component, coloured by [SolarIrradiationColor\(double\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.SolarIrradiationColor(double) 'DiGi\.GIS\.WebAPI\.UI\.Query\.SolarIrradiationColor\(double\)') and carrying its [SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult') as properties\.
+
+The node reference is built the way `DiGi.GLTF.Analytical.Convert.ToGLTF_GLTFNodes(BuildingModel, IReference)` builds it for the viewer scene: the root [reference](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.SolarRadiationViewModel(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double,string,string).reference 'DiGi\.GIS\.WebAPI\.UI\.Create\.SolarRadiationViewModel\(this DiGi\.Analytical\.Building\.Classes\.BuildingModel, System\.Collections\.Generic\.IEnumerable\<DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult\>, DiGi\.Core\.Interfaces\.IReference, double, string, string\)\.reference') extended by the component's unique reference, or that unique reference alone when the root is null. Components without a result are left out, so the viewer keeps their appearance.
+
+```csharp
+public static DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel? SolarRadiationViewModel(this DiGi.Analytical.Building.Classes.BuildingModel? buildingModel, System.Collections.Generic.IEnumerable<DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult>? surfaceSolarRadiationResults, DiGi.Core.Interfaces.IReference? reference, double radius, string? stationName, string? stationUrl);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SolarRadiationViewModel(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double,string,string).buildingModel'></a>
+
+`buildingModel` [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')
+
+The analysed building model\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SolarRadiationViewModel(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double,string,string).surfaceSolarRadiationResults'></a>
+
+`surfaceSolarRadiationResults` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The results of the receiving surfaces, matched to the components by [Reference](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult.Reference 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult\.Reference')\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SolarRadiationViewModel(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double,string,string).reference'></a>
+
+`reference` [DiGi\.Core\.Interfaces\.IReference](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.ireference 'DiGi\.Core\.Interfaces\.IReference')
+
+The root reference of the building model in the viewer scene \(a county \+ building [DiGi\.Core\.Classes\.ComplexReference](https://learn.microsoft.com/en-us/dotnet/api/digi.core.classes.complexreference 'DiGi\.Core\.Classes\.ComplexReference'), see `PostgreSQL.Create.Reference`\)\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SolarRadiationViewModel(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double,string,string).radius'></a>
+
+`radius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The neighbour radius the calculation used, in metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SolarRadiationViewModel(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double,string,string).stationName'></a>
+
+`stationName` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The name of the EPW weather station\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SolarRadiationViewModel(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult_,DiGi.Core.Interfaces.IReference,double,string,string).stationUrl'></a>
+
+`stationUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The application relative URL of the EPW file page of the station\. This value can be null\.
+
+#### Returns
+[SolarRadiationViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarRadiationViewModel')  
+The view, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the building model or the results are null, or no component has a result\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SolarSettingsViewModel(long,System.Nullable_int_,System.Nullable_double_)'></a>
+
+## Create\.SolarSettingsViewModel\(long, Nullable\<int\>, Nullable\<double\>\) Method
+
+Creates the settings of the Building Viewer's "Solar radiation" panel for a building known by identifier: the query of the solar routes with the neighbour radius clamped by [SolarRadius\(Nullable&lt;double&gt;\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.SolarRadius(System.Nullable_double_) 'DiGi\.GIS\.WebAPI\.UI\.Query\.SolarRadius\(System\.Nullable\<double\>\)')\.
+
+```csharp
+public static DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel SolarSettingsViewModel(long id, System.Nullable<int> countyId, System.Nullable<double> radius);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SolarSettingsViewModel(long,System.Nullable_int_,System.Nullable_double_).id'></a>
+
+`id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The unique identifier of the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SolarSettingsViewModel(long,System.Nullable_int_,System.Nullable_double_).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional unique identifier of the county associated with the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SolarSettingsViewModel(long,System.Nullable_int_,System.Nullable_double_).radius'></a>
+
+`radius` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The scene radius of the page, in metres; null means [TerrainRadius](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.TerrainRadius 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.TerrainRadius')\.
+
+#### Returns
+[SolarSettingsViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSettingsViewModel')  
+The settings\.
 
 <a name='DiGi.GIS.WebAPI.UI.Create.SurfaceSolarRadiationResults(thisDiGi.Analytical.Building.Classes.BuildingModel,System.Collections.Generic.IEnumerable_DiGi.Analytical.Building.Classes.BuildingModel_,DiGi.EPW.Classes.EPWFile,DiGi.Solar.Classes.ShadingSolverOptions)'></a>
 
@@ -1155,7 +1200,7 @@ The number of jobs removed\.
 
 Runs a queued background solar radiation job behind the solve gate it shares with the synchronous requests: waits for the gate, marks the job [Running](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus.Running 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarJobStatus\.Running'), runs its prepared calculation and marks it [Completed](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus.Completed 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarJobStatus\.Completed') with the results, or [Failed](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus.Failed 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarJobStatus\.Failed') with the error text when the calculation throws or gives no result\.
 
-A job cancelled before it starts is skipped without taking the gate; one cancelled while it runs keeps the [Cancelled](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus.Cancelled 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarJobStatus\.Cancelled') state and its results are discarded. Either way the calculation and the inputs it holds are released, and only a completed job keeps its building and neighbours, for its scene, until it expires. The job stays [Queued](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus.Queued 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarJobStatus\.Queued') while it waits for the gate. Expired jobs are removed after each job, so memory is returned even when nobody reads the queue.
+A job cancelled before it starts is skipped without taking the gate; one cancelled while it runs keeps the [Cancelled](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus.Cancelled 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarJobStatus\.Cancelled') state and its results are discarded. Either way the calculation and the inputs it holds are released, and only a completed job keeps its building, for its view, until it expires. The job stays [Queued](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus.Queued 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarJobStatus\.Queued') while it waits for the gate. Expired jobs are removed after each job, so memory is returned even when nobody reads the queue.
 
 ```csharp
 public static System.Threading.Tasks.Task SolveAsync(this DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue? solarJobQueue, DiGi.GIS.WebAPI.UI.Classes.SolarJob? solarJob, System.Threading.SemaphoreSlim? semaphoreSlim, System.Action<string>? log=null, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
@@ -1356,6 +1401,61 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReference](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.classes.building2dreference 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReference')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The reference record, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there is none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DReferenceByPointAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
+
+## Query\.Building2DReferenceByPointAsync\(this HttpClient, string, Nullable\<int\>, Nullable\<double\>, Nullable\<double\>, CancellationToken\) Method
+
+Asynchronously resolves a building known by its reference and a point inside it to its [DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReference](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.classes.building2dreference 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReference') \(identifier and county\), as the 3D viewers know a building\.
+
+A viewer node reference may be a ComplexReference carrying the building reference together with its county (see `PostgreSQL.Create.Reference`); it is unwrapped first, and its county is used when [countyId](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Building2DReferenceByPointAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).countyId 'DiGi\.GIS\.WebAPI\.UI\.Query\.Building2DReferenceByPointAsync\(this System\.Net\.Http\.HttpClient, string, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)\.countyId') is not given.
+
+Without a county, every polygon part of the county the point falls in is tried rather than one being chosen ([CountyIdsAsync\(this HttpClient, Nullable&lt;double&gt;, Nullable&lt;double&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.CountyIdsAsync(thisSystem.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.CountyIdsAsync\(this System\.Net\.Http\.HttpClient, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)')): a county whose territory is disconnected is stored as one row per part and the building is filed under one of them, which is not necessarily the part covering its own coordinates - for code 3020 the data sits under a part that covers none of the buildings at all (ZiolkowskiJakub/DiGi.GIS.PostgreSQL#64). When no part answers, or the point names no county, the reference alone is looked up.
+
+```csharp
+public static System.Threading.Tasks.Task<DiGi.GIS.PostgreSQL.Classes.Building2DReference?> Building2DReferenceByPointAsync(this System.Net.Http.HttpClient? httpClient, string? reference, System.Nullable<int> countyId, System.Nullable<double> x, System.Nullable<double> y, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DReferenceByPointAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the requests\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DReferenceByPointAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).reference'></a>
+
+`reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The reference of the building, plain or as a viewer node reference\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DReferenceByPointAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional unique identifier of the county associated with the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DReferenceByPointAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).x'></a>
+
+`x` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The X coordinate of a point inside the building, in PL\-1992 \(EPSG:2180\) metres\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DReferenceByPointAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).y'></a>
+
+`y` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The Y coordinate of a point inside the building, in PL\-1992 \(EPSG:2180\) metres\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Building2DReferenceByPointAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReference](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.classes.building2dreference 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReference')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The [DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReference](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.postgresql.classes.building2dreference 'DiGi\.GIS\.PostgreSQL\.Classes\.Building2DReference'), or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the building could not be resolved\.
 
 <a name='DiGi.GIS.WebAPI.UI.Query.Building2DReferenceResponseAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Threading.CancellationToken)'></a>
 
@@ -1899,6 +1999,49 @@ The columns\. This value can be null\.
 [System\.Collections\.Generic\.Dictionary&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[,](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')[DiGi\.PostgreSQL\.Table\.Classes\.Column](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.column 'DiGi\.PostgreSQL\.Table\.Classes\.Column')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2 'System\.Collections\.Generic\.Dictionary\`2')  
 The columns by unique identifier, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there are none\.
 
+<a name='DiGi.GIS.WebAPI.UI.Query.CountyIdsAsync(thisSystem.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
+
+## Query\.CountyIdsAsync\(this HttpClient, Nullable\<double\>, Nullable\<double\>, CancellationToken\) Method
+
+Asynchronously resolves which county polygon parts a plan position can be filed under\.
+
+Used where a building is known by its reference and a point but not by its county: the reference alone does not say which county partition holds it (the building details page, the Building Viewer opened by reference).
+
+Every part of the county the point falls in is returned, not just the part covering the point. A county whose territory is disconnected is stored as one row per part and the building is filed under one of them, which need not be the part its own coordinates fall in (ZiolkowskiJakub/DiGi.GIS.PostgreSQL#64).
+
+```csharp
+public static System.Threading.Tasks.Task<System.Collections.Generic.List<int>?> CountyIdsAsync(this System.Net.Http.HttpClient? httpClient, System.Nullable<double> x, System.Nullable<double> y, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.CountyIdsAsync(thisSystem.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the requests\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.CountyIdsAsync(thisSystem.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).x'></a>
+
+`x` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The X coordinate, in PL\-1992 \(EPSG:2180\) metres\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.CountyIdsAsync(thisSystem.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).y'></a>
+
+`y` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The Y coordinate, in PL\-1992 \(EPSG:2180\) metres\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.CountyIdsAsync(thisSystem.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The identifiers of every polygon part of the county, in ascending order, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when no county could be resolved\.
+
 <a name='DiGi.GIS.WebAPI.UI.Query.CountyPartIdsAsync(thisSystem.Net.Http.HttpClient,string,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Threading.CancellationToken)'></a>
 
 ## Query\.CountyPartIdsAsync\(this HttpClient, string, AdministrativeArealType, CancellationToken\) Method
@@ -2375,7 +2518,7 @@ The status and body the Web API answered with, or [null](https://docs.microsoft.
 
 ## Query\.SolarIrradiationColor\(double\) Method
 
-Maps an annual irradiation to the colour the solar radiation viewer paints a surface with, on a fixed ramp from 0 \(dark blue\) through pale yellow to [SolarIrradiationScaleMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarIrradiationScaleMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarIrradiationScaleMax') \(dark red\)\.
+Maps an annual irradiation to the colour the Building Viewer's "Solar radiation" panel paints a surface with, on a fixed ramp from 0 \(dark blue\) through pale yellow to [SolarIrradiationScaleMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarIrradiationScaleMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarIrradiationScaleMax') \(dark red\)\.
 
 The ramp is fixed rather than fitted to each building, so two buildings read the same colour for the same irradiation. Values outside the range take the end colours, and a value that is not finite takes the bottom one. The same ramp draws the viewer's legend, so the two cannot drift apart.
 
@@ -2422,6 +2565,29 @@ The unique identifier of the job\.
 #### Returns
 [SolarJob](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJob 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJob')  
 The job, or null when it is unknown or has expired\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.SolarRadius(System.Nullable_double_)'></a>
+
+## Query\.SolarRadius\(Nullable\<double\>\) Method
+
+Gets the neighbour radius the Building Viewer's "Solar radiation" panel calculates with: the scene radius of the page, limited to what a solar calculation admits\.
+
+The Building Viewer admits a scene radius of up to a third of [TerrainRadiusMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.TerrainRadiusMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.TerrainRadiusMax'), while a solar calculation refuses a neighbour radius above [SolarSurroundingRadiusMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSurroundingRadiusMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSurroundingRadiusMax') with a 400, so the panel clamps rather than failing, and the Results card reports the limit.
+
+```csharp
+public static double SolarRadius(System.Nullable<double> radius);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.SolarRadius(System.Nullable_double_).radius'></a>
+
+`radius` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The scene radius of the page, in metres; null means [TerrainRadius](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.TerrainRadius 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.TerrainRadius'), the scene default\.
+
+#### Returns
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')  
+The neighbour radius in metres, at most [SolarSurroundingRadiusMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSurroundingRadiusMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSurroundingRadiusMax')\.
 
 <a name='DiGi.GIS.WebAPI.UI.Query.SolarReceiverNormals(thisDiGi.Analytical.Building.Classes.BuildingModel)'></a>
 

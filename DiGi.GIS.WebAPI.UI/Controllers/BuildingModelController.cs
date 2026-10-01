@@ -38,6 +38,8 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
         /// <summary>
         /// Asynchronously loads a <see cref="BuildingModel"/> from the GIS Web API by searching for the building at the specified coordinates, converts its components into separate selectable <see cref="GLTFNode"/> instances and renders the 3D viewer page.
+        /// <para>Of the models found at the point, the one whose stored reference is <paramref name="reference"/> is shown, so a neighbour within <see cref="Constants.Default.BuildingSearchRadius"/> is never shown in its place; without a match the first one found is, as before.</para>
+        /// <para>The shown building is also resolved to its identifier and county (<see cref="Query.Building2DReferenceByPointAsync(HttpClient?, string?, int?, double?, double?, CancellationToken)"/>), concurrently with the model read. When it resolves, the page offers the "Solar radiation" panel and its component nodes take the root reference of <see cref="GetGLBBuildingModelByIdAsync(long, int?, double?, CancellationToken)"/>, so the solar results name them; otherwise the panel is left out and the model's stored reference is the root, as before.</para>
         /// </summary>
         /// <param name="reference">The reference of the building model.</param>
         /// <param name="x">The X coordinate of the building centroid.</param>
@@ -61,43 +63,69 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             HttpClient httpClient = httpClientFactory.CreateClient();
 
-            #region Building2DReference
-
-            // The footprint standing at the same point carries the cadastral reference the details panel
-            // needs, which the reference of the model is not. The reference given by the caller is kept as
-            // the fallback, so a building with no footprint stored still names something.
-            UrlBuilder urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/building2D/itemsbycircle");
-            urlBuilder = urlBuilder.AddParameter("x", x);
-            urlBuilder = urlBuilder.AddParameter("y", y);
-            urlBuilder = urlBuilder.AddParameter("radius", Constants.Default.BuildingSearchRadius);
-
-            GIS.Classes.Building2D? building2D = await httpClient.ItemAsync<GIS.Classes.Building2D>(urlBuilder.ToString(), cancellationToken);
-
-            ViewData["Building2DReference"] = building2D?.Reference ?? reference;
-
-            #endregion Building2DReference
-
-            #region BuildingModel
-
-            urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/buildingmodel/itemsbycircle");
+            // The models at the point, the footprint at the point and the identifier of the requested building are read
+            // concurrently.
+            UrlBuilder urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/buildingmodel/itemsbycircle");
             urlBuilder = urlBuilder.AddParameter("x", x);
             urlBuilder = urlBuilder.AddParameter("y", y);
             urlBuilder = urlBuilder.AddParameter("radius", Constants.Default.BuildingSearchRadius);
             urlBuilder = urlBuilder.AddParameter("tolerance", Constants.Default.BuildingSearchTolerance);
 
-            BuildingModel? buildingModel = await httpClient.ItemAsync<BuildingModel>(urlBuilder.ToString(), cancellationToken);
+            Task<List<BuildingModel>?> task_BuildingModels = httpClient.ItemsAsync<BuildingModel>(urlBuilder.ToString(), cancellationToken);
+
+            // The footprint standing at the same point carries the cadastral reference the details panel needs when the
+            // building cannot be resolved below. The reference given by the caller is the last fallback, so a building
+            // with no footprint stored still names something.
+            urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/building2D/itemsbycircle");
+            urlBuilder = urlBuilder.AddParameter("x", x);
+            urlBuilder = urlBuilder.AddParameter("y", y);
+            urlBuilder = urlBuilder.AddParameter("radius", Constants.Default.BuildingSearchRadius);
+
+            Task<GIS.Classes.Building2D?> task_Building2D = httpClient.ItemAsync<GIS.Classes.Building2D>(urlBuilder.ToString(), cancellationToken);
+
+            // The identifier and county the solar routes need.
+            Task<PostgreSQL.Classes.Building2DReference?> task_Building2DReference = httpClient.Building2DReferenceByPointAsync(reference, null, x, y, cancellationToken);
+
+            List<BuildingModel>? buildingModels = await task_BuildingModels;
+            BuildingModel? buildingModel = buildingModels?.Find(buildingModel_Temp => BuildingModelReference(TryGetReferenceText(buildingModel_Temp)) == BuildingModelReference(reference)) ?? buildingModels?.FirstOrDefault();
             if (buildingModel is null)
             {
                 return NotFound();
             }
 
-            #endregion BuildingModel
+            GIS.Classes.Building2D? building2D = await task_Building2D;
+            PostgreSQL.Classes.Building2DReference? building2DReference = await task_Building2DReference;
 
-            // Reuse the building's own stored reference so the rebuilt component nodes carry a fully-qualified
-            // reference (building + county + component guid) rather than a bare component identifier.
-            IReference? reference_BuildingModel = null;
-            if (buildingModel.TryGetValue<string>(Analytical.Enums.BuildingModelParameter.Reference, out string? referenceText) && Core.Query.TryParse(referenceText, out IReference? reference_Temp))
+            // The caller named another building than the one shown (no model matched it): resolve the one shown.
+            string? referenceText_BuildingModel = TryGetReferenceText(buildingModel);
+            if (referenceText_BuildingModel is not null && BuildingModelReference(referenceText_BuildingModel) != BuildingModelReference(reference))
             {
+                building2DReference = await httpClient.Building2DReferenceByPointAsync(referenceText_BuildingModel, null, x, y, cancellationToken);
+            }
+
+            ViewData["Building2DReference"] = building2DReference?.Reference ?? building2D?.Reference ?? reference;
+
+            IReference? reference_BuildingModel = null;
+            ViewModels.SolarSettingsViewModel? solarSettingsViewModel = null;
+            if (building2DReference is not null && building2DReference.Id > 0)
+            {
+                // The root reference of buildingmodel/buildingmodelbyid, which the solar view references its surfaces by.
+                // gis/buildingmodel/itemsbycircle stores the county-qualified (complex) reference on the model, while the
+                // by-identifier read behind that page and the solar routes stores the plain one; the plain one is set on
+                // this copy so the two roots are the same text.
+                string? reference_Plain = BuildingModelReference(referenceText_BuildingModel);
+                if (!string.IsNullOrWhiteSpace(reference_Plain) && reference_Plain != referenceText_BuildingModel)
+                {
+                    buildingModel.SetValue(Analytical.Enums.BuildingModelParameter.Reference, reference_Plain, new Core.Parameter.Classes.SetValueSettings(true, false));
+                }
+
+                reference_BuildingModel = PostgreSQL.Create.Reference(buildingModel, null, building2DReference.CountyId);
+                solarSettingsViewModel = Create.SolarSettingsViewModel(building2DReference.Id, building2DReference.CountyId, radius);
+            }
+            else if (Core.Query.TryParse(referenceText_BuildingModel, out IReference? reference_Temp))
+            {
+                // Reuse the building's own stored reference so the rebuilt component nodes carry a fully-qualified
+                // reference (building + county + component guid) rather than a bare component identifier.
                 reference_BuildingModel = reference_Temp;
             }
 
@@ -119,7 +147,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return NotFound();
             }
 
-            ViewModels.GLTFSceneViewModel? gLTFSceneViewModel = gLTFScene.GLTFSceneViewModel(name, viewRange);
+            ViewModels.GLTFSceneViewModel? gLTFSceneViewModel = gLTFScene.GLTFSceneViewModel(name, viewRange, solarSettingsViewModel);
             if (gLTFSceneViewModel is null)
             {
                 return NotFound();
@@ -221,6 +249,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
         /// <summary>
         /// Renders the 3D viewer page for a single building. The page itself carries no geometry; the viewer streams the binary glTF payload from the glb endpoint.
+        /// <para>The page offers the "Solar radiation" panel (<see cref="SolarController.GetViewByBuildingModelIdAsync(long, int?, double?, CancellationToken)"/>), with <paramref name="radius"/> as the neighbour radius limited by <see cref="Query.SolarRadius(double?)"/>.</para>
         /// </summary>
         /// <param name="id">The unique identifier of the building.</param>
         /// <param name="countyId">The optional unique identifier of the county associated with the building.</param>
@@ -272,7 +301,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 surroundingsGLBUrl += $"&countyid={countyId.Value.ToString(CultureInfo.InvariantCulture)}";
             }
 
-            GLTFSceneViewModel gLTFSceneViewModel = new($"BuildingModel {id}", gLBUrl, viewRange: viewRange, surroundingsGLBUrl: surroundingsGLBUrl);
+            GLTFSceneViewModel gLTFSceneViewModel = new($"BuildingModel {id}", gLBUrl, viewRange: viewRange, surroundingsGLBUrl: surroundingsGLBUrl, solarSettings: Create.SolarSettingsViewModel(id, countyId, radius));
 
             return View("~/Views/GLTF/GLTFSceneView.cshtml", gLTFSceneViewModel);
         }
@@ -475,6 +504,21 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Gets the plain building reference of a reference text, unwrapping a ComplexReference that carries it together with its county (see <c>PostgreSQL.Create.Reference</c>), so two forms of the same building compare equal.
+        /// </summary>
+        /// <param name="referenceText">The reference text, plain or complex. This value can be null.</param>
+        /// <returns>The plain building reference, or the text itself when it holds none.</returns>
+        private static string? BuildingModelReference(string? referenceText)
+        {
+            if (PostgreSQL.Query.TryParse(referenceText, out string buildingModelReference, out _, out _) && !string.IsNullOrWhiteSpace(buildingModelReference))
+            {
+                return buildingModelReference;
+            }
+
+            return referenceText;
         }
 
         /// <summary>

@@ -1,7 +1,7 @@
 namespace DiGi.GIS.WebAPI.UI.ViewModels
 {
     /// <summary>
-    /// Represents the state of a background solar radiation job as the <c>solar/jobs</c> routes answer it and the solar radiation viewer polls it.
+    /// Represents the state of a background solar radiation job as the <c>solar/jobs</c> routes answer it and the Building Viewer's "Solar radiation" panel polls it.
     /// </summary>
     public class SolarJobViewModel
     {

@@ -12,7 +12,7 @@ namespace DiGi.GIS.WebAPI.UI
     {
         /// <summary>
         /// Runs a queued background solar radiation job behind the solve gate it shares with the synchronous requests: waits for the gate, marks the job <see cref="SolarJobStatus.Running"/>, runs its prepared calculation and marks it <see cref="SolarJobStatus.Completed"/> with the results, or <see cref="SolarJobStatus.Failed"/> with the error text when the calculation throws or gives no result.
-        /// <para>A job cancelled before it starts is skipped without taking the gate; one cancelled while it runs keeps the <see cref="SolarJobStatus.Cancelled"/> state and its results are discarded. Either way the calculation and the inputs it holds are released, and only a completed job keeps its building and neighbours, for its scene, until it expires. The job stays <see cref="SolarJobStatus.Queued"/> while it waits for the gate. Expired jobs are removed after each job, so memory is returned even when nobody reads the queue.</para>
+        /// <para>A job cancelled before it starts is skipped without taking the gate; one cancelled while it runs keeps the <see cref="SolarJobStatus.Cancelled"/> state and its results are discarded. Either way the calculation and the inputs it holds are released, and only a completed job keeps its building, for its view, until it expires. The job stays <see cref="SolarJobStatus.Queued"/> while it waits for the gate. Expired jobs are removed after each job, so memory is returned even when nobody reads the queue.</para>
         /// </summary>
         /// <param name="solarJobQueue">The queue the job belongs to.</param>
         /// <param name="solarJob">The job.</param>
@@ -94,7 +94,6 @@ namespace DiGi.GIS.WebAPI.UI
                     if (solarJobStatus != SolarJobStatus.Completed)
                     {
                         solarJob.BuildingModel = null;
-                        solarJob.BuildingModels_Surrounding = null;
                     }
                 }
 

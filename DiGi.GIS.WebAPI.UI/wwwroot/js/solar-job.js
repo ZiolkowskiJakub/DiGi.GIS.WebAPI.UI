@@ -1,8 +1,8 @@
-// DiGi.GIS.WebAPI.UI — background solar radiation jobs for the solar radiation viewer (issue #60).
+// DiGi.GIS.WebAPI.UI — background solar radiation jobs (issues #60, #66).
 // A building above the synchronous limits is refused with 413; this module posts it as a job, polls
-// the job's state and fetches its coloured scene once it has completed. The job id is kept in the page
-// address (?job=), so a reload resumes the polling instead of starting another calculation.
-// Loaded on demand by gltf-viewer.js, and only on pages whose viewer carries data-solar-jobs-url.
+// the job's state and fetches its solar radiation view (solar/jobs/{id}/view) once it has completed.
+// The job id is kept in the page address (?job=), so a reload resumes the polling instead of starting
+// another calculation. Loaded on demand by solar-tools.js, the Building Viewer's "Solar radiation" panel.
 
 const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
@@ -21,7 +21,8 @@ export function formatSeconds(seconds) {
     return `${rest} s`;
 }
 
-function setJobParameter(jobId) {
+// Keeps the job id in the page address, or removes it (null).
+export function setJobParameter(jobId) {
     const url = new URL(window.location.href);
     if (jobId) {
         url.searchParams.set('job', jobId);
@@ -70,8 +71,8 @@ export async function cancelSolarJob(jobsUrl, jobId) {
 }
 
 // Runs a background job to its end: posts a new one when jobId is null, otherwise resumes polling it.
-// onStatus(text, jobId, completed) receives every state change; completed is true once nothing is left to cancel. Resolves with { buffer } for the scene, or with
-// { buffer: null, message, retry } where retry says whether starting another job makes sense.
+// onStatus(text, jobId, completed) receives every state change; completed is true once nothing is left to cancel. Resolves with { view } for the
+// solar radiation view, or with { view: null, message, retry } where retry says whether starting another job makes sense.
 export async function runSolarJob({ jobsUrl, query, jobId, pollSeconds, refusalMessage, onStatus }) {
     const pollMilliseconds = Math.max(1, Number(pollSeconds) || 5) * 1000;
 
@@ -80,11 +81,11 @@ export async function runSolarJob({ jobsUrl, query, jobId, pollSeconds, refusalM
         try {
             response = await fetch(`${jobsUrl}?${query}`, { method: 'POST' });
         } catch {
-            return { buffer: null, message: 'The background calculation could not be started: the server did not answer.', retry: true };
+            return { view: null, message: 'The background calculation could not be started: the server did not answer.', retry: true };
         }
         if (response.status !== 202) {
             // 503: the queue is full; any other refusal (413 above the job limits, 422, ...) will not change on a retry.
-            return { buffer: null, message: await refusalMessage(response), retry: response.status === 503 };
+            return { view: null, message: await refusalMessage(response), retry: response.status === 503 };
         }
         const job = readJob(await response.json());
         jobId = job.jobId;
@@ -103,7 +104,7 @@ export async function runSolarJob({ jobsUrl, query, jobId, pollSeconds, refusalM
 
         if (response.status === 404) {
             setJobParameter(null);
-            return { buffer: null, message: 'This background calculation is no longer available: its result expired or the server restarted.', retry: true };
+            return { view: null, message: 'This background calculation is no longer available: its result expired or the server restarted.', retry: true };
         }
         if (!response.ok) {
             await sleep(pollMilliseconds);
@@ -112,30 +113,27 @@ export async function runSolarJob({ jobsUrl, query, jobId, pollSeconds, refusalM
 
         const job = readJob(await response.json());
         if (job.status === 'Completed') {
-            onStatus('Background calculation completed. Loading the scene…', jobId, true);
+            onStatus('Background calculation completed. Loading the results…', jobId, true);
             try {
-                const glbResponse = await fetch(`${jobsUrl}/${encodeURIComponent(jobId)}/glb`);
-                if (glbResponse.ok && glbResponse.status !== 204) {
-                    const buffer = await glbResponse.arrayBuffer();
-                    if (buffer.byteLength > 0) {
-                        return { buffer, message: null, retry: false };
-                    }
+                const viewResponse = await fetch(`${jobsUrl}/${encodeURIComponent(jobId)}/view`, { cache: 'no-store' });
+                if (viewResponse.ok && viewResponse.status !== 204) {
+                    return { view: await viewResponse.json(), message: null, retry: false };
                 }
-                if (glbResponse.status === 404) {
+                if (viewResponse.status === 404) {
                     setJobParameter(null);
                 }
-                return { buffer: null, message: glbResponse.ok ? 'The calculated scene is empty.' : await refusalMessage(glbResponse), retry: glbResponse.status === 404 };
+                return { view: null, message: viewResponse.ok ? 'The calculation returned no results for the walls and roofs.' : await refusalMessage(viewResponse), retry: viewResponse.status === 404 };
             } catch {
-                return { buffer: null, message: 'The calculated scene could not be loaded. Reload the page to try again.', retry: false };
+                return { view: null, message: 'The calculated results could not be loaded. Reload the page to try again.', retry: false };
             }
         }
         if (job.status === 'Failed') {
             setJobParameter(null);
-            return { buffer: null, message: `The background calculation failed: ${job.error || 'no details were given.'}`, retry: true };
+            return { view: null, message: `The background calculation failed: ${job.error || 'no details were given.'}`, retry: true };
         }
         if (job.status === 'Cancelled') {
             setJobParameter(null);
-            return { buffer: null, message: 'The background calculation was cancelled.', retry: true };
+            return { view: null, message: 'The background calculation was cancelled.', retry: true };
         }
 
         onStatus(statusText(job), jobId);

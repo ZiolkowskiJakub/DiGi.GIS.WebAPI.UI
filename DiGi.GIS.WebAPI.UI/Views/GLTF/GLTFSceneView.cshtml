@@ -1,8 +1,25 @@
 @model DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel
 @inject Microsoft.AspNetCore.Mvc.ViewFeatures.IFileVersionProvider FileVersionProvider
+@using System.Globalization
 @{
     ViewData["Title"] = Model.Title ?? "3D Viewer";
     ViewData["Description"] = "Interactive 3D glTF view with object selection, properties panel and dynamic lighting.";
+
+    // "Solar radiation" panel (DiGi.GIS.WebAPI.UI#66): rendered only when the page knows its building by identifier.
+    DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel? solarSettings = Model.SolarSettings;
+    double solarScaleMax = DiGi.GIS.WebAPI.UI.Constants.Default.SolarIrradiationScaleMax;
+    string? solarGradient = null;
+    if (solarSettings is not null)
+    {
+        // The legend ramp is sampled from the same function that colours the surfaces.
+        List<string> gradientStops = [];
+        for (int i = 0; i <= 8; i++)
+        {
+            string? hex = DiGi.GIS.WebAPI.UI.Query.Hex(DiGi.GIS.WebAPI.UI.Query.SolarIrradiationColor(solarScaleMax * i / 8));
+            gradientStops.Add($"{hex} {(i * 12.5).ToString(CultureInfo.InvariantCulture)}%");
+        }
+        solarGradient = $"linear-gradient(to right, {string.Join(", ", gradientStops)})";
+    }
 }
 
 <div class="gis-panel gis-panel-full">
@@ -53,6 +70,18 @@
                 <h3 class="gltf-card-title">Settings</h3>
                 <div id="gltf-settings"></div>
             </div>
+
+            @* Solar radiation card (solar-tools.js): Calculate colours the receiving walls and roofs of the scene in
+               place, Clear restores them. The neighbour radius is the Radius of the page, limited to the solar maximum. *@
+            @if (solarSettings is not null)
+            {
+                <div class="gis-card gltf-card" id="solar-card">
+                    <h3 class="gltf-card-title">Solar radiation</h3>
+                    <button type="button" id="solar-calculate-button" class="gis-button" disabled title="Calculate the annual solar radiation on the external walls and roofs">Calculate</button>
+                    <button type="button" id="solar-clear-button" class="gis-button" disabled title="Restore the original colours and remove the results">Clear</button>
+                    <div id="solar-message" class="gltf-muted solar-message" style="display: none;"></div>
+                </div>
+            }
         </aside>
 
         @* Left resizer (hidden by default) *@
@@ -65,7 +94,9 @@
            data-scope-box-size: default scope box preset "halfX;halfY;zMin;zMax" or "halfX;halfY" (DiGi coordinates; the latter fits Z to the buildings' elevation);
            empty falls back to the engine's bounds-fit default.
            data-surroundings-glb-url: optional URL of the surrounding elements payload; when present the Settings card offers the
-           "Show surrounding elements" checkbox and the Transparency slider, and the payload is fetched only on the first check. *@
+           "Show surrounding elements" checkbox and the Transparency slider, and the payload is fetched only on the first check.
+           data-solar-*: the "Solar radiation" panel - the view and background job routes, their query (id, countyid and the
+           clamped radius), the radius used and the one the page asked for, and the job poll interval. *@
         <div id="gltf-viewer-container"
              data-status-terminal="true"
              data-scope-box-size="@Model.ScopeBoxSize"
@@ -76,11 +107,24 @@
              data-sun-direction-url="@Url.Content("~/solar/sundirection")"
              data-view-range-min="@Model.ViewRange?.Minimum.ToString(System.Globalization.CultureInfo.InvariantCulture)"
              data-view-range-max="@Model.ViewRange?.Maximum.ToString(System.Globalization.CultureInfo.InvariantCulture)"
-             data-view-range-default="@Model.ViewRange?.Default.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+             data-view-range-default="@Model.ViewRange?.Default.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+             data-solar-view-url="@(solarSettings is null ? null : Url.Content("~/solar/viewbybuildingmodelid"))"
+             data-solar-jobs-url="@(solarSettings is null ? null : Url.Content("~/solar/jobs"))"
+             data-solar-query="@solarSettings?.Query"
+             data-solar-radius="@solarSettings?.Radius.ToString(CultureInfo.InvariantCulture)"
+             data-solar-radius-requested="@solarSettings?.RadiusRequested.ToString(CultureInfo.InvariantCulture)"
+             data-solar-job-poll-seconds="@(solarSettings is null ? null : DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobPollSeconds.ToString(CultureInfo.InvariantCulture))">
             <div id="gltf-loader" class="gltf-loader">
                 <div class="gis-loader"></div>
                 <p class="gis-loader-text">Loading 3D scene…</p>
             </div>
+            @if (solarSettings is not null)
+            {
+                <div id="solar-calculation-loader" class="gltf-loader" style="display: none;">
+                    <div class="gis-loader"></div>
+                    <p class="gis-loader-text">Calculating solar radiation…</p>
+                </div>
+            }
             @* Small toggle in the top-left corner that folds/unfolds the left side panel. *@
             <button type="button" id="gltf-left-panel-toggle" class="gltf-left-panel-toggle" title="Show controls" aria-label="Show controls" aria-controls="gltf-left-panel" aria-expanded="false">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -99,8 +143,8 @@
 
         <div id="gltf-resizer" class="gltf-resizer" role="separator" aria-label="Resize panels"></div>
 
-        @* The cards are kept in alphabetical order by title (General, Lighting, Properties, Scene, Selection) —
-           hidden cards (Selection) appear in place when user interaction reveals them. *@
+        @* The cards are kept in alphabetical order by title (General, Lighting, Properties, Results, Scene, Selection) —
+           hidden cards (Results, Selection) appear in place when a calculation or user interaction reveals them. *@
         <aside id="gltf-side-panel" class="gltf-side-panel">
             @if (Model.Title != null && Model.Title.StartsWith("BuildingModel "))
             {
@@ -143,6 +187,40 @@
                 </div>
             </div>
 
+            @* Results card: hidden until an analysis succeeds. Each analysis owns one .gltf-results-section, separated
+               from the next by a divider, so further analyses can add theirs to the same card. *@
+            @if (solarSettings is not null)
+            {
+                <div class="gis-card gltf-card" id="gltf-results-card" data-expanded="true" style="display: none;">
+                    <h3 class="gltf-card-title">Results</h3>
+                    <section class="gltf-results-section" id="solar-results-section" style="display: none;">
+                        <h4 class="gltf-results-section-title">Solar radiation</h4>
+                        <div class="gltf-muted">Annual irradiation [kWh/m²]</div>
+                        <div class="solar-ramp" style="background: @solarGradient;" role="img" aria-label="Colour ramp from 0 to @solarScaleMax.ToString(CultureInfo.InvariantCulture) kWh/m² per year"></div>
+                        <div class="solar-ramp-scale">
+                            <span>0</span>
+                            <span>@((solarScaleMax / 2).ToString(CultureInfo.InvariantCulture))</span>
+                            <span>@solarScaleMax.ToString(CultureInfo.InvariantCulture)+</span>
+                        </div>
+                        <div class="gltf-controls-list">
+                            <div class="gltf-control-row">
+                                <span class="gltf-control-key">Neighbours</span>
+                                <span class="gltf-control-val" id="solar-results-radius"></span>
+                            </div>
+                            <div class="gltf-control-row">
+                                <span class="gltf-control-key">Weather</span>
+                                <span class="gltf-control-val" id="solar-results-station"></span>
+                            </div>
+                        </div>
+                        <label class="solar-flat-label">
+                            <input type="checkbox" id="solar-flat-checkbox" checked />
+                            Flat result colours
+                        </label>
+                        <div class="gltf-muted">Walls and roofs only; other components keep their colour. Isotropic sky: neighbours shade the direct beam, not the diffuse light.</div>
+                    </section>
+                </div>
+            }
+
             <div class="gis-card gltf-card">
                 <h3 class="gltf-card-title">Scene</h3>
                 <div id="gltf-scene-info" class="gltf-properties"></div>
@@ -173,10 +251,16 @@
                 "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
                 "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
                 "three-mesh-bvh": "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.8/build/index.module.js",
-                "gltf-viewer-core": "@FileVersionProvider.AddFileVersionToPath(Context.Request.PathBase, "/js/gltf-viewer-core.js")"
+                "gltf-viewer-core": "@FileVersionProvider.AddFileVersionToPath(Context.Request.PathBase, "/js/gltf-viewer-core.js")",
+                "http-refusal": "@FileVersionProvider.AddFileVersionToPath(Context.Request.PathBase, "/js/http-refusal.js")",
+                "solar-job": "@FileVersionProvider.AddFileVersionToPath(Context.Request.PathBase, "/js/solar-job.js")"
             }
         }
     </!script>
     <script type="module" src="~/js/gltf-viewer.js" asp-append-version="true"></script>
     <script type="module" src="~/js/building-details-panel.js" asp-append-version="true"></script>
+    @if (solarSettings is not null)
+    {
+        <script type="module" src="~/js/solar-tools.js" asp-append-version="true"></script>
+    }
 }

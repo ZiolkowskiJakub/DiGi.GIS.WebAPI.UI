@@ -195,7 +195,7 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const int SolarConcurrentSolveCount = 1;
 
         /// <summary>
-        /// The irradiation, in kWh/m² per year, at the top of the colour ramp of the solar radiation viewer; higher values take the top colour.
+        /// The irradiation, in kWh/m² per year, at the top of the colour ramp of the Building Viewer's "Solar radiation" panel; higher values take the top colour.
         /// <para>Fixed rather than fitted to each building so that two buildings read the same colour for the same irradiation. The best roofs of the measured Warsaw buildings received 997–1 041 kWh/m² against an annual global horizontal irradiation of 978–999 kWh/m² (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537).</para>
         /// </summary>
         public const double SolarIrradiationScaleMax = 1200.0;
@@ -254,7 +254,7 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const int SolarJobRetryAfterSeconds = 300;
 
         /// <summary>
-        /// The number of seconds between two status requests of the solar radiation viewer while it waits for a background job.
+        /// The number of seconds between two status requests of the Building Viewer's "Solar radiation" panel while it waits for a background job.
         /// </summary>
         public const int SolarJobPollSeconds = 5;
 

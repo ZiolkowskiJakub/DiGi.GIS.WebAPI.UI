@@ -9,7 +9,6 @@ using DiGi.Geometry.Spatial.Classes;
 using DiGi.GIS.WebAPI.UI.Classes;
 using DiGi.GIS.WebAPI.UI.Enums;
 using DiGi.GIS.WebAPI.UI.ViewModels;
-using DiGi.GLTF.Classes;
 using DiGi.Solar.Classes;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Http;
@@ -28,6 +27,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 {
     /// <summary>
     /// Solar calculations for the 3D viewers: the sun position for the Lighting panel, and the annual solar radiation on the external walls and roofs of one building, calculated on this host's CPU with DiGi.Solar over one EPW year, with the building itself and its neighbours casting shade.
+    /// <para>The radiation is shown by the "Solar radiation" panel of the Building Viewer (DiGi.GIS.WebAPI.UI#66): <see cref="GetViewByBuildingModelIdAsync(long, int?, double?, CancellationToken)"/> and <see cref="GetJobView(Guid)"/> answer a <see cref="SolarRadiationViewModel"/> that recolours the receiving surfaces of the scene already loaded, so no scene of its own is streamed.</para>
     /// <para>The radiation routes answer the same refusals: 400 for a neighbour radius outside (0, <see cref="Constants.Default.SolarSurroundingRadiusMax"/>], 204 when the building or its weather file is not found, 422 when the building cannot be located or has no closed external envelope, 413 above <see cref="Constants.Default.SolarReceiverCountMax"/> receiving surfaces or <see cref="Constants.Default.SolarCasterTriangleCountMax"/> caster triangles, 502 when the neighbours cannot be read, 503 with <c>Retry-After</c> when the solve gate stays busy for <see cref="Constants.Default.SolarSolveGateWaitSeconds"/> seconds, and 499 / 504 / 500 for a client cancel, an upstream timeout and any other failure.</para>
     /// <para>Buildings above those ceilings are calculated as background jobs (<c>solar/jobs</c>, DiGi.GIS.WebAPI.UI#60): the POST runs the same checks with the job ceilings (<see cref="Constants.Default.SolarJobReceiverCountMax"/>, <see cref="Constants.Default.SolarJobCasterTriangleCountMax"/>), queues the prepared calculation and answers 202, or 503 with <c>Retry-After</c> when <see cref="Constants.Default.SolarJobQueueLengthMax"/> jobs are already waiting. The job routes answer 404 for an unknown or expired job and 409 for results of a job that has not completed.</para>
     /// </summary>
@@ -60,91 +60,6 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         internal TimeSpan SolveGateWait { get; set; } = TimeSpan.FromSeconds(Constants.Default.SolarSolveGateWaitSeconds);
 
         /// <summary>
-        /// Handles the HTTP GET request to the root endpoint and returns the solar radiation landing page, where a building is chosen by its identifier.
-        /// </summary>
-        /// <returns>An <see cref="IActionResult"/> representing the start view.</returns>
-        [HttpGet("")]
-        public IActionResult Start()
-        {
-            return View("~/Views/Solar/Start.cshtml");
-        }
-
-        /// <summary>
-        /// Displays the solar radiation 3D viewer of a building: the page streams its scene from <see cref="GetGLBBuildingModelByIdAsync(long, int?, double?, CancellationToken)"/> and shows a legend with the colour ramp, the neighbour radius and the EPW station. The page itself carries no geometry and runs no solve.
-        /// <para>When the scene request is refused with a 413, the page offers a background calculation (<see cref="PostJobAsync(long, int?, double?, CancellationToken)"/>), polls it and loads its scene from <see cref="GetJobGLB(Guid)"/>; the job identifier is kept in the page address (<c>job</c>), so a reload resumes the polling.</para>
-        /// </summary>
-        /// <param name="id">The unique identifier of the building.</param>
-        /// <param name="countyId">The optional unique identifier of the county associated with the building.</param>
-        /// <param name="radius">The neighbour radius in metres, measured from the edge of the footprint; omitted means <see cref="Constants.Default.SolarSurroundingRadius"/>.</param>
-        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
-        /// <returns>The viewer page; 400 for an invalid radius, 204 when the building or its weather file is not found, 422 when the building cannot be located.</returns>
-        [HttpGet("buildingmodelbyid")]
-        public async Task<IActionResult> GetBuildingModelByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "radius")] double? radius, CancellationToken cancellationToken = default)
-        {
-            double radius_Value = radius ?? Constants.Default.SolarSurroundingRadius;
-            if (!IsValidRadius(radius_Value))
-            {
-                return RadiusBadRequest();
-            }
-
-            HttpClient httpClient = httpClientFactory.CreateClient();
-
-            BuildingModel? buildingModel = await httpClient.BuildingModelAsync(id, countyId, cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
-            if (buildingModel is null)
-            {
-                return NoContent();
-            }
-
-            // GIS qualifier: this project's own Modify class shadows DiGi.GIS.Analytical.Modify.
-            if (!GIS.Analytical.Modify.UpdateBuildingInformation(buildingModel))
-            {
-                return UnprocessableEntity(new List<string>() { $"Building {id} could not be located, so the sun cannot be positioned for it." });
-            }
-
-            Point2D? center = buildingModel.TerrainCircle(0, 0)?.Center;
-            if (center is null)
-            {
-                return UnprocessableEntity(new List<string>() { $"Building {id} has no geometry." });
-            }
-
-            EPWFile? ePWFile = await httpClient.ItemAsync<EPWFile>(EPWFileItemUri(center), cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
-            if (ePWFile is null)
-            {
-                return NoContent();
-            }
-
-            string query = $"id={id.ToString(CultureInfo.InvariantCulture)}";
-            if (countyId.HasValue)
-            {
-                query += $"&countyid={countyId.Value.ToString(CultureInfo.InvariantCulture)}";
-            }
-
-            query += $"&radius={radius_Value.ToString(CultureInfo.InvariantCulture)}";
-
-            string stationUrl = $"~/epwfile/item?x={center.X.ToString(CultureInfo.InvariantCulture)}&y={center.Y.ToString(CultureInfo.InvariantCulture)}";
-
-            SolarSceneViewModel solarSceneViewModel = new($"Solar radiation {id}", $"~/solar/glb/buildingmodelbyid?{query}", "~/solar/jobs", query, radius_Value, StationName(ePWFile), stationUrl);
-
-            return View("~/Views/Solar/SolarSceneView.cshtml", solarSceneViewModel);
-        }
-
-        /// <summary>
-        /// Calculates the annual solar radiation on the external walls and roofs of a building and streams it as a binary glTF (.glb) scene: each receiving surface coloured by its irradiation on the fixed ramp of <see cref="Query.SolarIrradiationColor(double)"/> and carrying its <see cref="SurfaceSolarRadiationResult"/> as node properties, the building's other components grey, and the neighbours as grey semi-transparent context.
-        /// </summary>
-        /// <param name="id">The unique identifier of the building.</param>
-        /// <param name="countyId">The optional unique identifier of the county associated with the building.</param>
-        /// <param name="radius">The neighbour radius in metres, measured from the edge of the footprint; omitted means <see cref="Constants.Default.SolarSurroundingRadius"/>.</param>
-        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
-        /// <returns>The <c>model/gltf-binary</c> payload, or one of the refusals listed on <see cref="SolarController"/>.</returns>
-        [HttpGet("glb/buildingmodelbyid")]
-        public async Task<IActionResult> GetGLBBuildingModelByIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "radius")] double? radius, CancellationToken cancellationToken = default)
-        {
-            return await SolveAsync(id, countyId, radius, (buildingModel, buildingModels_Surrounding, surfaceSolarRadiationResults) => GLBResult(buildingModel, buildingModels_Surrounding, surfaceSolarRadiationResults, id, countyId), cancellationToken);
-        }
-
-        /// <summary>
         /// Calculates the annual solar radiation on the external walls and roofs of a building: one <see cref="SurfaceSolarRadiationResult"/> per receiving surface, over one EPW year, with the building itself and its neighbours within <paramref name="radius"/> casting shade.
         /// </summary>
         /// <param name="id">The unique identifier of the building.</param>
@@ -155,9 +70,26 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         [HttpGet("radiationbybuildingmodelid")]
         public async Task<IActionResult> GetRadiationByBuildingModelIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "radius")] double? radius, CancellationToken cancellationToken = default)
         {
-            return await SolveAsync(id, countyId, radius, (buildingModel, buildingModels_Surrounding, surfaceSolarRadiationResults) =>
+            return await SolveAsync(id, countyId, radius, (buildingModel, surfaceSolarRadiationResults, radius_Value, ePWFile, center) =>
             {
                 return Content(Core.Convert.ToSystem_String(surfaceSolarRadiationResults) ?? "[]", "application/json");
+            }, cancellationToken);
+        }
+
+        /// <summary>
+        /// Calculates the annual solar radiation on the external walls and roofs of a building, like <see cref="GetRadiationByBuildingModelIdAsync(long, int?, double?, CancellationToken)"/>, and answers it in the shape the Building Viewer's "Solar radiation" panel applies to its scene in place: one <see cref="SolarSurfaceViewModel"/> per receiving surface, referenced exactly like the node of its component on <c>buildingmodel/buildingmodelbyid</c> (root <c>PostgreSQL.Create.Reference(buildingModel, null, countyId)</c>), with its irradiation colour and its <see cref="SurfaceSolarRadiationResult"/>.
+        /// </summary>
+        /// <param name="id">The unique identifier of the building.</param>
+        /// <param name="countyId">The optional unique identifier of the county associated with the building.</param>
+        /// <param name="radius">The neighbour radius in metres, measured from the edge of the footprint; omitted means <see cref="Constants.Default.SolarSurroundingRadius"/>.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>200 with the <see cref="SolarRadiationViewModel"/>, or one of the refusals listed on <see cref="SolarController"/>.</returns>
+        [HttpGet("viewbybuildingmodelid")]
+        public async Task<IActionResult> GetViewByBuildingModelIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "radius")] double? radius, CancellationToken cancellationToken = default)
+        {
+            return await SolveAsync(id, countyId, radius, (buildingModel, surfaceSolarRadiationResults, radius_Value, ePWFile, center) =>
+            {
+                return ViewResult(buildingModel, surfaceSolarRadiationResults, countyId, radius_Value, StationName(ePWFile), StationUrl(center));
             }, cancellationToken);
         }
 
@@ -185,10 +117,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return QueueFull();
             }
 
-            return await PrepareAsync(id, countyId, radius_Value, true, (buildingModel, buildingModels_Surrounding, normals, ePWFile, shadingModel, casterTriangleCount) =>
+            return await PrepareAsync(id, countyId, radius_Value, true, (buildingModel, normals, ePWFile, center, shadingModel, casterTriangleCount) =>
             {
                 // The calculation holds its inputs until it has run; nothing is shared with another job.
-                SolarJob solarJob = new(Guid.NewGuid(), id, countyId, radius_Value, normals.Count, buildingModel, buildingModels_Surrounding, () => shadingModel.SurfaceSolarRadiationResults(normals, ePWFile, SolarShadingSolverOptions(), message => logger.LogInformation("{Message}", message)));
+                SolarJob solarJob = new(Guid.NewGuid(), id, countyId, radius_Value, normals.Count, buildingModel, StationName(ePWFile), StationUrl(center), () => shadingModel.SurfaceSolarRadiationResults(normals, ePWFile, SolarShadingSolverOptions(), message => logger.LogInformation("{Message}", message)));
                 if (!solarJobQueue.TryEnqueue(solarJob))
                 {
                     return Task.FromResult(QueueFull());
@@ -235,20 +167,20 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
 
         /// <summary>
-        /// Streams the coloured binary glTF (.glb) scene of a completed background solar radiation job, in the shape of <see cref="GetGLBBuildingModelByIdAsync(long, int?, double?, CancellationToken)"/>, built from the stored results without solving again.
+        /// Gets the results of a completed background solar radiation job in the shape of <see cref="GetViewByBuildingModelIdAsync(long, int?, double?, CancellationToken)"/>, built from the stored results without solving again.
         /// </summary>
         /// <param name="jobId">The unique identifier of the job.</param>
-        /// <returns>The <c>model/gltf-binary</c> payload; 409 when the job has not completed; 404 when it is unknown or has expired.</returns>
-        [HttpGet("jobs/{jobId:guid}/glb")]
-        public IActionResult GetJobGLB([FromRoute(Name = "jobId")] Guid jobId)
+        /// <returns>200 with the <see cref="SolarRadiationViewModel"/>; 409 when the job has not completed; 404 when it is unknown or has expired.</returns>
+        [HttpGet("jobs/{jobId:guid}/view")]
+        public IActionResult GetJobView([FromRoute(Name = "jobId")] Guid jobId)
         {
             SolarJob? solarJob = CompletedJob(jobId, out IActionResult? actionResult);
-            if (solarJob?.SurfaceSolarRadiationResults is not List<SurfaceSolarRadiationResult> surfaceSolarRadiationResults || solarJob.BuildingModel is not BuildingModel buildingModel || solarJob.BuildingModels_Surrounding is not List<BuildingModel> buildingModels_Surrounding)
+            if (solarJob?.SurfaceSolarRadiationResults is not List<SurfaceSolarRadiationResult> surfaceSolarRadiationResults || solarJob.BuildingModel is not BuildingModel buildingModel)
             {
                 return actionResult ?? JobNotFound(jobId);
             }
 
-            return GLBResult(buildingModel, buildingModels_Surrounding, surfaceSolarRadiationResults, solarJob.BuildingModelId, solarJob.CountyId);
+            return ViewResult(buildingModel, surfaceSolarRadiationResults, solarJob.CountyId, solarJob.Radius, solarJob.StationName, solarJob.StationUrl);
         }
 
         /// <summary>
@@ -358,34 +290,26 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             return values.Count == 0 ? null : string.Join(", ", values);
         }
 
-        // The glb of a solved building, shared by the synchronous route and the job route: each receiving
-        // surface coloured by its irradiation, the building's other components grey, the neighbours as context.
-        private IActionResult GLBResult(BuildingModel buildingModel, List<BuildingModel> buildingModels_Surrounding, List<SurfaceSolarRadiationResult> surfaceSolarRadiationResults, long id, int? countyId)
+        // The station page of the EPW file the calculation reads, relative to the application root. It is resolved per
+        // response (Request.PathBase), so a job stores it without knowing the base of the request that reads it.
+        private static string StationUrl(Point2D center)
         {
-            // The same root reference as the 3D building viewer, so a selected surface traces back to its building.
+            return $"/epwfile/item?x={center.X.ToString(CultureInfo.InvariantCulture)}&y={center.Y.ToString(CultureInfo.InvariantCulture)}";
+        }
+
+        // The view of a solved building, shared by the synchronous route and the job route. The root reference is the
+        // one of the Building Viewer scene (buildingmodel/buildingmodelbyid), so each surface names the node it recolours.
+        private IActionResult ViewResult(BuildingModel buildingModel, List<SurfaceSolarRadiationResult> surfaceSolarRadiationResults, int? countyId, double radius, string? stationName, string? stationUrl)
+        {
             IReference? reference = PostgreSQL.Create.Reference(buildingModel, null, countyId);
 
-            List<GLTFNode>? gLTFNodes = buildingModel.SolarGLTFNodes(buildingModels_Surrounding, surfaceSolarRadiationResults, reference);
-            if (gLTFNodes is null || gLTFNodes.Count == 0)
+            SolarRadiationViewModel? solarRadiationViewModel = buildingModel.SolarRadiationViewModel(surfaceSolarRadiationResults, reference, radius, stationName, stationUrl is null ? null : $"{Request.PathBase}{stationUrl}");
+            if (solarRadiationViewModel is null)
             {
                 return NoContent();
             }
 
-            string name = $"SolarRadiation {id}";
-
-            GLTFScene? gLTFScene = GLTF.Create.GLTFScene(gLTFNodes, name);
-            if (gLTFScene is null)
-            {
-                return NoContent();
-            }
-
-            byte[]? bytes = GLTF.Convert.ToSystem_Bytes(gLTFScene, true);
-            if (bytes is null || bytes.Length == 0)
-            {
-                return NoContent();
-            }
-
-            return File(bytes, "model/gltf-binary", $"{name}.glb");
+            return Ok(solarRadiationViewModel);
         }
 
         // A job whose results can be read: the job, or null with the refusal - 404 for an unknown or expired
@@ -454,8 +378,9 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         // The pipeline shared by the synchronous routes and the job route, up to the solve: fetch and stamp
         // the building, refuse what the ceilings do not cover before any expensive step (the job ceilings when
         // background is true), fetch the neighbours and the weather, build the shading model, then hand
-        // everything to next - a synchronous solve, or a queued job.
-        private async Task<IActionResult> PrepareAsync(long id, int? countyId, double radius, bool background, Func<BuildingModel, List<BuildingModel>, Dictionary<string, Vector3D>, EPWFile, ShadingModel, int, Task<IActionResult>> next, CancellationToken cancellationToken)
+        // everything to next - a synchronous solve, or a queued job. The neighbours go into the shading model
+        // only: nothing after the solve needs them.
+        private async Task<IActionResult> PrepareAsync(long id, int? countyId, double radius, bool background, Func<BuildingModel, Dictionary<string, Vector3D>, EPWFile, Point2D, ShadingModel, int, Task<IActionResult>> next, CancellationToken cancellationToken)
         {
             try
             {
@@ -533,7 +458,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                         : $"The surroundings of building {id} within {radiusText} m hold {casterTriangleCount} shading triangles; a calculation on request covers at most {Constants.Default.SolarCasterTriangleCountMax}. Choose a smaller radius, or calculate it in the background, which covers up to {Constants.Default.SolarJobCasterTriangleCountMax}.");
                 }
 
-                return await next(buildingModel, buildingModels_Surrounding, normals, ePWFile, shadingModel, casterTriangleCount);
+                return await next(buildingModel, normals, ePWFile, center, shadingModel, casterTriangleCount);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -554,7 +479,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         // host-wide gate and hand the results to the route's response. The gate is also held by background
         // jobs for many minutes, so the wait is bounded (SolarSolveGateWaitSeconds) and answers 503 rather
         // than holding the request until the front end gives up.
-        private async Task<IActionResult> SolveAsync(long id, int? countyId, double? radius, Func<BuildingModel, List<BuildingModel>, List<SurfaceSolarRadiationResult>, IActionResult> respond, CancellationToken cancellationToken)
+        private async Task<IActionResult> SolveAsync(long id, int? countyId, double? radius, Func<BuildingModel, List<SurfaceSolarRadiationResult>, double, EPWFile, Point2D, IActionResult> respond, CancellationToken cancellationToken)
         {
             double radius_Value = radius ?? Constants.Default.SolarSurroundingRadius;
             if (!IsValidRadius(radius_Value))
@@ -564,7 +489,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            return await PrepareAsync(id, countyId, radius_Value, false, async (buildingModel, buildingModels_Surrounding, normals, ePWFile, shadingModel, casterTriangleCount) =>
+            return await PrepareAsync(id, countyId, radius_Value, false, async (buildingModel, normals, ePWFile, center, shadingModel, casterTriangleCount) =>
             {
                 if (!await semaphoreSlim.WaitAsync(SolveGateWait, cancellationToken))
                 {
@@ -589,7 +514,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                     return UnprocessableEntity(new List<string>() { $"The solar radiation of building {id} could not be calculated from its model and weather file." });
                 }
 
-                return respond(buildingModel, buildingModels_Surrounding, surfaceSolarRadiationResults);
+                return respond(buildingModel, surfaceSolarRadiationResults, radius_Value, ePWFile, center);
             }, cancellationToken);
         }
     }

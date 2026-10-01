@@ -342,49 +342,6 @@ public Building2DController(System.Net.Http.IHttpClientFactory httpClientFactory
 The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') used to create [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient') instances\.
 ### Methods
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.CountyIdsAsync(System.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
-
-## Building2DController\.CountyIdsAsync\(HttpClient, Nullable\<double\>, Nullable\<double\>, CancellationToken\) Method
-
-Asynchronously resolves which county polygon parts a plan position can be filed under\.
-
-Used only as a fallback: the 3D viewer knows a building by its reference and its centroid, and the reference alone does not say which county partition holds it.
-
-Every part of the county the point falls in is returned, not just the part covering the point. A county whose territory is disconnected is stored as one row per part and the building is filed under one of them, which need not be the part its own coordinates fall in.
-
-```csharp
-private static System.Threading.Tasks.Task<System.Collections.Generic.List<int>?> CountyIdsAsync(System.Net.Http.HttpClient httpClient, System.Nullable<double> x, System.Nullable<double> y, System.Threading.CancellationToken cancellationToken);
-```
-#### Parameters
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.CountyIdsAsync(System.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).httpClient'></a>
-
-`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
-
-The HTTP client used for the requests\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.CountyIdsAsync(System.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).x'></a>
-
-`x` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
-
-The X coordinate, in PL\-1992 \(EPSG:2180\) metres\. This value can be null\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.CountyIdsAsync(System.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).y'></a>
-
-`y` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
-
-The Y coordinate, in PL\-1992 \(EPSG:2180\) metres\. This value can be null\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.CountyIdsAsync(System.Net.Http.HttpClient,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
-
-`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
-
-A cancellation token that can be used by the caller to cancel the asynchronous operation\.
-
-#### Returns
-[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-The identifiers of every polygon part of the county, in ascending order, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when no county could be resolved\.
-
 <a name='DiGi.GIS.WebAPI.UI.Controllers.Building2DController.GetBuilding2DReferencesByAdministrativeAreal2DIdAsync(int,System.Threading.CancellationToken)'></a>
 
 ## Building2DController\.GetBuilding2DReferencesByAdministrativeAreal2DIdAsync\(int, CancellationToken\) Method
@@ -730,6 +687,27 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task 'System\.Threading\.Tasks\.Task')  
 A [System\.Threading\.Tasks\.Task](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task 'System\.Threading\.Tasks\.Task') representing the asynchronous operation\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.BuildingModelReference(string)'></a>
+
+## BuildingModelController\.BuildingModelReference\(string\) Method
+
+Gets the plain building reference of a reference text, unwrapping a ComplexReference that carries it together with its county \(see `PostgreSQL.Create.Reference`\), so two forms of the same building compare equal\.
+
+```csharp
+private static string? BuildingModelReference(string? referenceText);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.BuildingModelReference(string).referenceText'></a>
+
+`referenceText` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The reference text, plain or complex\. This value can be null\.
+
+#### Returns
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
+The plain building reference, or the text itself when it holds none\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.BuildingModelsByCircleAsync(System.Net.Http.HttpClient,double,double,double,System.Threading.CancellationToken)'></a>
 
 ## BuildingModelController\.BuildingModelsByCircleAsync\(HttpClient, double, double, double, CancellationToken\) Method
@@ -801,6 +779,8 @@ The nodes of all the buildings, in world coordinates\. The list is empty when no
 ## BuildingModelController\.GetBuildingModelByIdAsync\(long, Nullable\<int\>, Nullable\<double\>, CancellationToken\) Method
 
 Renders the 3D viewer page for a single building\. The page itself carries no geometry; the viewer streams the binary glTF payload from the glb endpoint\.
+
+The page offers the "Solar radiation" panel ([GetViewByBuildingModelIdAsync\(long, Nullable&lt;int&gt;, Nullable&lt;double&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetViewByBuildingModelIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController\.GetViewByBuildingModelIdAsync\(long, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)')), with [radius](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).radius 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.BuildingModelController\.GetBuildingModelByIdAsync\(long, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)\.radius') as the neighbour radius limited by [SolarRadius\(Nullable&lt;double&gt;\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.SolarRadius(System.Nullable_double_) 'DiGi\.GIS\.WebAPI\.UI\.Query\.SolarRadius\(System\.Nullable\<double\>\)').
 
 ```csharp
 public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetBuildingModelByIdAsync(long id, System.Nullable<int> countyId, System.Nullable<double> radius, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
@@ -963,6 +943,10 @@ A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dot
 ## BuildingModelController\.GetItemByReferenceAsync\(string, double, double, Nullable\<double\>, CancellationToken\) Method
 
 Asynchronously loads a [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel') from the GIS Web API by searching for the building at the specified coordinates, converts its components into separate selectable [DiGi\.GLTF\.Classes\.GLTFNode](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfnode 'DiGi\.GLTF\.Classes\.GLTFNode') instances and renders the 3D viewer page\.
+
+Of the models found at the point, the one whose stored reference is [reference](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double,System.Nullable_double_,System.Threading.CancellationToken).reference 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.BuildingModelController\.GetItemByReferenceAsync\(string, double, double, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)\.reference') is shown, so a neighbour within [BuildingSearchRadius](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.BuildingSearchRadius 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.BuildingSearchRadius') is never shown in its place; without a match the first one found is, as before.
+
+The shown building is also resolved to its identifier and county ([Building2DReferenceByPointAsync\(this HttpClient, string, Nullable&lt;int&gt;, Nullable&lt;double&gt;, Nullable&lt;double&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Building2DReferenceByPointAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.Building2DReferenceByPointAsync\(this System\.Net\.Http\.HttpClient, string, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)')), concurrently with the model read. When it resolves, the page offers the "Solar radiation" panel and its component nodes take the root reference of [GetGLBBuildingModelByIdAsync\(long, Nullable&lt;int&gt;, Nullable&lt;double&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.BuildingModelController\.GetGLBBuildingModelByIdAsync\(long, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)'), so the solar results name them; otherwise the panel is left out and the model's stored reference is the root, as before.
 
 ```csharp
 public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetItemByReferenceAsync(string reference, double x, double y, System.Nullable<double> radius, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
@@ -1786,6 +1770,8 @@ A task that represents the asynchronous operation\. The task result contains an 
 
 Solar calculations for the 3D viewers: the sun position for the Lighting panel, and the annual solar radiation on the external walls and roofs of one building, calculated on this host's CPU with DiGi\.Solar over one EPW year, with the building itself and its neighbours casting shade\.
 
+The radiation is shown by the "Solar radiation" panel of the Building Viewer (DiGi.GIS.WebAPI.UI#66): [GetViewByBuildingModelIdAsync\(long, Nullable&lt;int&gt;, Nullable&lt;double&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetViewByBuildingModelIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController\.GetViewByBuildingModelIdAsync\(long, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)') and [GetJobView\(Guid\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetJobView(System.Guid) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController\.GetJobView\(System\.Guid\)') answer a [SolarRadiationViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarRadiationViewModel') that recolours the receiving surfaces of the scene already loaded, so no scene of its own is streamed.
+
 The radiation routes answer the same refusals: 400 for a neighbour radius outside (0, [SolarSurroundingRadiusMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSurroundingRadiusMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSurroundingRadiusMax')], 204 when the building or its weather file is not found, 422 when the building cannot be located or has no closed external envelope, 413 above [SolarReceiverCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarReceiverCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarReceiverCountMax') receiving surfaces or [SolarCasterTriangleCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarCasterTriangleCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarCasterTriangleCountMax') caster triangles, 502 when the neighbours cannot be read, 503 with `Retry-After` when the solve gate stays busy for [SolarSolveGateWaitSeconds](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSolveGateWaitSeconds 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSolveGateWaitSeconds') seconds, and 499 / 504 / 500 for a client cancel, an upstream timeout and any other failure.
 
 Buildings above those ceilings are calculated as background jobs (`solar/jobs`, DiGi.GIS.WebAPI.UI#60): the POST runs the same checks with the job ceilings ([SolarJobReceiverCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobReceiverCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobReceiverCountMax'), [SolarJobCasterTriangleCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobCasterTriangleCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobCasterTriangleCountMax')), queues the prepared calculation and answers 202, or 503 with `Retry-After` when [SolarJobQueueLengthMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobQueueLengthMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobQueueLengthMax') jobs are already waiting. The job routes answer 404 for an unknown or expired job and 409 for results of a job that has not completed.
@@ -1868,86 +1854,6 @@ The unique identifier of the job\.
 [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
 204; 404 when the job is unknown or has expired\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
-
-## SolarController\.GetBuildingModelByIdAsync\(long, Nullable\<int\>, Nullable\<double\>, CancellationToken\) Method
-
-Displays the solar radiation 3D viewer of a building: the page streams its scene from [GetGLBBuildingModelByIdAsync\(long, Nullable&lt;int&gt;, Nullable&lt;double&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController\.GetGLBBuildingModelByIdAsync\(long, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)') and shows a legend with the colour ramp, the neighbour radius and the EPW station\. The page itself carries no geometry and runs no solve\.
-
-When the scene request is refused with a 413, the page offers a background calculation ([PostJobAsync\(long, Nullable&lt;int&gt;, Nullable&lt;double&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController.PostJobAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController\.PostJobAsync\(long, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)')), polls it and loads its scene from [GetJobGLB\(Guid\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetJobGLB(System.Guid) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController\.GetJobGLB\(System\.Guid\)'); the job identifier is kept in the page address (`job`), so a reload resumes the polling.
-
-```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetBuildingModelByIdAsync(long id, System.Nullable<int> countyId, System.Nullable<double> radius, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
-```
-#### Parameters
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).id'></a>
-
-`id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
-
-The unique identifier of the building\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).countyId'></a>
-
-`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
-
-The optional unique identifier of the county associated with the building\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).radius'></a>
-
-`radius` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
-
-The neighbour radius in metres, measured from the edge of the footprint; omitted means [SolarSurroundingRadius](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSurroundingRadius 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSurroundingRadius')\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
-
-`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
-
-A cancellation token that can be used by the caller to cancel the asynchronous operation\.
-
-#### Returns
-[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-The viewer page; 400 for an invalid radius, 204 when the building or its weather file is not found, 422 when the building cannot be located\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
-
-## SolarController\.GetGLBBuildingModelByIdAsync\(long, Nullable\<int\>, Nullable\<double\>, CancellationToken\) Method
-
-Calculates the annual solar radiation on the external walls and roofs of a building and streams it as a binary glTF \(\.glb\) scene: each receiving surface coloured by its irradiation on the fixed ramp of [SolarIrradiationColor\(double\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.SolarIrradiationColor(double) 'DiGi\.GIS\.WebAPI\.UI\.Query\.SolarIrradiationColor\(double\)') and carrying its [SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult') as node properties, the building's other components grey, and the neighbours as grey semi\-transparent context\.
-
-```csharp
-public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetGLBBuildingModelByIdAsync(long id, System.Nullable<int> countyId, System.Nullable<double> radius, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
-```
-#### Parameters
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).id'></a>
-
-`id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
-
-The unique identifier of the building\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).countyId'></a>
-
-`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
-
-The optional unique identifier of the county associated with the building\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).radius'></a>
-
-`radius` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
-
-The neighbour radius in metres, measured from the edge of the footprint; omitted means [SolarSurroundingRadius](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSurroundingRadius 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSurroundingRadius')\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
-
-`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
-
-A cancellation token that can be used by the caller to cancel the asynchronous operation\.
-
-#### Returns
-[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-The `model/gltf-binary` payload, or one of the refusals listed on [SolarController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController')\.
-
 <a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetJob(System.Guid)'></a>
 
 ## SolarController\.GetJob\(Guid\) Method
@@ -1969,27 +1875,6 @@ The unique identifier of the job\.
 [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
 200 with the [SolarJobViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarJobViewModel') of the job; 404 when it is unknown or has expired\.
 
-<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetJobGLB(System.Guid)'></a>
-
-## SolarController\.GetJobGLB\(Guid\) Method
-
-Streams the coloured binary glTF \(\.glb\) scene of a completed background solar radiation job, in the shape of [GetGLBBuildingModelByIdAsync\(long, Nullable&lt;int&gt;, Nullable&lt;double&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetGLBBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController\.GetGLBBuildingModelByIdAsync\(long, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)'), built from the stored results without solving again\.
-
-```csharp
-public Microsoft.AspNetCore.Mvc.IActionResult GetJobGLB(System.Guid jobId);
-```
-#### Parameters
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetJobGLB(System.Guid).jobId'></a>
-
-`jobId` [System\.Guid](https://learn.microsoft.com/en-us/dotnet/api/system.guid 'System\.Guid')
-
-The unique identifier of the job\.
-
-#### Returns
-[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
-The `model/gltf-binary` payload; 409 when the job has not completed; 404 when it is unknown or has expired\.
-
 <a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetJobResult(System.Guid)'></a>
 
 ## SolarController\.GetJobResult\(Guid\) Method
@@ -2010,6 +1895,27 @@ The unique identifier of the job\.
 #### Returns
 [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
 The results as DiGi JSON; 409 when the job has not completed; 404 when it is unknown or has expired\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetJobView(System.Guid)'></a>
+
+## SolarController\.GetJobView\(Guid\) Method
+
+Gets the results of a completed background solar radiation job in the shape of [GetViewByBuildingModelIdAsync\(long, Nullable&lt;int&gt;, Nullable&lt;double&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetViewByBuildingModelIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController\.GetViewByBuildingModelIdAsync\(long, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)'), built from the stored results without solving again\.
+
+```csharp
+public Microsoft.AspNetCore.Mvc.IActionResult GetJobView(System.Guid jobId);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetJobView(System.Guid).jobId'></a>
+
+`jobId` [System\.Guid](https://learn.microsoft.com/en-us/dotnet/api/system.guid 'System\.Guid')
+
+The unique identifier of the job\.
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+200 with the [SolarRadiationViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarRadiationViewModel'); 409 when the job has not completed; 404 when it is unknown or has expired\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetRadiationByBuildingModelIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
 
@@ -2091,6 +1997,45 @@ The local time of day as a decimal hour in the 0\-24 range\.
 [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
 JSON with the true solar angles: azimuth \[deg\] \(0 = north, clockwise\) and altitude \[deg\] above the horizon \(negative at night\)\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetViewByBuildingModelIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
+
+## SolarController\.GetViewByBuildingModelIdAsync\(long, Nullable\<int\>, Nullable\<double\>, CancellationToken\) Method
+
+Calculates the annual solar radiation on the external walls and roofs of a building, like [GetRadiationByBuildingModelIdAsync\(long, Nullable&lt;int&gt;, Nullable&lt;double&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetRadiationByBuildingModelIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController\.GetRadiationByBuildingModelIdAsync\(long, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)'), and answers it in the shape the Building Viewer's "Solar radiation" panel applies to its scene in place: one [SolarSurfaceViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSurfaceViewModel') per receiving surface, referenced exactly like the node of its component on `buildingmodel/buildingmodelbyid` \(root `PostgreSQL.Create.Reference(buildingModel, null, countyId)`\), with its irradiation colour and its [SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult')\.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetViewByBuildingModelIdAsync(long id, System.Nullable<int> countyId, System.Nullable<double> radius, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetViewByBuildingModelIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).id'></a>
+
+`id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The unique identifier of the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetViewByBuildingModelIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional unique identifier of the county associated with the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetViewByBuildingModelIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).radius'></a>
+
+`radius` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The neighbour radius in metres, measured from the edge of the footprint; omitted means [SolarSurroundingRadius](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSurroundingRadius 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSurroundingRadius')\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.GetViewByBuildingModelIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+200 with the [SolarRadiationViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarRadiationViewModel'), or one of the refusals listed on [SolarController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController')\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.PostJobAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
 
 ## SolarController\.PostJobAsync\(long, Nullable\<int\>, Nullable\<double\>, CancellationToken\) Method
@@ -2129,20 +2074,6 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 202 with the [SolarJobViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarJobViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarJobViewModel') of the job and its `Location` \(`solar/jobs/{jobId}`\); 503 with `Retry-After` when the queue is full; otherwise one of the refusals listed on [SolarController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.SolarController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.SolarController')\.
-
-<a name='DiGi.GIS.WebAPI.UI.Controllers.SolarController.Start()'></a>
-
-## SolarController\.Start\(\) Method
-
-Handles the HTTP GET request to the root endpoint and returns the solar radiation landing page, where a building is chosen by its identifier\.
-
-```csharp
-public Microsoft.AspNetCore.Mvc.IActionResult Start();
-```
-
-#### Returns
-[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
-An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') representing the start view\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.TerrainController'></a>
 

@@ -3460,20 +3460,72 @@ h1.gis-title-large {
         font-size: 0.8rem;
     }
 
-/* Solar radiation viewer legend: the colour ramp of the receiving surfaces (drawn from the same
-   stops as Query.SolarIrradiationColor, so the legend and the scene cannot drift apart), its scale
-   and the calculation inputs. */
-.solar-legend-ramp {
+/* Building Viewer "Solar radiation" panel (DiGi.GIS.WebAPI.UI#66): the left card's buttons and message
+   area, the Lighting card note while the flat result colours are on, and the solar section of the Results
+   card - its colour ramp is drawn from the same stops as Query.SolarIrradiationColor, so the legend and
+   the scene cannot drift apart. */
+#solar-card .gis-button {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+}
+
+    #solar-card .gis-button + .gis-button {
+        margin-top: 8px;
+    }
+
+.solar-message {
+    display: block;
+    margin-top: 12px;
+}
+
+.solar-message-actions {
+    margin-top: 8px;
+}
+
+    .solar-message-actions .gis-button {
+        width: 100%;
+        box-sizing: border-box;
+        justify-content: center;
+    }
+
+.solar-lighting-note {
+    margin-bottom: 8px;
+}
+
+.solar-ramp {
     height: 14px;
     border-radius: 3px;
     border: 1px solid var(--border-color-light);
 }
 
-.solar-legend-scale {
+.solar-ramp-scale {
     display: flex;
     justify-content: space-between;
     font-size: 0.75rem;
     font-variant-numeric: tabular-nums;
     color: var(--text-muted);
     margin: 4px 0 10px;
+}
+
+.solar-flat-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0 8px;
+    cursor: pointer;
+}
+
+/* Results card sections: one per analysis, each headed by its name and separated from the next by a
+   divider, so further analyses can add theirs to the same card. */
+.gltf-results-section-title {
+    margin: 0 0 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.gltf-results-section + .gltf-results-section {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color-light);
 }

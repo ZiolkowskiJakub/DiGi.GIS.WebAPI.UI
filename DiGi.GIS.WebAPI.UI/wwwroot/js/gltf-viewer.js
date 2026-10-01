@@ -5,14 +5,14 @@
 // exactly one object is selected) and the scene information panel.
 
 import { GltfViewer, GltfStatusTerminal, readSceneData, readGlbBytes, reportStatus, updateLastStatus, formatElapsed } from 'gltf-viewer-core';
+import { refusalMessage } from 'http-refusal';
 
 const DEFAULT_PROPERTIES_HINT = 'Click an object or drag a selection rectangle in the 3D view. Properties are displayed when exactly one object is selected.';
 
 // Fetches the streamed glb like fetchGlbBytes, but keeps the server's refusal: a 4xx/5xx answer
 // (413 above a calculation limit, 422 for a model that cannot be calculated) carries a message the
 // user needs, which fetchGlbBytes - engine code shared with DiGi.GLTF.WebAPI - collapses into null.
-// A 204 or a network failure still answers no message, i.e. "nothing found". The status lets the
-// solar radiation viewer offer a background calculation for a 413.
+// A 204 or a network failure still answers no message, i.e. "nothing found".
 async function fetchGlb(url) {
     try {
         const response = await fetch(url);
@@ -27,31 +27,6 @@ async function fetchGlb(url) {
     } catch {
         return { buffer: null, message: null, status: 0 };
     }
-}
-
-// The text of a refusal: the controllers answer a JSON list of messages, a problem document or plain text.
-async function refusalMessage(response) {
-    let text = '';
-    try {
-        text = (await response.text()).trim();
-    } catch {
-        text = '';
-    }
-    try {
-        const json = JSON.parse(text);
-        if (Array.isArray(json) && json.length > 0) {
-            return json.join(' ');
-        }
-        if (typeof json === 'string' && json) {
-            return json;
-        }
-        if (json && (json.detail || json.title)) {
-            return json.detail || json.title;
-        }
-    } catch {
-        // Not JSON: plain text below.
-    }
-    return text ? text.slice(0, 500) : `The request failed (HTTP ${response.status}).`;
 }
 
 function appendPropertyRow(table, key, value) {
@@ -447,46 +422,16 @@ if (container) {
             }
         };
 
-        // The Properties panel as the page rendered it, restored once a background job's scene arrives.
         const propertiesPanel = document.getElementById('gltf-properties');
-        const propertiesDefault = propertiesPanel ? [...propertiesPanel.childNodes].map((node) => node.cloneNode(true)) : [];
 
-        // Replaces the Properties panel with a message, followed by any action buttons on a row of their own.
-        const showMessage = (message, buttons = []) => {
+        // Replaces the Properties panel with a message.
+        const showMessage = (message) => {
             if (propertiesPanel) {
                 const span = document.createElement('span');
                 span.className = 'gltf-muted';
                 span.textContent = message;
-                if (buttons.length === 0) {
-                    propertiesPanel.replaceChildren(span);
-                    return;
-                }
-                const row = document.createElement('div');
-                row.style.marginTop = '8px';
-                row.append(...buttons);
-                propertiesPanel.replaceChildren(span, row);
+                propertiesPanel.replaceChildren(span);
             }
-        };
-
-        // Cards are folded by default; the background job's offer and progress live in the Properties card,
-        // so it is unfolded through its own toggle (which keeps aria-expanded in step).
-        const expandProperties = () => {
-            const card = document.getElementById('gltf-properties')?.closest('.gltf-card');
-            if (card && card.classList.contains('gltf-card-collapsed')) {
-                card.querySelector('.gltf-card-toggle')?.click();
-            }
-        };
-
-        const createButton = (text, onClick) => {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = 'gis-button';
-            button.textContent = text;
-            button.addEventListener('click', () => {
-                button.disabled = true;
-                onClick();
-            });
-            return button;
         };
 
         try {
@@ -534,61 +479,6 @@ if (container) {
                 });
             };
 
-            // Background solar radiation jobs (issue #60): only the solar radiation viewer carries
-            // data-solar-jobs-url. A job posts (jobId null) or resumes, reports its state in the
-            // Properties panel and the status terminal, and hands its scene to showScene.
-            const solarJobsUrl = container.dataset.solarJobsUrl;
-            const runJob = solarJobsUrl ? async (jobId) => {
-                stopLoadingTimer();
-                expandProperties();
-                if (loader) {
-                    loader.style.display = '';
-                    const loaderText = loader.querySelector('.gis-loader-text');
-                    if (loaderText) {
-                        loaderText.textContent = 'Calculating solar radiation in the background…';
-                    }
-                }
-
-                const { runSolarJob, cancelSolarJob } = await import('solar-job');
-
-                let currentJobId = jobId;
-                const cancelButton = createButton('Cancel calculation', () => cancelSolarJob(solarJobsUrl, currentJobId));
-                let reported = false;
-                const result = await runSolarJob({
-                    jobsUrl: solarJobsUrl,
-                    query: container.dataset.solarJobQuery ?? '',
-                    jobId,
-                    pollSeconds: container.dataset.solarJobPollSeconds,
-                    refusalMessage,
-                    onStatus: (text, id, completed) => {
-                        currentJobId = id;
-                        showMessage(text, completed || cancelButton.disabled ? [] : [cancelButton]);
-                        if (reported) {
-                            updateLastStatus(text);
-                        } else {
-                            reportStatus(text);
-                            reported = true;
-                        }
-                    },
-                });
-
-                if (result.buffer) {
-                    propertiesPanel?.replaceChildren(...propertiesDefault);
-                    showScene(result.buffer);
-                    return;
-                }
-
-                hideLoader();
-                reportStatus(result.message);
-                showMessage(result.message, result.retry ? [createButton('Calculate in background', () => runJob(null))] : []);
-            } : null;
-
-            const jobId = runJob ? new URLSearchParams(window.location.search).get('job') : null;
-            if (jobId) {
-                await runJob(jobId);
-                return;
-            }
-
             // Streamed delivery is preferred: the binary glTF payload is fetched from the glb endpoint
             // (raw binary, browser-cacheable). The embedded base64 payload is the fallback mode; its
             // decode is asynchronous so multi-megabyte scenes never block the UI thread.
@@ -604,15 +494,7 @@ if (container) {
             stopLoadingTimer();
             const message = fetched.message || 'No objects were found for this request.';
             reportStatus(message);
-
-            // Above the synchronous limits (413), or while the solve gate is busy (503, typically with a
-            // background job running), the solar radiation viewer offers a background calculation.
-            if (runJob && (fetched.status === 413 || fetched.status === 503)) {
-                showMessage(message, [createButton('Calculate in background', () => runJob(null))]);
-                expandProperties();
-            } else {
-                showMessage(message);
-            }
+            showMessage(message);
         } catch {
             hideLoader();
             stopLoadingTimer();
