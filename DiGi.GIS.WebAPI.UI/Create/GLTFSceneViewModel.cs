@@ -12,9 +12,10 @@ namespace DiGi.GIS.WebAPI.UI
         /// <param name="gLTFScene">The <see cref="GLTFScene"/> to be rendered. This value can be null.</param>
         /// <param name="title">The title displayed above the viewer. If this value is null, the scene name is used.</param>
         /// <param name="viewRange">The bounds of the "View range" slider bound to the scene, or null for the viewer defaults. This value can be null.</param>
+        /// <param name="surroundingsGLBUrl">The application relative URL of the binary glTF (.glb) endpoint of the surrounding elements, which the viewer loads lazily when they are first requested, or null when the scene offers none. This value can be null.</param>
         /// <param name="solarSettings">The settings of the "Solar radiation" panel, or null when the page offers no solar calculation. This value can be null.</param>
         /// <returns>A <see cref="ViewModels.GLTFSceneViewModel"/> ready to be passed to the glTF scene view, or null if the scene is null or could not be exported.</returns>
-        public static ViewModels.GLTFSceneViewModel? GLTFSceneViewModel(this GLTFScene? gLTFScene, string? title = null, Classes.ViewRange? viewRange = null, ViewModels.SolarSettingsViewModel? solarSettings = null)
+        public static ViewModels.GLTFSceneViewModel? GLTFSceneViewModel(this GLTFScene? gLTFScene, string? title = null, Classes.ViewRange? viewRange = null, string? surroundingsGLBUrl = null, ViewModels.SolarSettingsViewModel? solarSettings = null)
         {
             if (gLTFScene is null)
             {
@@ -36,7 +37,7 @@ namespace DiGi.GIS.WebAPI.UI
 
             string gLBBase64 = System.Convert.ToBase64String(bytes);
 
-            return new ViewModels.GLTFSceneViewModel(gLTFScene, gLTFSceneJson, gLBBase64, title ?? gLTFScene.Name, viewRange, solarSettings);
+            return new ViewModels.GLTFSceneViewModel(gLTFScene, gLTFSceneJson, gLBBase64, title ?? gLTFScene.Name, viewRange, surroundingsGLBUrl, solarSettings);
         }
     }
 }

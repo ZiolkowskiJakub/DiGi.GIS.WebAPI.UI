@@ -43,14 +43,16 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
         /// <param name="gLBBase64">The base64 encoded binary glTF (.glb) payload rendered by the viewer.</param>
         /// <param name="title">The title displayed above the viewer.</param>
         /// <param name="viewRange">The bounds of the "View range" slider bound to the scene, or null for the viewer defaults (100 / 2000 / 10000 m). This value can be null.</param>
+        /// <param name="surroundingsGLBUrl">The application relative URL of the binary glTF (.glb) endpoint of the surrounding elements, which the viewer loads lazily when they are first requested, or null when the scene offers none. This value can be null.</param>
         /// <param name="solarSettings">The settings of the "Solar radiation" panel, or null when the page offers no solar calculation. This value can be null.</param>
-        public GLTFSceneViewModel(GLTFScene? gLTFScene, string? gLTFSceneJson, string? gLBBase64, string? title, ViewRange? viewRange = null, SolarSettingsViewModel? solarSettings = null)
+        public GLTFSceneViewModel(GLTFScene? gLTFScene, string? gLTFSceneJson, string? gLBBase64, string? title, ViewRange? viewRange = null, string? surroundingsGLBUrl = null, SolarSettingsViewModel? solarSettings = null)
         {
             GLTFScene = gLTFScene;
             GLTFSceneJson = gLTFSceneJson;
             GLBBase64 = gLBBase64;
             Title = title;
             ViewRange = viewRange;
+            SurroundingsGLBUrl = surroundingsGLBUrl;
             SolarSettings = solarSettings;
         }
 
@@ -72,7 +74,7 @@ namespace DiGi.GIS.WebAPI.UI.ViewModels
         /// <summary> Gets the settings of the "Solar radiation" panel, or null when the page offers no solar calculation. </summary>
         public SolarSettingsViewModel? SolarSettings { get; }
 
-        /// <summary> Gets the application relative URL of the binary glTF (.glb) endpoint of the surrounding elements (streamed delivery only), or null when the scene offers none. </summary>
+        /// <summary> Gets the application relative URL of the binary glTF (.glb) endpoint of the surrounding elements, or null when the scene offers none. </summary>
         public string? SurroundingsGLBUrl { get; }
 
         /// <summary> Gets the title displayed above the viewer. </summary>

@@ -40,6 +40,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         /// Asynchronously loads a <see cref="BuildingModel"/> from the GIS Web API by searching for the building at the specified coordinates, converts its components into separate selectable <see cref="GLTFNode"/> instances and renders the 3D viewer page.
         /// <para>Of the models found at the point, the one whose stored reference is <paramref name="reference"/> is shown, so a neighbour within <see cref="Constants.Default.BuildingSearchRadius"/> is never shown in its place; without a match the first one found is, as before.</para>
         /// <para>The shown building is also resolved to its identifier and county (<see cref="Query.Building2DReferenceByPointAsync(HttpClient?, string?, int?, double?, double?, CancellationToken)"/>), concurrently with the model read. When it resolves, the page offers the "Solar radiation" panel and its component nodes take the root reference of <see cref="GetGLBBuildingModelByIdAsync(long, int?, double?, CancellationToken)"/>, so the solar results name them; otherwise the panel is left out and the model's stored reference is the root, as before.</para>
+        /// <para>A resolved building also gets the "Show surrounding elements" option (<see cref="GetGLBSurroundingsByBuildingIdAsync(long, int?, double?, CancellationToken)"/>), and the scene takes the building centre as its local origin so the two payloads line up; an unresolved one is shown without it.</para>
         /// </summary>
         /// <param name="reference">The reference of the building model.</param>
         /// <param name="x">The X coordinate of the building centroid.</param>
@@ -107,6 +108,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             IReference? reference_BuildingModel = null;
             ViewModels.SolarSettingsViewModel? solarSettingsViewModel = null;
+            string? surroundingsGLBUrl = null;
             if (building2DReference is not null && building2DReference.Id > 0)
             {
                 // The root reference of buildingmodel/buildingmodelbyid, which the solar view references its surfaces by.
@@ -121,6 +123,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
                 reference_BuildingModel = PostgreSQL.Create.Reference(buildingModel, null, building2DReference.CountyId);
                 solarSettingsViewModel = Create.SolarSettingsViewModel(building2DReference.Id, building2DReference.CountyId, radius);
+                surroundingsGLBUrl = Create.SurroundingsGLBUrl(building2DReference.Id, building2DReference.CountyId);
             }
             else if (Core.Query.TryParse(referenceText_BuildingModel, out IReference? reference_Temp))
             {
@@ -141,13 +144,16 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             string name = $"BuildingModel {buildingModel.UniqueId}";
 
-            GLTFScene? gLTFScene = GLTF.Create.GLTFScene(gLTFNodes, name);
+            // The building centre as an explicit local origin, as in glb/buildingmodelbyid, keeps this scene lined up with the surrounding elements, which are streamed separately.
+            Point2D? center = buildingModel.TerrainCircle(0, 0)?.Center;
+
+            GLTFScene? gLTFScene = GLTF.Create.GLTFScene(gLTFNodes, name, referencePointOverride: center is null ? null : new Point3D(center.X, center.Y, 0));
             if (gLTFScene is null)
             {
                 return NotFound();
             }
 
-            ViewModels.GLTFSceneViewModel? gLTFSceneViewModel = gLTFScene.GLTFSceneViewModel(name, viewRange, solarSettingsViewModel);
+            ViewModels.GLTFSceneViewModel? gLTFSceneViewModel = gLTFScene.GLTFSceneViewModel(name, viewRange, surroundingsGLBUrl: surroundingsGLBUrl, solarSettings: solarSettingsViewModel);
             if (gLTFSceneViewModel is null)
             {
                 return NotFound();
@@ -295,13 +301,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             }
 
             // Surrounding elements are offered by the page but only fetched when the user first asks for them.
-            string surroundingsGLBUrl = $"~/buildingmodel/glb/surroundingsbybuildingid?id={id.ToString(CultureInfo.InvariantCulture)}";
-            if (countyId.HasValue)
-            {
-                surroundingsGLBUrl += $"&countyid={countyId.Value.ToString(CultureInfo.InvariantCulture)}";
-            }
-
-            GLTFSceneViewModel gLTFSceneViewModel = new($"BuildingModel {id}", gLBUrl, viewRange: viewRange, surroundingsGLBUrl: surroundingsGLBUrl, solarSettings: Create.SolarSettingsViewModel(id, countyId, radius));
+            GLTFSceneViewModel gLTFSceneViewModel = new($"BuildingModel {id}", gLBUrl, viewRange: viewRange, surroundingsGLBUrl: Create.SurroundingsGLBUrl(id, countyId), solarSettings: Create.SolarSettingsViewModel(id, countyId, radius));
 
             return View("~/Views/GLTF/GLTFSceneView.cshtml", gLTFSceneViewModel);
         }

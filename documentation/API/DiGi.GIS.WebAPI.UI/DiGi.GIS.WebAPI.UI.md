@@ -98,36 +98,42 @@ The requested minimum view range, in metres; null means [TerrainRadius](DiGi.GIS
 [ViewRange](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.ViewRange 'DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange')  
 A [ViewRange](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.ViewRange 'DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange'), or null if the radius is not finite, not positive or its maximum exceeds [TerrainRadiusMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.TerrainRadiusMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.TerrainRadiusMax'), which is as far as the ground can be loaded\.
 
-<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel)'></a>
 
-## Create\.GLTFSceneViewModel\(this GLTFScene, string, ViewRange, SolarSettingsViewModel\) Method
+## Create\.GLTFSceneViewModel\(this GLTFScene, string, ViewRange, string, SolarSettingsViewModel\) Method
 
 Creates a [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel') for the 3D viewer from the specified [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene') by serializing the scene to JSON and exporting it as a base64 encoded binary glTF \(\.glb\) payload\.
 
 ```csharp
-public static DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel? GLTFSceneViewModel(this DiGi.GLTF.Classes.GLTFScene? gLTFScene, string? title=null, DiGi.GIS.WebAPI.UI.Classes.ViewRange? viewRange=null, DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel? solarSettings=null);
+public static DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel? GLTFSceneViewModel(this DiGi.GLTF.Classes.GLTFScene? gLTFScene, string? title=null, DiGi.GIS.WebAPI.UI.Classes.ViewRange? viewRange=null, string? surroundingsGLBUrl=null, DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel? solarSettings=null);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).gLTFScene'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).gLTFScene'></a>
 
 `gLTFScene` [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene')
 
 The [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene') to be rendered\. This value can be null\.
 
-<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).title'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).title'></a>
 
 `title` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The title displayed above the viewer\. If this value is null, the scene name is used\.
 
-<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).viewRange'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).viewRange'></a>
 
 `viewRange` [ViewRange](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.ViewRange 'DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange')
 
 The bounds of the "View range" slider bound to the scene, or null for the viewer defaults\. This value can be null\.
 
-<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).solarSettings'></a>
+<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).surroundingsGLBUrl'></a>
+
+`surroundingsGLBUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The application relative URL of the binary glTF \(\.glb\) endpoint of the surrounding elements, which the viewer loads lazily when they are first requested, or null when the scene offers none\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.GLTFSceneViewModel(thisDiGi.GLTF.Classes.GLTFScene,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).solarSettings'></a>
 
 `solarSettings` [SolarSettingsViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSettingsViewModel')
 
@@ -393,6 +399,33 @@ Receives one line with the direction groups and the solve, view factor and aggre
 #### Returns
 [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')  
 One result per receiving surface, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when an input is null, the model has no coordinates, the EPW file has no usable hour, or the solver fails\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SurroundingsGLBUrl(long,System.Nullable_int_)'></a>
+
+## Create\.SurroundingsGLBUrl\(long, Nullable\<int\>\) Method
+
+Creates the application relative URL of the surrounding elements payload of the Building Viewer \(`buildingmodel/glb/surroundingsbybuildingid`\) for a building known by identifier, which the viewer fetches only when the user first checks "Show surrounding elements"\.
+
+```csharp
+public static string SurroundingsGLBUrl(long id, System.Nullable<int> countyId);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SurroundingsGLBUrl(long,System.Nullable_int_).id'></a>
+
+`id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The unique identifier of the building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.SurroundingsGLBUrl(long,System.Nullable_int_).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The optional unique identifier of the county associated with the building\.
+
+#### Returns
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
+The application relative URL\.
 
 <a name='DiGi.GIS.WebAPI.UI.Create.Table(string)'></a>
 

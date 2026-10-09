@@ -666,48 +666,54 @@ Initializes a new instance of the [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewMo
 public GLTFSceneViewModel();
 ```
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel)'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel)'></a>
 
-## GLTFSceneViewModel\(GLTFScene, string, string, string, ViewRange, SolarSettingsViewModel\) Constructor
+## GLTFSceneViewModel\(GLTFScene, string, string, string, ViewRange, string, SolarSettingsViewModel\) Constructor
 
 Initializes a new instance of the [GLTFSceneViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel') class for embedded delivery\.
 
 ```csharp
-public GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene? gLTFScene, string? gLTFSceneJson, string? gLBBase64, string? title, DiGi.GIS.WebAPI.UI.Classes.ViewRange? viewRange=null, DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel? solarSettings=null);
+public GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene? gLTFScene, string? gLTFSceneJson, string? gLBBase64, string? title, DiGi.GIS.WebAPI.UI.Classes.ViewRange? viewRange=null, string? surroundingsGLBUrl=null, DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel? solarSettings=null);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).gLTFScene'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).gLTFScene'></a>
 
 `gLTFScene` [DiGi\.GLTF\.Classes\.GLTFScene](https://learn.microsoft.com/en-us/dotnet/api/digi.gltf.classes.gltfscene 'DiGi\.GLTF\.Classes\.GLTFScene')
 
 The [GLTFScene](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFScene 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.GLTFSceneViewModel\.GLTFScene') to be rendered\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).gLTFSceneJson'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).gLTFSceneJson'></a>
 
 `gLTFSceneJson` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The JSON representation of the scene used by the viewer for lights, camera and reference point configuration\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).gLBBase64'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).gLBBase64'></a>
 
 `gLBBase64` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The base64 encoded binary glTF \(\.glb\) payload rendered by the viewer\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).title'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).title'></a>
 
 `title` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The title displayed above the viewer\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).viewRange'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).viewRange'></a>
 
 `viewRange` [ViewRange](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.ViewRange 'DiGi\.GIS\.WebAPI\.UI\.Classes\.ViewRange')
 
 The bounds of the "View range" slider bound to the scene, or null for the viewer defaults \(100 / 2000 / 10000 m\)\. This value can be null\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).solarSettings'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).surroundingsGLBUrl'></a>
+
+`surroundingsGLBUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The application relative URL of the binary glTF \(\.glb\) endpoint of the surrounding elements, which the viewer loads lazily when they are first requested, or null when the scene offers none\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.GLTFSceneViewModel.GLTFSceneViewModel(DiGi.GLTF.Classes.GLTFScene,string,string,string,DiGi.GIS.WebAPI.UI.Classes.ViewRange,string,DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel).solarSettings'></a>
 
 `solarSettings` [SolarSettingsViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSettingsViewModel')
 
@@ -843,7 +849,7 @@ public DiGi.GIS.WebAPI.UI.ViewModels.SolarSettingsViewModel? SolarSettings { get
 
 ## GLTFSceneViewModel\.SurroundingsGLBUrl Property
 
-Gets the application relative URL of the binary glTF \(\.glb\) endpoint of the surrounding elements \(streamed delivery only\), or null when the scene offers none\.
+Gets the application relative URL of the binary glTF \(\.glb\) endpoint of the surrounding elements, or null when the scene offers none\.
 
 ```csharp
 public string? SurroundingsGLBUrl { get; }
