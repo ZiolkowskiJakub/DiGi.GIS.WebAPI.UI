@@ -406,11 +406,13 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             // The target building is part of the answer, and is matched by reference (falling back to its centre)
             // so that it is never drawn twice - once opaque and selectable, once as a surrounding element.
-            string? referenceText_Target = TryGetReferenceText(buildingModel);
+            // gis/buildingmodel/itemsbycircle stores the county-qualified (complex) reference while the by-identifier
+            // read stores the plain one, so both are reduced to the plain building model reference before comparing.
+            string? referenceText_Target = BuildingModelReference(TryGetReferenceText(buildingModel));
             List<BuildingModel> buildingModels_Surrounding = [];
             foreach (BuildingModel buildingModel_Temp in buildingModels)
             {
-                string? referenceText = TryGetReferenceText(buildingModel_Temp);
+                string? referenceText = BuildingModelReference(TryGetReferenceText(buildingModel_Temp));
                 Point2D? center_Temp = buildingModel_Temp.TerrainCircle(0, 0)?.Center;
                 bool isTarget = referenceText_Target is not null && referenceText is not null
                     ? referenceText == referenceText_Target
